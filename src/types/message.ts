@@ -64,11 +64,11 @@ export interface OutputFormat {
 }
 
 // Part Types
-export type PartType = 
-  | 'text' 
-  | 'reasoning' 
-  | 'tool' 
-  | 'file' 
+export type PartType =
+  | 'text'
+  | 'reasoning'
+  | 'tool'
+  | 'file'
   | 'agent'
   | 'subtask'
   | 'stepStart'
@@ -78,7 +78,13 @@ export type PartType =
   | 'retry'
   | 'compaction';
 
-export interface Part {
+export type Part =
+  | TextPart
+  | ReasoningPart
+  | FilePart
+  | ToolPart;
+
+export interface BasePart {
   id: string;
   sessionID: string;
   messageID: string;
@@ -92,24 +98,24 @@ export interface Part {
   ignored?: boolean;
 }
 
-export interface TextPart extends Part {
+export interface TextPart extends BasePart {
   type: 'text';
   text: string;
 }
 
-export interface ReasoningPart extends Part {
+export interface ReasoningPart extends BasePart {
   type: 'reasoning';
   text: string;
 }
 
-export interface FilePart extends Part {
+export interface FilePart extends BasePart {
   type: 'file';
   mime: string;
   url: string;
   filename?: string;
 }
 
-export interface ToolPart extends Part {
+export interface ToolPart extends BasePart {
   type: 'tool';
   tool: string;
   command: string;

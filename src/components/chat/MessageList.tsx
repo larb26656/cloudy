@@ -1,8 +1,8 @@
 // components/chat/MessageList.tsx
-import { useEffect, useRef, useMemo } from 'react';
-import { MessageBubble } from './MessageBubble';
-import { useMessageStore } from '../../stores/messageStore';
-import type { Message } from '../../types';
+import { useEffect, useRef, useMemo } from "react";
+import { MessageBubble } from "./MessageBubble";
+import { useMessageStore } from "../../stores/messageStore";
+import type { Message } from "../../types";
 
 interface MessageListProps {
   sessionId: string;
@@ -10,7 +10,9 @@ interface MessageListProps {
 
 export function MessageList({ sessionId }: MessageListProps) {
   const messagesMap = useMessageStore((state) => state.messages);
-  const streamingMessageIds = useMessageStore((state) => state.streamingMessageIds);
+  const streamingMessageIds = useMessageStore(
+    (state) => state.streamingMessageIds,
+  );
   const isLoading = useMessageStore((state) => state.isLoading);
   const loadMessages = useMessageStore((state) => state.loadMessages);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -18,7 +20,10 @@ export function MessageList({ sessionId }: MessageListProps) {
   const lastMessageCountRef = useRef(0);
 
   // Get messages for this session - useMemo to prevent unnecessary re-renders
-  const messages = useMemo(() => messagesMap[sessionId] || [], [messagesMap, sessionId]);
+  const messages = useMemo(
+    () => messagesMap[sessionId] || [],
+    [messagesMap, sessionId],
+  );
 
   // Load messages when session changes (only once)
   useEffect(() => {
@@ -31,11 +36,11 @@ export function MessageList({ sessionId }: MessageListProps) {
   useEffect(() => {
     const currentMessageCount = messages.length;
     const hasNewMessages = currentMessageCount > lastMessageCountRef.current;
-    
+
     if (hasNewMessages && shouldScrollRef.current && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-    
+
     lastMessageCountRef.current = currentMessageCount;
   }, [messages.length]); // Only depend on message count, not the full array
 
@@ -63,7 +68,7 @@ export function MessageList({ sessionId }: MessageListProps) {
     <div
       ref={scrollRef}
       onScroll={handleScroll}
-      className="flex-1 overflow-y-auto p-4 space-y-2 scroll-smooth"
+      className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
     >
       {messages.length === 0 ? (
         <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500">
@@ -76,8 +81,9 @@ export function MessageList({ sessionId }: MessageListProps) {
       ) : (
         <div className="max-w-4xl mx-auto space-y-4 pb-4">
           {messages.map((message: Message) => {
-            const isStreaming = streamingMessageIds[sessionId] === message.info.id;
-            
+            const isStreaming =
+              streamingMessageIds[sessionId] === message.info.id;
+
             return (
               <MessageBubble
                 key={message.info.id}

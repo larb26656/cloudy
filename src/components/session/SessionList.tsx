@@ -1,16 +1,26 @@
 // components/session/SessionList.tsx
-import { useEffect } from 'react';
-import { Plus, Search, Loader2 } from 'lucide-react';
-import { SessionItem } from './SessionItem';
-import { DirectoryFilter } from './DirectoryFilter';
-import { useSessionStore } from '../../stores/sessionStore';
-import { useUIStore } from '../../stores/uiStore';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useEffect } from "react";
+import { Plus, Search, Loader2 } from "lucide-react";
+import { SessionItem } from "./SessionItem";
+import { DirectoryFilter } from "./DirectoryFilter";
+import { useSessionStore } from "../../stores/sessionStore";
+import { useUIStore } from "../../stores/uiStore";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export function SessionList() {
-  const { sessions, currentSessionId, sessionStatuses, isLoading, loadSessions, createSession, selectSession, updateSession, deleteSession } = useSessionStore();
+  const {
+    sessions,
+    currentSessionId,
+    sessionStatuses,
+    isLoading,
+    loadSessions,
+    createSession,
+    selectSession,
+    updateSession,
+    deleteSession,
+  } = useSessionStore();
   const { searchQuery, setSearchQuery, selectedDirectory } = useUIStore();
 
   useEffect(() => {
@@ -18,18 +28,22 @@ export function SessionList() {
   }, [loadSessions, selectedDirectory]);
 
   const filteredSessions = sessions.filter((session) =>
-    (session.title || 'New Chat').toLowerCase().includes(searchQuery.toLowerCase())
+    (session.title || "New Chat")
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase()),
   );
 
   const handleFork = async (sessionId: string) => {
-    console.log('Fork session:', sessionId);
+    console.log("Fork session:", sessionId);
   };
 
   return (
     <div className="flex flex-col h-full bg-muted border-r">
       <div className="p-4 border-b">
         <Button
-          onClick={() => createSession(undefined, selectedDirectory || undefined)}
+          onClick={() =>
+            createSession(undefined, selectedDirectory || undefined)
+          }
           className="w-full gap-2"
         >
           <Plus className="size-5" />
@@ -53,14 +67,14 @@ export function SessionList() {
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-2">
+      <div className="flex-1 p-2 min-h-0 overflow-y-auto ">
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
             <Loader2 className="size-6 animate-spin text-muted-foreground" />
           </div>
         ) : filteredSessions.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
-            {searchQuery ? 'No chats found' : 'No chats yet'}
+            {searchQuery ? "No chats found" : "No chats yet"}
           </div>
         ) : (
           <div className="space-y-1">
@@ -78,11 +92,13 @@ export function SessionList() {
             ))}
           </div>
         )}
-      </ScrollArea>
+      </div>
 
       <div className="p-3 border-t text-xs text-muted-foreground text-center">
-        {filteredSessions.length} chat{filteredSessions.length !== 1 ? 's' : ''}
-        {selectedDirectory && <span className="ml-1">in filtered directory</span>}
+        {filteredSessions.length} chat{filteredSessions.length !== 1 ? "s" : ""}
+        {selectedDirectory && (
+          <span className="ml-1">in filtered directory</span>
+        )}
       </div>
     </div>
   );
