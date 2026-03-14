@@ -1,10 +1,10 @@
 // components/chat/ChatContainer.tsx
-import { MessageList } from "./MessageList";
+import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./ChatInput";
 import { useSessionStore } from "../../stores/sessionStore";
 import { useMessageStore } from "../../stores/messageStore";
 import type { ModelConfig } from "../../types";
-import { ScrollArea } from "../ui/scroll-area";
+import { useMessageStoreV2 } from "@/stores/messageStoreV2";
 
 interface ChatContainerProps {
   sessionId: string;
@@ -17,9 +17,9 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
   const sessionStatus = useSessionStore(
     (state) => state.sessionStatuses[sessionId],
   );
-  const sendMessage = useMessageStore((state) => state.sendMessage);
-  const abortGeneration = useMessageStore((state) => state.abortGeneration);
-  const streamingMessageIds = useMessageStore(
+  const sendMessage = useMessageStoreV2((state) => state.sendMessage);
+  const abortGeneration = useMessageStoreV2((state) => state.abortGeneration);
+  const streamingMessageIds = useMessageStoreV2(
     (state) => state.streamingMessageIds,
   );
 
@@ -27,7 +27,8 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
     sessionStatus === "busy" || !!streamingMessageIds[sessionId];
 
   const handleSend = async (text: string, model?: ModelConfig | null) => {
-    await sendMessage(sessionId, text, model);
+    // TODO receive model
+    await sendMessage(sessionId, text);
   };
 
   const handleAbort = async () => {

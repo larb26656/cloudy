@@ -8,14 +8,14 @@ interface MessageState {
   streamingMessageIds: Record<string, string | null>; // sessionId -> messageId
   isLoading: boolean;
   error: string | null;
-  
+
   // Phase 2: Thinking content
   thinkingContent: Record<string, string>; // messageID -> thinking text
   thinkingState: Record<string, 'active' | 'complete' | null>; // messageID -> state
-  
+
   // Phase 2: Tool executions
   toolExecutions: Record<string, ToolExecution[]>; // messageID -> tools
-  
+
   // Phase 2: Selected model
   selectedModel: ModelConfig | null;
 
@@ -27,20 +27,19 @@ interface MessageState {
   addMessagePart: (sessionId: string, messageId: string, part: TextPart) => void;
   handleEvent: (event: ApiEvent) => void;
   clearMessages: (sessionId: string) => void;
-  
+
   // Phase 2: Thinking actions
   setThinkingState: (messageId: string, state: 'active' | 'complete') => void;
   appendThinkingText: (messageId: string, text: string) => void;
-  
+
   // Phase 2: Tool actions
   addToolExecution: (messageId: string, tool: ToolExecution) => void;
   updateToolProgress: (messageId: string, toolId: string, progress: { progress: number; status: string }) => void;
   completeToolExecution: (messageId: string, toolId: string, result: { result?: unknown; error?: string; status: 'complete' | 'error' }) => void;
-  
+
   // Phase 2: Model actions
   setSelectedModel: (model: ModelConfig | null) => void;
 }
-
 export const useMessageStore = create<MessageState>((set, get) => ({
   messages: {},
   streamingMessageIds: {},
@@ -66,7 +65,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
 
   sendMessage: async (sessionId: string, text: string, model?: ModelConfig | null) => {
     const tempId = `temp_${Date.now()}`;
-    
+
     // Optimistic update - add user message
     set((state) => {
       const sessionMessages = state.messages[sessionId] || [];
@@ -92,13 +91,13 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       const requestBody: { parts: { type: 'text'; text: string }[]; model?: ModelConfig } = {
         parts: [{ type: 'text', text }],
       };
-      
+
       if (model) {
         requestBody.model = model;
       }
-      
+
       await messagesApi.send(sessionId, requestBody);
-      
+
       // The response will come through SSE, but also reload messages after a delay
       // to ensure we get the AI response even if SSE events are missed
       setTimeout(() => {
@@ -230,7 +229,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
           },
         }));
         break;
-        
+
       // Phase 2: Handle reasoning events
       case 'reasoning.start':
         get().setThinkingState(event.messageID, 'active');
@@ -241,7 +240,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       case 'reasoning.complete':
         get().setThinkingState(event.messageID, 'complete');
         break;
-        
+
       // Phase 2: Handle tool events
       case 'tool.start':
         get().addToolExecution(event.messageID, {
@@ -282,14 +281,14 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       },
     }));
   },
-  
+
   // Phase 2: Thinking actions
   setThinkingState: (messageId: string, state: 'active' | 'complete') => {
     set((prev) => ({
       thinkingState: { ...prev.thinkingState, [messageId]: state },
     }));
   },
-  
+
   appendThinkingText: (messageId: string, text: string) => {
     set((prev) => ({
       thinkingContent: {
@@ -298,7 +297,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       },
     }));
   },
-  
+
   // Phase 2: Tool actions
   addToolExecution: (messageId: string, tool: ToolExecution) => {
     set((prev) => ({
@@ -308,7 +307,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       },
     }));
   },
-  
+
   updateToolProgress: (messageId: string, toolId: string, progress: { progress: number; status: string }) => {
     set((prev) => {
       const tools = prev.toolExecutions[messageId] || [];
@@ -324,7 +323,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       };
     });
   },
-  
+
   completeToolExecution: (messageId: string, toolId: string, result: { result?: unknown; error?: string; status: 'complete' | 'error' }) => {
     set((prev) => {
       const tools = prev.toolExecutions[messageId] || [];
@@ -340,7 +339,7 @@ export const useMessageStore = create<MessageState>((set, get) => ({
       };
     });
   },
-  
+
   // Phase 2: Model actions
   setSelectedModel: (model: ModelConfig | null) => {
     set({ selectedModel: model });

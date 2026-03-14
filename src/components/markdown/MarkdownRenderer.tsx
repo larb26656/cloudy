@@ -1,16 +1,23 @@
 // components/markdown/MarkdownRenderer.tsx
-import { useState } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { Check, Copy } from 'lucide-react';
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Check, Copy } from "lucide-react";
+import { MermaidBlock, rehypeMermaid } from "react-markdown-mermaid";
 
 interface MarkdownRendererProps {
   content: string;
 }
 
-function CodeBlock({ children, className }: { children: string; className?: string }) {
+function CodeBlock({
+  children,
+  className,
+}: {
+  children: string;
+  className?: string;
+}) {
   const [copied, setCopied] = useState(false);
-  const language = className?.replace('language-', '') || 'text';
+  const language = className?.replace("language-", "") || "text";
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(children);
@@ -59,18 +66,25 @@ function InlineCode({ children }: { children: string }) {
 }
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  const markdown = `
+graph TD
+  A[Start] --> B{Condition}
+  B -->|Yes| C[Handle A]
+  B -->|No| D[Handle B]
+  C --> E[End]
+  D --> E
+`;
   return (
     <div className="prose dark:prose-invert prose-sm max-w-none">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
         components={{
           code(props) {
             const { children, className } = props;
-            const codeContent = String(children).replace(/\n$/, '');
-            
+            const codeContent = String(children).replace(/\n$/, "");
+
             // Check if inline by looking for newline or if it's a code block
-            const isInline = !className && !codeContent.includes('\n');
-            
+            const isInline = !className && !codeContent.includes("\n");
+
             if (isInline) {
               return <InlineCode>{codeContent}</InlineCode>;
             }
@@ -89,9 +103,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           },
           thead({ children }) {
             return (
-              <thead className="bg-gray-100 dark:bg-gray-800">
-                {children}
-              </thead>
+              <thead className="bg-gray-100 dark:bg-gray-800">{children}</thead>
             );
           },
           th({ children }) {
@@ -120,10 +132,14 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           },
           // Custom list styling
           ul({ children }) {
-            return <ul className="list-disc pl-5 my-3 space-y-1">{children}</ul>;
+            return (
+              <ul className="list-disc pl-5 my-3 space-y-1">{children}</ul>
+            );
           },
           ol({ children }) {
-            return <ol className="list-decimal pl-5 my-3 space-y-1">{children}</ol>;
+            return (
+              <ol className="list-decimal pl-5 my-3 space-y-1">{children}</ol>
+            );
           },
           // Custom blockquote styling
           blockquote({ children }) {
