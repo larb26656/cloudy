@@ -26,6 +26,7 @@ interface MessageState {
   streamingMessageIds: Record<string, string | null>;
   isLoading: boolean;
   error: string | null;
+  isThinking: boolean;
   currentDirectory: string | null;
 
   loadMessages: (sessionId: string) => Promise<void>;
@@ -43,6 +44,7 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
   streamingMessageIds: {},
   isLoading: false,
   error: null,
+  isThinking: false,
   currentDirectory: null,
 
   setCurrentDirectory: (directory: string | null) => {
@@ -69,7 +71,7 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
   },
 
   sendMessage: async (sessionId: string, text: string) => {
-    set({ error: null });
+    set({ error: null, isThinking: true });
     // const tempId = `temp_${Date.now()}`;
 
     // const userMessage: UserSessionMessage = {
@@ -99,6 +101,8 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
       parts: [{ type: 'text', text }],
       // query: { directory: get().currentDirectory ?? undefined },
     });
+
+    set({ isThinking: false })
 
     if (result.error) {
       // set((state) => ({

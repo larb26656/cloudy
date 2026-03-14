@@ -3,7 +3,6 @@ import { useEffect, useRef, useMemo } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { useMessageStore } from "../../../stores/messageStore";
 import { useMessageStoreV2 } from "@/stores/messageStoreV2";
-import type { Message, SessionMessagesResponse } from "@opencode-ai/sdk/v2";
 import type { MessageV2 } from "@/types/messagev2";
 
 interface MessageListProps {
@@ -43,7 +42,7 @@ export function MessageList({ sessionId }: MessageListProps) {
 
   // Auto-scroll to bottom when new messages arrive
   useEffect(() => {
-    const currentMessageCount = messages.length;
+    const currentMessageCount = messagesV2.length;
     const hasNewMessages = currentMessageCount > lastMessageCountRef.current;
 
     if (hasNewMessages && shouldScrollRef.current && scrollRef.current) {
@@ -51,7 +50,7 @@ export function MessageList({ sessionId }: MessageListProps) {
     }
 
     lastMessageCountRef.current = currentMessageCount;
-  }, [messages.length]); // Only depend on message count, not the full array
+  }, [messagesV2.length]);
 
   // Handle scroll - pause auto-scroll if user scrolls up
   const handleScroll = () => {

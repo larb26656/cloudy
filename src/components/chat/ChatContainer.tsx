@@ -2,7 +2,6 @@
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./ChatInput";
 import { useSessionStore } from "../../stores/sessionStore";
-import { useMessageStore } from "../../stores/messageStore";
 import type { ModelConfig } from "../../types";
 import { useMessageStoreV2 } from "@/stores/messageStoreV2";
 
@@ -47,43 +46,7 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 h-full">
-      {/* Header */}
-      <div className="dark:border-gray-800 px-6 py-4 bg-white dark:bg-gray-900">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-              {session.title || "New Chat"}
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              {session.directory}
-            </p>
-          </div>
-
-          {/* Status indicator */}
-          <div className="flex items-center gap-2">
-            {sessionStatus === "busy" && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-full text-sm">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-                Processing...
-              </div>
-            )}
-            {sessionStatus === "retry" && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-full text-sm">
-                <div className="w-2 h-2 bg-red-500 rounded-full" />
-                Error - Retrying
-              </div>
-            )}
-            {(!sessionStatus || sessionStatus === "idle") && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                Ready
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
+    <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
       {/* Messages */}
       <MessageList sessionId={sessionId} />
 
