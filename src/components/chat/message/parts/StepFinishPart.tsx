@@ -1,97 +1,96 @@
-import type { StepFinishPart as StepFinishPartType } from "@opencode-ai/sdk/v2";
-import { CheckCircle2, Coins, Database } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import CollapsiblePart from "./CollapsiblePart";
+import type {
+  StepFinishPart as StepFinishPartType,
+  AssistantMessage,
+} from "@opencode-ai/sdk/v2";
+import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface StepFinishPartProps {
   part: StepFinishPartType;
+  info?: AssistantMessage;
 }
 
-export function StepFinishPart({ part }: StepFinishPartProps) {
+export function StepFinishPart({ part, info }: StepFinishPartProps) {
   const formatNumber = (num: number) => num.toLocaleString();
+  const formatTime = (timestamp: number) => {
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const totalTokens =
     part.tokens.input + part.tokens.output + part.tokens.reasoning;
-  const detail = part.reason
-    ? `${part.reason.slice(0, 40)} - ${totalTokens} tokens`
-    : `${totalTokens} tokens`;
 
   return (
-    <CollapsiblePart label="Step Completed" detail={detail}>
-      <Card className="bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800">
-        <CardContent className="p-3">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="size-4 text-emerald-600 dark:text-emerald-400" />
-              <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                Step Completed
-              </span>
+    <div className="flex flex-col gap-2">
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">
+          {info?.time?.created ? formatTime(info.time.created) : null}
+        </span>
+
+        {info?.modelID && (
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+            {info.modelID}
+          </span>
+        )}
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Info className="size-3.5 text-muted-foreground cursor-pointer hover:text-foreground" />
+          </TooltipTrigger>
+          <TooltipContent className="w-auto">
+            <div className="space-y-1 text-xs">
               {part.cost > 0 && (
-                <span className="text-xs text-emerald-600 dark:text-emerald-400">
-                  ${part.cost.toFixed(6)}
-                </span>
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Cost</span>
+                  <span>${part.cost.toFixed(6)}</span>
+                </div>
+              )}
+              {totalTokens > 0 && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Total Tokens</span>
+                  <span>{formatNumber(totalTokens)}</span>
+                </div>
+              )}
+              {part.tokens.input > 0 && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Input</span>
+                  <span>{formatNumber(part.tokens.input)}</span>
+                </div>
+              )}
+              {part.tokens.output > 0 && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Output</span>
+                  <span>{formatNumber(part.tokens.output)}</span>
+                </div>
+              )}
+              {part.tokens.reasoning > 0 && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Reasoning</span>
+                  <span>{formatNumber(part.tokens.reasoning)}</span>
+                </div>
+              )}
+              {part.tokens.cache.read > 0 && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Cache Read</span>
+                  <span>{formatNumber(part.tokens.cache.read)}</span>
+                </div>
+              )}
+              {part.tokens.cache.write > 0 && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Cache Write</span>
+                  <span>{formatNumber(part.tokens.cache.write)}</span>
+                </div>
               )}
             </div>
-
-            {part.reason && (
-              <div className="text-sm text-emerald-900 dark:text-emerald-100">
-                {part.reason}
-              </div>
-            )}
-
-            {(part.tokens.input > 0 ||
-              part.tokens.output > 0 ||
-              part.tokens.reasoning > 0) && (
-              <div className="flex flex-wrap gap-3 text-xs">
-                {part.tokens.input > 0 && (
-                  <div className="flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
-                    <Coins className="size-3" />
-                    <span>Input: {formatNumber(part.tokens.input)}</span>
-                  </div>
-                )}
-                {part.tokens.output > 0 && (
-                  <div className="flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
-                    <Coins className="size-3" />
-                    <span>Output: {formatNumber(part.tokens.output)}</span>
-                  </div>
-                )}
-                {part.tokens.reasoning > 0 && (
-                  <div className="flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
-                    <Database className="size-3" />
-                    <span>Reasoning: {formatNumber(part.tokens.reasoning)}</span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {(part.tokens.cache.read > 0 || part.tokens.cache.write > 0) && (
-              <div className="flex flex-wrap gap-3 text-xs">
-                {part.tokens.cache.read > 0 && (
-                  <div className="flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
-                    <Database className="size-3" />
-                    <span>
-                      Cache Read: {formatNumber(part.tokens.cache.read)}
-                    </span>
-                  </div>
-                )}
-                {part.tokens.cache.write > 0 && (
-                  <div className="flex items-center gap-1 text-emerald-700 dark:text-emerald-300">
-                    <Database className="size-3" />
-                    <span>
-                      Cache Write: {formatNumber(part.tokens.cache.write)}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {part.snapshot && (
-              <div className="text-xs font-mono bg-emerald-100 dark:bg-emerald-900/50 rounded p-2 overflow-x-auto">
-                {part.snapshot}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </CollapsiblePart>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </div>
   );
 }

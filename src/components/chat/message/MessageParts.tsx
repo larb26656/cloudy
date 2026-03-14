@@ -1,11 +1,10 @@
-import type { Part } from "@opencode-ai/sdk/v2";
+import type { Part, AssistantMessage } from "@opencode-ai/sdk/v2";
 import {
   TextPart,
   SubtaskPart,
   ReasoningPart,
   FilePart,
   ToolPart,
-  StepStartPart,
   StepFinishPart,
   SnapshotPart,
   PatchPart,
@@ -16,9 +15,10 @@ import {
 
 interface MessagePartsProps {
   parts: Part[];
+  info?: AssistantMessage;
 }
 
-export function MessageParts({ parts }: MessagePartsProps) {
+export function MessageParts({ parts, info }: MessagePartsProps) {
   return (
     <div className="flex flex-col gap-3">
       {parts.map((part, index) => {
@@ -44,8 +44,7 @@ export function MessageParts({ parts }: MessagePartsProps) {
             return null;
 
           case "step-finish":
-            // TODO refactor this
-            return null;
+            return <StepFinishPart key={partKey} part={part} info={info} />;
 
           case "snapshot":
             return <SnapshotPart key={partKey} part={part} />;

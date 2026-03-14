@@ -26,8 +26,10 @@ export default function UserMessageBubble({
   return (
     <div className="flex justify-end mb-4">
       <div className="max-w-[80%] flex flex-col items-end gap-1">
-        <div className="bg-primary text-primary-foreground px-4 py-3 rounded-2xl rounded-tr-sm">
-          <p className="text-sm whitespace-pre-wrap">{getTextContent()}</p>
+        <div className="bg-primary text-primary-foreground px-4 py-3 rounded-2xl">
+          <p className="text-sm whitespace-pre-wrap font-content">
+            {getTextContent()}
+          </p>
         </div>
         <span className="text-xs text-muted-foreground">
           {formatTime(info.time.created)}

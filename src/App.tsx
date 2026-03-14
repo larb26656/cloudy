@@ -226,7 +226,7 @@ function App() {
         <ResizablePanel defaultSize="25%">
           <SessionList />
         </ResizablePanel>
-        <ResizableHandle withHandle />
+        <ResizableHandle withHandle className="bg-transparent border-none" />
         <ResizablePanel defaultSize="75%">
           <div className="flex flex-col h-full">
             {currentSessionId ? (

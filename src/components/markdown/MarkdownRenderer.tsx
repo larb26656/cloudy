@@ -66,16 +66,8 @@ function InlineCode({ children }: { children: string }) {
 }
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
-  const markdown = `
-graph TD
-  A[Start] --> B{Condition}
-  B -->|Yes| C[Handle A]
-  B -->|No| D[Handle B]
-  C --> E[End]
-  D --> E
-`;
   return (
-    <div className="prose dark:prose-invert prose-sm max-w-none">
+    <div className="prose dark:prose-invert text-base max-w-none">
       <ReactMarkdown
         components={{
           code(props) {
