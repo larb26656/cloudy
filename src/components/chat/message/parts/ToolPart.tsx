@@ -13,6 +13,7 @@ import {
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { ReactNode } from "react";
+import CollapsiblePart from "./CollapsiblePart";
 
 interface ToolPartProps {
   part: ToolPartType;
@@ -569,22 +570,35 @@ function ToolStateDisplay({
 }
 
 export function ToolPart({ part }: ToolPartProps) {
+  const stateLabel =
+    part.state.status === "pending"
+      ? "Pending"
+      : part.state.status === "running"
+        ? "Running"
+        : part.state.status === "completed"
+          ? "Completed"
+          : part.state.status === "error"
+            ? "Error"
+            : "";
+
   return (
-    <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
-      <CardContent>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Wrench className="size-4 text-blue-600 dark:text-blue-400" />
-            <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
-              Tool Call
-            </span>
+    <CollapsiblePart label="Tool Call" detail={`${part.tool} - ${stateLabel}`}>
+      <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+        <CardContent>
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Wrench className="size-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                Tool Call
+              </span>
+            </div>
+            <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              {part.tool}
+            </div>
+            <ToolStateDisplay state={part.state} tool={part.tool} />
           </div>
-          <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
-            {part.tool}
-          </div>
-          <ToolStateDisplay state={part.state} tool={part.tool} />
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </CollapsiblePart>
   );
 }

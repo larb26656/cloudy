@@ -41,10 +41,11 @@ export function MessageParts({ parts }: MessagePartsProps) {
             return <ToolPart key={partKey} part={part} />;
 
           case "step-start":
-            return <StepStartPart key={partKey} part={part} />;
+            return null;
 
           case "step-finish":
-            return <StepFinishPart key={partKey} part={part} />;
+            // TODO refactor this
+            return null;
 
           case "snapshot":
             return <SnapshotPart key={partKey} part={part} />;
