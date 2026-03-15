@@ -93,7 +93,6 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
     set({ isLoading: true, error: null });
     const result = await oc.session.messages({
       sessionID: sessionId,
-      // query: { directory: get().currentDirectory ?? undefined },
     });
 
     if (result.error) {

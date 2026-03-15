@@ -37,8 +37,8 @@ export function SessionList() {
   };
 
   return (
-    <div className="flex flex-col h-full p-2">
-      <div className="flex flex-col h-full bg-muted border rounded-2xl">
+    <div className="flex flex-col h-full">
+      <div className="flex flex-col h-full bg-muted lg:p-2 lg:border lg:rounded-2xl">
         <div className="p-4 border-b">
           <Button
             size={"lg"}

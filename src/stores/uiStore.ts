@@ -33,14 +33,14 @@ function setToStorage<T>(key: string, value: T): void {
 interface UIState {
   // Responsive
   deviceType: DeviceType;
-  
+
   // Sidebar
   sidebarOpen: boolean;
   sidebarWidth: number;
-  
+
   // Fullscreen
   isFullscreen: boolean;
-  
+
   // Other UI state
   detailsPanelOpen: boolean;
   isDarkMode: boolean;
@@ -48,7 +48,7 @@ interface UIState {
   selectedDirectory: string | null;
   recentDirectories: string[];
   toast: { message: string; type: 'success' | 'error' | 'info' } | null;
-  
+
   // Actions
   setDeviceType: (deviceType: DeviceType) => void;
   toggleSidebar: () => void;
@@ -67,12 +67,12 @@ interface UIState {
 
 export const useUIStore = create<UIState>((set) => ({
   deviceType: 'desktop',
-  
+
   sidebarOpen: getFromStorage(STORAGE_KEYS.SIDEBAR_OPEN, true),
   sidebarWidth: getFromStorage(STORAGE_KEYS.SIDEBAR_WIDTH, 320),
-  
+
   isFullscreen: getFromStorage(STORAGE_KEYS.FULLSCREEN, false),
-  
+
   detailsPanelOpen: false,
   isDarkMode: false,
   searchQuery: '',
@@ -81,36 +81,34 @@ export const useUIStore = create<UIState>((set) => ({
   toast: null,
 
   setDeviceType: (deviceType) => {
-    const shouldOpenSidebar = deviceType === 'desktop';
-    set({ 
+    set({
       deviceType,
-      sidebarOpen: shouldOpenSidebar
     });
   },
-  
+
   toggleSidebar: () => set((state) => {
     const newValue = !state.sidebarOpen;
     setToStorage(STORAGE_KEYS.SIDEBAR_OPEN, newValue);
     return { sidebarOpen: newValue };
   }),
-  
+
   setSidebarOpen: (open) => {
     setToStorage(STORAGE_KEYS.SIDEBAR_OPEN, open);
     set({ sidebarOpen: open });
   },
-  
+
   setSidebarWidth: (width) => {
     const clampedWidth = Math.max(200, Math.min(400, width));
     setToStorage(STORAGE_KEYS.SIDEBAR_WIDTH, clampedWidth);
     set({ sidebarWidth: clampedWidth });
   },
-  
+
   toggleFullscreen: () => set((state) => {
     const newValue = !state.isFullscreen;
     setToStorage(STORAGE_KEYS.FULLSCREEN, newValue);
     return { isFullscreen: newValue };
   }),
-  
+
   toggleDetailsPanel: () => set((state) => ({ detailsPanelOpen: !state.detailsPanelOpen })),
   toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
   setSearchQuery: (query) => set({ searchQuery: query }),

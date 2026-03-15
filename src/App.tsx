@@ -1,5 +1,5 @@
 // App.tsx
-import { useEffect, useCallback } from "react";
+import { useEffect } from "react";
 import { SessionList } from "./components/session/SessionList";
 import { ChatContainer } from "./components/chat/ChatContainer";
 import { MobileSidebar } from "./components/layout/Sidebar";
@@ -21,13 +21,11 @@ function App() {
   const { handleEvent } = useMessageStoreV2();
   const {
     sidebarOpen,
+    setSidebarOpen,
     isDarkMode,
     selectedDirectory,
     deviceType,
     setDeviceType,
-    toggleSidebar,
-    setSidebarOpen,
-    toggleFullscreen,
   } = useUIStore();
 
   const { isMobile, isTablet } = useDeviceType();
@@ -52,33 +50,9 @@ function App() {
     subscribe();
 
     return () => {
-      // abortController.abort();
       stream?.return?.("");
     };
   }, [selectedDirectory]);
-  // useEffect(() => {
-  //   let isMounted = true;
-  //   (async () => {
-  //     const events = await oc.event.subscribe();
-  //     console.log("invoke!2");
-  //     console.log(events);
-  //     // events.stream.return();
-
-  //     for await (const event of events.stream) {
-  //       if (!isMounted) {
-  //         console.log("break!");
-  //         break;
-  //       }
-  //       console.log(event);
-  //       handleEvent(event);
-  //     }
-  //   })();
-
-  //   return () => {
-  //     isMounted = false;
-  //     console.log("unsubscribe");
-  //   };
-  // }, []);
 
   useEffect(() => {
     setDeviceType(deviceType);
@@ -101,72 +75,6 @@ function App() {
     }
   }, [isDarkMode]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
-      const modifier = isMac ? e.metaKey : e.ctrlKey;
-
-      if (modifier && e.key === "b") {
-        e.preventDefault();
-        toggleSidebar();
-      }
-
-      if (modifier && e.shiftKey && e.key === "F") {
-        e.preventDefault();
-        toggleFullscreen();
-      }
-
-      if (e.key === "Escape" && (isMobile || isTablet) && sidebarOpen) {
-        setSidebarOpen(false);
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    toggleSidebar,
-    toggleFullscreen,
-    isMobile,
-    isTablet,
-    sidebarOpen,
-    setSidebarOpen,
-  ]);
-
-  useEffect(() => {
-    if (!isMobile && !isTablet) {
-      // On desktop
-    } else {
-      if (currentSessionId && sidebarOpen) {
-        setSidebarOpen(false);
-      }
-    }
-  }, [currentSessionId, isMobile, isTablet, sidebarOpen, setSidebarOpen]);
-
-  const handleOpenSidebar = useCallback(() => {
-    console.log("open");
-    setSidebarOpen(true);
-  }, [setSidebarOpen]);
-  const handleCloseSidebar = useCallback(() => {
-    console.log("close");
-    setSidebarOpen(false);
-  }, [setSidebarOpen]);
-
-  // const handleOpencode = async () => {
-  //   const session = await client.session.create();
-
-  //   const data = session.data!;
-  //   const result = await client.session.prompt({
-  //     path: { id: data.id },
-  //     body: {
-  //       parts: [{ type: "text", text: "What is your name" }],
-  //     },
-  //   });
-
-  //   const textData = result.data;
-
-  //   console.log(textData);
-  // };
-
   const sessionDir = currentSession?.directory ?? undefined;
   const sessionTitle = currentSession?.title;
   const sessionStatuses = useSessionStore((state) => state.sessionStatuses);
@@ -177,17 +85,13 @@ function App() {
   if (isMobile || isTablet) {
     return (
       <>
-        <MobileSidebar open={sidebarOpen} onClose={handleCloseSidebar} />
+        <MobileSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
         <div className="flex flex-col h-screen bg-white dark:bg-gray-900 overflow-hidden">
           <Header
             sessionTitle={sessionTitle}
             sessionDirectory={sessionDir}
             sessionStatus={sessionStatus}
-            onOpenSidebar={handleOpenSidebar}
-            onCloseSidebar={handleCloseSidebar}
           />
-          asdasd
-          {JSON.stringify(sidebarOpen)}
           {currentSessionId ? (
             <>
               <ChatContainer sessionId={currentSessionId} />
@@ -241,8 +145,6 @@ function App() {
               sessionTitle={sessionTitle}
               sessionDirectory={sessionDir}
               sessionStatus={sessionStatus}
-              onOpenSidebar={handleOpenSidebar}
-              onCloseSidebar={handleCloseSidebar}
             />
             {currentSessionId ? (
               <>

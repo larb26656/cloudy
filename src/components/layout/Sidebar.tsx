@@ -1,5 +1,11 @@
 // components/layout/Sidebar.tsx
-import { SessionList } from '@/components/session/SessionList';
+import { SessionList } from "@/components/session/SessionList";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 interface SidebarProps {
   className?: string;
@@ -15,20 +21,19 @@ export function Sidebar({ className }: SidebarProps) {
 
 interface MobileSidebarProps {
   open: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
-
-export function MobileSidebar({ open, onClose }: MobileSidebarProps) {
+export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   return (
-    <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-[300px] sm:w-[320px] p-0">
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        side="left"
+        className="w-[300px] sm:w-[320px] p-0"
+        onInteractOutside={() => {
+          onOpenChange(false);
+        }}
+      >
         <SheetHeader className="sr-only">
           <SheetTitle>Sessions</SheetTitle>
         </SheetHeader>

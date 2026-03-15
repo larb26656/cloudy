@@ -1,14 +1,5 @@
 // components/layout/Header.tsx
-import {
-  Menu,
-  Settings,
-  Maximize2,
-  Minimize2,
-  PanelLeftClose,
-  PanelLeft,
-  Sun,
-  Moon,
-} from "lucide-react";
+import { PanelLeftClose, PanelLeft, Sun, Moon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -29,79 +20,35 @@ export function Header({
   sessionTitle,
   sessionDirectory,
   sessionStatus,
-  onOpenSidebar,
-  onCloseSidebar,
 }: HeaderProps) {
-  const { deviceType, sidebarOpen, toggleSidebar, isDarkMode, toggleTheme } =
-    useUIStore();
-
-  const isMobile = deviceType === "mobile";
-  const isTablet = deviceType === "tablet";
-
-  const handleToggleSidebar = () => {
-    if (isMobile || isTablet) {
-      if (sidebarOpen && onCloseSidebar) {
-        onCloseSidebar();
-      } else if (!sidebarOpen && onOpenSidebar) {
-        onOpenSidebar();
-      }
-    } else {
-      toggleSidebar();
-    }
-  };
+  const { sidebarOpen, toggleSidebar, isDarkMode, toggleTheme } = useUIStore();
 
   return (
     <header className="px-4 py-3 bg-white dark:bg-gray-900 flex items-center justify-between">
       <div className="flex items-center gap-3">
-        {(isMobile || isTablet) && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleToggleSidebar}
-                className="h-9 w-9"
-              >
-                {sidebarOpen ? (
-                  <PanelLeftClose className="size-5" />
-                ) : (
-                  <Menu className="size-5" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {sidebarOpen ? "Close sidebar" : "Open sidebar"}
-            </TooltipContent>
-          </Tooltip>
-        )}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSidebar}
+              className="h-9 w-9"
+            >
+              {sidebarOpen ? (
+                <PanelLeftClose className="size-5" />
+              ) : (
+                <PanelLeft className="size-5" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {sidebarOpen ? "Close sidebar" : "Open sidebar"} (Cmd+B)
+          </TooltipContent>
+        </Tooltip>
 
-        <div className="flex items-center gap-2">
-          {!isMobile && !isTablet && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={toggleSidebar}
-                  className="h-9 w-9"
-                >
-                  {sidebarOpen ? (
-                    <PanelLeftClose className="size-5" />
-                  ) : (
-                    <PanelLeft className="size-5" />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                {sidebarOpen ? "Close sidebar" : "Open sidebar"} (Cmd+B)
-              </TooltipContent>
-            </Tooltip>
-          )}
-
-          <h1 className="font-semibold text-gray-800 dark:text-white">
-            {sessionTitle || "OpenCode Chat"}
-          </h1>
-        </div>
+        <h1 className="font-semibold text-gray-800 dark:text-white">
+          {sessionTitle || "OpenCode Chat"}
+        </h1>
       </div>
 
       <div className="flex items-center gap-1">
@@ -127,7 +74,7 @@ export function Header({
             )}
           </div>
         )}
-        {sessionDirectory && !isMobile && (
+        {sessionDirectory && (
           <span className="text-sm text-gray-500 dark:text-gray-400 mr-2 hidden sm:inline-block">
             {sessionDirectory}
           </span>
