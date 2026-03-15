@@ -1,11 +1,18 @@
 // components/chat/ModelSelector.tsx
-import { useState, useEffect, useRef } from 'react';
-import { Bot, Cloud, Sparkles, Cpu, Loader2, ChevronDown, Search } from 'lucide-react';
-import { useModels } from '../../hooks';
-import { useMessageStore } from '../../stores/messageStore';
-import type { ModelConfig } from '../../types';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState, useEffect, useRef } from "react";
+import {
+  Bot,
+  Cloud,
+  Sparkles,
+  Cpu,
+  Loader2,
+  ChevronDown,
+  Search,
+} from "lucide-react";
+import { useModels } from "../../hooks";
+import type { ModelConfig } from "../../types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,7 +21,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuGroup,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
+import { useBoundStore } from "@/stores";
 
 const providerIcons: Record<string, React.ReactNode> = {
   openai: <Cloud className="size-4" />,
@@ -23,28 +31,28 @@ const providerIcons: Record<string, React.ReactNode> = {
 };
 
 const providerNames: Record<string, string> = {
-  openai: 'OpenAI',
-  anthropic: 'Anthropic',
-  local: 'Local',
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  local: "Local",
 };
 
 export function ModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { providers, isLoading, error } = useModels();
-  const { selectedModel, setSelectedModel } = useMessageStore();
+  const { selectedModel, setSelectedModel } = useBoundStore();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'm') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "m") {
         e.preventDefault();
         setIsOpen((prev) => !prev);
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
@@ -60,21 +68,21 @@ export function ModelSelector() {
           models: p.models.filter(
             (m) =>
               m.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-              m.modelID.toLowerCase().includes(searchQuery.toLowerCase())
+              m.modelID.toLowerCase().includes(searchQuery.toLowerCase()),
           ),
         }))
         .filter((p) => p.models.length > 0)
     : providers;
 
   const getDisplayName = () => {
-    if (!selectedModel) return 'Default';
+    if (!selectedModel) return "Default";
     return selectedModel.name;
   };
 
   const handleSelectModel = (model: ModelConfig | null) => {
     setSelectedModel(model);
     setIsOpen(false);
-    setSearchQuery('');
+    setSearchQuery("");
   };
 
   return (
@@ -106,7 +114,9 @@ export function ModelSelector() {
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
             </div>
           ) : error ? (
-            <div className="p-4 text-sm text-destructive text-center">{error}</div>
+            <div className="p-4 text-sm text-destructive text-center">
+              {error}
+            </div>
           ) : filteredProviders.length === 0 ? (
             <div className="p-4 text-sm text-muted-foreground text-center">
               No models found
@@ -134,10 +144,14 @@ export function ModelSelector() {
                     </div>
                     <div className="flex items-center gap-1 text-xs text-muted-foreground shrink-0">
                       {model.supportsTools && (
-                        <span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">Tools</span>
+                        <span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">
+                          Tools
+                        </span>
                       )}
                       {model.supportsStreaming && (
-                        <span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">Stream</span>
+                        <span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">
+                          Stream
+                        </span>
                       )}
                     </div>
                   </DropdownMenuItem>

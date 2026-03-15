@@ -1,28 +1,34 @@
 // components/session/DirectoryFilter.tsx
-import { useState, useEffect, useRef } from 'react';
-import { Folder, ChevronDown, X, History, Loader2 } from 'lucide-react';
-import { useUIStore } from '../../stores/uiStore';
-import { useSessionStore } from '../../stores/sessionStore';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useRef } from "react";
+import { Folder, ChevronDown, X, History, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Command,
   CommandInput,
   CommandList,
   CommandItem,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
+import { useBoundStore } from "@/stores";
 
 export function DirectoryFilter() {
-  const { selectedDirectory, recentDirectories, setSelectedDirectory, addRecentDirectory, searchDirectories } = useUIStore();
-  const { loadSessions, setCurrentDirectory } = useSessionStore();
+  const {
+    selectedDirectory,
+    loadSessions,
+    recentDirectories,
+    setSelectedDirectory,
+    addRecentDirectory,
+    searchDirectories,
+  } = useBoundStore();
+
   const [isOpen, setIsOpen] = useState(false);
-  const [customPath, setCustomPath] = useState('');
+  const [customPath, setCustomPath] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -56,15 +62,14 @@ export function DirectoryFilter() {
 
   const handleSelectDirectory = (directory: string | null) => {
     setSelectedDirectory(directory);
-    setCurrentDirectory(directory);
-    
+
     if (directory) {
       addRecentDirectory(directory);
     }
-    
-    loadSessions(directory);
+
+    loadSessions();
     setIsOpen(false);
-    setCustomPath('');
+    setCustomPath("");
     setSuggestions([]);
   };
 
@@ -78,20 +83,26 @@ export function DirectoryFilter() {
     handleSelectDirectory(dir);
   };
 
-  const displayPath = selectedDirectory 
-    ? selectedDirectory.split('/').pop() || selectedDirectory
-    : 'All Directories';
+  const displayPath = selectedDirectory
+    ? selectedDirectory.split("/").pop() || selectedDirectory
+    : "All Directories";
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={(open) => {
-      setIsOpen(open);
-      if (!open) {
-        setCustomPath('');
-        setSuggestions([]);
-      }
-    }}>
+    <DropdownMenu
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) {
+          setCustomPath("");
+          setSuggestions([]);
+        }
+      }}
+    >
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="w-full justify-between h-auto py-2 px-3">
+        <Button
+          variant="ghost"
+          className="w-full justify-between h-auto py-2 px-3"
+        >
           <div className="flex items-center gap-2 min-w-0">
             <Folder className="size-4 shrink-0" />
             <span className="truncate">{displayPath}</span>
@@ -108,18 +119,20 @@ export function DirectoryFilter() {
                 <X className="size-3" />
               </button>
             )}
-            <ChevronDown className={`size-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown
+              className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
           </div>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-[calc(100%-1rem)] p-0">
         <Command className="rounded-lg border-0 shadow-none">
-          <CommandInput 
-            placeholder="/path/to/project" 
+          <CommandInput
+            placeholder="/path/to/project"
             value={customPath}
             onValueChange={setCustomPath}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && customPath.trim()) {
+              if (e.key === "Enter" && customPath.trim()) {
                 handleCustomPathSubmit();
               }
             }}
@@ -142,7 +155,7 @@ export function DirectoryFilter() {
                 <DropdownMenuSeparator />
               </>
             )}
-            
+
             <DropdownMenuItem
               onClick={() => handleSelectDirectory(null)}
               className="gap-2 cursor-pointer"
@@ -150,7 +163,7 @@ export function DirectoryFilter() {
               <Folder className="size-4" />
               All Directories
             </DropdownMenuItem>
-            
+
             {recentDirectories.length > 0 && (
               <>
                 <DropdownMenuSeparator />
@@ -170,7 +183,7 @@ export function DirectoryFilter() {
                 ))}
               </>
             )}
-            
+
             {customPath && !isSearching && suggestions.length === 0 && (
               <>
                 <DropdownMenuSeparator />
@@ -185,7 +198,7 @@ export function DirectoryFilter() {
                 </div>
               </>
             )}
-            
+
             {isSearching && (
               <div className="flex items-center justify-center py-2 gap-2 text-muted-foreground">
                 <Loader2 className="size-4 animate-spin" />

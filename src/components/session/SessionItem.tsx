@@ -1,15 +1,15 @@
 // components/session/SessionItem.tsx
-import { useState } from 'react';
-import { MoreHorizontal, Edit2, Trash2, GitBranch } from 'lucide-react';
-import type { Session, SessionStatus } from '../../types';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { MoreHorizontal, Edit2, Trash2, GitBranch } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
+import type { Session, SessionStatus } from "@opencode-ai/sdk/v2";
 
 interface SessionItemProps {
   session: Session;
@@ -31,7 +31,7 @@ export function SessionItem({
   onFork,
 }: SessionItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(session.title || '');
+  const [editTitle, setEditTitle] = useState(session.title || "");
   const [showMenu, setShowMenu] = useState(false);
 
   const handleRename = () => {
@@ -42,24 +42,27 @@ export function SessionItem({
     setShowMenu(false);
   };
 
+  // TODO fix this later
   const getStatusColor = () => {
-    switch (status) {
-      case 'busy':
-        return 'bg-yellow-500';
-      case 'retry':
-        return 'bg-red-500';
-      case 'idle':
-      default:
-        return 'bg-green-500';
-    }
+    // switch (status) {
+    //   case "busy":
+    //     return "bg-yellow-500";
+    //   case "retry":
+    //     return "bg-red-500";
+    //   case "idle":
+    //   default:
+    //     return "bg-green-500";
+    // }
+
+    return "bg-green-500";
   };
 
   const formatTime = (timestamp: number) => {
     const date = new Date(timestamp);
     const now = new Date();
     const diff = now.getTime() - date.getTime();
-    
-    if (diff < 60000) return 'Just now';
+
+    if (diff < 60000) return "Just now";
     if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
     if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
     return date.toLocaleDateString();
@@ -69,12 +72,12 @@ export function SessionItem({
     <div
       onClick={onClick}
       className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
-        isActive
-          ? 'bg-primary text-primary-foreground'
-          : 'hover:bg-accent'
+        isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent"
       }`}
     >
-      <div className={`w-2 h-2 rounded-full ${getStatusColor()} flex-shrink-0`} />
+      <div
+        className={`w-2 h-2 rounded-full ${getStatusColor()} flex-shrink-0`}
+      />
 
       <div className="flex-1 min-w-0">
         {isEditing ? (
@@ -86,9 +89,9 @@ export function SessionItem({
             onChange={(e) => setEditTitle(e.target.value)}
             onBlur={handleRename}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleRename();
-              if (e.key === 'Escape') {
-                setEditTitle(session.title || '');
+              if (e.key === "Enter") handleRename();
+              if (e.key === "Escape") {
+                setEditTitle(session.title || "");
                 setIsEditing(false);
               }
             }}
@@ -99,7 +102,7 @@ export function SessionItem({
         ) : (
           <>
             <p className="text-sm font-medium truncate">
-              {session.title || 'New Chat'}
+              {session.title || "New Chat"}
             </p>
             <p className="text-xs text-muted-foreground truncate">
               {formatTime(session.time.updated)}

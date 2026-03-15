@@ -1,5 +1,3 @@
-// stores/uiStore.ts
-import { create } from 'zustand';
 import { oc } from '@/lib/opencode';
 import type { DeviceType } from '@/hooks/useDeviceType';
 
@@ -30,18 +28,11 @@ function setToStorage<T>(key: string, value: T): void {
   }
 }
 
-interface UIState {
-  // Responsive
+export interface UISlice {
   deviceType: DeviceType;
-
-  // Sidebar
   sidebarOpen: boolean;
   sidebarWidth: number;
-
-  // Fullscreen
   isFullscreen: boolean;
-
-  // Other UI state
   detailsPanelOpen: boolean;
   isDarkMode: boolean;
   searchQuery: string;
@@ -49,7 +40,6 @@ interface UIState {
   recentDirectories: string[];
   toast: { message: string; type: 'success' | 'error' | 'info' } | null;
 
-  // Actions
   setDeviceType: (deviceType: DeviceType) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -65,7 +55,7 @@ interface UIState {
   clearToast: () => void;
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const createUISlice = (set: any, _get: any): UISlice => ({
   deviceType: 'desktop',
 
   sidebarOpen: getFromStorage(STORAGE_KEYS.SIDEBAR_OPEN, true),
@@ -80,13 +70,9 @@ export const useUIStore = create<UIState>((set) => ({
   recentDirectories: getFromStorage(STORAGE_KEYS.RECENT_DIRECTORIES, []),
   toast: null,
 
-  setDeviceType: (deviceType) => {
-    set({
-      deviceType,
-    });
-  },
+  setDeviceType: (deviceType) => set({ deviceType }),
 
-  toggleSidebar: () => set((state) => {
+  toggleSidebar: () => set((state: any) => {
     const newValue = !state.sidebarOpen;
     setToStorage(STORAGE_KEYS.SIDEBAR_OPEN, newValue);
     return { sidebarOpen: newValue };
@@ -103,21 +89,21 @@ export const useUIStore = create<UIState>((set) => ({
     set({ sidebarWidth: clampedWidth });
   },
 
-  toggleFullscreen: () => set((state) => {
+  toggleFullscreen: () => set((state: any) => {
     const newValue = !state.isFullscreen;
     setToStorage(STORAGE_KEYS.FULLSCREEN, newValue);
     return { isFullscreen: newValue };
   }),
 
-  toggleDetailsPanel: () => set((state) => ({ detailsPanelOpen: !state.detailsPanelOpen })),
-  toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
+  toggleDetailsPanel: () => set((state: any) => ({ detailsPanelOpen: !state.detailsPanelOpen })),
+  toggleTheme: () => set((state: any) => ({ isDarkMode: !state.isDarkMode })),
   setSearchQuery: (query) => set({ searchQuery: query }),
   setSelectedDirectory: (directory) => {
     setToStorage(STORAGE_KEYS.SELECTED_DIRECTORY, directory);
     set({ selectedDirectory: directory });
   },
-  addRecentDirectory: (directory) => set((state) => {
-    const updated = [directory, ...state.recentDirectories.filter(d => d !== directory)].slice(0, 5);
+  addRecentDirectory: (directory) => set((state: any) => {
+    const updated = [directory, ...state.recentDirectories.filter((d: string) => d !== directory)].slice(0, 5);
     setToStorage(STORAGE_KEYS.RECENT_DIRECTORIES, updated);
     return { recentDirectories: updated };
   }),
@@ -136,4 +122,4 @@ export const useUIStore = create<UIState>((set) => ({
   },
   showToast: (message, type) => set({ toast: { message, type } }),
   clearToast: () => set({ toast: null }),
-}));
+});

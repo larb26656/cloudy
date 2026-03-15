@@ -3,10 +3,9 @@ import { useEffect } from "react";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { SessionItem } from "./SessionItem";
 import { DirectoryFilter } from "./DirectoryFilter";
-import { useSessionStore } from "../../stores/sessionStore";
-import { useUIStore } from "../../stores/uiStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useBoundStore } from "@/stores";
 
 export function SessionList() {
   const {
@@ -19,11 +18,13 @@ export function SessionList() {
     selectSession,
     updateSession,
     deleteSession,
-  } = useSessionStore();
-  const { searchQuery, setSearchQuery, selectedDirectory } = useUIStore();
+    searchQuery,
+    setSearchQuery,
+    selectedDirectory,
+  } = useBoundStore();
 
   useEffect(() => {
-    loadSessions(selectedDirectory);
+    loadSessions();
   }, [loadSessions, selectedDirectory]);
 
   const filteredSessions = sessions.filter((session) =>
@@ -42,9 +43,7 @@ export function SessionList() {
         <div className="p-4 border-b">
           <Button
             size={"lg"}
-            onClick={() =>
-              createSession(undefined, selectedDirectory || undefined)
-            }
+            onClick={() => createSession(undefined)}
             className="w-full gap-2"
           >
             <Plus className="size-5" />

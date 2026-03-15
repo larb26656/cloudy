@@ -6,12 +6,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useUIStore } from "@/stores/uiStore";
+import type { SessionStatus } from "@opencode-ai/sdk";
+import { useBoundStore } from "@/stores";
 
 interface HeaderProps {
   sessionTitle?: string | null;
   sessionDirectory?: string | null;
-  sessionStatus?: string | null;
+  sessionStatus?: SessionStatus | null;
   onOpenSidebar?: () => void;
   onCloseSidebar?: () => void;
 }
@@ -21,7 +22,8 @@ export function Header({
   sessionDirectory,
   sessionStatus,
 }: HeaderProps) {
-  const { sidebarOpen, toggleSidebar, isDarkMode, toggleTheme } = useUIStore();
+  const { sidebarOpen, toggleSidebar, isDarkMode, toggleTheme } =
+    useBoundStore();
 
   return (
     <header className="px-4 py-3 bg-white dark:bg-gray-900 flex items-center justify-between">
@@ -52,7 +54,7 @@ export function Header({
       </div>
 
       <div className="flex items-center gap-1">
-        {sessionStatus && (
+        {/* {sessionStatus && (
           <div className="flex items-center gap-2">
             {sessionStatus === "busy" && (
               <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-full text-sm">
@@ -73,7 +75,7 @@ export function Header({
               </div>
             )}
           </div>
-        )}
+        )} */}
         {sessionDirectory && (
           <span className="text-sm text-gray-500 dark:text-gray-400 mr-2 hidden sm:inline-block">
             {sessionDirectory}

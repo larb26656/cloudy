@@ -1,6 +1,5 @@
-import { create } from 'zustand';
 import { oc } from '@/lib/opencode';
-import type { Session, SessionStatus } from '@opencode-ai/sdk';
+import type { Session, SessionStatus } from '@opencode-ai/sdk/v2';
 
 type SdkError = {
   message?: string;
@@ -20,16 +19,15 @@ function getErrorMessage(error: SdkError): string {
   return 'Unknown error';
 }
 
-interface SessionState {
+export interface SessionSlice {
   sessions: Session[];
   currentSessionId: string | null;
   sessionStatuses: Record<string, SessionStatus>;
   isLoading: boolean;
   error: string | null;
-  currentDirectory: string | null;
 
-  loadSessions: (directory?: string | null) => Promise<void>;
-  createSession: (title?: string, directory?: string) => Promise<Session | null>;
+  loadSessions: () => Promise<void>;
+  createSession: (title?: string) => Promise<Session | null>;
   selectSession: (sessionId: string) => void;
   updateSession: (sessionId: string, title: string) => Promise<void>;
   deleteSession: (sessionId: string) => Promise<void>;
@@ -38,41 +36,39 @@ interface SessionState {
   updateSessionFromEvent: (session: Session) => void;
   addSession: (session: Session) => void;
   removeSession: (sessionId: string) => void;
-  setCurrentDirectory: (directory: string | null) => void;
 }
 
-export const useSessionStoreV2 = create<SessionState>((set, get) => ({
+export const createSessionSlice = (set: any, get: any): SessionSlice => ({
   sessions: [],
   currentSessionId: null,
   sessionStatuses: {},
   isLoading: false,
   error: null,
-  currentDirectory: null,
 
-  loadSessions: async (directory?: string | null) => {
+  loadSessions: async () => {
+    const directory = get().selectedDirectory;
+    if (!directory) return;
+
     set({ isLoading: true, error: null });
-    if (directory) {
-      set({ currentDirectory: directory });
-    }
-    const result = await oc.session.list({
-      query: { directory: directory ?? get().currentDirectory ?? undefined },
-    });
+
+    const result = await oc.session.list({ directory });
+
     if (result.error) {
       set({ error: getErrorMessage(result.error as SdkError), isLoading: false });
       return;
     }
     const data = result.data ?? [];
-    set({ sessions: data, isLoading: false });
-    if (data.length > 0 && !get().currentSessionId) {
-      set({ currentSessionId: data[0].id });
-    }
+    set({ isLoading: false, sessions: data });
   },
 
-  createSession: async (title?: string, directory?: string) => {
+  createSession: async (title?: string) => {
+    const directory = get().selectedDirectory;
+    if (!directory) return null;
+
     set({ error: null });
     const result = await oc.session.create({
-      body: { title: title || 'New Chat' },
-      query: { directory: directory ?? get().currentDirectory ?? undefined },
+      title: title || 'New Chat',
+      directory,
     });
     if (result.error) {
       set({ error: getErrorMessage(result.error as SdkError) });
@@ -80,7 +76,7 @@ export const useSessionStoreV2 = create<SessionState>((set, get) => ({
     }
     const session = result.data;
     if (session) {
-      set((state) => ({
+      set((state: any) => ({
         sessions: [session, ...state.sessions],
         currentSessionId: session.id,
       }));
@@ -95,8 +91,8 @@ export const useSessionStoreV2 = create<SessionState>((set, get) => ({
   updateSession: async (sessionId: string, title: string) => {
     set({ error: null });
     const result = await oc.session.update({
-      path: { id: sessionId },
-      body: { title },
+      sessionID: sessionId,
+      title
     });
     if (result.error) {
       set({ error: getErrorMessage(result.error as SdkError) });
@@ -104,21 +100,21 @@ export const useSessionStoreV2 = create<SessionState>((set, get) => ({
     }
     const updated = result.data;
     if (updated) {
-      set((state) => ({
-        sessions: state.sessions.map((s) => (s.id === sessionId ? { ...s, ...updated } : s)),
+      set((state: any) => ({
+        sessions: state.sessions.map((s: Session) => (s.id === sessionId ? { ...s, ...updated } : s)),
       }));
     }
   },
 
   deleteSession: async (sessionId: string) => {
     set({ error: null });
-    const result = await oc.session.delete({ path: { id: sessionId } });
+    const result = await oc.session.delete({ sessionID: sessionId });
     if (result.error) {
       set({ error: getErrorMessage(result.error as SdkError) });
       return;
     }
-    set((state) => {
-      const newSessions = state.sessions.filter((s) => s.id !== sessionId);
+    set((state: any) => {
+      const newSessions = state.sessions.filter((s: Session) => s.id !== sessionId);
       const newCurrentId =
         state.currentSessionId === sessionId
           ? newSessions[0]?.id || null
@@ -130,8 +126,8 @@ export const useSessionStoreV2 = create<SessionState>((set, get) => ({
   forkSession: async (sessionId: string, messageId: string) => {
     set({ error: null });
     const result = await oc.session.fork({
-      path: { id: sessionId },
-      body: { messageID: messageId },
+      sessionID: sessionId,
+      messageID: messageId
     });
     if (result.error) {
       set({ error: getErrorMessage(result.error as SdkError) });
@@ -139,39 +135,35 @@ export const useSessionStoreV2 = create<SessionState>((set, get) => ({
     }
     const session = result.data;
     if (session) {
-      set((state) => ({
+      set((state: any) => ({
         sessions: [session, ...state.sessions],
         currentSessionId: session.id,
       }));
     }
-    return session ?? null;
+    return null;
   },
 
   updateSessionStatus: (sessionId: string, status: SessionStatus) => {
-    set((state) => ({
+    set((state: any) => ({
       sessionStatuses: { ...state.sessionStatuses, [sessionId]: status },
     }));
   },
 
   updateSessionFromEvent: (session: Session) => {
-    set((state) => ({
-      sessions: state.sessions.map((s) => (s.id === session.id ? { ...s, ...session } : s)),
+    set((state: any) => ({
+      sessions: state.sessions.map((s: Session) => (s.id === session.id ? { ...s, ...session } : s)),
     }));
   },
 
   addSession: (session: Session) => {
-    set((state) => ({
+    set((state: any) => ({
       sessions: [session, ...state.sessions],
     }));
   },
 
   removeSession: (sessionId: string) => {
-    set((state) => ({
-      sessions: state.sessions.filter((s) => s.id !== sessionId),
+    set((state: any) => ({
+      sessions: state.sessions.filter((s: Session) => s.id !== sessionId),
     }));
   },
-
-  setCurrentDirectory: (directory: string | null) => {
-    set({ currentDirectory: directory });
-  },
-}));
+});

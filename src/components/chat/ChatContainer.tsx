@@ -1,29 +1,30 @@
 // components/chat/ChatContainer.tsx
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./ChatInput";
-import { useSessionStore } from "../../stores/sessionStore";
 import type { ModelConfig } from "../../types";
-import { useMessageStoreV2 } from "@/stores/messageStoreV2";
+import { useBoundStore } from "@/stores";
 
 interface ChatContainerProps {
   sessionId: string;
 }
 
 export function ChatContainer({ sessionId }: ChatContainerProps) {
-  const session = useSessionStore((state) =>
+  const session = useBoundStore((state) =>
     state.sessions.find((s) => s.id === sessionId),
   );
-  const sessionStatus = useSessionStore(
+  const sessionStatus = useBoundStore(
     (state) => state.sessionStatuses[sessionId],
   );
-  const sendMessage = useMessageStoreV2((state) => state.sendMessage);
-  const abortGeneration = useMessageStoreV2((state) => state.abortGeneration);
-  const streamingMessageIds = useMessageStoreV2(
+  const sendMessage = useBoundStore((state) => state.sendMessage);
+  const abortGeneration = useBoundStore((state) => state.abortGeneration);
+  const streamingMessageIds = useBoundStore(
     (state) => state.streamingMessageIds,
   );
 
-  const isLoading =
-    sessionStatus === "busy" || !!streamingMessageIds[sessionId];
+  // const isLoading =
+  //   sessionStatus === "busy" || !!streamingMessageIds[sessionId];
+  // TODO fix this
+  const isLoading = false;
 
   const handleSend = async (text: string, model?: ModelConfig | null) => {
     // TODO receive model

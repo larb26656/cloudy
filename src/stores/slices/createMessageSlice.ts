@@ -1,8 +1,6 @@
-import { create } from 'zustand';
+import type { Message, SessionMessagesResponse, Part, Event } from '@opencode-ai/sdk/v2';
+import type { ToolExecution, ModelConfig } from '../../types';
 import { oc } from '@/lib/opencode';
-import type { Message, SessionMessagesResponse, Event, Part } from '@opencode-ai/sdk/v2';
-import type { ToolExecution, ModelConfig } from '../types';
-import { useUIStore } from './uiStore';
 
 type SdkError = {
   message?: string;
@@ -22,22 +20,18 @@ function getErrorMessage(error: SdkError): string {
   return 'Unknown error';
 }
 
-interface MessageState {
+export interface MessageSlice {
   messages: Record<string, SessionMessagesResponse>;
   streamingMessageIds: Record<string, string | null>;
   isLoading: boolean;
   error: string | null;
   isThinking: boolean;
-  currentDirectory: string | null;
 
-  // Phase 2: Thinking content
   thinkingContent: Record<string, string>;
   thinkingState: Record<string, 'active' | 'complete' | null>;
 
-  // Phase 2: Tool executions
   toolExecutions: Record<string, ToolExecution[]>;
 
-  // Phase 2: Selected model
   selectedModel: ModelConfig | null;
 
   loadMessages: (sessionId: string) => Promise<void>;
@@ -46,41 +40,35 @@ interface MessageState {
   appendStreamChunk: (sessionId: string, messageId: string, delta: string) => void;
   updateMessage: (message: Message) => void;
   updateMessagePart: (part: Part) => void;
-  setCurrentDirectory: (directory: string | null) => void;
   clearMessages: (sessionId: string) => void;
   handleEvent: (event: Event) => void;
 
-  // Phase 2: Thinking actions
   setThinkingState: (messageId: string, state: 'active' | 'complete') => void;
   appendThinkingText: (messageId: string, text: string) => void;
 
-  // Phase 2: Tool actions
   addToolExecution: (messageId: string, tool: ToolExecution) => void;
   updateToolProgress: (messageId: string, toolId: string, progress: { progress: number; status: string }) => void;
   completeToolExecution: (messageId: string, toolId: string, result: { result?: unknown; error?: string; status: 'complete' | 'error' }) => void;
 
-  // Phase 2: Model actions
   setSelectedModel: (model: ModelConfig | null) => void;
 }
 
-export const useMessageStoreV2 = create<MessageState>((set, get) => ({
+export const createMessageSlice = (set: any, get: any): MessageSlice => ({
   messages: {},
   streamingMessageIds: {},
   isLoading: false,
   error: null,
   isThinking: false,
-  currentDirectory: null,
+
   thinkingContent: {},
   thinkingState: {},
+
   toolExecutions: {},
+
   selectedModel: null,
 
-  setCurrentDirectory: (directory: string | null) => {
-    set({ currentDirectory: directory });
-  },
-
   clearMessages: (sessionId: string) => {
-    set((state) => ({
+    set((state: any) => ({
       messages: {
         ...state.messages,
         [sessionId]: [],
@@ -100,49 +88,30 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
       return;
     }
     const data = result.data;
-    set((state) => ({
+    set((state: any) => ({
       messages: { ...state.messages, [sessionId]: data },
       isLoading: false,
     }));
   },
 
+
   sendMessage: async (sessionId: string, text: string, model?: ModelConfig | null) => {
+    const directory = get().selectedDirectory;
+    if (!directory) return;
+
     set({ error: null, isThinking: true });
 
-    const directory = useUIStore.getState().selectedDirectory;
+    console.log(directory);
 
-    if (!directory) {
-      return;
-    }
-
-    const result = await oc.session.promptAsync({
+    await oc.session.promptAsync({
       sessionID: sessionId,
       parts: [{ type: 'text', text }],
       model: model ?? undefined,
-      directory: directory
+    }, {
+      headers: { 'x-opencode-directory': directory }
     });
 
-    set({ isThinking: false })
-
-    if (result.error) {
-      // set((state) => ({
-      //   messages: {
-      //     ...state.messages,
-      //     [sessionId]: state.messages[sessionId]?.filter((m) => m.info.id !== tempId) || [],
-      //   },
-      //   error: getErrorMessage(result.error as SdkError),
-      // }));
-      return;
-    }
-    // if (response?.info?.id) {
-    //   set((state) => ({
-    //     messages: {
-    //       ...state.messages,
-    //       [sessionId]: state.messages[sessionId]?.filter((m) => m.info.id !== tempId) || [],
-    //     },
-    //   }));
-    //   // get().loadMessages(sessionId);
-    // }
+    set({ isThinking: false });
   },
 
   abortGeneration: async (sessionId: string) => {
@@ -152,30 +121,28 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
       set({ error: getErrorMessage(result.error as SdkError) });
       return;
     }
-    set((state) => ({
+    set((state: any) => ({
       streamingMessageIds: { ...state.streamingMessageIds, [sessionId]: null },
     }));
   },
 
   appendStreamChunk: (sessionId: string, messageId: string, delta: string) => {
-    set((state) => {
+    set((state: any) => {
       const sessionMessages = state.messages[sessionId] || [];
       const messageIndex = sessionMessages.findIndex(
-        (m) => m.info.id === messageId
+        (m: any) => m.info.id === messageId
       );
 
-      // skip message if not exist
       if (messageIndex === -1) {
         return {};
       }
 
-      // update existing message
-      const updatedMessages = sessionMessages.map((msg) => {
+      const updatedMessages = sessionMessages.map((msg: any) => {
         if (msg.info.id !== messageId) return msg;
 
         return {
           ...msg,
-          parts: msg.parts.map((p) =>
+          parts: msg.parts.map((p: any) =>
             p.type === "text"
               ? { ...p, text: p.text + delta }
               : p
@@ -193,12 +160,11 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
   },
 
   updateMessage: (info: Message) => {
-    set((state) => {
+    set((state: any) => {
       const sessionMessages = state.messages[info.sessionID] || [];
-      const message = sessionMessages.findIndex(message => message.info.id === info.id)
+      const message = sessionMessages.findIndex((m: any) => m.info.id === info.id);
 
       if (message !== -1) {
-        // skip if message is exist
         return {};
       }
 
@@ -210,26 +176,24 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
             parts: []
           }]
         }
-      }
-
+      };
     });
   },
 
   updateMessagePart: (info: Part) => {
-    set((state) => {
+    set((state: any) => {
       const sessionMessages = state.messages[info.sessionID] || [];
 
-      const updatedMessages = sessionMessages.map((sessionMessage) => {
+      const updatedMessages = sessionMessages.map((sessionMessage: any) => {
         if (sessionMessage.info.id !== info.messageID) {
           return sessionMessage;
         }
 
         const partIndex = sessionMessage.parts.findIndex(
-          (p) => p.id === info.id
+          (p: any) => p.id === info.id
         );
 
         if (partIndex !== -1) {
-          // update part
           const newParts = [...sessionMessage.parts];
           newParts[partIndex] = info;
 
@@ -239,7 +203,6 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
           };
         }
 
-        // add part
         return {
           ...sessionMessage,
           parts: [...sessionMessage.parts, info]
@@ -323,15 +286,14 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
     }
   },
 
-  // Phase 2: Thinking actions
   setThinkingState: (messageId: string, state: 'active' | 'complete') => {
-    set((prev) => ({
+    set((prev: any) => ({
       thinkingState: { ...prev.thinkingState, [messageId]: state },
     }));
   },
 
   appendThinkingText: (messageId: string, text: string) => {
-    set((prev) => ({
+    set((prev: any) => ({
       thinkingContent: {
         ...prev.thinkingContent,
         [messageId]: (prev.thinkingContent[messageId] || '') + text,
@@ -339,9 +301,8 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
     }));
   },
 
-  // Phase 2: Tool actions
   addToolExecution: (messageId: string, tool: ToolExecution) => {
-    set((prev) => ({
+    set((prev: any) => ({
       toolExecutions: {
         ...prev.toolExecutions,
         [messageId]: [...(prev.toolExecutions[messageId] || []), tool],
@@ -350,12 +311,12 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
   },
 
   updateToolProgress: (messageId: string, toolId: string, progress: { progress: number; status: string }) => {
-    set((prev) => {
+    set((prev: any) => {
       const tools = prev.toolExecutions[messageId] || [];
       return {
         toolExecutions: {
           ...prev.toolExecutions,
-          [messageId]: tools.map((t) =>
+          [messageId]: tools.map((t: any) =>
             t.id === toolId
               ? { ...t, progress: progress.progress, status: 'running' as const }
               : t
@@ -366,12 +327,12 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
   },
 
   completeToolExecution: (messageId: string, toolId: string, result: { result?: unknown; error?: string; status: 'complete' | 'error' }) => {
-    set((prev) => {
+    set((prev: any) => {
       const tools = prev.toolExecutions[messageId] || [];
       return {
         toolExecutions: {
           ...prev.toolExecutions,
-          [messageId]: tools.map((t) =>
+          [messageId]: tools.map((t: any) =>
             t.id === toolId
               ? { ...t, status: result.status, result: result.result, error: result.error, endTime: Date.now() }
               : t
@@ -381,8 +342,7 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
     });
   },
 
-  // Phase 2: Model actions
   setSelectedModel: (model: ModelConfig | null) => {
     set({ selectedModel: model });
   },
-}));
+});

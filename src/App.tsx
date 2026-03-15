@@ -9,24 +9,26 @@ import {
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import { useSessionStore } from "./stores/sessionStore";
-import { useUIStore } from "./stores/uiStore";
-import { useEventSource, useDeviceType } from "./hooks";
+import { useDeviceType } from "./hooks";
 import { oc } from "./lib/opencode";
-import { useMessageStoreV2 } from "./stores/messageStoreV2";
 import type { Event } from "@opencode-ai/sdk/v2";
+import { useBoundStore } from "./stores";
 
 function App() {
-  const { sessions, currentSessionId, loadSessions } = useSessionStore();
-  const { handleEvent } = useMessageStoreV2();
+  const {} = useBoundStore();
   const {
+    sessions,
+    currentSessionId,
+    loadSessions,
+    handleEvent,
+    createSession,
     sidebarOpen,
     setSidebarOpen,
     isDarkMode,
     selectedDirectory,
     deviceType,
     setDeviceType,
-  } = useUIStore();
+  } = useBoundStore();
 
   const { isMobile, isTablet } = useDeviceType();
 
@@ -63,9 +65,6 @@ function App() {
   }, [loadSessions]);
 
   const currentSession = sessions.find((s) => s.id === currentSessionId);
-  const directory = selectedDirectory || currentSession?.directory || null;
-
-  useEventSource(directory);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -77,7 +76,7 @@ function App() {
 
   const sessionDir = currentSession?.directory ?? undefined;
   const sessionTitle = currentSession?.title;
-  const sessionStatuses = useSessionStore((state) => state.sessionStatuses);
+  const sessionStatuses = useBoundStore((state) => state.sessionStatuses);
   const sessionStatus = currentSessionId
     ? (sessionStatuses[currentSessionId] ?? null)
     : null;
@@ -86,7 +85,7 @@ function App() {
     return (
       <>
         <MobileSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
-        <div className="flex flex-col h-screen bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="flex flex-col h-[100dvh] bg-white dark:bg-gray-900 overflow-hidden">
           <Header
             sessionTitle={sessionTitle}
             sessionDirectory={sessionDir}
@@ -109,7 +108,7 @@ function App() {
                   Your AI-powered coding assistant
                 </p>
                 <button
-                  onClick={() => useSessionStore.getState().createSession()}
+                  onClick={() => createSession()}
                   className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors"
                 >
                   Start New Chat
@@ -163,7 +162,7 @@ function App() {
                     Your AI-powered coding assistant
                   </p>
                   <button
-                    onClick={() => useSessionStore.getState().createSession()}
+                    onClick={() => createSession()}
                     className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-colors"
                   >
                     Start New Chat
