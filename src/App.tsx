@@ -33,13 +33,14 @@ function App() {
   const { isMobile, isTablet } = useDeviceType();
 
   useEffect(() => {
+    if (!selectedDirectory) return;
+
     let stream: AsyncGenerator<Event> | null = null;
-    // const abortController = new AbortController();
-    // console.log(abortController.signal.aborted);
 
     const subscribe = async () => {
-      console.log("1");
-      const events = await oc.event.subscribe();
+      const events = await oc.event.subscribe({
+        directory: selectedDirectory,
+      });
       stream = events.stream;
 
       for await (const event of stream) {
@@ -54,7 +55,7 @@ function App() {
       // abortController.abort();
       stream?.return?.("");
     };
-  }, []);
+  }, [selectedDirectory]);
   // useEffect(() => {
   //   let isMounted = true;
   //   (async () => {

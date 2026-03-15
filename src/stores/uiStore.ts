@@ -1,11 +1,14 @@
 // stores/uiStore.ts
 import { create } from 'zustand';
+import { oc } from '@/lib/opencode';
 import type { DeviceType } from '@/hooks/useDeviceType';
 
 const STORAGE_KEYS = {
   SIDEBAR_OPEN: 'opencode-chat-sidebar-open',
   SIDEBAR_WIDTH: 'opencode-chat-sidebar-width',
   FULLSCREEN: 'opencode-chat-fullscreen',
+  SELECTED_DIRECTORY: 'opencode-chat-selected-directory',
+  RECENT_DIRECTORIES: 'opencode-chat-recent-directories',
 } as const;
 
 function getFromStorage<T>(key: string, defaultValue: T): T {
@@ -57,6 +60,7 @@ interface UIState {
   setSearchQuery: (query: string) => void;
   setSelectedDirectory: (directory: string | null) => void;
   addRecentDirectory: (directory: string) => void;
+  searchDirectories: (query: string) => Promise<string[]>;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
   clearToast: () => void;
 }
@@ -72,8 +76,8 @@ export const useUIStore = create<UIState>((set) => ({
   detailsPanelOpen: false,
   isDarkMode: false,
   searchQuery: '',
-  selectedDirectory: null,
-  recentDirectories: [],
+  selectedDirectory: getFromStorage(STORAGE_KEYS.SELECTED_DIRECTORY, null),
+  recentDirectories: getFromStorage(STORAGE_KEYS.RECENT_DIRECTORIES, []),
   toast: null,
 
   setDeviceType: (deviceType) => {
@@ -110,10 +114,28 @@ export const useUIStore = create<UIState>((set) => ({
   toggleDetailsPanel: () => set((state) => ({ detailsPanelOpen: !state.detailsPanelOpen })),
   toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode })),
   setSearchQuery: (query) => set({ searchQuery: query }),
-  setSelectedDirectory: (directory) => set({ selectedDirectory: directory }),
-  addRecentDirectory: (directory) => set((state) => ({
-    recentDirectories: [directory, ...state.recentDirectories.filter(d => d !== directory)].slice(0, 5)
-  })),
+  setSelectedDirectory: (directory) => {
+    setToStorage(STORAGE_KEYS.SELECTED_DIRECTORY, directory);
+    set({ selectedDirectory: directory });
+  },
+  addRecentDirectory: (directory) => set((state) => {
+    const updated = [directory, ...state.recentDirectories.filter(d => d !== directory)].slice(0, 5);
+    setToStorage(STORAGE_KEYS.RECENT_DIRECTORIES, updated);
+    return { recentDirectories: updated };
+  }),
+  searchDirectories: async (query: string) => {
+    try {
+      const result = await oc.find.files({
+        query,
+        type: 'directory',
+        limit: 10,
+      });
+      return result.data || [];
+    } catch (error) {
+      console.error('Failed to search directories:', error);
+      return [];
+    }
+  },
   showToast: (message, type) => set({ toast: { message, type } }),
   clearToast: () => set({ toast: null }),
 }));

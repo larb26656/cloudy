@@ -1,7 +1,8 @@
 import { create } from 'zustand';
 import { oc } from '@/lib/opencode';
-import type { Message, TextPartInput, SessionMessagesResponse, SessionPromptResponse, Event, TextPart, Part } from '@opencode-ai/sdk/v2';
-import type { AssistantSessionMessage, UserSessionMessage } from '@/types/messagev2';
+import type { Message, SessionMessagesResponse, Event, Part } from '@opencode-ai/sdk/v2';
+import type { ToolExecution, ModelConfig } from '../types';
+import { useUIStore } from './uiStore';
 
 type SdkError = {
   message?: string;
@@ -29,14 +30,37 @@ interface MessageState {
   isThinking: boolean;
   currentDirectory: string | null;
 
+  // Phase 2: Thinking content
+  thinkingContent: Record<string, string>;
+  thinkingState: Record<string, 'active' | 'complete' | null>;
+
+  // Phase 2: Tool executions
+  toolExecutions: Record<string, ToolExecution[]>;
+
+  // Phase 2: Selected model
+  selectedModel: ModelConfig | null;
+
   loadMessages: (sessionId: string) => Promise<void>;
-  sendMessage: (sessionId: string, text: string) => Promise<void>;
+  sendMessage: (sessionId: string, text: string, model?: ModelConfig | null) => Promise<void>;
   abortGeneration: (sessionId: string) => Promise<void>;
   appendStreamChunk: (sessionId: string, messageId: string, delta: string) => void;
   updateMessage: (message: Message) => void;
   updateMessagePart: (part: Part) => void;
   setCurrentDirectory: (directory: string | null) => void;
+  clearMessages: (sessionId: string) => void;
   handleEvent: (event: Event) => void;
+
+  // Phase 2: Thinking actions
+  setThinkingState: (messageId: string, state: 'active' | 'complete') => void;
+  appendThinkingText: (messageId: string, text: string) => void;
+
+  // Phase 2: Tool actions
+  addToolExecution: (messageId: string, tool: ToolExecution) => void;
+  updateToolProgress: (messageId: string, toolId: string, progress: { progress: number; status: string }) => void;
+  completeToolExecution: (messageId: string, toolId: string, result: { result?: unknown; error?: string; status: 'complete' | 'error' }) => void;
+
+  // Phase 2: Model actions
+  setSelectedModel: (model: ModelConfig | null) => void;
 }
 
 export const useMessageStoreV2 = create<MessageState>((set, get) => ({
@@ -46,9 +70,22 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
   error: null,
   isThinking: false,
   currentDirectory: null,
+  thinkingContent: {},
+  thinkingState: {},
+  toolExecutions: {},
+  selectedModel: null,
 
   setCurrentDirectory: (directory: string | null) => {
     set({ currentDirectory: directory });
+  },
+
+  clearMessages: (sessionId: string) => {
+    set((state) => ({
+      messages: {
+        ...state.messages,
+        [sessionId]: [],
+      },
+    }));
   },
 
   loadMessages: async (sessionId: string) => {
@@ -70,36 +107,20 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
     }));
   },
 
-  sendMessage: async (sessionId: string, text: string) => {
+  sendMessage: async (sessionId: string, text: string, model?: ModelConfig | null) => {
     set({ error: null, isThinking: true });
-    // const tempId = `temp_${Date.now()}`;
 
-    // const userMessage: UserSessionMessage = {
-    //   info: {
-    //     id: tempId,
-    //     sessionID: sessionId,
-    //     role: 'user',
-    //     time: { created: Date.now() },
-    //     agent: '',
-    //     model: {
-    //       providerID: '',
-    //       modelID: ''
-    //     }
-    //   },
-    //   parts: [{ type: 'text', text } as TextPartInput],
-    // };
+    const directory = useUIStore.getState().selectedDirectory;
 
-    // set((state) => ({
-    //   messages: {
-    //     ...state.messages,
-    //     [sessionId]: [...(state.messages[sessionId] || []), userMessage],
-    //   },
-    // }));
+    if (!directory) {
+      return;
+    }
 
-    const result = await oc.session.prompt({
+    const result = await oc.session.promptAsync({
       sessionID: sessionId,
       parts: [{ type: 'text', text }],
-      // query: { directory: get().currentDirectory ?? undefined },
+      model: model ?? undefined,
+      directory: directory
     });
 
     set({ isThinking: false })
@@ -235,25 +256,134 @@ export const useMessageStoreV2 = create<MessageState>((set, get) => ({
     });
   },
 
-  handleEvent: (event: Event) => {
-    switch (event.type) {
-      case "message.updated": {
-        const props = event.properties;
-        get().updateMessage(props.info);
-        break;
-      }
+  handleEvent: (event: { type: string; properties: Record<string, unknown> }) => {
+    const props = event.properties;
+    const eventType = event.type;
 
-      case "message.part.updated": {
-        const props = event.properties;
-        get().updateMessagePart(props.part);
-        break;
-      }
-
-      case "message.part.delta": {
-        const props = event.properties;
-        get().appendStreamChunk(props.sessionID, props.messageID, props.delta);
-        break;
-      }
+    if (eventType === "message.updated") {
+      get().updateMessage(props.info as Message);
+      return;
     }
-  }
+
+    if (eventType === "message.part.updated") {
+      get().updateMessagePart(props.part as Part);
+      return;
+    }
+
+    if (eventType === "message.part.delta") {
+      get().appendStreamChunk(props.sessionID as string, props.messageID as string, props.delta as string);
+      return;
+    }
+
+    // Phase 2: Handle reasoning events
+    if (eventType === "reasoning.start") {
+      get().setThinkingState(props.messageID as string, 'active');
+      return;
+    }
+    if (eventType === "reasoning.delta") {
+      get().appendThinkingText(props.messageID as string, props.text as string);
+      return;
+    }
+    if (eventType === "reasoning.complete") {
+      get().setThinkingState(props.messageID as string, 'complete');
+      return;
+    }
+
+    // Phase 2: Handle tool events
+    if (eventType === "tool.start") {
+      get().addToolExecution(props.messageID as string, {
+        id: props.partID as string,
+        tool: props.tool as string,
+        arguments: props.arguments as Record<string, unknown>,
+        status: 'running',
+        progress: 0,
+        startTime: Date.now(),
+      });
+      return;
+    }
+    if (eventType === "tool.progress") {
+      get().updateToolProgress(props.messageID as string, props.partID as string, {
+        progress: props.progress as number,
+        status: props.status as string,
+      });
+      return;
+    }
+    if (eventType === "tool.complete") {
+      get().completeToolExecution(props.messageID as string, props.partID as string, {
+        result: props.result,
+        status: 'complete',
+      });
+      return;
+    }
+    if (eventType === "tool.error") {
+      get().completeToolExecution(props.messageID as string, props.partID as string, {
+        error: props.error as string,
+        status: 'error',
+      });
+      return;
+    }
+  },
+
+  // Phase 2: Thinking actions
+  setThinkingState: (messageId: string, state: 'active' | 'complete') => {
+    set((prev) => ({
+      thinkingState: { ...prev.thinkingState, [messageId]: state },
+    }));
+  },
+
+  appendThinkingText: (messageId: string, text: string) => {
+    set((prev) => ({
+      thinkingContent: {
+        ...prev.thinkingContent,
+        [messageId]: (prev.thinkingContent[messageId] || '') + text,
+      },
+    }));
+  },
+
+  // Phase 2: Tool actions
+  addToolExecution: (messageId: string, tool: ToolExecution) => {
+    set((prev) => ({
+      toolExecutions: {
+        ...prev.toolExecutions,
+        [messageId]: [...(prev.toolExecutions[messageId] || []), tool],
+      },
+    }));
+  },
+
+  updateToolProgress: (messageId: string, toolId: string, progress: { progress: number; status: string }) => {
+    set((prev) => {
+      const tools = prev.toolExecutions[messageId] || [];
+      return {
+        toolExecutions: {
+          ...prev.toolExecutions,
+          [messageId]: tools.map((t) =>
+            t.id === toolId
+              ? { ...t, progress: progress.progress, status: 'running' as const }
+              : t
+          ),
+        },
+      };
+    });
+  },
+
+  completeToolExecution: (messageId: string, toolId: string, result: { result?: unknown; error?: string; status: 'complete' | 'error' }) => {
+    set((prev) => {
+      const tools = prev.toolExecutions[messageId] || [];
+      return {
+        toolExecutions: {
+          ...prev.toolExecutions,
+          [messageId]: tools.map((t) =>
+            t.id === toolId
+              ? { ...t, status: result.status, result: result.result, error: result.error, endTime: Date.now() }
+              : t
+          ),
+        },
+      };
+    });
+  },
+
+  // Phase 2: Model actions
+  setSelectedModel: (model: ModelConfig | null) => {
+    set({ selectedModel: model });
+  },
 }));
