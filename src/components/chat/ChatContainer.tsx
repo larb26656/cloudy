@@ -4,6 +4,7 @@ import { ChatInput } from "./ChatInput";
 import type { ModelConfig } from "../../types";
 import { useSessionStore } from "@/stores";
 import { useChatWorkspace } from "@/hooks/useChatWorkspace";
+import { SelectSessionState } from "./ChatEmptyState";
 
 interface ChatContainerProps {}
 
@@ -26,14 +27,7 @@ export function ChatContainer({}: ChatContainerProps) {
   };
 
   if (!session) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center text-gray-500 dark:text-gray-400">
-          <p className="text-lg font-medium">Select a chat</p>
-          <p className="text-sm">Choose a chat from the sidebar to start</p>
-        </div>
-      </div>
-    );
+    return <SelectSessionState />;
   }
 
   return (

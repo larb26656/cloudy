@@ -3,6 +3,7 @@ import { useEffect, useRef, useMemo } from "react";
 import { MessageBubble } from "./MessageBubble";
 import type { MessageV2 } from "@/types/messagev2";
 import { useMessageStore, useSessionStore } from "@/stores";
+import { EmptyChatState } from "../ChatEmptyState";
 
 interface MessageListProps {}
 
@@ -61,13 +62,7 @@ export function MessageList({}: MessageListProps) {
       className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
     >
       {messages.length === 0 ? (
-        <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-500">
-          <div className="w-16 h-16 mb-4 bg-gradient-to-br from-blue-400 to-green-400 rounded-2xl flex items-center justify-center">
-            <span className="text-white text-2xl font-bold">AI</span>
-          </div>
-          <p className="text-lg font-medium">Start a conversation</p>
-          <p className="text-sm">Send a message to begin chatting</p>
-        </div>
+        <EmptyChatState />
       ) : (
         <div className="max-w-4xl mx-auto space-y-4 pb-4">
           {messages.map((message: MessageV2) => {
