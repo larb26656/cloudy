@@ -16,8 +16,9 @@ export function SessionList() {
     isLoading,
     updateSession,
     deleteSession,
+    selectSession,
   } = useSessionStore();
-  const { createSession, selectSession } = useChatWorkspace();
+  const { createSession } = useChatWorkspace();
   const { selectedDirectory } = useDirectoryStore();
   const [searchQuery, setSearchQuery] = useState("");
   // TODO decision should use in search query?

@@ -16,7 +16,6 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { useDirectoryStore } from "@/stores";
-import { useChatWorkspace } from "@/hooks/useChatWorkspace";
 
 export function DirectoryFilter() {
   const {
@@ -24,8 +23,8 @@ export function DirectoryFilter() {
     recentDirectories,
     addRecentDirectory,
     searchDirectories,
+    setSelectedDirectory,
   } = useDirectoryStore();
-  const { setSelectedDirectory } = useChatWorkspace();
 
   const [isOpen, setIsOpen] = useState(false);
   const [customPath, setCustomPath] = useState("");

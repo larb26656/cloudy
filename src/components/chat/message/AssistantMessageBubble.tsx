@@ -1,6 +1,5 @@
 import type { Part } from "@opencode-ai/sdk/v2";
 import { MessageParts } from "./MessageParts";
-import { useMessageStore } from "@/stores";
 
 interface AssistantMessageBubbleProps {
   info: any;
@@ -11,27 +10,11 @@ export default function AssistantMessageBubble({
   info,
   parts,
 }: AssistantMessageBubbleProps) {
-  const isThinking = useMessageStore((state) => state.isThinking);
-  const hasContent =
-    parts.length > 0 && parts.some((p) => "text" in p && p.text.length > 0);
-
   return (
     <div className="flex justify-start mb-4">
       <div className="w-full flex flex-col gap-2 font-content">
         <MessageParts parts={parts} info={info} />
-
-        {!hasContent && isThinking && <ThinkingAnimation />}
       </div>
-    </div>
-  );
-}
-
-function ThinkingAnimation() {
-  return (
-    <div className="flex items-center gap-1 h-6">
-      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
     </div>
   );
 }

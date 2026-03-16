@@ -1,5 +1,5 @@
 // App.tsx
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { SessionList } from "./components/session/SessionList";
 import { ChatContainer } from "./components/chat/ChatContainer";
 import { MobileSidebar } from "./components/layout/Sidebar";
@@ -10,20 +10,45 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { useDeviceType } from "./hooks";
-import { useSessionStore } from "./stores";
+import { useSessionStore, useDirectoryStore, useMessageStore } from "./stores";
 import { useChatWorkspace } from "@/hooks/useChatWorkspace";
 import { useEventStream } from "@/hooks/useEventSteam";
 import { useChatUIStore } from "@/stores/chatUIStore";
 
 function App() {
-  const { sessions, sessionStatuses, selectedSessionId } = useSessionStore();
+  const { sessions, sessionStatuses, selectedSessionId, loadSessions } = useSessionStore();
+  const { selectedDirectory } = useDirectoryStore();
+  const { loadMessages } = useMessageStore();
   const { createSession } = useChatWorkspace();
   const { sidebarOpen, setSidebarOpen, isDarkMode, deviceType, setDeviceType } =
     useChatUIStore();
 
+  const initialized = useRef(false);
+
   useEventStream();
 
   const { isMobile, isTablet } = useDeviceType();
+
+  useEffect(() => {
+    if (!initialized.current) {
+      initialized.current = true;
+      return;
+    }
+
+    if (selectedDirectory) {
+      loadSessions(selectedDirectory);
+    }
+  }, [selectedDirectory, loadSessions]);
+
+  useEffect(() => {
+    if (!initialized.current) {
+      return;
+    }
+
+    if (selectedSessionId) {
+      loadMessages(selectedSessionId);
+    }
+  }, [selectedSessionId, loadMessages]);
 
   useEffect(() => {
     setDeviceType(deviceType);

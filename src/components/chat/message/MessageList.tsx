@@ -12,6 +12,10 @@ export function MessageList({}: MessageListProps) {
   const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
+  const sessionStatuses = useSessionStore((s) => s.sessionStatuses);
+  const isBusy = Boolean(
+    selectedSessionId && sessionStatuses[selectedSessionId]?.type === "busy",
+  );
 
   const messages = useMemo(() => {
     if (!selectedSessionId) {
@@ -25,7 +29,7 @@ export function MessageList({}: MessageListProps) {
     if (shouldScrollRef.current && scrollRef.current && messages.length > 0) {
       scrollRef.current.scrollTo({
         top: scrollRef.current.scrollHeight,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [messages]);
@@ -75,8 +79,23 @@ export function MessageList({}: MessageListProps) {
               />
             );
           })}
+          {isBusy && (
+            <div className="mt-2">
+              <ThinkingAnimation />{" "}
+            </div>
+          )}
         </div>
       )}
+    </div>
+  );
+}
+
+function ThinkingAnimation() {
+  return (
+    <div className="flex items-center gap-1 h-6">
+      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
     </div>
   );
 }

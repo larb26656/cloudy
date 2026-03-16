@@ -12,11 +12,10 @@ export function ChatContainer({}: ChatContainerProps) {
   const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const session = sessions.find((s) => s.id === selectedSessionId);
   const { sendMessage, abortGeneration } = useChatWorkspace();
-
-  // const isLoading =
-  //   sessionStatus === "busy" || !!streamingMessageIds[sessionId];
-  // TODO fix this
-  const isLoading = false;
+  const sessionStatuses = useSessionStore((s) => s.sessionStatuses);
+  const isBusy = Boolean(
+    selectedSessionId && sessionStatuses[selectedSessionId]?.type === "busy",
+  );
 
   const handleSend = async (text: string, model?: ModelConfig | null) => {
     await sendMessage(text, model);
@@ -46,7 +45,7 @@ export function ChatContainer({}: ChatContainerProps) {
       <ChatInput
         onSend={handleSend}
         onAbort={handleAbort}
-        isLoading={isLoading}
+        isLoading={isBusy}
         placeholder={`Message ${session.title || "AI"}...`}
         directory={session.directory}
       />

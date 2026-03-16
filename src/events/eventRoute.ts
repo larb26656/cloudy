@@ -1,6 +1,6 @@
 import { useMessageStore } from "@/stores/messageStore"
 import { useSessionStore } from "@/stores/sessionStore"
-import type { Event } from "@opencode-ai/sdk/v2";
+import type { Event, SessionStatus } from "@opencode-ai/sdk/v2";
 
 export function handleEvent(event: Event) {
 
@@ -30,7 +30,43 @@ export function handleEvent(event: Event) {
             }
 
             break;
-        // TODO handle session event
+
+        case 'session.status':
+            {
+                const props = event.properties;
+                sessionStore.updateSessionStatus(props.sessionID, props.status);
+                break;
+            }
+
+        case 'session.created':
+            {
+                const props = event.properties;
+                sessionStore.addSession(props.info);
+                break;
+            }
+
+        case 'session.updated':
+            {
+                const props = event.properties;
+                sessionStore.updateSessionFromEvent(props.info);
+                break;
+            }
+
+        case 'session.deleted':
+            {
+                const props = event.properties;
+                sessionStore.removeSession(props.info.id);
+                break;
+            }
+
+        case 'session.error':
+            {
+                const props = event.properties;
+                if (props.sessionID) {
+                    sessionStore.updateSessionStatus(props.sessionID, 'idle' as unknown as SessionStatus);
+                }
+                break;
+            }
     }
 
 }
