@@ -4,7 +4,7 @@ import { ArrowUp, StopCircle } from "lucide-react";
 import { ModelSelector } from "./ModelSelector";
 import type { FileReference, ModelConfig } from "../../types";
 import { Button } from "@/components/ui/button";
-import { useBoundStore } from "@/stores";
+import { useMessageStore } from "@/stores";
 
 interface ChatInputProps {
   onSend: (text: string, model?: ModelConfig | null) => void;
@@ -25,7 +25,7 @@ export function ChatInput({
   const [isFileMentionOpen, setIsFileMentionOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileReference[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { selectedModel } = useBoundStore();
+  const { selectedModel } = useMessageStore();
 
   useEffect(() => {
     const textarea = textareaRef.current;

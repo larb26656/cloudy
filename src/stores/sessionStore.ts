@@ -4,7 +4,7 @@ import { create } from "zustand";
 
 type SessionStoreState = {
     sessions: Session[];
-    currentSessionId: string | null;
+    selectedSessionId: string | null;
     sessionStatuses: Record<string, SessionStatus>;
     isLoading: boolean;
     error: string | null;
@@ -27,7 +27,7 @@ type SessionStore = SessionStoreState & SessionsStoreSessionActions
 
 export const useSessionStore = create<SessionStore>()((set) => ({
     sessions: [],
-    currentSessionId: null,
+    selectedSessionId: null,
     sessionStatuses: {},
     isLoading: false,
     error: null,
@@ -60,14 +60,14 @@ export const useSessionStore = create<SessionStore>()((set) => ({
 
         set((state) => ({
             sessions: [session, ...state.sessions],
-            currentSessionId: session.id,
+            selectedSessionId: session.id,
         }));
 
         return session;
     },
 
     selectSession: (sessionId: string) => {
-        set({ currentSessionId: sessionId });
+        set({ selectedSessionId: sessionId });
     },
 
     updateSession: async (sessionId: string, title: string) => {
@@ -101,7 +101,7 @@ export const useSessionStore = create<SessionStore>()((set) => ({
                 state.currentSessionId === sessionId
                     ? newSessions[0]?.id || null
                     : state.currentSessionId;
-            return { sessions: newSessions, currentSessionId: newCurrentId };
+            return { sessions: newSessions, selectedSessionId: newCurrentId };
         });
     },
 
@@ -119,7 +119,7 @@ export const useSessionStore = create<SessionStore>()((set) => ({
         if (session) {
             set((state: any) => ({
                 sessions: [session, ...state.sessions],
-                currentSessionId: session.id,
+                selectedSessionId: session.id,
             }));
         }
         return null;

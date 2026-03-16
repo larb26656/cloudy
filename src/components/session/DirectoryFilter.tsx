@@ -15,17 +15,17 @@ import {
   CommandList,
   CommandItem,
 } from "@/components/ui/command";
-import { useBoundStore } from "@/stores";
+import { useDirectoryStore } from "@/stores";
+import { useChatWorkspace } from "@/hooks/useChatWorkspace";
 
 export function DirectoryFilter() {
   const {
     selectedDirectory,
-    loadSessions,
     recentDirectories,
-    setSelectedDirectory,
     addRecentDirectory,
     searchDirectories,
-  } = useBoundStore();
+  } = useDirectoryStore();
+  const { setSelectedDirectory } = useChatWorkspace();
 
   const [isOpen, setIsOpen] = useState(false);
   const [customPath, setCustomPath] = useState("");
@@ -46,7 +46,8 @@ export function DirectoryFilter() {
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const results = await searchDirectories(customPath);
+        await searchDirectories(customPath);
+        const results = useDirectoryStore.getState().directories;
         setSuggestions(results);
       } finally {
         setIsSearching(false);
@@ -67,7 +68,6 @@ export function DirectoryFilter() {
       addRecentDirectory(directory);
     }
 
-    loadSessions();
     setIsOpen(false);
     setCustomPath("");
     setSuggestions([]);

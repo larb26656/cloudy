@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { SessionStatus } from "@opencode-ai/sdk";
-import { useBoundStore } from "@/stores";
+import { useChatUIStore } from "@/stores";
 
 interface HeaderProps {
   sessionTitle?: string | null;
@@ -23,7 +23,7 @@ export function Header({
   sessionStatus,
 }: HeaderProps) {
   const { sidebarOpen, toggleSidebar, isDarkMode, toggleTheme } =
-    useBoundStore();
+    useChatUIStore();
 
   return (
     <header className="px-4 py-3 bg-white dark:bg-gray-900 flex items-center justify-between">

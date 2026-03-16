@@ -1,6 +1,6 @@
 import type { Part } from "@opencode-ai/sdk/v2";
 import { MessageParts } from "./MessageParts";
-import { useBoundStore } from "@/stores";
+import { useMessageStore } from "@/stores";
 
 interface AssistantMessageBubbleProps {
   info: any;
@@ -11,7 +11,7 @@ export default function AssistantMessageBubble({
   info,
   parts,
 }: AssistantMessageBubbleProps) {
-  const isThinking = useBoundStore((state) => state.isThinking);
+  const isThinking = useMessageStore((state) => state.isThinking);
   const hasContent =
     parts.length > 0 && parts.some((p) => "text" in p && p.text.length > 0);
 

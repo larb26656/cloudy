@@ -18,7 +18,7 @@ type ChatUIStoreActions = {
 
 type ChatUIStore = ChatUIStoreState & ChatUIStoreActions
 
-export const chatUIStore = create<ChatUIStore>()((set) => ({
+export const useChatUIStore = create<ChatUIStore>()((set) => ({
     deviceType: 'desktop',
     sidebarOpen: false,
     sidebarWidth: 0,

@@ -1,31 +1,27 @@
 // components/session/SessionList.tsx
-import { useEffect } from "react";
+import { useState } from "react";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { SessionItem } from "./SessionItem";
 import { DirectoryFilter } from "./DirectoryFilter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useBoundStore } from "@/stores";
+import { useSessionStore, useDirectoryStore } from "@/stores";
+import { useChatWorkspace } from "@/hooks/useChatWorkspace";
 
 export function SessionList() {
   const {
+    selectedSessionId,
     sessions,
-    currentSessionId,
     sessionStatuses,
     isLoading,
-    loadSessions,
-    createSession,
-    selectSession,
     updateSession,
     deleteSession,
-    searchQuery,
-    setSearchQuery,
-    selectedDirectory,
-  } = useBoundStore();
-
-  useEffect(() => {
-    loadSessions();
-  }, [loadSessions, selectedDirectory]);
+  } = useSessionStore();
+  const { createSession, selectSession } = useChatWorkspace();
+  const { selectedDirectory } = useDirectoryStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  // TODO decision should use in search query?
+  // const { searchQuery, setSearchQuery } = useChatUIStore();
 
   const filteredSessions = sessions.filter((session) =>
     (session.title || "New Chat")
@@ -43,7 +39,9 @@ export function SessionList() {
         <div className="p-4 border-b">
           <Button
             size={"lg"}
-            onClick={() => createSession(undefined)}
+            onClick={() => {
+              createSession();
+            }}
             className="w-full gap-2"
           >
             <Plus className="size-5" />
@@ -79,7 +77,7 @@ export function SessionList() {
                 <SessionItem
                   key={session.id}
                   session={session}
-                  isActive={session.id === currentSessionId}
+                  isActive={session.id === selectedSessionId}
                   status={sessionStatuses[session.id]}
                   onClick={() => selectSession(session.id)}
                   onRename={(title) => updateSession(session.id, title)}

@@ -2,24 +2,16 @@
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./ChatInput";
 import type { ModelConfig } from "../../types";
-import { useBoundStore } from "@/stores";
+import { useSessionStore } from "@/stores";
+import { useChatWorkspace } from "@/hooks/useChatWorkspace";
 
-interface ChatContainerProps {
-  sessionId: string;
-}
+interface ChatContainerProps {}
 
-export function ChatContainer({ sessionId }: ChatContainerProps) {
-  const session = useBoundStore((state) =>
-    state.sessions.find((s) => s.id === sessionId),
-  );
-  const sessionStatus = useBoundStore(
-    (state) => state.sessionStatuses[sessionId],
-  );
-  const sendMessage = useBoundStore((state) => state.sendMessage);
-  const abortGeneration = useBoundStore((state) => state.abortGeneration);
-  const streamingMessageIds = useBoundStore(
-    (state) => state.streamingMessageIds,
-  );
+export function ChatContainer({}: ChatContainerProps) {
+  const sessions = useSessionStore((s) => s.sessions);
+  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
+  const session = sessions.find((s) => s.id === selectedSessionId);
+  const { sendMessage, abortGeneration } = useChatWorkspace();
 
   // const isLoading =
   //   sessionStatus === "busy" || !!streamingMessageIds[sessionId];
@@ -27,12 +19,11 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
   const isLoading = false;
 
   const handleSend = async (text: string, model?: ModelConfig | null) => {
-    // TODO receive model
-    await sendMessage(sessionId, text);
+    await sendMessage(text, model);
   };
 
   const handleAbort = async () => {
-    await abortGeneration(sessionId);
+    await abortGeneration();
   };
 
   if (!session) {
@@ -49,7 +40,7 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
       {/* Messages */}
-      <MessageList sessionId={sessionId} />
+      <MessageList />
 
       {/* Input */}
       <ChatInput

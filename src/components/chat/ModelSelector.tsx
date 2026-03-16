@@ -22,7 +22,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useBoundStore } from "@/stores";
+import { useMessageStore } from "@/stores";
 
 const providerIcons: Record<string, React.ReactNode> = {
   openai: <Cloud className="size-4" />,
@@ -41,7 +41,7 @@ export function ModelSelector() {
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const { providers, isLoading, error } = useModels();
-  const { selectedModel, setSelectedModel } = useBoundStore();
+  const { selectedModel, setSelectedModel } = useMessageStore();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

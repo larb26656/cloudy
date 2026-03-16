@@ -2,43 +2,33 @@
 import { useEffect, useRef, useMemo } from "react";
 import { MessageBubble } from "./MessageBubble";
 import type { MessageV2 } from "@/types/messagev2";
-import { useBoundStore } from "@/stores";
+import { useMessageStore, useSessionStore } from "@/stores";
 
-interface MessageListProps {
-  sessionId: string;
-}
+interface MessageListProps {}
 
-export function MessageList({ sessionId }: MessageListProps) {
-  const isLoading = useBoundStore((state) => state.isLoading);
-  const loadMessages = useBoundStore((state) => state.loadMessages);
-  const messagesMap = useBoundStore((state) => state.messages);
+export function MessageList({}: MessageListProps) {
+  const isLoading = useMessageStore((state) => state.isLoading);
+  const messagesMap = useMessageStore((state) => state.messages);
+  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
-  const lastMessageCountRef = useRef(0);
 
   const messages = useMemo(() => {
-    console.log(messagesMap);
-    return messagesMap[sessionId] || [];
-  }, [messagesMap, sessionId]);
-
-  // Load messages when session changes (only once)
-  useEffect(() => {
-    if (sessionId && messages.length === 0) {
-      loadMessages(sessionId);
+    if (!selectedSessionId) {
+      return [];
     }
-  }, [sessionId]); // Only depend on sessionId, not loadMessages
+    return messagesMap[selectedSessionId] || [];
+  }, [messagesMap, selectedSessionId]);
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    const currentMessageCount = messages.length;
-    const hasNewMessages = currentMessageCount > lastMessageCountRef.current;
-
-    if (hasNewMessages && shouldScrollRef.current && scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (shouldScrollRef.current && scrollRef.current && messages.length > 0) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
     }
-
-    lastMessageCountRef.current = currentMessageCount;
-  }, [messages.length]);
+  }, [messages]);
 
   // Handle scroll - pause auto-scroll if user scrolls up
   const handleScroll = () => {

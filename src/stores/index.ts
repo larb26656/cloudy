@@ -1,2 +1,5 @@
 // stores/index.ts
-export { useBoundStore } from './useBoundStore';
+export { useMessageStore } from './messageStore';
+export { useSessionStore } from './sessionStore';
+export { useDirectoryStore } from './directoryStore';
+export { useChatUIStore } from './chatUIStore';

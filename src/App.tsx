@@ -10,61 +10,26 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { useDeviceType } from "./hooks";
-import { oc } from "./lib/opencode";
-import type { Event } from "@opencode-ai/sdk/v2";
-import { useBoundStore } from "./stores";
+import { useSessionStore } from "./stores";
+import { useChatWorkspace } from "@/hooks/useChatWorkspace";
+import { useEventStream } from "@/hooks/useEventSteam";
+import { useChatUIStore } from "@/stores/chatUIStore";
 
 function App() {
-  const {} = useBoundStore();
-  const {
-    sessions,
-    currentSessionId,
-    loadSessions,
-    handleEvent,
-    createSession,
-    sidebarOpen,
-    setSidebarOpen,
-    isDarkMode,
-    selectedDirectory,
-    deviceType,
-    setDeviceType,
-  } = useBoundStore();
+  const { sessions, sessionStatuses, selectedSessionId } = useSessionStore();
+  const { createSession } = useChatWorkspace();
+  const { sidebarOpen, setSidebarOpen, isDarkMode, deviceType, setDeviceType } =
+    useChatUIStore();
+
+  useEventStream();
 
   const { isMobile, isTablet } = useDeviceType();
-
-  useEffect(() => {
-    if (!selectedDirectory) return;
-
-    let stream: AsyncGenerator<Event> | null = null;
-
-    const subscribe = async () => {
-      const events = await oc.event.subscribe({
-        directory: selectedDirectory,
-      });
-      stream = events.stream;
-
-      for await (const event of stream) {
-        console.log(event);
-        handleEvent(event);
-      }
-    };
-
-    subscribe();
-
-    return () => {
-      stream?.return?.("");
-    };
-  }, [selectedDirectory]);
 
   useEffect(() => {
     setDeviceType(deviceType);
   }, [deviceType, setDeviceType]);
 
-  useEffect(() => {
-    loadSessions();
-  }, [loadSessions]);
-
-  const currentSession = sessions.find((s) => s.id === currentSessionId);
+  const currentSession = sessions.find((s) => s.id === selectedSessionId);
 
   useEffect(() => {
     if (isDarkMode) {
@@ -76,9 +41,8 @@ function App() {
 
   const sessionDir = currentSession?.directory ?? undefined;
   const sessionTitle = currentSession?.title;
-  const sessionStatuses = useBoundStore((state) => state.sessionStatuses);
-  const sessionStatus = currentSessionId
-    ? (sessionStatuses[currentSessionId] ?? null)
+  const sessionStatus = selectedSessionId
+    ? (sessionStatuses[selectedSessionId] ?? null)
     : null;
 
   if (isMobile || isTablet) {
@@ -91,9 +55,9 @@ function App() {
             sessionDirectory={sessionDir}
             sessionStatus={sessionStatus}
           />
-          {currentSessionId ? (
+          {selectedSessionId ? (
             <>
-              <ChatContainer sessionId={currentSessionId} />
+              <ChatContainer />
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -145,9 +109,9 @@ function App() {
               sessionDirectory={sessionDir}
               sessionStatus={sessionStatus}
             />
-            {currentSessionId ? (
+            {selectedSessionId ? (
               <>
-                <ChatContainer sessionId={currentSessionId} />
+                <ChatContainer />
               </>
             ) : (
               <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-gray-900">
