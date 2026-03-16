@@ -108,15 +108,16 @@ export function DirectoryFilter() {
           </div>
           <div className="flex items-center gap-1">
             {selectedDirectory && (
-              <button
+              <span
+                role="button"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleSelectDirectory(null);
                 }}
-                className="p-1 hover:bg-accent rounded"
+                className="p-1 hover:bg-accent rounded cursor-pointer"
               >
                 <X className="size-3" />
-              </button>
+              </span>
             )}
             <ChevronDown
               className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
