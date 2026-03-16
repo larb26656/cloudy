@@ -17,12 +17,10 @@ export default function AssistantMessageBubble({
 
   return (
     <div className="flex justify-start mb-4">
-      <div className="max-w-[85%] flex flex-col gap-2">
-        <div className="flex flex-col gap-3 font-content">
-          <MessageParts parts={parts} info={info} />
+      <div className="w-full flex flex-col gap-2 font-content">
+        <MessageParts parts={parts} info={info} />
 
-          {!hasContent && isThinking && <ThinkingAnimation />}
-        </div>
+        {!hasContent && isThinking && <ThinkingAnimation />}
       </div>
     </div>
   );
