@@ -7,7 +7,7 @@ export function useChatWorkspace() {
     const abortGeneration = useMessageStore(s => s.abortGeneration);
     const selectedDirectory = useDirectoryStore(s => s.selectedDirectory);
     const selectedSessionId = useSessionStore(s => s.selectedSessionId);
-    const createSession = useSessionStore(s => s.createSession);
+    const createSessionFromStore = useSessionStore(s => s.createSession);
     const setSelectedDirectory = useDirectoryStore(s => s.setSelectedDirectory);
 
     return {
@@ -21,7 +21,7 @@ export function useChatWorkspace() {
                 setSelectedDirectory(directory);
             }
 
-            createSession(dir, title)
+            createSessionFromStore(dir, title)
         },
         loadMessages: () => {
             if (!selectedSessionId) {

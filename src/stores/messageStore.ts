@@ -47,7 +47,6 @@ export const useMessageStore = create<MessageStore>()((set) => ({
     },
 
     loadMessages: async (sessionId: string) => {
-        console.log("invoke loadd");
         set({ isLoading: true, error: null });
         const result = await oc.session.messages({
             sessionID: sessionId,

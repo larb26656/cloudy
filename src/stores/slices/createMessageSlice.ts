@@ -77,7 +77,6 @@ export const createMessageSlice = (set: any, get: any): MessageSlice => ({
   },
 
   loadMessages: async (sessionId: string) => {
-    console.log("invoke loadd");
     set({ isLoading: true, error: null });
     const result = await oc.session.messages({
       sessionID: sessionId,

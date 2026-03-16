@@ -14,6 +14,7 @@ type SessionStoreState = {
 type SessionsStoreSessionActions = {
     loadSessions: (directory: string) => Promise<void>;
     createSession: (directory: string, title?: string) => Promise<Session | null>;
+    setCreateSession: (session: Session) => void;
     selectSession: (sessionId: string) => void;
     updateSession: (sessionId: string, title: string) => Promise<void>;
     deleteSession: (sessionId: string) => Promise<void>;
@@ -61,12 +62,14 @@ export const useSessionStore = create<SessionStore>()(
 
                 const session = result.data;
 
+                return session;
+            },
+
+            setCreateSession: (session: Session) => {
                 set((state) => ({
                     sessions: [session, ...state.sessions],
                     selectedSessionId: session.id,
                 }));
-
-                return session;
             },
 
             selectSession: (sessionId: string) => {
