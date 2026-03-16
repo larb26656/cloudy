@@ -87,7 +87,10 @@ function App() {
               <ChatContainer />
             </>
           ) : (
-            <WelcomeState onCreateSession={createSession} />
+            <WelcomeState 
+              onCreateSession={createSession} 
+              selectedDirectory={selectedDirectory}
+            />
           )}
         </div>
       </>
@@ -123,7 +126,10 @@ function App() {
                 <ChatContainer />
               </>
             ) : (
-              <WelcomeState onCreateSession={createSession} />
+            <WelcomeState 
+              onCreateSession={createSession} 
+              selectedDirectory={selectedDirectory}
+            />
             )}
           </div>
         </ResizablePanel>

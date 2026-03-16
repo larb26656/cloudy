@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Plus, Search, Loader2 } from "lucide-react";
 import { SessionItem } from "./SessionItem";
-import { DirectoryFilter } from "./DirectoryFilter";
+import { DirectoryFilter } from "../directory/DirectoryFilter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useSessionStore, useDirectoryStore } from "@/stores";

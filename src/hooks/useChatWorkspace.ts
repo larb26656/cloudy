@@ -8,14 +8,20 @@ export function useChatWorkspace() {
     const selectedDirectory = useDirectoryStore(s => s.selectedDirectory);
     const selectedSessionId = useSessionStore(s => s.selectedSessionId);
     const createSession = useSessionStore(s => s.createSession);
+    const setSelectedDirectory = useDirectoryStore(s => s.setSelectedDirectory);
 
     return {
-        createSession: (title?: string) => {
-            if (!selectedDirectory) {
+        createSession: (directory?: string, title?: string) => {
+            const dir = directory || selectedDirectory;
+            if (!dir) {
                 return;
             }
 
-            createSession(selectedDirectory, title)
+            if (directory && directory !== selectedDirectory) {
+                setSelectedDirectory(directory);
+            }
+
+            createSession(dir, title)
         },
         loadMessages: () => {
             if (!selectedSessionId) {

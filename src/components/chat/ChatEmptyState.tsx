@@ -1,5 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { DirectoryPicker } from "@/components/directory/DirectoryPickerDialog";
 
 const ART_GREETINGS = [
   {
@@ -33,14 +34,31 @@ const ART_GREETINGS = [
 ];
 
 interface WelcomeStateProps {
-  onCreateSession: () => void;
+  onCreateSession: (directory?: string) => void;
+  selectedDirectory?: string | null;
 }
 
-export function WelcomeState({ onCreateSession }: WelcomeStateProps) {
+export function WelcomeState({
+  onCreateSession,
+  selectedDirectory,
+}: WelcomeStateProps) {
   const greeting = useMemo(() => {
     const index = Math.floor(Math.random() * ART_GREETINGS.length);
     return ART_GREETINGS[index];
   }, []);
+
+  const [openPicker, setOpenPicker] = useState<boolean>(false);
+  const [pickedDirectory, setPickedDirectory] = useState<string | null>(
+    selectedDirectory || null,
+  );
+
+  const handleStartChat = () => {
+    setOpenPicker(true);
+  };
+
+  const handleSelectDirectory = (directory: string) => {
+    onCreateSession(directory);
+  };
 
   return (
     <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -51,8 +69,17 @@ export function WelcomeState({ onCreateSession }: WelcomeStateProps) {
         <p className="text-gray-500 dark:text-gray-400 mb-8 text-lg">
           {greeting.subtitle}
         </p>
+
+        <DirectoryPicker
+          value={pickedDirectory}
+          onChange={(dir) => dir && handleSelectDirectory(dir)}
+          placeholder="Select directory"
+          open={openPicker}
+          onOpenChange={setOpenPicker}
+        />
+
         <Button
-          onClick={onCreateSession}
+          onClick={handleStartChat}
           size="lg"
           className="shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
         >
