@@ -66,7 +66,7 @@ export const useMessageStore = create<MessageStore>()(persist(
 
         sendMessage: async (directory: string, sessionId: string, text: string, model?: ModelConfig | null, agent?: string | null) => {
             set({ error: null, isThinking: true });
-            
+
             const selectedModel = useModelStore.getState().selectedModel;
 
             await oc.session.promptAsync({

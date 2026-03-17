@@ -1,63 +1,13 @@
 // components/markdown/MarkdownRenderer.tsx
-import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { Check, Copy } from "lucide-react";
-import { MermaidBlock, rehypeMermaid } from "react-markdown-mermaid";
+import { CodeBlock } from "./CodeBlock";
+import "highlight.js/styles/github-dark-dimmed.css";
 
 interface MarkdownRendererProps {
   content: string;
 }
 
-function CodeBlock({
-  children,
-  className,
-}: {
-  children: string;
-  className?: string;
-}) {
-  const [copied, setCopied] = useState(false);
-  const language = className?.replace("language-", "") || "text";
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(children);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  return (
-    <div className="relative group my-4 rounded-lg overflow-hidden bg-gray-900">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-2 bg-gray-800 border-b border-gray-700">
-        <span className="text-xs text-gray-400 font-mono">{language}</span>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-white transition-colors rounded hover:bg-gray-700"
-        >
-          {copied ? (
-            <>
-              <Check className="w-3 h-3" />
-              Copied!
-            </>
-          ) : (
-            <>
-              <Copy className="w-3 h-3" />
-              Copy
-            </>
-          )}
-        </button>
-      </div>
-      {/* Code */}
-      <pre className="p-4 overflow-x-auto">
-        <code className={`${className} text-sm font-mono text-gray-100`}>
-          {children}
-        </code>
-      </pre>
-    </div>
-  );
-}
-
-function InlineCode({ children }: { children: string }) {
+function InlineCode({ children }: { children: React.ReactNode }) {
   return (
     <code className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded text-sm font-mono">
       {children}

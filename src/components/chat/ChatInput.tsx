@@ -1,6 +1,6 @@
 // components/chat/ChatInput.tsx
 import { useState, useRef, useEffect } from "react";
-import { ArrowUp, StopCircle } from "lucide-react";
+import { ArrowUp, Square, StopCircle } from "lucide-react";
 import { ModelSelector } from "./ModelSelector";
 import { AgentSelector } from "./AgentSelector";
 import type { FileReference, ModelConfig } from "../../types";
@@ -8,7 +8,11 @@ import { Button } from "@/components/ui/button";
 import { useAgentStore, useModelStore } from "@/stores";
 
 interface ChatInputProps {
-  onSend: (text: string, model?: ModelConfig | null, agent?: string | null) => void;
+  onSend: (
+    text: string,
+    model?: ModelConfig | null,
+    agent?: string | null,
+  ) => void;
   onAbort?: () => void;
   isLoading?: boolean;
   placeholder?: string;
@@ -106,13 +110,12 @@ export function ChatInput({
               </div>
               {isLoading ? (
                 <Button
-                  variant="ghost"
-                  className="rounded-full p-4"
                   size="icon"
+                  className="rounded-full p-4"
                   onClick={onAbort}
                   title="Stop generating"
                 >
-                  <StopCircle className="size-5" />
+                  <Square className="size-5" />
                 </Button>
               ) : (
                 <Button
