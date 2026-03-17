@@ -1,12 +1,14 @@
 // components/session/SessionList.tsx
 import { useState } from "react";
-import { Plus, Search, Loader2 } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { SessionItem } from "./SessionItem";
 import { DirectoryFilter } from "../directory/DirectoryFilter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSessionStore, useDirectoryStore } from "@/stores";
 import { useChatWorkspace } from "@/hooks/useChatWorkspace";
+import { ErrorState } from "@/components/ui/error-state";
 
 export function SessionList() {
   const {
@@ -14,6 +16,8 @@ export function SessionList() {
     sessions,
     sessionStatuses,
     isLoading,
+    error,
+    loadSessions,
     updateSession,
     deleteSession,
     selectSession,
@@ -64,9 +68,24 @@ export function SessionList() {
           </div>
         </div>
         <div className="flex-1 p-2 min-h-0 overflow-y-auto">
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          {error ? (
+            <div className="flex items-center justify-center h-full min-h-[200px]">
+              <ErrorState
+                message={error}
+                onRetry={() => loadSessions(selectedDirectory || "")}
+              />
+            </div>
+          ) : isLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 p-3">
+                  <Skeleton className="size-9 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <Skeleton className="h-4 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : filteredSessions.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">

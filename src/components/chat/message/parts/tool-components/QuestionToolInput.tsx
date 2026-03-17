@@ -1,6 +1,7 @@
 import { HelpCircle } from "lucide-react";
 import { ToolValueRenderer } from "./ToolValueRenderer";
 import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
+import { ToolPreviewLabel } from "../ToolPreviewLabel";
 
 interface QuestionToolInputProps {
   input: Record<string, unknown>;
@@ -17,9 +18,11 @@ export function Detail({ input }: QuestionToolInputProps) {
 
   return (
     <div className="space-y-1.5 mt-2 p-2 bg-amber-50 dark:bg-amber-900/20 rounded-md">
-      <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-300">
-        <HelpCircle className="size-3" />
-        <span>Question</span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 text-xs font-medium text-amber-700 dark:text-amber-300">
+          <HelpCircle className="size-3" />
+          <span>Question</span>
+        </div>
       </div>
       {questions && questions.length > 0 ? (
         <div className="space-y-1">
@@ -54,9 +57,7 @@ export function Detail({ input }: QuestionToolInputProps) {
         <div className="text-xs">
           {Object.entries(input).map(([key, value]) => (
             <div key={key} className="py-0.5">
-              <span className="font-medium text-muted-foreground">
-                {key}:
-              </span>{" "}
+              <span className="font-medium text-muted-foreground">{key}:</span>{" "}
               <ToolValueRenderer value={value} keyName={key} />
             </div>
           ))}
@@ -75,14 +76,17 @@ export function Preview({ state }: { state: ToolPartType["state"] }) {
       }>
     | undefined;
 
-  const firstQuestion = questions && questions.length > 0 ? questions[0].question : null;
+  const firstQuestion =
+    questions && questions.length > 0 ? questions[0].question : null;
 
   return (
-    <div className="flex items-center gap-1.5 text-xs">
-      <HelpCircle className="size-3 text-amber-600 dark:text-amber-400" />
-      <span className="text-amber-700 dark:text-amber-300 truncate">
-        {firstQuestion ? `Question: ${firstQuestion}` : "Asking question..."}
-      </span>
+    <div className="flex flex-col gap-2">
+      <ToolPreviewLabel
+        icon={<HelpCircle className="size-3" />}
+        label={
+          firstQuestion ? `Question: ${firstQuestion}` : "Asking question..."
+        }
+      />
     </div>
   );
 }

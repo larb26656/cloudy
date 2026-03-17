@@ -46,7 +46,7 @@ export function Preview({ state }: { state: ToolPartType["state"] }) {
     <div className="flex flex-col">
       <ToolPreviewLabel
         icon={<Files className="size-3" />}
-        label={`Path: ${filePath}`}
+        label={`Path: ${filePath || "loading"}`}
       />
       {input && <CodeBlock>{input}</CodeBlock>}
     </div>

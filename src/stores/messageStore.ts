@@ -27,7 +27,7 @@ type MessageStoreSessionActions = {
 
 type MessageStore = MessageStoreState & MessageStoreSessionActions
 
-export const useMessageStore = create<MessageStore>()(persist(
+export const useMessageStore = create<MessageStore>()(
     (set) => ({
         messages: {},
         streamingMessageIds: {},
@@ -187,9 +187,6 @@ export const useMessageStore = create<MessageStore>()(persist(
             });
         },
     }),
-    {
-        name: 'message-storage',
-    }
-))
+)
 
 

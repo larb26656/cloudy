@@ -59,7 +59,7 @@ export function Detail({ tool, state }: ToolComponentProps) {
     case "websearch":
       return <WebDetail tool={tool} input={state.input} />;
     case "question":
-      return <QuestionDetail input={state.input} />;
+      return <QuestionDetail input={state.input} state={state} />;
     case "skill":
       return <SkillDetail input={state.input} />;
     default:

@@ -1,5 +1,6 @@
 import { PlayCircle } from "lucide-react";
 import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
+import { ToolPreviewLabel } from "../ToolPreviewLabel";
 
 interface SkillToolInputProps {
   input: Record<string, unknown>;
@@ -28,11 +29,9 @@ export function Preview({ state }: { state: ToolPartType["state"] }) {
   const name = state.input.name as string | undefined;
 
   return (
-    <div className="flex items-center gap-1.5 text-xs">
-      <PlayCircle className="size-3 text-cyan-600 dark:text-cyan-400" />
-      <span className="text-cyan-700 dark:text-cyan-300">
-        {name ? `Skill: ${name}` : "Running skill..."}
-      </span>
-    </div>
+    <ToolPreviewLabel
+      icon={<PlayCircle className="size-3" />}
+      label={name ? `Skill: ${name}` : "Running skill..."}
+    />
   );
 }

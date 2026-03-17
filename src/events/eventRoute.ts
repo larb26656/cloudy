@@ -1,11 +1,13 @@
 import { useMessageStore } from "@/stores/messageStore"
 import { useSessionStore } from "@/stores/sessionStore"
+import { useQuestionStore } from "@/stores/questionStore"
 import type { Event, QuestionRequest, SessionStatus } from "@opencode-ai/sdk/v2";
 
 export function handleEvent(event: Event) {
 
     const messageStore = useMessageStore.getState()
     const sessionStore = useSessionStore.getState()
+    const questionStore = useQuestionStore.getState()
 
     console.log(event)
 
@@ -74,6 +76,23 @@ export function handleEvent(event: Event) {
             {
                 const props = event.properties as QuestionRequest;
                 sessionStore.setActiveQuestion(props);
+                questionStore.addQuestion(props);
+                break;
+            }
+
+        case 'question.replied':
+            {
+                const props = event.properties;
+                questionStore.removeQuestion(props.sessionID, props.requestID);
+                sessionStore.clearActiveQuestion();
+                break;
+            }
+
+        case 'question.rejected':
+            {
+                const props = event.properties;
+                questionStore.removeQuestion(props.sessionID, props.requestID);
+                sessionStore.clearActiveQuestion();
                 break;
             }
     }

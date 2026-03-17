@@ -1,17 +1,19 @@
 // App.tsx
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SessionList } from "./components/session/SessionList";
 import { ChatContainer } from "./components/chat/ChatContainer";
 import { MobileSidebar } from "./components/layout/Sidebar";
 import { Header } from "./components/layout/Header";
 import { WelcomeState } from "./components/chat/ChatEmptyState";
+import { QuestionBanner } from "./components/question/QuestionBanner";
+import { QuestionDialog } from "./components/question/QuestionDialog";
 import {
   ResizablePanel,
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { useDeviceType } from "./hooks";
-import { useSessionStore, useDirectoryStore, useMessageStore } from "./stores";
+import { useSessionStore, useDirectoryStore, useMessageStore, useQuestionStore } from "./stores";
 import { useChatWorkspace } from "@/hooks/useChatWorkspace";
 import { useEventStream } from "@/hooks/useEventSteam";
 import { useChatUIStore } from "@/stores/chatUIStore";
@@ -21,9 +23,12 @@ function App() {
     useSessionStore();
   const { selectedDirectory } = useDirectoryStore();
   const { loadMessages } = useMessageStore();
+  const { loadQuestions } = useQuestionStore();
   const { createSession } = useChatWorkspace();
   const { sidebarOpen, setSidebarOpen, isDarkMode, deviceType, setDeviceType } =
     useChatUIStore();
+
+  const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
 
   const initialized = useRef(false);
 
@@ -39,8 +44,9 @@ function App() {
 
     if (selectedDirectory) {
       loadSessions(selectedDirectory);
+      loadQuestions(selectedDirectory);
     }
-  }, [selectedDirectory, loadSessions]);
+  }, [selectedDirectory, loadSessions, loadQuestions]);
 
   useEffect(() => {
     if (!initialized.current) {
@@ -77,6 +83,7 @@ function App() {
       <>
         <MobileSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
         <div className="flex flex-col h-[100dvh] bg-white dark:bg-gray-900 overflow-hidden">
+          <QuestionBanner onOpenDialog={() => setQuestionDialogOpen(true)} />
           <Header
             sessionTitle={sessionTitle}
             sessionDirectory={sessionDir}
@@ -93,6 +100,7 @@ function App() {
             />
           )}
         </div>
+        <QuestionDialog open={questionDialogOpen} onOpenChange={setQuestionDialogOpen} />
       </>
     );
   }
@@ -116,6 +124,7 @@ function App() {
         )}
         <ResizablePanel defaultSize={sidebarOpen ? 75 : 100}>
           <div className="flex flex-col h-full overflow-hidden">
+            <QuestionBanner onOpenDialog={() => setQuestionDialogOpen(true)} />
             <Header
               sessionTitle={sessionTitle}
               sessionDirectory={sessionDir}
@@ -134,6 +143,7 @@ function App() {
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
+      <QuestionDialog open={questionDialogOpen} onOpenChange={setQuestionDialogOpen} />
     </div>
   );
 }

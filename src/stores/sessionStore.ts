@@ -160,7 +160,12 @@ export const useSessionStore = create<SessionStore>()(
             },
 
             setActiveQuestion: (question: QuestionRequest | null) => {
-                set({ activeQuestion: question });
+                set((state) => {
+                    if (question && state.activeQuestion && state.activeQuestion.id === question.id) {
+                        return state;
+                    }
+                    return { activeQuestion: question };
+                });
             },
 
             clearActiveQuestion: () => {

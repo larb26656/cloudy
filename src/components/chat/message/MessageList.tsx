@@ -5,11 +5,14 @@ import type { MessageV2 } from "@/types/messagev2";
 import { useMessageStore, useSessionStore } from "@/stores";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
+import { ErrorState } from "@/components/ui/error-state";
 
 interface MessageListProps {}
 
 export function MessageList({}: MessageListProps) {
   const isLoading = useMessageStore((state) => state.isLoading);
+  const error = useMessageStore((state) => state.error);
+  const loadMessages = useMessageStore((state) => state.loadMessages);
   const messagesMap = useMessageStore((state) => state.messages);
   const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -63,6 +66,17 @@ export function MessageList({}: MessageListProps) {
           <div className="w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded-full" />
           <div className="w-48 h-4 bg-gray-300 dark:bg-gray-700 rounded" />
         </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <ErrorState
+          message={error}
+          onRetry={() => selectedSessionId && loadMessages(selectedSessionId)}
+        />
       </div>
     );
   }

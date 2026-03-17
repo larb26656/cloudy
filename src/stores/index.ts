@@ -5,3 +5,4 @@ export { useDirectoryStore } from './directoryStore';
 export { useChatUIStore } from './chatUIStore';
 export { useAgentStore } from './agentStore';
 export { useModelStore } from './modelStore';
+export { useQuestionStore } from './questionStore';

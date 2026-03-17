@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { HelpCircle, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useSessionStore } from "@/stores/sessionStore";
-import { oc } from "@/lib/opencode";
+import { useSessionStore, useQuestionStore, useDirectoryStore } from "@/stores";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -11,6 +10,8 @@ interface QuestionSheetProps {
 
 export function QuestionSheet({ open }: QuestionSheetProps) {
   const { activeQuestion, clearActiveQuestion } = useSessionStore();
+  const { replyQuestion, rejectQuestion } = useQuestionStore();
+  const { selectedDirectory } = useDirectoryStore();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [customText, setCustomText] = useState("");
@@ -60,10 +61,11 @@ export function QuestionSheet({ open }: QuestionSheetProps) {
     setIsSubmitting(true);
     try {
       const finalAnswers = questions.map((_, idx) => answers[idx] || []);
-      await oc.question.reply({
-        requestID: activeQuestion.id,
-        answers: finalAnswers as [string, ...string[]][],
-      });
+      await replyQuestion(
+        activeQuestion.id,
+        finalAnswers as [string, ...string[]][],
+        selectedDirectory!
+      );
       clearActiveQuestion();
       setAnswers({});
       setCurrentIndex(0);
@@ -78,9 +80,7 @@ export function QuestionSheet({ open }: QuestionSheetProps) {
   const handleReject = async () => {
     setIsSubmitting(true);
     try {
-      await oc.question.reject({
-        requestID: activeQuestion.id,
-      });
+      await rejectQuestion(activeQuestion.id, selectedDirectory!);
       clearActiveQuestion();
       setAnswers({});
       setCurrentIndex(0);
