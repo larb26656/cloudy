@@ -3,28 +3,38 @@ import { useState, useEffect, useCallback } from 'react';
 import { api } from '../api';
 import type { ModelConfig, ModelProvider } from '../types';
 
-interface ProviderResponse {
-  all: {
+interface ConfigProvidersResponse {
+  providers: {
     id: string;
     name: string;
     source: string;
+    env: string[];
+    key: string;
+    options: Record<string, unknown>;
     models: Record<string, {
       id: string;
       providerID: string;
+      api: { id: string; url: string; npm: string };
       name: string;
       family: string;
       capabilities: {
+        temperature: boolean;
         reasoning: boolean;
-        toolcall: boolean;
         attachment: boolean;
+        toolcall: boolean;
+        input: { text: boolean; audio: boolean; image: boolean; video: boolean; pdf: boolean };
+        output: { text: boolean; audio: boolean; image: boolean; video: boolean; pdf: boolean };
+        interleaved: boolean | { field: 'reasoning_content' | 'reasoning_details' };
       };
-      limit: {
-        context: number;
-        output: number;
-      };
-      status: string;
+      cost: { input: number; output: number; cache: { read: number; write: number } };
+      limit: { context: number; input: number; output: number };
+      status: 'alpha' | 'beta' | 'deprecated' | 'active';
+      options: Record<string, unknown>;
+      headers: Record<string, string>;
+      release_date: string;
     }>;
   }[];
+  default: Record<string, string>;
 }
 
 interface UseModelsReturn {
@@ -44,9 +54,9 @@ export function useModels(): UseModelsReturn {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await api.get<ProviderResponse>('/provider');
+      const response = await api.get<ConfigProvidersResponse>('/config/providers');
       
-      const mappedProviders: ModelProvider[] = response.all.map((p) => ({
+      const mappedProviders: ModelProvider[] = response.providers.map((p) => ({
         id: p.id,
         name: p.name,
         models: Object.values(p.models)
