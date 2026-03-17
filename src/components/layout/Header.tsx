@@ -17,11 +17,7 @@ interface HeaderProps {
   onCloseSidebar?: () => void;
 }
 
-export function Header({
-  sessionTitle,
-  sessionDirectory,
-  sessionStatus,
-}: HeaderProps) {
+export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
   const { sidebarOpen, toggleSidebar, isDarkMode, toggleTheme } =
     useChatUIStore();
 

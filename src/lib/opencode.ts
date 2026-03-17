@@ -1,5 +1,4 @@
-import { createOpencodeClient } from "@opencode-ai/sdk/v2";
-
+import { createOpencodeClient } from "@opencode-ai/sdk/v2/client";
 
 export const oc = createOpencodeClient({
     baseUrl: "/api"

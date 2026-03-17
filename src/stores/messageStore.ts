@@ -2,7 +2,6 @@ import { getErrorMessage, oc, type SdkError } from "@/lib/opencode";
 import type { ModelConfig } from "@/types";
 import type { Message, Part, SessionMessagesResponse } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { useModelStore } from "./modelStore";
 
 type MessageStoreState = {

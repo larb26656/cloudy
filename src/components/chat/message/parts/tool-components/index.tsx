@@ -1,14 +1,26 @@
 import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
 import { Detail as BashDetail, Preview as BashPreview } from "./BashToolInput";
 import { Detail as ReadDetail, Preview as ReadPreview } from "./ReadToolInput";
-import { Detail as WriteDetail, Preview as WritePreview } from "./WriteToolInput";
+import {
+  Detail as WriteDetail,
+  Preview as WritePreview,
+} from "./WriteToolInput";
 import { Detail as EditDetail, Preview as EditPreview } from "./EditToolInput";
 import { Detail as GrepDetail, Preview as GrepPreview } from "./GrepToolInput";
 import { Detail as GlobDetail, Preview as GlobPreview } from "./GlobToolInput";
 import { Detail as WebDetail, Preview as WebPreview } from "./WebToolInput";
-import { Detail as QuestionDetail, Preview as QuestionPreview } from "./QuestionToolInput";
-import { Detail as SkillDetail, Preview as SkillPreview } from "./SkillToolInput";
-import { Detail as DefaultDetail, Preview as DefaultPreview } from "./DefaultToolInput";
+import {
+  Detail as QuestionDetail,
+  Preview as QuestionPreview,
+} from "./QuestionToolInput";
+import {
+  Detail as SkillDetail,
+  Preview as SkillPreview,
+} from "./SkillToolInput";
+import {
+  Detail as DefaultDetail,
+  Preview as DefaultPreview,
+} from "./DefaultToolInput";
 
 interface ToolComponentProps {
   tool: string;
@@ -59,7 +71,7 @@ export function Detail({ tool, state }: ToolComponentProps) {
     case "websearch":
       return <WebDetail tool={tool} input={state.input} />;
     case "question":
-      return <QuestionDetail input={state.input} state={state} />;
+      return <QuestionDetail input={state.input} />;
     case "skill":
       return <SkillDetail input={state.input} />;
     default:

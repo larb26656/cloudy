@@ -1,5 +1,4 @@
 // components/session/DirectoryPicker.tsx
-"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Folder, History, Loader2 } from "lucide-react";
@@ -26,7 +25,6 @@ interface DirectoryPickerProps {
 export function DirectoryPicker({
   value,
   onChange,
-  placeholder = "Select directory",
   open,
   onOpenChange,
 }: DirectoryPickerProps) {
@@ -100,7 +98,7 @@ export function DirectoryPicker({
     handleClose();
   };
 
-  const displayPath = value ? value.split("/").pop() || value : placeholder;
+  // const displayPath = value ? value.split("/").pop() || value : placeholder;
 
   return (
     <CommandDialog

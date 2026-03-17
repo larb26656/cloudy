@@ -48,9 +48,7 @@ export function WelcomeState({
   }, []);
 
   const [openPicker, setOpenPicker] = useState<boolean>(false);
-  const [pickedDirectory, setPickedDirectory] = useState<string | null>(
-    selectedDirectory || null,
-  );
+  const [pickedDirectory] = useState<string | null>(selectedDirectory || null);
 
   const handleStartChat = () => {
     setOpenPicker(true);

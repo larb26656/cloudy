@@ -27,7 +27,7 @@ export function ChatInput({
   directory,
 }: ChatInputProps) {
   const [text, setText] = useState("");
-  const [isFileMentionOpen, setIsFileMentionOpen] = useState(false);
+  const [_, setIsFileMentionOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileReference[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { selectedModel } = useModelStore();
@@ -80,10 +80,10 @@ export function ChatInput({
     }
   };
 
-  const handleFileSelect = (files: FileReference[]) => {
-    setSelectedFiles((prev) => [...prev, ...files]);
-    setText((prev) => prev.slice(0, -1));
-  };
+  // const handleFileSelect = (files: FileReference[]) => {
+  //   setSelectedFiles((prev) => [...prev, ...files]);
+  //   setText((prev) => prev.slice(0, -1));
+  // };
 
   return (
     <div className="p-4">
