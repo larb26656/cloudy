@@ -54,8 +54,9 @@ export function useModels(): UseModelsReturn {
     setIsLoading(true);
     setError(null);
     try {
+      // TODO use oc client instead
       const response = await api.get<ConfigProvidersResponse>('/config/providers');
-      
+
       const mappedProviders: ModelProvider[] = response.providers.map((p) => ({
         id: p.id,
         name: p.name,
@@ -71,7 +72,7 @@ export function useModels(): UseModelsReturn {
             supportsTools: m.capabilities.toolcall,
           })),
       })).filter((p) => p.models.length > 0);
-      
+
       setProviders(mappedProviders);
     } catch (err) {
       setError((err as Error).message);

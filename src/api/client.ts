@@ -1,10 +1,10 @@
 // api/client.ts
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:4096';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.origin + '/api';
 
 export class ApiError extends Error {
   code: string;
   status?: number;
-  
+
   constructor(message: string, code: string, status?: number) {
     super(message);
     this.name = 'ApiError';
@@ -42,9 +42,9 @@ export const api = {
   post: async <T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T> => {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'POST',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        ...headers 
+        ...headers
       },
       body: body ? JSON.stringify(body) : undefined,
     });
@@ -54,9 +54,9 @@ export const api = {
   patch: async <T>(path: string, body?: unknown, headers?: Record<string, string>): Promise<T> => {
     const response = await fetch(`${API_BASE_URL}${path}`, {
       method: 'PATCH',
-      headers: { 
+      headers: {
         'Content-Type': 'application/json',
-        ...headers 
+        ...headers
       },
       body: body ? JSON.stringify(body) : undefined,
     });
