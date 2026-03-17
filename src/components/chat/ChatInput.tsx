@@ -1,6 +1,6 @@
 // components/chat/ChatInput.tsx
 import { useState, useRef, useEffect } from "react";
-import { ArrowUp, Square, StopCircle } from "lucide-react";
+import { ArrowUp, Square } from "lucide-react";
 import { ModelSelector } from "./ModelSelector";
 import { AgentSelector } from "./AgentSelector";
 import type { FileReference, ModelConfig } from "../../types";

@@ -1,6 +1,7 @@
 // components/chat/ChatContainer.tsx
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./ChatInput";
+import { QuestionSheet } from "./QuestionSheet";
 import type { ModelConfig } from "../../types";
 import { useSessionStore } from "@/stores";
 import { useChatWorkspace } from "@/hooks/useChatWorkspace";
@@ -11,6 +12,7 @@ interface ChatContainerProps {}
 export function ChatContainer({}: ChatContainerProps) {
   const sessions = useSessionStore((s) => s.sessions);
   const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
+  const activeQuestion = useSessionStore((s) => s.activeQuestion);
   const session = sessions.find((s) => s.id === selectedSessionId);
   const { sendMessage, abortGeneration } = useChatWorkspace();
   const sessionStatuses = useSessionStore((s) => s.sessionStatuses);
@@ -43,6 +45,9 @@ export function ChatContainer({}: ChatContainerProps) {
         placeholder={`Message ${session.title || "AI"}...`}
         directory={session.directory}
       />
+
+      {/* Question Sheet */}
+      <QuestionSheet open={!!activeQuestion} />
     </div>
   );
 }

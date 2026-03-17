@@ -1,6 +1,6 @@
 import { useMessageStore } from "@/stores/messageStore"
 import { useSessionStore } from "@/stores/sessionStore"
-import type { Event, SessionStatus } from "@opencode-ai/sdk/v2";
+import type { Event, QuestionRequest, SessionStatus } from "@opencode-ai/sdk/v2";
 
 export function handleEvent(event: Event) {
 
@@ -67,6 +67,13 @@ export function handleEvent(event: Event) {
                 if (props.sessionID) {
                     sessionStore.updateSessionStatus(props.sessionID, 'idle' as unknown as SessionStatus);
                 }
+                break;
+            }
+
+        case 'question.asked':
+            {
+                const props = event.properties as QuestionRequest;
+                sessionStore.setActiveQuestion(props);
                 break;
             }
     }

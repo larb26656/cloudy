@@ -6,7 +6,6 @@ export const oc = createOpencodeClient({
     throwOnError: true
 });
 
-
 export type SdkError = {
     message?: string;
     data?: unknown;

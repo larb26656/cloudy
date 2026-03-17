@@ -1,9 +1,10 @@
 // components/chat/MessageList.tsx
-import { useEffect, useRef, useMemo } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import type { MessageV2 } from "@/types/messagev2";
 import { useMessageStore, useSessionStore } from "@/stores";
 import { EmptyChatState } from "../ChatEmptyState";
+import { ChevronDown } from "lucide-react";
 
 interface MessageListProps {}
 
@@ -17,6 +18,7 @@ export function MessageList({}: MessageListProps) {
   const isBusy = Boolean(
     selectedSessionId && sessionStatuses[selectedSessionId]?.type === "busy",
   );
+  const [showScrollButton, setShowScrollButton] = useState(false);
 
   const messages = useMemo(() => {
     if (!selectedSessionId) {
@@ -41,6 +43,16 @@ export function MessageList({}: MessageListProps) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
       shouldScrollRef.current = isAtBottom;
+      setShowScrollButton(!isAtBottom);
+    }
+  };
+
+  const scrollToBottom = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: "smooth",
+      });
     }
   };
 
@@ -56,29 +68,42 @@ export function MessageList({}: MessageListProps) {
   }
 
   return (
-    <div
-      ref={scrollRef}
-      onScroll={handleScroll}
-      className="flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
-    >
-      {messages.length === 0 ? (
-        <EmptyChatState />
-      ) : (
-        <div className="max-w-4xl mx-auto space-y-4 pb-4">
-          {messages.map((message: MessageV2) => {
-            return (
-              <MessageBubble
-                key={message.info.id}
-                message={message}
-                isStreaming={false}
-              />
-            );
-          })}
-          {isBusy && (
-            <div className="mt-2">
-              <ThinkingAnimation />{" "}
-            </div>
-          )}
+    <div className="relative flex-1 min-h-0">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="absolute inset-0 flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
+      >
+        {messages.length === 0 ? (
+          <EmptyChatState />
+        ) : (
+          <div className="max-w-4xl mx-auto space-y-4 pb-4">
+            {messages.map((message: MessageV2) => {
+              return (
+                <MessageBubble
+                  key={message.info.id}
+                  message={message}
+                  isStreaming={false}
+                />
+              );
+            })}
+            {isBusy && (
+              <div className="mt-2">
+                <ThinkingAnimation />{" "}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+      {showScrollButton && (
+        <div className="absolute bottom-4 mx-auto w-full">
+          <button
+            onClick={scrollToBottom}
+            className="mx-auto w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
+            aria-label="Scroll to bottom"
+          >
+            <ChevronDown className="w-5 h-5" />
+          </button>
         </div>
       )}
     </div>

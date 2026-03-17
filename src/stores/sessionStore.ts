@@ -1,5 +1,5 @@
 import { getErrorMessage, oc, type SdkError } from "@/lib/opencode";
-import type { Session, SessionStatus } from "@opencode-ai/sdk/v2";
+import type { QuestionRequest, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -9,6 +9,7 @@ type SessionStoreState = {
     sessionStatuses: Record<string, SessionStatus>;
     isLoading: boolean;
     error: string | null;
+    activeQuestion: QuestionRequest | null;
 }
 
 type SessionsStoreSessionActions = {
@@ -23,6 +24,8 @@ type SessionsStoreSessionActions = {
     updateSessionFromEvent: (session: Session) => void;
     addSession: (session: Session) => void;
     removeSession: (sessionId: string) => void;
+    setActiveQuestion: (question: QuestionRequest | null) => void;
+    clearActiveQuestion: () => void;
 }
 
 type SessionStore = SessionStoreState & SessionsStoreSessionActions
@@ -35,6 +38,7 @@ export const useSessionStore = create<SessionStore>()(
             sessionStatuses: {},
             isLoading: false,
             error: null,
+            activeQuestion: null,
             loadSessions: async (directory: string) => {
                 set({ isLoading: true, error: null });
 
@@ -153,6 +157,14 @@ export const useSessionStore = create<SessionStore>()(
                 set((state: any) => ({
                     sessions: state.sessions.filter((s: Session) => s.id !== sessionId),
                 }));
+            },
+
+            setActiveQuestion: (question: QuestionRequest | null) => {
+                set({ activeQuestion: question });
+            },
+
+            clearActiveQuestion: () => {
+                set({ activeQuestion: null });
             },
         }),
         {
