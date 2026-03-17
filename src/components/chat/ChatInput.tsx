@@ -146,7 +146,7 @@ export function ChatInput({
           )}
         </div> */}
 
-          <div className="text-center mt-2 text-xs text-muted-foreground w-full">
+          <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden md:block">
             Press Enter to send, Shift + Enter for new line
             {directory && " • @ or / to mention files"}
             {" • Cmd/Ctrl + M for model"}
