@@ -3,6 +3,7 @@ import type { ModelConfig } from "@/types";
 import type { Message, Part, SessionMessagesResponse } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useModelStore } from "./modelStore";
 
 type MessageStoreState = {
     messages: Record<string, SessionMessagesResponse>;
@@ -12,7 +13,6 @@ type MessageStoreState = {
     isThinking: boolean;
     thinkingContent: Record<string, string>;
     thinkingState: Record<string, 'active' | 'complete' | null>;
-    selectedModel: ModelConfig | null;
 }
 
 type MessageStoreSessionActions = {
@@ -23,7 +23,6 @@ type MessageStoreSessionActions = {
     updateMessage: (message: Message) => void;
     updateMessagePart: (part: Part) => void;
     clearMessages: (sessionId: string) => void;
-    setSelectedModel: (model: ModelConfig | null) => void;
 }
 
 type MessageStore = MessageStoreState & MessageStoreSessionActions
@@ -37,7 +36,6 @@ export const useMessageStore = create<MessageStore>()(persist(
         isThinking: false,
         thinkingContent: {},
         thinkingState: {},
-        selectedModel: null,
 
         clearMessages: (sessionId: string) => {
             set((state) => ({
@@ -68,11 +66,13 @@ export const useMessageStore = create<MessageStore>()(persist(
 
         sendMessage: async (directory: string, sessionId: string, text: string, model?: ModelConfig | null, agent?: string | null) => {
             set({ error: null, isThinking: true });
+            
+            const selectedModel = useModelStore.getState().selectedModel;
 
             await oc.session.promptAsync({
                 sessionID: sessionId,
                 parts: [{ type: 'text', text }],
-                model: model ?? undefined,
+                model: model ?? selectedModel ?? undefined,
                 agent: agent ?? undefined,
             }, {
                 headers: { 'x-opencode-directory': directory }
@@ -186,16 +186,9 @@ export const useMessageStore = create<MessageStore>()(persist(
                 };
             });
         },
-
-        setSelectedModel: (model: ModelConfig | null) => {
-            set({ selectedModel: model });
-        },
     }),
     {
         name: 'message-storage',
-        partialize: (state) => ({
-            selectedModel: state.selectedModel,
-        }),
     }
 ))
 

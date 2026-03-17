@@ -5,7 +5,7 @@ import { ModelSelector } from "./ModelSelector";
 import { AgentSelector } from "./AgentSelector";
 import type { FileReference, ModelConfig } from "../../types";
 import { Button } from "@/components/ui/button";
-import { useMessageStore, useAgentStore } from "@/stores";
+import { useAgentStore, useModelStore } from "@/stores";
 
 interface ChatInputProps {
   onSend: (text: string, model?: ModelConfig | null, agent?: string | null) => void;
@@ -26,7 +26,7 @@ export function ChatInput({
   const [isFileMentionOpen, setIsFileMentionOpen] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<FileReference[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const { selectedModel } = useMessageStore();
+  const { selectedModel } = useModelStore();
   const { selectedAgent } = useAgentStore();
 
   useEffect(() => {
