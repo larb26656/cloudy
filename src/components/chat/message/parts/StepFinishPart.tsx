@@ -26,11 +26,13 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
   const totalTokens =
     part.tokens.input + part.tokens.output + part.tokens.reasoning;
 
+  const completedTime = new Date().getTime();
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
         <span className="text-xs text-muted-foreground">
-          {info?.time?.created ? formatTime(info.time.created) : null}
+          {formatTime(completedTime)}
         </span>
 
         {info?.modelID && (

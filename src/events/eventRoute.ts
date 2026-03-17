@@ -7,6 +7,8 @@ export function handleEvent(event: Event) {
     const messageStore = useMessageStore.getState()
     const sessionStore = useSessionStore.getState()
 
+    console.log(event)
+
     switch (event.type) {
 
         case 'message.updated':

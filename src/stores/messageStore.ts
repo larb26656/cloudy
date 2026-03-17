@@ -17,7 +17,7 @@ type MessageStoreState = {
 type MessageStoreSessionActions = {
     loadMessages: (sessionId: string) => Promise<void>;
     sendMessage: (directory: string, sessionId: string, text: string, model?: ModelConfig | null) => Promise<void>;
-    abortGeneration: (sessionId: string) => Promise<void>;
+    abortGeneration: (directory: string, sessionId: string) => Promise<void>;
     appendStreamChunk: (sessionId: string, messageId: string, delta: string) => void;
     updateMessage: (message: Message) => void;
     updateMessagePart: (part: Part) => void;
@@ -79,9 +79,11 @@ export const useMessageStore = create<MessageStore>()((set) => ({
         set({ isThinking: false });
     },
 
-    abortGeneration: async (sessionId: string) => {
+    abortGeneration: async (directory: string, sessionId: string) => {
         set({ error: null });
-        const result = await oc.session.abort({ sessionID: sessionId });
+        const result = await oc.session.abort({ sessionID: sessionId }, {
+            headers: { 'x-opencode-directory': directory }
+        });
         if (result.error) {
             set({ error: getErrorMessage(result.error as SdkError) });
             return;

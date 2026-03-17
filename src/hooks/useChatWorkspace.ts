@@ -35,10 +35,8 @@ export function useChatWorkspace() {
             await sendMessage(selectedDirectory, selectedSessionId, text, model);
         },
         abortGeneration: async () => {
-            if (!selectedSessionId) {
-                return;
-            }
-            await abortGeneration(selectedSessionId);
+            if (!selectedSessionId || !selectedDirectory) return;
+            await abortGeneration(selectedDirectory, selectedSessionId);
         }
     };
 }

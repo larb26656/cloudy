@@ -44,17 +44,16 @@ export function SessionItem({
 
   // TODO fix this later
   const getStatusColor = () => {
-    // switch (status) {
-    //   case "busy":
-    //     return "bg-yellow-500";
-    //   case "retry":
-    //     return "bg-red-500";
-    //   case "idle":
-    //   default:
-    //     return "bg-green-500";
-    // }
-
-    return "bg-green-500";
+    const type = status?.type;
+    switch (type) {
+      case "busy":
+        return "bg-yellow-500";
+      case "retry":
+        return "bg-red-500";
+      case "idle":
+      default:
+        return "bg-green-500";
+    }
   };
 
   const formatTime = (timestamp: number) => {
