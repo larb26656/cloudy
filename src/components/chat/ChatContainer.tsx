@@ -18,8 +18,8 @@ export function ChatContainer({}: ChatContainerProps) {
     selectedSessionId && sessionStatuses[selectedSessionId]?.type === "busy",
   );
 
-  const handleSend = async (text: string, model?: ModelConfig | null) => {
-    await sendMessage(text, model);
+  const handleSend = async (text: string, model?: ModelConfig | null, agent?: string | null) => {
+    await sendMessage(text, model, agent);
   };
 
   const handleAbort = async () => {

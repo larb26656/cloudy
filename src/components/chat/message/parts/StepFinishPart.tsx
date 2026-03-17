@@ -41,6 +41,12 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
           </span>
         )}
 
+        {info?.agent && (
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
+            {info.agent}
+          </span>
+        )}
+
         <Tooltip>
           <TooltipTrigger asChild>
             <Info className="size-3.5 text-muted-foreground cursor-pointer hover:text-foreground" />

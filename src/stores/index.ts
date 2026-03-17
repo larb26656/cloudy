@@ -3,3 +3,4 @@ export { useMessageStore } from './messageStore';
 export { useSessionStore } from './sessionStore';
 export { useDirectoryStore } from './directoryStore';
 export { useChatUIStore } from './chatUIStore';
+export { useAgentStore } from './agentStore';

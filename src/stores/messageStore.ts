@@ -17,7 +17,7 @@ type MessageStoreState = {
 
 type MessageStoreSessionActions = {
     loadMessages: (sessionId: string) => Promise<void>;
-    sendMessage: (directory: string, sessionId: string, text: string, model?: ModelConfig | null) => Promise<void>;
+    sendMessage: (directory: string, sessionId: string, text: string, model?: ModelConfig | null, agent?: string | null) => Promise<void>;
     abortGeneration: (directory: string, sessionId: string) => Promise<void>;
     appendStreamChunk: (sessionId: string, messageId: string, delta: string) => void;
     updateMessage: (message: Message) => void;
@@ -66,13 +66,14 @@ export const useMessageStore = create<MessageStore>()(persist(
             }));
         },
 
-        sendMessage: async (directory: string, sessionId: string, text: string, model?: ModelConfig | null) => {
+        sendMessage: async (directory: string, sessionId: string, text: string, model?: ModelConfig | null, agent?: string | null) => {
             set({ error: null, isThinking: true });
 
             await oc.session.promptAsync({
                 sessionID: sessionId,
                 parts: [{ type: 'text', text }],
                 model: model ?? undefined,
+                agent: agent ?? undefined,
             }, {
                 headers: { 'x-opencode-directory': directory }
             });

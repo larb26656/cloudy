@@ -2,12 +2,13 @@
 import { useState, useRef, useEffect } from "react";
 import { ArrowUp, StopCircle } from "lucide-react";
 import { ModelSelector } from "./ModelSelector";
+import { AgentSelector } from "./AgentSelector";
 import type { FileReference, ModelConfig } from "../../types";
 import { Button } from "@/components/ui/button";
-import { useMessageStore } from "@/stores";
+import { useMessageStore, useAgentStore } from "@/stores";
 
 interface ChatInputProps {
-  onSend: (text: string, model?: ModelConfig | null) => void;
+  onSend: (text: string, model?: ModelConfig | null, agent?: string | null) => void;
   onAbort?: () => void;
   isLoading?: boolean;
   placeholder?: string;
@@ -26,6 +27,7 @@ export function ChatInput({
   const [selectedFiles, setSelectedFiles] = useState<FileReference[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { selectedModel } = useMessageStore();
+  const { selectedAgent } = useAgentStore();
 
   useEffect(() => {
     const textarea = textareaRef.current;
@@ -43,7 +45,7 @@ export function ChatInput({
         finalText = `${fileMentions} ${finalText}`;
       }
 
-      onSend(finalText, selectedModel);
+      onSend(finalText, selectedModel, selectedAgent);
       setText("");
       setSelectedFiles([]);
       if (textareaRef.current) {
@@ -98,7 +100,10 @@ export function ChatInput({
             </div>
 
             <div className="flex justify-between">
-              <ModelSelector />
+              <div className="flex gap-1">
+                <AgentSelector />
+                <ModelSelector />
+              </div>
               {isLoading ? (
                 <Button
                   variant="ghost"

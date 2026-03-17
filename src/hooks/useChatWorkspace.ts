@@ -29,10 +29,10 @@ export function useChatWorkspace() {
             }
             return loadMessages(selectedSessionId)
         },
-        sendMessage: async (text: string, model?: ModelConfig | null) => {
+        sendMessage: async (text: string, model?: ModelConfig | null, agent?: string | null) => {
             if (!selectedSessionId || !selectedDirectory) return;
 
-            await sendMessage(selectedDirectory, selectedSessionId, text, model);
+            await sendMessage(selectedDirectory, selectedSessionId, text, model, agent);
         },
         abortGeneration: async () => {
             if (!selectedSessionId || !selectedDirectory) return;
