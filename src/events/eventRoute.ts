@@ -1,13 +1,15 @@
 import { useMessageStore } from "@/stores/messageStore"
 import { useSessionStore } from "@/stores/sessionStore"
 import { useQuestionStore } from "@/stores/questionStore"
-import type { Event, QuestionRequest, SessionStatus } from "@opencode-ai/sdk/v2";
+import { usePermissionStore } from "@/stores/permissionStore"
+import type { Event, QuestionRequest, PermissionRequest, SessionStatus } from "@opencode-ai/sdk/v2";
 
 export function handleEvent(event: Event) {
 
     const messageStore = useMessageStore.getState()
     const sessionStore = useSessionStore.getState()
     const questionStore = useQuestionStore.getState()
+    const permissionStore = usePermissionStore.getState()
 
     console.log(event)
 
@@ -93,6 +95,20 @@ export function handleEvent(event: Event) {
                 const props = event.properties;
                 questionStore.removeQuestion(props.sessionID, props.requestID);
                 sessionStore.clearActiveQuestion();
+                break;
+            }
+
+        case 'permission.asked':
+            {
+                const props = event.properties as PermissionRequest;
+                permissionStore.addPermission(props);
+                break;
+            }
+
+        case 'permission.replied':
+            {
+                const props = event.properties;
+                permissionStore.removePermission(props.sessionID, props.requestID);
                 break;
             }
     }
