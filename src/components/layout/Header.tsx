@@ -27,7 +27,7 @@ export function Header({
 
   return (
     <header className="px-4 py-3 bg-white dark:bg-gray-900 flex items-center justify-between">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 w-full">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -48,13 +48,18 @@ export function Header({
           </TooltipContent>
         </Tooltip>
 
-        <h1 className="font-semibold text-gray-800 dark:text-white">
+        <h1 className="flex-1 font-semibold text-gray-800 dark:text-white truncate">
           {sessionTitle || "OpenCode Chat"}
         </h1>
-      </div>
 
-      <div className="flex items-center gap-1">
-        {/* {sessionStatus && (
+        {sessionDirectory && (
+          <span className="text-sm text-gray-500 dark:text-gray-400 truncate hidden sm:inline-block">
+            {sessionDirectory}
+          </span>
+        )}
+
+        <div className="flex items-center gap-1">
+          {/* {sessionStatus && (
           <div className="flex items-center gap-2">
             {sessionStatus === "busy" && (
               <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-full text-sm">
@@ -76,31 +81,27 @@ export function Header({
             )}
           </div>
         )} */}
-        {sessionDirectory && (
-          <span className="text-sm text-gray-500 dark:text-gray-400 mr-2 hidden sm:inline-block">
-            {sessionDirectory}
-          </span>
-        )}
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="h-9 w-9"
-            >
-              {isDarkMode ? (
-                <Sun className="size-5" />
-              ) : (
-                <Moon className="size-5" />
-              )}
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            {isDarkMode ? "Light mode" : "Dark mode"}
-          </TooltipContent>
-        </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleTheme}
+                className="h-9 w-9"
+              >
+                {isDarkMode ? (
+                  <Sun className="size-5" />
+                ) : (
+                  <Moon className="size-5" />
+                )}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              {isDarkMode ? "Light mode" : "Dark mode"}
+            </TooltipContent>
+          </Tooltip>
+        </div>
       </div>
     </header>
   );

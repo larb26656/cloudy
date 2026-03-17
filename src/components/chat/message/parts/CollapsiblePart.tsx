@@ -22,7 +22,7 @@ export default function CollapsiblePart({
     <Collapsible>
       <CollapsibleTrigger asChild>
         <div className="flex justify-start items-center">
-          <span>{label}</span>
+          <span className="text-sm">{label}</span>
           {detail && (
             <span className="ml-2 text-muted-foreground text-xs truncate">
               {detail}

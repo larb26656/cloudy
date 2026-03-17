@@ -87,8 +87,8 @@ function App() {
               <ChatContainer />
             </>
           ) : (
-            <WelcomeState 
-              onCreateSession={createSession} 
+            <WelcomeState
+              onCreateSession={createSession}
               selectedDirectory={selectedDirectory}
             />
           )}
@@ -105,7 +105,7 @@ function App() {
       >
         {sidebarOpen && (
           <>
-            <ResizablePanel defaultSize={25}>
+            <ResizablePanel defaultSize={25} className="p-2">
               <SessionList />
             </ResizablePanel>
             <ResizableHandle
@@ -126,10 +126,10 @@ function App() {
                 <ChatContainer />
               </>
             ) : (
-            <WelcomeState 
-              onCreateSession={createSession} 
-              selectedDirectory={selectedDirectory}
-            />
+              <WelcomeState
+                onCreateSession={createSession}
+                selectedDirectory={selectedDirectory}
+              />
             )}
           </div>
         </ResizablePanel>

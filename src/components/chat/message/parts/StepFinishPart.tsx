@@ -26,14 +26,20 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
   const totalTokens =
     part.tokens.input + part.tokens.output + part.tokens.reasoning;
 
-  const completedTime = new Date().getTime();
+  const isLastMessage = part.reason === "stop";
+
+  if (!isLastMessage) {
+    return;
+  }
 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        <span className="text-xs text-muted-foreground">
-          {formatTime(completedTime)}
-        </span>
+        {info?.time.completed && (
+          <span className="text-xs text-muted-foreground">
+            {formatTime(info?.time.completed)}
+          </span>
+        )}
 
         {info?.modelID && (
           <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
