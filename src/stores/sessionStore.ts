@@ -1,4 +1,4 @@
-import { getErrorMessage, oc, type SdkError } from "@/lib/opencode";
+import { createDefaultTitle, getErrorMessage, oc, type SdkError } from "@/lib/opencode";
 import type { QuestionRequest, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -55,7 +55,7 @@ export const useSessionStore = create<SessionStore>()(
             createSession: async (directory: string, title?: string) => {
                 set({ error: null });
                 const result = await oc.session.create({
-                    title: title || 'New Chat',
+                    title: title || createDefaultTitle(),
                     directory,
                 });
 

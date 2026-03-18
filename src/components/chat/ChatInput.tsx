@@ -115,21 +115,6 @@ export function ChatInput({
             </div>
           </div>
 
-          {/* <div className="relative">
-          <div className="relative flex items-end gap-2 bg-muted border rounded-2xl p-2 transition-all"></div>
-
-          {directory && (
-            <div className="absolute left-12 bottom-full mb-2 w-80">
-              <FileMentionDropdown
-                directory={directory}
-                isOpen={isFileMentionOpen}
-                onClose={() => setIsFileMentionOpen(false)}
-                onSelect={handleFileSelect}
-              />
-            </div>
-          )}
-        </div> */}
-
           <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden md:block">
             Press Enter to send, Shift + Enter for new line
             {directory && " • @ or / to mention files"}

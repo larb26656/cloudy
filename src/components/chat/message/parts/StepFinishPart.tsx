@@ -32,12 +32,14 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
     return;
   }
 
+  const finishTimestamp = info?.time.completed || new Date().getTime();
+
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2">
-        {info?.time.completed && (
+        {finishTimestamp && (
           <span className="text-xs text-muted-foreground">
-            {formatTime(info?.time.completed)}
+            {formatTime(finishTimestamp)}
           </span>
         )}
 
