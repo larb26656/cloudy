@@ -1,5 +1,5 @@
 // App.tsx
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { SessionList } from "./components/session/SessionList";
 import { ChatContainer } from "./components/chat/ChatContainer";
 import { MobileSidebar } from "./components/layout/Sidebar";

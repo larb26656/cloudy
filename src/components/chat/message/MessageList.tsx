@@ -1,7 +1,7 @@
 // components/chat/MessageList.tsx
 import { useEffect, useRef, useMemo, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
-import type { MessageV2 } from "@/types/messagev2";
+import type { Message } from "@/types/message";
 import { useMessageStore, useSessionStore } from "@/stores";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
@@ -92,7 +92,7 @@ export function MessageList({}: MessageListProps) {
           <EmptyChatState />
         ) : (
           <div className="max-w-4xl mx-auto space-y-4 pb-4">
-            {messages.map((message: MessageV2) => {
+            {messages.map((message: Message) => {
               return (
                 <MessageBubble
                   key={message.info.id}

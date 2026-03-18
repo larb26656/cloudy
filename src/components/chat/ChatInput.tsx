@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { ModelSelector } from "./ModelSelector";
 import { AgentSelector } from "./AgentSelector";
-import type { FileReference, ModelConfig } from "../../types";
+import type { ModelConfig } from "../../types";
 import { Button } from "@/components/ui/button";
 import { useAgentStore, useModelStore } from "@/stores";
 
@@ -27,8 +27,6 @@ export function ChatInput({
   directory,
 }: ChatInputProps) {
   const [text, setText] = useState("");
-  const [_, setIsFileMentionOpen] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<FileReference[]>([]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { selectedModel } = useModelStore();
   const { selectedAgent } = useAgentStore();
@@ -44,14 +42,9 @@ export function ChatInput({
   const handleSubmit = () => {
     if (text.trim() && !isLoading) {
       let finalText = text.trim();
-      if (selectedFiles.length > 0) {
-        const fileMentions = selectedFiles.map((f) => `@${f.path}`).join(" ");
-        finalText = `${fileMentions} ${finalText}`;
-      }
 
       onSend(finalText, selectedModel, selectedAgent);
       setText("");
-      setSelectedFiles([]);
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
       }
@@ -74,16 +67,7 @@ export function ChatInput({
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const value = e.target.value;
     setText(value);
-
-    if (directory && (value.endsWith("@") || value.endsWith("/"))) {
-      setIsFileMentionOpen(true);
-    }
   };
-
-  // const handleFileSelect = (files: FileReference[]) => {
-  //   setSelectedFiles((prev) => [...prev, ...files]);
-  //   setText((prev) => prev.slice(0, -1));
-  // };
 
   return (
     <div className="p-4">
@@ -122,7 +106,7 @@ export function ChatInput({
                   size="icon"
                   className="rounded-full p-4"
                   onClick={handleSubmit}
-                  disabled={!text.trim() && selectedFiles.length === 0}
+                  disabled={!text.trim()}
                   title="Send message"
                 >
                   <ArrowUp className="size-5" />

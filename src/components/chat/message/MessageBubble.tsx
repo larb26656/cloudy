@@ -1,11 +1,11 @@
 // components/chat/MessageBubble.tsx
 
-import type { MessageV2 } from "@/types/messagev2";
+import type { Message } from "@/types/message";
 import UserMessageBubble from "./UserMessageBubble";
 import AssistantMessageBubble from "./AssistantMessageBubble";
 
 interface MessageBubbleProps {
-  message: MessageV2;
+  message: Message;
   isStreaming?: boolean;
   onRegenerate?: () => void;
 }

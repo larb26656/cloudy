@@ -9,8 +9,8 @@ import {
   ChevronDown,
   Search,
 } from "lucide-react";
-import { useModels } from "../../hooks";
-import type { ModelConfig } from "../../types";
+import { useModelStore } from "@/stores";
+import type { ModelConfig } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -22,7 +22,6 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useModelStore } from "@/stores/modelStore";
 
 const providerIcons: Record<string, React.ReactNode> = {
   openai: <Cloud className="size-4" />,
@@ -40,8 +39,11 @@ export function ModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { providers, isLoading, error } = useModels();
-  const { selectedModel, setSelectedModel } = useModelStore();
+  const { providers, isLoading, error, fetchProviders, selectedModel, setSelectedModel } = useModelStore();
+
+  useEffect(() => {
+    fetchProviders();
+  }, [fetchProviders]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

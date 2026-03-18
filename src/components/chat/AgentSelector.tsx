@@ -6,7 +6,6 @@ import {
   Search,
   Loader2,
 } from "lucide-react";
-import { useAgents } from "../../hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -29,8 +28,11 @@ export function AgentSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { agents, isLoading, error } = useAgents();
-  const { selectedAgent, setSelectedAgent } = useAgentStore();
+  const { agents, isLoading, error, fetchAgents, selectedAgent, setSelectedAgent } = useAgentStore();
+
+  useEffect(() => {
+    fetchAgents();
+  }, [fetchAgents]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
