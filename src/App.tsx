@@ -22,18 +22,34 @@ import {
   useQuestionStore,
   usePermissionStore,
 } from "./stores";
-import { useChatWorkspace } from "@/hooks/useChatWorkspace";
 import { useEventStream } from "@/hooks/useEventSteam";
 import { useChatUIStore } from "@/stores/chatUIStore";
 
 function App() {
-  const { sessions, sessionStatuses, selectedSessionId, loadSessions } =
-    useSessionStore();
-  const { selectedDirectory } = useDirectoryStore();
+  const {
+    sessions,
+    sessionStatuses,
+    selectedSessionId,
+    loadSessions,
+    createSession: createSessionFromStore,
+    setCreateSession,
+  } = useSessionStore();
+  const { selectedDirectory, setSelectedDirectory } = useDirectoryStore();
+
+  const handleCreateSession = async (directory?: string) => {
+    const dir = directory || selectedDirectory;
+    if (!dir) return;
+    if (directory && directory !== selectedDirectory) {
+      setSelectedDirectory(directory);
+    }
+    const session = await createSessionFromStore(dir);
+    if (session) {
+      setCreateSession(session);
+    }
+  };
   const { loadMessages } = useMessageStore();
   const { loadQuestions } = useQuestionStore();
   const { loadPermissions } = usePermissionStore();
-  const { createSession } = useChatWorkspace();
   const { sidebarOpen, setSidebarOpen, isDarkMode, deviceType, setDeviceType } =
     useChatUIStore();
 
@@ -92,16 +108,7 @@ function App() {
             sessionDirectory={sessionDir}
             sessionStatus={sessionStatus}
           />
-          {selectedSessionId ? (
-            <>
-              <ChatContainer />
-            </>
-          ) : (
-            <WelcomeState
-              onCreateSession={createSession}
-              selectedDirectory={selectedDirectory}
-            />
-          )}
+          <ChatContainer sessionId={selectedSessionId} />
         </div>
         <QuestionDialog
           open={questionDialogOpen}
@@ -143,16 +150,7 @@ function App() {
               sessionDirectory={sessionDir}
               sessionStatus={sessionStatus}
             />
-            {selectedSessionId ? (
-              <>
-                <ChatContainer />
-              </>
-            ) : (
-              <WelcomeState
-                onCreateSession={createSession}
-                selectedDirectory={selectedDirectory}
-              />
-            )}
+            <ChatContainer sessionId={selectedSessionId} />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>

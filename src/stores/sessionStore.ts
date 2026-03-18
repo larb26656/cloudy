@@ -14,7 +14,8 @@ type SessionStoreState = {
 
 type SessionsStoreSessionActions = {
     loadSessions: (directory: string) => Promise<void>;
-    createSession: (directory: string, title?: string) => Promise<Session | null>;
+    createSession: (directory: string, title?: string) => Promise<Session>;
+    createTempSession: () => void,
     setCreateSession: (session: Session) => void;
     selectSession: (sessionId: string) => void;
     updateSession: (sessionId: string, title: string) => Promise<void>;
@@ -53,20 +54,25 @@ export const useSessionStore = create<SessionStore>()(
             },
 
             createSession: async (directory: string, title?: string) => {
-                set({ error: null });
                 const result = await oc.session.create({
                     title: title || createDefaultTitle(),
                     directory,
                 });
 
                 if (result.error) {
-                    set({ error: getErrorMessage(result.error as SdkError) });
-                    return null;
+                    const message = getErrorMessage(result.error as SdkError);
+                    throw new Error(message);
                 }
 
                 const session = result.data;
 
                 return session;
+            },
+
+            createTempSession: () => {
+                set({
+                    selectedSessionId: null,
+                });
             },
 
             setCreateSession: (session: Session) => {

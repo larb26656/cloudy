@@ -3,34 +3,54 @@ import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./ChatInput";
 import { QuestionSheet } from "./QuestionSheet";
 import type { ModelConfig } from "../../types";
-import { useSessionStore } from "@/stores";
-import { useChatWorkspace } from "@/hooks/useChatWorkspace";
-import { SelectSessionState } from "./ChatEmptyState";
+import { useSessionStore, useDirectoryStore, useMessageStore } from "@/stores";
+import { generatePlaceholder } from "@/lib/greeting-generator";
+import { useMemo } from "react";
 
-interface ChatContainerProps {}
+interface ChatContainerProps {
+  sessionId: string | null;
+}
 
-export function ChatContainer({}: ChatContainerProps) {
-  const sessions = useSessionStore((s) => s.sessions);
-  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
+export function ChatContainer({ sessionId }: ChatContainerProps) {
+  const createSession = useSessionStore((s) => s.createSession);
   const activeQuestion = useSessionStore((s) => s.activeQuestion);
-  const session = sessions.find((s) => s.id === selectedSessionId);
-  const { sendMessage, abortGeneration } = useChatWorkspace();
+  const sendMessage = useMessageStore((s) => s.sendMessage);
+  const abortGeneration = useMessageStore((s) => s.abortGeneration);
+  const selectedDirectory = useDirectoryStore((s) => s.selectedDirectory);
   const sessionStatuses = useSessionStore((s) => s.sessionStatuses);
+  const chatplaceholder = useMemo(() => generatePlaceholder(), []);
   const isBusy = Boolean(
-    selectedSessionId && sessionStatuses[selectedSessionId]?.type === "busy",
+    sessionId && sessionStatuses[sessionId]?.type === "busy",
   );
 
-  const handleSend = async (text: string, model?: ModelConfig | null, agent?: string | null) => {
-    await sendMessage(text, model, agent);
+  const getOrCreateSession = async (
+    selectedDirectory: string,
+  ): Promise<string> => {
+    if (sessionId) {
+      return sessionId;
+    }
+    const session = await createSession(selectedDirectory);
+
+    return session.id;
+  };
+
+  const handleSend = async (
+    text: string,
+    model?: ModelConfig | null,
+    agent?: string | null,
+  ) => {
+    if (!selectedDirectory) return;
+    const currentSessionId = await getOrCreateSession(selectedDirectory);
+
+    await sendMessage(selectedDirectory, currentSessionId, text, model, agent);
   };
 
   const handleAbort = async () => {
-    await abortGeneration();
-  };
+    if (!selectedDirectory) return;
+    const currentSessionId = await getOrCreateSession(selectedDirectory);
 
-  if (!session) {
-    return <SelectSessionState />;
-  }
+    await abortGeneration(selectedDirectory, currentSessionId);
+  };
 
   return (
     <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
@@ -42,8 +62,8 @@ export function ChatContainer({}: ChatContainerProps) {
         onSend={handleSend}
         onAbort={handleAbort}
         isLoading={isBusy}
-        placeholder={`Message ${session.title || "AI"}...`}
-        directory={session.directory}
+        placeholder={chatplaceholder}
+        directory={selectedDirectory || ""}
       />
 
       {/* Question Sheet */}

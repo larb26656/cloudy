@@ -1,37 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DirectoryPicker } from "@/components/directory/DirectoryPickerDialog";
-
-const ART_GREETINGS = [
-  {
-    title: "Ready to create something amazing?",
-    subtitle: "Let's write some code together ✨",
-  },
-  {
-    title: "Where ideas take form",
-    subtitle: "Your next breakthrough starts here 🚀",
-  },
-  {
-    title: "The canvas is blank",
-    subtitle: "Paint your thoughts into reality 🎨",
-  },
-  { title: "Hello, builder", subtitle: "What shall we craft today? 🔧" },
-  { title: "Let's debug reality", subtitle: "One line at a time 💻" },
-  {
-    title: "Your coding journey awaits",
-    subtitle: "Start a new conversation 🌟",
-  },
-  {
-    title: "Ideas flow freely here",
-    subtitle: "Share your vision, let's build it 💡",
-  },
-  { title: "Code is poetry", subtitle: "Let's write verse together 📝" },
-  {
-    title: "Time to build something cool",
-    subtitle: "What do you have in mind? 🎯",
-  },
-  { title: "Adventure awaits", subtitle: "Ready to explore? 🗺️" },
-];
+import { generateGreeting } from "@/lib/greeting-generator";
 
 interface WelcomeStateProps {
   onCreateSession: (directory?: string) => void;
@@ -42,10 +12,7 @@ export function WelcomeState({
   onCreateSession,
   selectedDirectory,
 }: WelcomeStateProps) {
-  const greeting = useMemo(() => {
-    const index = Math.floor(Math.random() * ART_GREETINGS.length);
-    return ART_GREETINGS[index];
-  }, []);
+  const greeting = useMemo(() => generateGreeting(), []);
 
   const [openPicker, setOpenPicker] = useState<boolean>(false);
   const [pickedDirectory] = useState<string | null>(selectedDirectory || null);
@@ -100,10 +67,7 @@ export function SelectSessionState() {
 }
 
 export function EmptyChatState() {
-  const greeting = useMemo(() => {
-    const index = Math.floor(Math.random() * ART_GREETINGS.length);
-    return ART_GREETINGS[index];
-  }, []);
+  const greeting = useMemo(() => generateGreeting(), []);
 
   return (
     <div className="flex flex-col items-center justify-center h-full text-gray-500 dark:text-gray-400">

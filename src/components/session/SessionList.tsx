@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSessionStore, useDirectoryStore } from "@/stores";
-import { useChatWorkspace } from "@/hooks/useChatWorkspace";
 import { ErrorState } from "@/components/ui/error-state";
 
 export function SessionList() {
@@ -21,12 +20,10 @@ export function SessionList() {
     updateSession,
     deleteSession,
     selectSession,
+    createTempSession,
   } = useSessionStore();
-  const { createSession } = useChatWorkspace();
   const { selectedDirectory } = useDirectoryStore();
   const [searchQuery, setSearchQuery] = useState("");
-  // TODO decision should use in search query?
-  // const { searchQuery, setSearchQuery } = useChatUIStore();
 
   const filteredSessions = sessions.filter((session) =>
     (session.title || "New Chat")
@@ -45,7 +42,8 @@ export function SessionList() {
           <Button
             size={"lg"}
             onClick={() => {
-              createSession();
+              if (!selectedDirectory) return;
+              createTempSession();
             }}
             className="w-full gap-2"
           >
