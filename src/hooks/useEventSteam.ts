@@ -1,39 +1,36 @@
 import { useEffect } from "react"
 import { useDirectoryStore } from "@/stores"
-import type { Event } from "@opencode-ai/sdk/v2";
-import { oc } from "@/lib/opencode"
+import type { Event as OpencodeEvent } from "@opencode-ai/sdk/v2";
+import { getEvent } from "@/lib/opencode"
 import { handleEvent } from "@/events/eventRoute";
 
 export function useEventStream() {
-
     const selectedDirectory = useDirectoryStore(s => s.selectedDirectory)
 
+    // TODO replace with global event
     useEffect(() => {
-
-        if (!selectedDirectory) return
-
-        let stream: AsyncGenerator<Event> | null = null
-
-        const subscribe = async () => {
-
-            const events = await oc.event.subscribe({
-                directory: selectedDirectory
-            })
-
-            stream = events.stream
-
-            for await (const event of stream) {
-                handleEvent(event)
-            }
-
+        if (!selectedDirectory) {
+            return;
         }
 
-        subscribe()
+        const es = getEvent({ directory: selectedDirectory });
+
+        es.onmessage = (event: MessageEvent<string>) => {
+            try {
+                const opencodeEvent: OpencodeEvent = JSON.parse(event.data);
+                handleEvent(opencodeEvent);
+            } catch (e) {
+                console.error("parse error:", e);
+            }
+        };
+
+        es.onerror = (err) => {
+            console.error("SSE error:", err);
+            es.close();
+        };
 
         return () => {
-            stream?.return?.("")
-        }
-
-    }, [selectedDirectory])
-
+            es.close();
+        };
+    }, []);
 }

@@ -1,7 +1,8 @@
+import { env } from "@/config/env";
 import { createOpencodeClient } from "@opencode-ai/sdk/v2/client";
 
 export const oc = createOpencodeClient({
-    baseUrl: "/api"
+    baseUrl: env.OPENCODE_API_URL
 });
 
 export type SdkError = {
@@ -21,4 +22,6 @@ export function getErrorMessage(error: SdkError): string {
     }
     return 'Unknown error';
 }
+
+
 

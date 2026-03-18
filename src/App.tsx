@@ -15,7 +15,13 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { useDeviceType } from "./hooks";
-import { useSessionStore, useDirectoryStore, useMessageStore, useQuestionStore, usePermissionStore } from "./stores";
+import {
+  useSessionStore,
+  useDirectoryStore,
+  useMessageStore,
+  useQuestionStore,
+  usePermissionStore,
+} from "./stores";
 import { useChatWorkspace } from "@/hooks/useChatWorkspace";
 import { useEventStream } from "@/hooks/useEventSteam";
 import { useChatUIStore } from "@/stores/chatUIStore";
@@ -34,18 +40,11 @@ function App() {
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
 
-  const initialized = useRef(false);
-
   useEventStream();
 
   const { isMobile, isTablet } = useDeviceType();
 
   useEffect(() => {
-    if (!initialized.current) {
-      initialized.current = true;
-      return;
-    }
-
     if (selectedDirectory) {
       loadSessions(selectedDirectory);
       loadQuestions(selectedDirectory);
@@ -54,10 +53,6 @@ function App() {
   }, [selectedDirectory, loadSessions, loadQuestions, loadPermissions]);
 
   useEffect(() => {
-    if (!initialized.current) {
-      return;
-    }
-
     if (selectedSessionId) {
       loadMessages(selectedSessionId);
     }
@@ -88,7 +83,9 @@ function App() {
       <>
         <MobileSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
         <div className="flex flex-col h-[100dvh] bg-white dark:bg-gray-900 overflow-hidden">
-          <PermissionBanner onOpenDialog={() => setPermissionDialogOpen(true)} />
+          <PermissionBanner
+            onOpenDialog={() => setPermissionDialogOpen(true)}
+          />
           <QuestionBanner onOpenDialog={() => setQuestionDialogOpen(true)} />
           <Header
             sessionTitle={sessionTitle}
@@ -106,8 +103,14 @@ function App() {
             />
           )}
         </div>
-        <QuestionDialog open={questionDialogOpen} onOpenChange={setQuestionDialogOpen} />
-        <PermissionDialog open={permissionDialogOpen} onOpenChange={setPermissionDialogOpen} />
+        <QuestionDialog
+          open={questionDialogOpen}
+          onOpenChange={setQuestionDialogOpen}
+        />
+        <PermissionDialog
+          open={permissionDialogOpen}
+          onOpenChange={setPermissionDialogOpen}
+        />
       </>
     );
   }
@@ -131,7 +134,9 @@ function App() {
         )}
         <ResizablePanel defaultSize={sidebarOpen ? 75 : 100}>
           <div className="flex flex-col h-full overflow-hidden">
-            <PermissionBanner onOpenDialog={() => setPermissionDialogOpen(true)} />
+            <PermissionBanner
+              onOpenDialog={() => setPermissionDialogOpen(true)}
+            />
             <QuestionBanner onOpenDialog={() => setQuestionDialogOpen(true)} />
             <Header
               sessionTitle={sessionTitle}
@@ -151,8 +156,14 @@ function App() {
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
-      <QuestionDialog open={questionDialogOpen} onOpenChange={setQuestionDialogOpen} />
-      <PermissionDialog open={permissionDialogOpen} onOpenChange={setPermissionDialogOpen} />
+      <QuestionDialog
+        open={questionDialogOpen}
+        onOpenChange={setQuestionDialogOpen}
+      />
+      <PermissionDialog
+        open={permissionDialogOpen}
+        onOpenChange={setPermissionDialogOpen}
+      />
     </div>
   );
 }

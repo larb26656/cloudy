@@ -1,5 +1,7 @@
+import { env } from "@/config/env";
+
 // api/client.ts
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.origin + '/api';
+const API_BASE_URL = env.OPENCODE_API_URL;
 
 export class ApiError extends Error {
   code: string;
