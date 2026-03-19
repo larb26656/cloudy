@@ -9,28 +9,44 @@ export function useEventStream() {
 
     // TODO replace with global event
     useEffect(() => {
-        if (!selectedDirectory) {
-            return;
-        }
+        if (!selectedDirectory) return;
 
-        const es = getEvent({ directory: selectedDirectory });
+        let es: EventSource | null = null;
 
-        es.onmessage = (event: MessageEvent<string>) => {
-            try {
-                const opencodeEvent: OpencodeEvent = JSON.parse(event.data);
-                handleEvent(opencodeEvent);
-            } catch (e) {
-                console.error("parse error:", e);
+        const connect = () => {
+            es = getEvent({ directory: selectedDirectory });
+
+            es.onmessage = (event: MessageEvent<string>) => {
+                try {
+                    const opencodeEvent: OpencodeEvent = JSON.parse(event.data);
+                    handleEvent(opencodeEvent);
+                } catch (e) {
+                    console.error("parse error:", e);
+                }
+            };
+
+            es.onerror = (err) => {
+                console.error("SSE error:", err);
+                es?.close();
+            };
+        };
+
+        connect();
+
+        // 👇 ถ้า user switch tab กลับมา
+        const handleVisibility = () => {
+            if (document.visibilityState === "visible") {
+                // reconnect SSE
+                es?.close();
+                connect();
             }
         };
 
-        es.onerror = (err) => {
-            console.error("SSE error:", err);
-            es.close();
-        };
+        document.addEventListener("visibilitychange", handleVisibility);
 
         return () => {
-            es.close();
+            document.removeEventListener("visibilitychange", handleVisibility);
+            es?.close();
         };
     }, [selectedDirectory]);
 }
