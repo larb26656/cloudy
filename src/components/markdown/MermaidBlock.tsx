@@ -7,9 +7,10 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import panzoom from "panzoom";
 import { v4 as uuidv4 } from "uuid";
+import { CodeBlock } from "./CodeBlock";
 
 interface MermaidBlockProps {
   chart: string;
@@ -30,8 +31,11 @@ const MermaidDiagram: React.FC<{ chart: string }> = ({ chart }) => {
     mermaid.initialize({ theme: "dark" });
 
     const initPanZoom = () => {
+      if (!containerRef.current?.isConnected) return;
       const svg = containerRef.current?.querySelector("svg");
-      const mermaidEl = containerRef.current?.querySelector(`#${id}`) as HTMLElement | null;
+      const mermaidEl = containerRef.current?.querySelector(
+        `#${id}`,
+      ) as HTMLElement | null;
       if (mermaidEl) {
         mermaidEl.style.visibility = "visible";
       }
@@ -50,9 +54,9 @@ const MermaidDiagram: React.FC<{ chart: string }> = ({ chart }) => {
       const mermaidEl = containerRef.current.querySelector(
         `#${id}`,
       ) as HTMLElement | null;
-      if (mermaidEl) {
-        mermaid.run({ nodes: [mermaidEl] }).then(initPanZoom);
-      }
+        if (mermaidEl) {
+          mermaid.run({ nodes: [mermaidEl] }).then(initPanZoom).catch(() => {});
+        }
     } catch (e) {
       console.error("Mermaid render error:", e);
     }
@@ -75,26 +79,46 @@ const MermaidDiagram: React.FC<{ chart: string }> = ({ chart }) => {
 
 const MermaidBlockInner: React.FC<MermaidBlockProps> = ({ chart }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("diagram");
 
   return (
     <>
-      <Button
-        variant="outline"
-        size="lg"
-        className="flex flex-col gap-2 text-lg p-8 m-4"
+      <button
+        className="flex flex-col gap-2 text-lg p-8 m-4 border rounded-lg bg-background hover:bg-accent"
         onClick={() => setIsOpen(true)}
       >
         Mermaid Diagram
-      </Button>
+      </button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className=" w-full h-full max-w-full max-h-full lg:w-[95vw] lg:h-[95vh] lg:max-w-[95vw] lg:max-h-[95vh] p-0 flex flex-col">
           <DialogHeader className="p-4 shrink-0">
             <DialogTitle>Mermaid Diagram</DialogTitle>
           </DialogHeader>
-          <div className="flex-1 min-w-0 min-h-0 overflow-hidden">
-            <MermaidDiagram chart={chart} />
-          </div>
+          <Tabs
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="flex-1 flex flex-col min-h-0"
+          >
+            <TabsList className="mx-4">
+              <TabsTrigger value="diagram">Diagram</TabsTrigger>
+              <TabsTrigger value="code">Code</TabsTrigger>
+            </TabsList>
+            <TabsContent
+              value="diagram"
+              forceMount
+              className="flex-1 min-h-0 overflow-hidden data-[state=inactive]:hidden"
+            >
+              <MermaidDiagram chart={chart} />
+            </TabsContent>
+            <TabsContent
+              value="code"
+              forceMount
+              className="flex-1 min-h-0 overflow-hidden p-4 data-[state=inactive]:hidden"
+            >
+              <CodeBlock>{chart}</CodeBlock>
+            </TabsContent>
+          </Tabs>
         </DialogContent>
       </Dialog>
     </>
