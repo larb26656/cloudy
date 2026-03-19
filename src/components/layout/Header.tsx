@@ -1,5 +1,5 @@
 // components/layout/Header.tsx
-import { PanelLeftClose, PanelLeft, Sun, Moon } from "lucide-react";
+import { PanelLeftClose, PanelLeft, Sun, Moon, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -7,7 +7,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { SessionStatus } from "@opencode-ai/sdk";
-import { useChatUIStore } from "@/stores";
+import { useChatUIStore, useMessageStore, useSessionStore } from "@/stores";
 
 interface HeaderProps {
   sessionTitle?: string | null;
@@ -20,6 +20,14 @@ interface HeaderProps {
 export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
   const { sidebarOpen, toggleSidebar, isDarkMode, toggleTheme } =
     useChatUIStore();
+  const { loadMessages } = useMessageStore();
+  const { selectedSessionId } = useSessionStore();
+
+  const handleRefreshMessages = () => {
+    if (selectedSessionId) {
+      loadMessages(selectedSessionId);
+    }
+  };
 
   return (
     <header className="px-4 py-3 bg-white dark:bg-gray-900 flex items-center justify-between">
@@ -77,6 +85,20 @@ export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
             )}
           </div>
         )} */}
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRefreshMessages}
+                className="h-9 w-9"
+              >
+                <RefreshCw className="size-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Refresh messages</TooltipContent>
+          </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
