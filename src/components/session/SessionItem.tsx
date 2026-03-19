@@ -1,7 +1,7 @@
-// components/session/SessionItem.tsx
 import { useState } from "react";
 import { MoreHorizontal, Edit2, Trash2, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -80,8 +80,7 @@ export function SessionItem({
 
       <div className="flex-1 min-w-0">
         {isEditing ? (
-          <input
-            type="text"
+          <Input
             id={`session-edit-${session.id}`}
             name={`session-edit-${session.id}`}
             value={editTitle}
@@ -96,7 +95,6 @@ export function SessionItem({
             }}
             onClick={(e) => e.stopPropagation()}
             autoFocus
-            className="w-full px-2 py-1 text-sm bg-background border border-input rounded"
           />
         ) : (
           <>
