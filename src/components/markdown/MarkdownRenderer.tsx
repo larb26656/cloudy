@@ -1,8 +1,9 @@
 // components/markdown/MarkdownRenderer.tsx
 import ReactMarkdown from "react-markdown";
 import { CodeBlock } from "./CodeBlock";
+import { MermaidBlock } from "./MermaidBlock";
 import "highlight.js/styles/github-dark-dimmed.css";
-
+import remarkGfm from "remark-gfm";
 interface MarkdownRendererProps {
   content: string;
 }
@@ -19,11 +20,15 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   return (
     <div className="prose dark:prose-invert text-base max-w-none">
       <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
         components={{
           code(props) {
             const { children, className } = props;
             const codeContent = String(children).replace(/\n$/, "");
 
+            if (className === "language-mermaid") {
+              return <MermaidBlock chart={codeContent} />;
+            }
             // Check if inline by looking for newline or if it's a code block
             const isInline = !className && !codeContent.includes("\n");
 

@@ -4,7 +4,6 @@ import { SessionList } from "./components/session/SessionList";
 import { ChatContainer } from "./components/chat/ChatContainer";
 import { MobileSidebar } from "./components/layout/Sidebar";
 import { Header } from "./components/layout/Header";
-import { WelcomeState } from "./components/chat/ChatEmptyState";
 import { QuestionBanner } from "./components/question/QuestionBanner";
 import { QuestionDialog } from "./components/question/QuestionDialog";
 import { PermissionBanner } from "./components/permission/PermissionBanner";
@@ -26,27 +25,9 @@ import { useEventStream } from "@/hooks/useEventSteam";
 import { useChatUIStore } from "@/stores/chatUIStore";
 
 function App() {
-  const {
-    sessions,
-    sessionStatuses,
-    selectedSessionId,
-    loadSessions,
-    createSession: createSessionFromStore,
-    setCreateSession,
-  } = useSessionStore();
-  const { selectedDirectory, setSelectedDirectory } = useDirectoryStore();
-
-  const handleCreateSession = async (directory?: string) => {
-    const dir = directory || selectedDirectory;
-    if (!dir) return;
-    if (directory && directory !== selectedDirectory) {
-      setSelectedDirectory(directory);
-    }
-    const session = await createSessionFromStore(dir);
-    if (session) {
-      setCreateSession(session);
-    }
-  };
+  const { sessions, sessionStatuses, selectedSessionId, loadSessions } =
+    useSessionStore();
+  const { selectedDirectory } = useDirectoryStore();
   const { loadMessages } = useMessageStore();
   const { loadQuestions } = useQuestionStore();
   const { loadPermissions } = usePermissionStore();
