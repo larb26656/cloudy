@@ -32,5 +32,5 @@ export function useEventStream() {
         return () => {
             es.close();
         };
-    }, []);
+    }, [selectedDirectory]);
 }
