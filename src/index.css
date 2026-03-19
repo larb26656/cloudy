@@ -137,3 +137,35 @@
 .font-content {
   font-family: "Maitree", serif;
 }
+
+/* input editor */
+
+.input-chat {
+  width: 100%;
+
+  .ProseMirror {
+    width: 100%;
+    min-height: calc(1.5em * 2 + 0.75em * 1);
+    max-height: calc(1.5em * 5 + 0.75em * 4);
+    overflow-y: auto;
+
+    outline: none;
+  }
+
+  .mention {
+    @apply bg-muted text-muted-foreground rounded-md px-1 py-0.5;
+    box-decoration-break: clone;
+
+    &::after {
+      content: "\200B";
+    }
+  }
+
+  p.is-editor-empty:first-child::before {
+    color: var(--color-muted-foreground);
+    content: attr(data-placeholder);
+    float: left;
+    height: 0;
+    pointer-events: none;
+  }
+}

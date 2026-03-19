@@ -1,6 +1,6 @@
-import { getErrorMessage, oc, type SdkError } from "@/lib/opencode";
+import { getErrorMessage, oc, type ChatInputContent, type SdkError } from "@/lib/opencode";
 import type { ModelConfig } from "@/types";
-import type { Message, Part, SessionMessagesResponse } from "@opencode-ai/sdk/v2";
+import type { AgentPartInput, FilePartInput, Message, Part, SessionMessagesResponse, SubtaskPartInput, TextPartInput } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { useModelStore } from "./modelStore";
 
@@ -16,7 +16,7 @@ type MessageStoreState = {
 
 type MessageStoreSessionActions = {
     loadMessages: (sessionId: string) => Promise<void>;
-    sendMessage: (directory: string, sessionId: string, text: string, model?: ModelConfig | null, agent?: string | null) => Promise<void>;
+    sendMessage: (directory: string, sessionId: string, content: ChatInputContent, model?: ModelConfig | null, agent?: string | null) => Promise<void>;
     abortGeneration: (directory: string, sessionId: string) => Promise<void>;
     appendStreamChunk: (sessionId: string, messageId: string, delta: string) => void;
     updateMessage: (message: Message) => void;
@@ -25,6 +25,38 @@ type MessageStoreSessionActions = {
 }
 
 type MessageStore = MessageStoreState & MessageStoreSessionActions
+
+export function buildParts(
+    directory: string,
+    content: ChatInputContent
+): (TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput)[] {
+    const textPart: TextPartInput = { type: 'text', text: content.text };
+
+    const mentionParts: FilePartInput[] = content.mentions.map((mention) => {
+        const filename = mention.id;
+        const path = `${directory}/${filename}`;
+        const url = `file://${path}`
+
+        return {
+            type: 'file',
+            mime: 'text/plain',
+            url,
+            filename,
+            source: {
+                type: "file",
+                text: {
+                    value: filename,
+                    start: 0,
+                    end: filename.length
+                },
+                path
+            }
+        };
+    }
+    );
+
+    return [textPart, ...mentionParts];
+}
 
 export const useMessageStore = create<MessageStore>()(
     (set) => ({
@@ -63,14 +95,15 @@ export const useMessageStore = create<MessageStore>()(
             }));
         },
 
-        sendMessage: async (directory: string, sessionId: string, text: string, model?: ModelConfig | null, agent?: string | null) => {
+        sendMessage: async (directory: string, sessionId: string, content: ChatInputContent, model?: ModelConfig | null, agent?: string | null) => {
             set({ error: null, isThinking: true });
 
             const selectedModel = useModelStore.getState().selectedModel;
+            const parts = buildParts(directory, content);
 
             await oc.session.promptAsync({
                 sessionID: sessionId,
-                parts: [{ type: 'text', text }],
+                parts,
                 model: model ?? selectedModel ?? undefined,
                 agent: agent ?? undefined,
             }, {

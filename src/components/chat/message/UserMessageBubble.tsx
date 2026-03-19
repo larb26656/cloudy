@@ -10,10 +10,17 @@ export default function UserMessageBubble({
   parts,
 }: UserMessageBubbleProps) {
   const getTextContent = () => {
-    return parts
+    const texts = parts
       .filter((part) => part.type === "text")
-      .map((part) => (part as unknown as { text: string }).text)
-      .join("");
+      .map((part) => (part as unknown as { text: string }).text);
+
+    if (!texts.length) {
+      return "";
+    }
+
+    let finalText = texts[0];
+
+    return finalText;
   };
 
   const formatTime = (timestamp: number) => {

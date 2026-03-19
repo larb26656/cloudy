@@ -6,6 +6,7 @@ import type { ModelConfig } from "../../types";
 import { useSessionStore, useDirectoryStore, useMessageStore } from "@/stores";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useMemo } from "react";
+import type { ChatInputContent } from "@/lib/opencode";
 
 interface ChatContainerProps {
   sessionId: string | null;
@@ -35,14 +36,25 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
   };
 
   const handleSend = async (
-    text: string,
+    content: ChatInputContent,
     model?: ModelConfig | null,
     agent?: string | null,
   ) => {
     if (!selectedDirectory) return;
     const currentSessionId = await getOrCreateSession(selectedDirectory);
 
-    await sendMessage(selectedDirectory, currentSessionId, text, model, agent);
+    const normalizedContent = {
+      ...content,
+      text: content.text.trim(),
+    };
+
+    await sendMessage(
+      selectedDirectory,
+      currentSessionId,
+      normalizedContent,
+      model,
+      agent,
+    );
   };
 
   const handleAbort = async () => {

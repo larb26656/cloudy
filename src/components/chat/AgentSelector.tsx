@@ -1,11 +1,6 @@
 // components/chat/AgentSelector.tsx
 import { useState, useEffect, useRef } from "react";
-import {
-  Bot,
-  ChevronDown,
-  Search,
-  Loader2,
-} from "lucide-react";
+import { Bot, ChevronDown, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -28,23 +23,30 @@ export function AgentSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { agents, isLoading, error, fetchAgents, selectedAgent, setSelectedAgent } = useAgentStore();
+  const {
+    agents,
+    isLoading,
+    error,
+    fetchAgents,
+    selectedAgent,
+    setSelectedAgent,
+  } = useAgentStore();
 
   useEffect(() => {
     fetchAgents();
   }, [fetchAgents]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "a") {
-        e.preventDefault();
-        setIsOpen((prev) => !prev);
-      }
-    };
+  // useEffect(() => {
+  //   const handleKeyDown = (e: KeyboardEvent) => {
+  //     if ((e.metaKey || e.ctrlKey) && e.key === "a") {
+  //       e.preventDefault();
+  //       setIsOpen((prev) => !prev);
+  //     }
+  //   };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  //   document.addEventListener("keydown", handleKeyDown);
+  //   return () => document.removeEventListener("keydown", handleKeyDown);
+  // }, []);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -56,7 +58,8 @@ export function AgentSelector() {
     ? agents.filter(
         (a) =>
           a.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          (a.description && a.description.toLowerCase().includes(searchQuery.toLowerCase())),
+          (a.description &&
+            a.description.toLowerCase().includes(searchQuery.toLowerCase())),
       )
     : agents;
 

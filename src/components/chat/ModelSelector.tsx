@@ -39,23 +39,30 @@ export function ModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
-  const { providers, isLoading, error, fetchProviders, selectedModel, setSelectedModel } = useModelStore();
+  const {
+    providers,
+    isLoading,
+    error,
+    fetchProviders,
+    selectedModel,
+    setSelectedModel,
+  } = useModelStore();
 
   useEffect(() => {
     fetchProviders();
   }, [fetchProviders]);
 
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === "m") {
-        e.preventDefault();
-        setIsOpen((prev) => !prev);
-      }
-    };
+  // useEffect(() => {
+  //   const handleKeyDown = (e: KeyboardEvent) => {
+  //     if ((e.metaKey || e.ctrlKey) && e.key === "m") {
+  //       e.preventDefault();
+  //       setIsOpen((prev) => !prev);
+  //     }
+  //   };
 
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, []);
+  //   document.addEventListener("keydown", handleKeyDown);
+  //   return () => document.removeEventListener("keydown", handleKeyDown);
+  // }, []);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {

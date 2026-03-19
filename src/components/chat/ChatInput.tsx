@@ -1,15 +1,17 @@
 // components/chat/ChatInput.tsx
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { ModelSelector } from "./ModelSelector";
 import { AgentSelector } from "./AgentSelector";
 import type { ModelConfig } from "../../types";
 import { Button } from "@/components/ui/button";
 import { useAgentStore, useModelStore } from "@/stores";
+import type { ChatInputContent } from "@/lib/opencode";
+import { ChatInputEditor } from "./ChatInputEditor";
 
 interface ChatInputProps {
   onSend: (
-    text: string,
+    content: ChatInputContent,
     model?: ModelConfig | null,
     agent?: string | null,
   ) => void;
@@ -26,28 +28,21 @@ export function ChatInput({
   placeholder = "Type a message...",
   directory,
 }: ChatInputProps) {
-  const [text, setText] = useState("");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [chatInputContent, setChatInputContent] = useState<ChatInputContent>({
+    text: "",
+    mentions: [],
+  });
   const { selectedModel } = useModelStore();
   const { selectedAgent } = useAgentStore();
 
-  useEffect(() => {
-    const textarea = textareaRef.current;
-    if (textarea) {
-      textarea.style.height = "auto";
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
-    }
-  }, [text]);
-
   const handleSubmit = () => {
-    if (text.trim() && !isLoading) {
-      let finalText = text.trim();
-
-      onSend(finalText, selectedModel, selectedAgent);
-      setText("");
-      if (textareaRef.current) {
-        textareaRef.current.style.height = "auto";
-      }
+    const text = chatInputContent.text.trim();
+    if (text && !isLoading) {
+      onSend(chatInputContent, selectedModel, selectedAgent);
+      setChatInputContent({
+        text: "",
+        mentions: [],
+      });
     }
   };
 
@@ -57,16 +52,10 @@ export function ChatInput({
         return;
       }
     }
-
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
     }
-  };
-
-  const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const value = e.target.value;
-    setText(value);
   };
 
   return (
@@ -74,16 +63,13 @@ export function ChatInput({
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full">
-            <div className="flex gap-2 w-full">
-              <textarea
-                ref={textareaRef}
-                value={text}
-                onChange={handleChange}
+            <div className="flex gap-2 w-full pt-2">
+              <ChatInputEditor
+                content={chatInputContent}
+                onChange={setChatInputContent}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
-                rows={1}
                 disabled={isLoading}
-                className="bg-transparent border-none resize-none outline-none text-content py-2.5 min-h-[44px] max-h-[200px] w-full"
               />
             </div>
 
@@ -106,7 +92,7 @@ export function ChatInput({
                   size="icon"
                   className="rounded-full p-4"
                   onClick={handleSubmit}
-                  disabled={!text.trim()}
+                  disabled={!chatInputContent.text.trim()}
                   title="Send message"
                 >
                   <ArrowUp className="size-5" />
