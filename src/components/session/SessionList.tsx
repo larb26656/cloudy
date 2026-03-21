@@ -2,12 +2,16 @@ import { SessionItem } from "./SessionItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSessionStore, useDirectoryStore } from "@/stores";
 import { ErrorState } from "@/components/ui/error-state";
+import { useNavigate, useRouterState } from "@tanstack/react-router";
 
 interface SessionListProps {
   searchQuery: string;
 }
 
 export function SessionList({ searchQuery }: SessionListProps) {
+  const navigate = useNavigate();
+  const { location } = useRouterState();
+
   const {
     selectedSessionId,
     sessions,
@@ -26,6 +30,16 @@ export function SessionList({ searchQuery }: SessionListProps) {
       .toLowerCase()
       .includes(searchQuery.toLowerCase()),
   );
+
+  const handleSelect = async (sessionId: string) => {
+    const isInChat = location.pathname.startsWith("/chat");
+
+    if (!isInChat) {
+      await navigate({ to: "/" });
+    }
+
+    selectSession(sessionId);
+  };
 
   const handleFork = async (sessionId: string) => {
     console.log("Fork session:", sessionId);
@@ -64,7 +78,7 @@ export function SessionList({ searchQuery }: SessionListProps) {
               session={session}
               isActive={session.id === selectedSessionId}
               status={sessionStatuses[session.id]}
-              onClick={() => selectSession(session.id)}
+              onClick={() => handleSelect(session.id)}
               onRename={(title) => updateSession(session.id, title)}
               onDelete={() => deleteSession(session.id)}
               onFork={() => handleFork(session.id)}
