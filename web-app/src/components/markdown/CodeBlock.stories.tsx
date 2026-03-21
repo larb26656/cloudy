@@ -74,7 +74,7 @@ export const JSONCode: Story = {
   args: {
     content: `\`\`\`json
 {
-  "name": "opencode-chat",
+  "name": "cloudy-webapp",
   "version": "1.0.0",
   "dependencies": {
     "react": "^19.0.0",

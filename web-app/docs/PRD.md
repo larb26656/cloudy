@@ -4,12 +4,14 @@
 
 **Product Name:** OpenCode Chat  
 **Version:** 1.0.0  
-**Date:** 2026-03-09  
+**Date:** 2026-03-09
 
 ### Vision
+
 สร้าง Chat Interface ที่รวมความสะดวกสบายของ messaging apps อย่าง Telegram, LINE, Messenger เข้ากับความสามารถในการแสดงผล markdown แบบ ChatGPT โดยใช้ OpenCode API เป็น backend
 
 ### Target Users
+
 - นักพัฒนาซอฟต์แวร์ที่ใช้ AI assistant
 - ผู้ใช้งานที่ต้องการ chat interface ที่มีประสิทธิภาพ
 - ทีมที่ต้องการจัดการหลาย session การสนทนา
@@ -19,12 +21,14 @@
 ## 2. Product Goals
 
 ### Primary Goals
+
 1. **Intuitive Chat Experience** - Interface ที่ใช้งานง่ายเหมือน messaging apps ที่คุ้นเคย
 2. **Rich Content Rendering** - แสดงผล markdown, code blocks, tables ได้สมบูรณ์แบบ
 3. **Session Management** - จัดการหลาย session ได้อย่างมีประสิทธิภาพ
 4. **Real-time Updates** - Streaming response แบบ real-time
 
 ### Success Metrics
+
 - ผู้ใช้สามารถเริ่มต้นใช้งานได้ภายใน 5 นาที
 - รองรับ markdown features ครบถ้วน (headers, lists, code blocks, tables, etc.)
 - Switch ระหว่าง sessions ใช้เวลา < 100ms
@@ -35,6 +39,7 @@
 ## 3. User Stories
 
 ### Core Chat Functionality
+
 ```
 As a user
 I want to send messages and receive AI responses in real-time
@@ -50,6 +55,7 @@ So that I can use code snippets in my projects quickly
 ```
 
 ### Session Management
+
 ```
 As a user
 I want to see all my chat sessions in a sidebar
@@ -69,6 +75,7 @@ So that I can find previous conversations quickly
 ```
 
 ### Advanced Features
+
 ```
 As a user
 I want to fork a conversation at any point
@@ -118,6 +125,7 @@ So that I can stop irrelevant generations
 ### 4.2 Session Sidebar (Left Panel)
 
 **Requirements:**
+
 - **Position:** Fixed left side, 280px width
 - **Sessions List:** Display all sessions sorted by `time.updated` (most recent first)
 - **Session Item:**
@@ -132,6 +140,7 @@ So that I can stop irrelevant generations
   - Archive/restore functionality
 
 **API Integration:**
+
 ```
 GET /session?limit=50&roots=true
 GET /session/status
@@ -140,6 +149,7 @@ GET /session/status
 ### 4.3 Chat Area (Center Panel)
 
 **Requirements:**
+
 - **Position:** Center, flexible width
 - **Message Bubbles:**
   - **User Messages:** Right-aligned, distinct color
@@ -156,6 +166,7 @@ GET /session/status
   - Typing indicator while bot is generating
 
 **API Integration:**
+
 ```
 POST /session/{sessionID}/message  (with streaming)
 GET /session/{sessionID}/message
@@ -165,6 +176,7 @@ POST /session/{sessionID}/abort
 ### 4.4 Details Panel (Right Panel - Optional)
 
 **Requirements:**
+
 - **Toggle:** Collapsible panel (default: hidden)
 - **Content:**
   - Session metadata (created, updated)
@@ -174,6 +186,7 @@ POST /session/{sessionID}/abort
   - File attachments in session
 
 **API Integration:**
+
 ```
 GET /session/{sessionID}
 ```
@@ -181,6 +194,7 @@ GET /session/{sessionID}
 ### 4.5 Markdown Rendering
 
 **Required Elements:**
+
 - **Headers:** H1-H6 with proper styling
 - **Text Formatting:** Bold, italic, strikethrough, inline code
 - **Lists:** Ordered and unordered with nesting
@@ -196,29 +210,35 @@ GET /session/{sessionID}
 - **Math:** LaTeX support (optional v2)
 
 **Example Rendering:**
-```markdown
+
+````markdown
 # Hello World
 
-This is **bold** and *italic* text.
+This is **bold** and _italic_ text.
 
 ## Code Example
+
 ```javascript
 function greet() {
   console.log("Hello!");
 }
 ```
+````
 
 ## List
+
 - Item 1
 - Item 2
   - Nested item
 - Item 3
 
 ## Table
+
 | Name | Value |
-|------|-------|
+| ---- | ----- |
 | A    | 1     |
 | B    | 2     |
+
 ```
 
 ### 4.6 Streaming Implementation
@@ -232,9 +252,11 @@ function greet() {
 
 **API Integration:**
 ```
+
 GET /event?directory={projectDir}
 Content-Type: text/event-stream
-```
+
+````
 
 **Event Handling:**
 - `message.part.delta` - Append text to current message
@@ -278,20 +300,21 @@ interface APIEndpoints {
   updateSession: (id, data) => PATCH /session/{id}
   deleteSession: (id) => DELETE /session/{id}
   forkSession: (id, data) => POST /session/{id}/fork
-  
+
   // Messages
   getMessages: (sessionId) => GET /session/{id}/message
   sendMessage: (sessionId, data) => POST /session/{id}/message
   abortGeneration: (sessionId) => POST /session/{id}/abort
-  
+
   // Streaming
   subscribeEvents: (directory) => GET /event
 }
-```
+````
 
 ### 5.3 Data Models
 
 **Session:**
+
 ```typescript
 interface Session {
   id: string;
@@ -304,7 +327,7 @@ interface Session {
     updated: number;
     archived?: number;
   };
-  status: 'idle' | 'busy' | 'retry';
+  status: "idle" | "busy" | "retry";
   summary?: {
     title: string;
     body: string;
@@ -313,12 +336,13 @@ interface Session {
 ```
 
 **Message:**
+
 ```typescript
 interface Message {
   info: {
     id: string;
     sessionID: string;
-    role: 'user' | 'assistant';
+    role: "user" | "assistant";
     time: { created: number };
     model?: {
       providerID: string;
@@ -330,7 +354,7 @@ interface Message {
 
 interface Part {
   id: string;
-  type: 'text' | 'reasoning' | 'tool' | 'file' | 'stepStart' | 'stepFinish';
+  type: "text" | "reasoning" | "tool" | "file" | "stepStart" | "stepFinish";
   // Type-specific fields...
 }
 ```
@@ -338,22 +362,23 @@ interface Part {
 ### 5.4 State Management
 
 **Store Structure:**
+
 ```typescript
 interface AppState {
   // Sessions
   sessions: Session[];
   currentSessionId: string | null;
   sessionStatus: Record<string, SessionStatus>;
-  
+
   // Messages
   messages: Record<string, Message[]>; // sessionId -> messages
   streamingMessageId: string | null;
-  
+
   // UI
   sidebarOpen: boolean;
   detailsPanelOpen: boolean;
-  theme: 'light' | 'dark';
-  
+  theme: "light" | "dark";
+
   // Actions
   loadSessions: () => Promise<void>;
   selectSession: (id: string) => Promise<void>;
@@ -369,6 +394,7 @@ interface AppState {
 ### 6.1 Design System
 
 **Color Palette:**
+
 ```css
 /* Light Theme */
 --bg-primary: #ffffff;
@@ -396,11 +422,13 @@ interface AppState {
 ```
 
 **Typography:**
+
 - Primary: Inter, system-ui, -apple-system
 - Monospace: JetBrains Mono, Fira Code, Consolas
 - Sizes: 14px base, 16px messages, 12px timestamps
 
 **Spacing:**
+
 - Sidebar: 280px
 - Max content width: 800px
 - Message padding: 16px 24px
@@ -409,11 +437,13 @@ interface AppState {
 ### 6.2 Responsive Design
 
 **Breakpoints:**
+
 - Mobile: < 768px (hide sidebar, show hamburger menu)
 - Tablet: 768px - 1024px (collapsible sidebar)
 - Desktop: > 1024px (fixed sidebar)
 
 **Mobile Adaptations:**
+
 - Swipe to open sidebar
 - Bottom sheet for session list
 - Full-screen message input
@@ -422,12 +452,14 @@ interface AppState {
 ### 6.3 Animations
 
 **Micro-interactions:**
+
 - Message appear: fade-in + slide-up (200ms ease-out)
 - Typing indicator: pulse animation
 - Button hover: scale(1.02) + shadow
 - Session switch: cross-fade (150ms)
 
 **Loading States:**
+
 - Skeleton screens for initial load
 - Spinner for async operations
 - Shimmer effect for streaming text
@@ -437,7 +469,9 @@ interface AppState {
 ## 7. Features by Phase
 
 ### Phase 1: MVP (Week 1-2)
+
 **Core Chat:**
+
 - [ ] Basic chat interface
 - [ ] Send/receive messages
 - [ ] Markdown rendering (basic)
@@ -446,13 +480,16 @@ interface AppState {
 - [ ] Real-time streaming
 
 **API Integration:**
+
 - [ ] List sessions
 - [ ] Get messages
 - [ ] Send message with streaming
 - [ ] Session status polling
 
 ### Phase 2: Enhanced (Week 3-4)
+
 **Chat Improvements:**
+
 - [ ] Code block syntax highlighting
 - [ ] Copy code button
 - [ ] Message timestamps
@@ -461,13 +498,16 @@ interface AppState {
 - [ ] Auto-scroll management
 
 **Session Management:**
+
 - [ ] Rename sessions
 - [ ] Delete sessions
 - [ ] Search sessions
 - [ ] Session forking
 
 ### Phase 3: Polish (Week 5-6)
+
 **UI/UX:**
+
 - [ ] Dark/light theme toggle
 - [ ] Responsive design
 - [ ] Keyboard shortcuts
@@ -475,12 +515,14 @@ interface AppState {
 - [ ] Toast notifications
 
 **Advanced:**
+
 - [ ] File attachments
 - [ ] Message regeneration
 - [ ] Export conversation
 - [ ] Token/cost display
 
 ### Phase 4: Future (Optional)
+
 - [ ] Voice input/output
 - [ ] Multi-language support
 - [ ] Plugin system
@@ -495,14 +537,14 @@ interface AppState {
 
 ```typescript
 // 1. Load all sessions
-const sessions = await api.get('/session', {
-  params: { roots: true, limit: 50 }
+const sessions = await api.get("/session", {
+  params: { roots: true, limit: 50 },
 });
 
 // 2. If no sessions, create one
 if (sessions.length === 0) {
-  const newSession = await api.post('/session', {
-    title: 'New Chat'
+  const newSession = await api.post("/session", {
+    title: "New Chat",
   });
 }
 
@@ -512,7 +554,7 @@ const messages = await api.get(`/session/${currentSession.id}/message`);
 
 // 4. Subscribe to real-time events
 const eventSource = new EventSource(
-  `${API_BASE}/event?directory=${currentSession.directory}`
+  `${API_BASE}/event?directory=${currentSession.directory}`,
 );
 ```
 
@@ -521,22 +563,21 @@ const eventSource = new EventSource(
 ```typescript
 async function sendMessage(sessionId: string, text: string) {
   // 1. Optimistically add user message to UI
-  const tempUserMessage = addTempMessage(sessionId, text, 'user');
-  
+  const tempUserMessage = addTempMessage(sessionId, text, "user");
+
   try {
     // 2. Send message to API
     const response = await api.post(`/session/${sessionId}/message`, {
-      parts: [{ type: 'text', text }],
-      noReply: false
+      parts: [{ type: "text", text }],
+      noReply: false,
     });
-    
+
     // 3. Handle streaming via SSE (message.part.delta events)
     // The assistant message will be built incrementally
-    
   } catch (error) {
     // 4. Handle error and remove temp message
     removeTempMessage(tempUserMessage.id);
-    showError('Failed to send message');
+    showError("Failed to send message");
   }
 }
 ```
@@ -546,24 +587,24 @@ async function sendMessage(sessionId: string, text: string) {
 ```typescript
 eventSource.onmessage = (event) => {
   const data = JSON.parse(event.data);
-  
+
   switch (data.event) {
-    case 'message.part.delta':
+    case "message.part.delta":
       // Append text to current message
       appendMessageText(data.sessionID, data.messageID, data.delta);
       break;
-      
-    case 'message.part.updated':
+
+    case "message.part.updated":
       // New part added (code block, tool call, etc.)
       addMessagePart(data.sessionID, data.messageID, data.part);
       break;
-      
-    case 'session.status':
+
+    case "session.status":
       // Update typing indicator
       updateSessionStatus(data.sessionID, data.status);
       break;
-      
-    case 'session.updated':
+
+    case "session.updated":
       // Session metadata changed (title, etc.)
       updateSession(data.session);
       break;
@@ -575,18 +616,18 @@ eventSource.onmessage = (event) => {
 
 ```typescript
 // Session busy
-if (error.code === 'SESSION_BUSY') {
-  showToast('AI is still processing. Please wait.');
+if (error.code === "SESSION_BUSY") {
+  showToast("AI is still processing. Please wait.");
 }
 
 // Rate limit
-if (error.code === 'RATE_LIMIT') {
-  showToast('Too many requests. Please slow down.');
+if (error.code === "RATE_LIMIT") {
+  showToast("Too many requests. Please slow down.");
 }
 
 // Network error
-if (error.code === 'NETWORK_ERROR') {
-  showToast('Connection lost. Retrying...');
+if (error.code === "NETWORK_ERROR") {
+  showToast("Connection lost. Retrying...");
   // Auto-retry with exponential backoff
 }
 ```
@@ -604,14 +645,14 @@ if (error.code === 'NETWORK_ERROR') {
 
 ### 9.2 Performance Targets
 
-| Metric | Target |
-|--------|--------|
-| First Paint | < 1s |
-| Time to Interactive | < 2s |
-| Message Render | < 16ms |
-| Session Switch | < 100ms |
+| Metric                     | Target  |
+| -------------------------- | ------- |
+| First Paint                | < 1s    |
+| Time to Interactive        | < 2s    |
+| Message Render             | < 16ms  |
+| Session Switch             | < 100ms |
 | Initial Load (50 sessions) | < 500ms |
-| Memory Usage | < 100MB |
+| Memory Usage               | < 100MB |
 
 ### 9.3 Optimization Strategies
 
@@ -629,18 +670,21 @@ if (error.code === 'NETWORK_ERROR') {
 ### 10.1 Test Types
 
 **Unit Tests:**
+
 - Message parsing and rendering
 - Markdown transformation
 - State management logic
 - Utility functions
 
 **Integration Tests:**
+
 - API client methods
 - Event streaming
 - Session management flows
 - Message sending/receiving
 
 **E2E Tests:**
+
 - Complete user flows
 - Cross-browser compatibility
 - Mobile responsiveness
@@ -649,29 +693,29 @@ if (error.code === 'NETWORK_ERROR') {
 ### 10.2 Test Cases
 
 ```typescript
-describe('Chat Interface', () => {
-  it('should render markdown correctly', () => {
-    const markdown = '# Hello\n\n**bold** text';
+describe("Chat Interface", () => {
+  it("should render markdown correctly", () => {
+    const markdown = "# Hello\n\n**bold** text";
     const result = renderMarkdown(markdown);
-    expect(result).toContain('<h1>Hello</h1>');
-    expect(result).toContain('<strong>bold</strong>');
+    expect(result).toContain("<h1>Hello</h1>");
+    expect(result).toContain("<strong>bold</strong>");
   });
-  
-  it('should handle streaming messages', async () => {
-    const sessionId = 'ses_test';
-    await sendMessage(sessionId, 'Hello');
-    
+
+  it("should handle streaming messages", async () => {
+    const sessionId = "ses_test";
+    await sendMessage(sessionId, "Hello");
+
     // Simulate streaming chunks
-    receiveStreamChunk(sessionId, 'msg_1', 'Hello');
-    receiveStreamChunk(sessionId, 'msg_1', ' World');
-    
-    expect(getMessageText(sessionId, 'msg_1')).toBe('Hello World');
+    receiveStreamChunk(sessionId, "msg_1", "Hello");
+    receiveStreamChunk(sessionId, "msg_1", " World");
+
+    expect(getMessageText(sessionId, "msg_1")).toBe("Hello World");
   });
-  
-  it('should switch sessions', async () => {
-    await selectSession('ses_1');
-    expect(currentSessionId).toBe('ses_1');
-    expect(messages['ses_1']).toBeDefined();
+
+  it("should switch sessions", async () => {
+    await selectSession("ses_1");
+    expect(currentSessionId).toBe("ses_1");
+    expect(messages["ses_1"]).toBeDefined();
   });
 });
 ```
@@ -693,8 +737,8 @@ npm run build
 # Output: dist/ folder
 
 # Docker
-docker build -t opencode-chat .
-docker run -p 3000:80 opencode-chat
+docker build -t cloudy-webapp .
+docker run -p 3000:80 cloudy-webapp
 ```
 
 ### 11.2 Environment Variables
@@ -736,17 +780,17 @@ VITE_THEME=system
 
 **Base URL:** `http://127.0.0.1:4096`
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/session` | GET | List all sessions |
-| `/session` | POST | Create new session |
-| `/session/{id}` | GET | Get session details |
-| `/session/{id}` | PATCH | Update session |
-| `/session/{id}` | DELETE | Delete session |
-| `/session/{id}/message` | GET | Get messages |
-| `/session/{id}/message` | POST | Send message |
-| `/session/{id}/abort` | POST | Abort generation |
-| `/event` | GET | Subscribe to events (SSE) |
+| Endpoint                | Method | Description               |
+| ----------------------- | ------ | ------------------------- |
+| `/session`              | GET    | List all sessions         |
+| `/session`              | POST   | Create new session        |
+| `/session/{id}`         | GET    | Get session details       |
+| `/session/{id}`         | PATCH  | Update session            |
+| `/session/{id}`         | DELETE | Delete session            |
+| `/session/{id}/message` | GET    | Get messages              |
+| `/session/{id}/message` | POST   | Send message              |
+| `/session/{id}/abort`   | POST   | Abort generation          |
+| `/event`                | GET    | Subscribe to events (SSE) |
 
 ### 13.2 Glossary
 
@@ -767,10 +811,10 @@ VITE_THEME=system
 
 ## Document History
 
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0.0 | 2026-03-09 | Luck | Initial PRD creation |
+| Version | Date       | Author | Changes              |
+| ------- | ---------- | ------ | -------------------- |
+| 1.0.0   | 2026-03-09 | Luck   | Initial PRD creation |
 
 ---
 
-*This PRD is a living document. Please update as requirements evolve.*
+_This PRD is a living document. Please update as requirements evolve._
