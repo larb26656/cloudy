@@ -20,13 +20,9 @@ interface HeaderProps {
 export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
   const { sidebarOpen, toggleSidebar, isDarkMode, toggleTheme } =
     useChatUIStore();
-  const { loadMessages } = useMessageStore();
-  const { selectedSessionId } = useSessionStore();
 
-  const handleRefreshMessages = () => {
-    if (selectedSessionId) {
-      loadMessages(selectedSessionId);
-    }
+  const handleRefresh = () => {
+    window.location.reload();
   };
 
   return (
@@ -91,13 +87,13 @@ export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={handleRefreshMessages}
+                onClick={handleRefresh}
                 className="h-9 w-9"
               >
                 <RefreshCw className="size-5" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>Refresh messages</TooltipContent>
+            <TooltipContent>Refresh</TooltipContent>
           </Tooltip>
 
           <Tooltip>
