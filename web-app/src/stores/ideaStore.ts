@@ -1,12 +1,40 @@
 import { create } from 'zustand';
-import type { Idea } from '@/types/memory';
+import { parseIdeaFrontMatter, stringifyIdeaFrontMatter } from '@/lib/front-matter';
+import type { Idea, IdeaStatus, IdeaPriority } from '@/types/memory';
+
+function ideaFromMarkdown(name: string, markdown: string, id?: string): Idea {
+  const parsed = parseIdeaFrontMatter(markdown, name);
+  const now = new Date().toISOString();
+
+  return {
+    id: id || crypto.randomUUID(),
+    name,
+    markdown,
+    description: parsed.content.split('\n')[0]?.replace(/^#+\s*/, '').trim() || name,
+    meta: {
+      title: parsed.meta.title || name,
+      tags: parsed.meta.tags || [],
+      status: parsed.meta.status || 'draft',
+      priority: parsed.meta.priority || 'medium',
+      createdAt: parsed.meta.createdAt || now,
+      updatedAt: parsed.meta.updatedAt || now,
+    },
+  };
+}
 
 const mockIdeas: Idea[] = [
-  {
-    id: '1',
-    name: 'Dark Mode Toggle',
-    description: 'Add a toggle for dark/light mode in settings',
-    markdown: `# Dark Mode Toggle
+  ideaFromMarkdown(
+    'Dark Mode Toggle',
+    `---
+title: Dark Mode Toggle
+tags: ["ui", "theme", "settings"]
+status: in-progress
+priority: high
+createdAt: 2024-01-20
+updatedAt: 2024-01-25
+---
+
+# Dark Mode Toggle
 
 ## Description
 Implement a theme toggle that allows users to switch between dark and light modes.
@@ -15,24 +43,12 @@ Implement a theme toggle that allows users to switch between dark and light mode
 1. Add theme state to settings store
 2. Create toggle component
 3. Persist preference to localStorage
-4. Apply theme class to document
-
-## Priority
-- **High** - User-facing feature
-
-## Status
-- [x] In Progress`,
-    tags: ['ui', 'theme', 'settings'],
-    status: 'in-progress',
-    priority: 'high',
-    created: new Date('2024-01-20'),
-    updated: new Date('2024-01-25'),
-  },
-  {
-    id: '2',
-    name: 'Export to PDF',
-    description: 'Allow users to export conversations as PDF',
-    markdown: `# Export to PDF
+4. Apply theme class to document`,
+    '1'
+  ),
+  ideaFromMarkdown(
+    'Export to PDF',
+    `# Export to PDF
 
 ## Description
 Add functionality to export chat conversations or memories as PDF documents.
@@ -40,24 +56,21 @@ Add functionality to export chat conversations or memories as PDF documents.
 ## Technical Approach
 - Use browser print API or html2pdf library
 - Create print-optimized stylesheet
-- Handle pagination for long content
+- Handle pagination for long content`,
+    '2'
+  ),
+  ideaFromMarkdown(
+    'Keyboard Shortcuts',
+    `---
+title: Keyboard Shortcuts
+tags: ["ux", "productivity"]
+status: completed
+priority: low
+createdAt: 2024-01-10
+updatedAt: 2024-01-15
+---
 
-## Priority
-- **Medium** - Nice to have
-
-## Status
-- [ ] Draft`,
-    tags: ['export', 'pdf', 'feature'],
-    status: 'draft',
-    priority: 'medium',
-    created: new Date('2024-02-01'),
-    updated: new Date('2024-02-01'),
-  },
-  {
-    id: '3',
-    name: 'Keyboard Shortcuts',
-    description: 'Add keyboard shortcuts for common actions',
-    markdown: `# Keyboard Shortcuts
+# Keyboard Shortcuts
 
 ## Description
 Implement keyboard shortcuts for power users to navigate faster.
@@ -66,21 +79,21 @@ Implement keyboard shortcuts for power users to navigate faster.
 - \`Ctrl+K\` - Quick search
 - \`Ctrl+N\` - New session
 - \`Ctrl+/\` - Show help
-- \`Esc\` - Close dialogs
+- \`Esc\` - Close dialogs`,
+    '3'
+  ),
+  ideaFromMarkdown(
+    'Mobile App',
+    `---
+title: Mobile App
+tags: ["mobile", "app"]
+status: archived
+priority: low
+createdAt: 2023-12-01
+updatedAt: 2023-12-15
+---
 
-## Status
-- [x] Completed`,
-    tags: ['ux', 'productivity', 'shortcuts'],
-    status: 'completed',
-    priority: 'low',
-    created: new Date('2024-01-10'),
-    updated: new Date('2024-01-15'),
-  },
-  {
-    id: '4',
-    name: 'Mobile App',
-    description: 'Build a mobile companion app',
-    markdown: `# Mobile App
+# Mobile App
 
 ## Vision
 Native mobile app for iOS and Android with core features.
@@ -89,16 +102,9 @@ Native mobile app for iOS and Android with core features.
 - View memories on the go
 - Quick idea capture
 - Push notifications
-- Offline support
-
-## Status
-- [ ] Archived - Deprioritized for now`,
-    tags: ['mobile', 'app', 'future'],
-    status: 'archived',
-    priority: 'low',
-    created: new Date('2023-12-01'),
-    updated: new Date('2023-12-15'),
-  },
+- Offline support`,
+    '4'
+  ),
 ];
 
 type IdeaStoreState = {
@@ -106,17 +112,17 @@ type IdeaStoreState = {
   selectedIdeaId: string | null;
   isLoading: boolean;
   searchQuery: string;
-  filterStatus: Idea['status'] | 'all';
+  filterStatus: IdeaStatus | 'all';
 }
 
 type IdeaStoreActions = {
   loadIdeas: () => Promise<void>;
-  createIdea: (idea: Omit<Idea, 'id' | 'created' | 'updated'>) => Idea;
+  createIdea: (idea: Omit<Idea, 'id' | 'meta'>) => Idea;
   updateIdea: (id: string, updates: Partial<Idea>) => void;
   deleteIdea: (id: string) => void;
   selectIdea: (id: string | null) => void;
   setSearchQuery: (query: string) => void;
-  setFilterStatus: (status: Idea['status'] | 'all') => void;
+  setFilterStatus: (status: IdeaStatus | 'all') => void;
   getFilteredIdeas: () => Idea[];
 }
 
@@ -137,21 +143,44 @@ export const useIdeaStore = create<IdeaStore>()(
     },
 
     createIdea: (ideaData) => {
+      const now = new Date().toISOString();
+      const meta: Idea['meta'] = {
+        title: ideaData.meta?.title || ideaData.name,
+        tags: ideaData.meta?.tags || [],
+        status: ideaData.meta?.status || 'draft',
+        priority: ideaData.meta?.priority || 'medium',
+        createdAt: now,
+        updatedAt: now,
+      };
+
       const newIdea: Idea = {
         ...ideaData,
+        meta,
         id: crypto.randomUUID(),
-        created: new Date(),
-        updated: new Date(),
       };
+
+      newIdea.markdown = stringifyIdeaFrontMatter(meta, ideaData.content);
+
       set((state) => ({ ideas: [newIdea, ...state.ideas] }));
       return newIdea;
     },
 
     updateIdea: (id, updates) => {
       set((state) => ({
-        ideas: state.ideas.map((i) =>
-          i.id === id ? { ...i, ...updates, updated: new Date() } : i
-        ),
+        ideas: state.ideas.map((i) => {
+          if (i.id !== id) return i;
+
+          const updated = { ...i, ...updates };
+          const meta = {
+            ...i.meta,
+            ...updates.meta,
+            updatedAt: new Date().toISOString(),
+          };
+          updated.meta = meta;
+          updated.markdown = stringifyIdeaFrontMatter(meta, updated.content);
+
+          return updated;
+        }),
       }));
     },
 
@@ -179,7 +208,7 @@ export const useIdeaStore = create<IdeaStore>()(
       let filtered = ideas;
 
       if (filterStatus !== 'all') {
-        filtered = filtered.filter((i) => i.status === filterStatus);
+        filtered = filtered.filter((i) => i.meta.status === filterStatus);
       }
 
       if (!searchQuery.trim()) return filtered;
@@ -188,7 +217,8 @@ export const useIdeaStore = create<IdeaStore>()(
         (i) =>
           i.name.toLowerCase().includes(query) ||
           i.description.toLowerCase().includes(query) ||
-          i.tags.some((t) => t.toLowerCase().includes(query))
+          i.meta.title?.toLowerCase().includes(query) ||
+          i.meta.tags.some((t) => t.toLowerCase().includes(query))
       );
     },
   })

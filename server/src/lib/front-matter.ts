@@ -1,0 +1,142 @@
+export type IdeaStatus = 'draft' | 'in-progress' | 'completed' | 'archived';
+export type IdeaPriority = 'low' | 'medium' | 'high';
+
+export interface IdeaMeta extends MemoryMeta {
+  status?: IdeaStatus;
+  priority?: IdeaPriority;
+}
+
+export interface MemoryMeta {
+  title?: string;
+  tags?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ParsedMarkdown {
+  meta: MemoryMeta;
+  content: string;
+}
+
+export function parseFrontMatter(markdown: string, fallbackTitle?: string): ParsedMarkdown {
+  const frontMatterRegex = /^---\n([\s\S]*?)\n---\n?/;
+  const match = markdown.match(frontMatterRegex);
+
+  if (!match) {
+    return {
+      meta: {
+        title: fallbackTitle,
+        tags: [],
+      },
+      content: markdown,
+    };
+  }
+
+  const metaString = match[1];
+  const content = markdown.slice(match[0].length);
+  const meta: MemoryMeta = {
+    title: fallbackTitle,
+    tags: [],
+  };
+
+  for (const line of metaString.split('\n')) {
+    const colonIndex = line.indexOf(':');
+    if (colonIndex === -1) continue;
+
+    const key = line.slice(0, colonIndex).trim();
+    const value = line.slice(colonIndex + 1).trim();
+
+    switch (key) {
+      case 'title':
+        meta.title = value || fallbackTitle;
+        break;
+      case 'tags':
+        try {
+          if (value.startsWith('[')) {
+            meta.tags = JSON.parse(value.replace(/'/g, '"'));
+          } else {
+            meta.tags = value.split(',').map((t) => t.trim()).filter(Boolean);
+          }
+        } catch {
+          meta.tags = [];
+        }
+        break;
+      case 'createdAt':
+      case 'updatedAt':
+        if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+          meta[key] = value;
+        }
+        break;
+    }
+  }
+
+  return { meta, content };
+}
+
+export function parseIdeaFrontMatter(markdown: string, fallbackTitle?: string): {
+  meta: IdeaMeta;
+  content: string;
+} {
+  const parsed = parseFrontMatter(markdown, fallbackTitle);
+  const meta: IdeaMeta = { ...parsed.meta };
+
+  const statusMatch = markdown.match(/^---\n([\s\S]*?)\n---/m);
+  if (statusMatch) {
+    for (const line of statusMatch[1].split('\n')) {
+      const colonIndex = line.indexOf(':');
+      if (colonIndex === -1) continue;
+      const key = line.slice(0, colonIndex).trim();
+      const value = line.slice(colonIndex + 1).trim();
+
+      if (key === 'status' && ['draft', 'in-progress', 'completed', 'archived'].includes(value)) {
+        meta.status = value as IdeaStatus;
+      }
+      if (key === 'priority' && ['low', 'medium', 'high'].includes(value)) {
+        meta.priority = value as IdeaPriority;
+      }
+    }
+  }
+
+  return { ...parsed, meta };
+}
+
+export function stringifyFrontMatter(meta: MemoryMeta, content: string): string {
+  const parts: string[] = ['---'];
+
+  if (meta.title) {
+    parts.push(`title: "${meta.title}"`);
+  }
+
+  if (meta.tags && meta.tags.length > 0) {
+    parts.push(`tags: [${meta.tags.map((t) => `"${t}"`).join(', ')}]`);
+  }
+
+  if (meta.createdAt) {
+    parts.push(`createdAt: ${meta.createdAt}`);
+  }
+
+  if (meta.updatedAt) {
+    parts.push(`updatedAt: ${meta.updatedAt}`);
+  }
+
+  parts.push('---\n');
+
+  return parts.join('\n') + content;
+}
+
+export function stringifyIdeaFrontMatter(meta: IdeaMeta, content: string): string {
+  const frontMeta: MemoryMeta = {
+    title: meta.title,
+    tags: meta.tags,
+    createdAt: meta.createdAt,
+    updatedAt: meta.updatedAt,
+  };
+  const base = stringifyFrontMatter(frontMeta, content);
+  const lines = base.split('\n');
+  const dashIndex = lines.indexOf('---', 1);
+  if (dashIndex !== -1) {
+    if (meta.status) lines.splice(dashIndex, 0, `status: ${meta.status}`);
+    if (meta.priority) lines.splice(dashIndex + (meta.status ? 1 : 0), 0, `priority: ${meta.priority}`);
+  }
+  return lines.join('\n');
+}

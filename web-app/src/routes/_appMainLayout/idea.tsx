@@ -15,13 +15,13 @@ import {
   SheetTitle,
   SheetDescription,
 } from '@/components/ui/sheet';
-import type { Idea } from '@/types/memory';
+import type { Idea, IdeaStatus, IdeaPriority } from '@/types/memory';
 
 export const Route = createFileRoute('/_appMainLayout/idea')({
   component: IdeaPage,
 });
 
-const filterOptions: Array<{ value: Idea['status'] | 'all'; label: string }> = [
+const filterOptions: Array<{ value: IdeaStatus | 'all'; label: string }> = [
   { value: 'all', label: 'All' },
   { value: 'draft', label: 'Draft' },
   { value: 'in-progress', label: 'In Progress' },
@@ -43,6 +43,8 @@ function IdeaPage() {
     filterStatus,
     setFilterStatus,
   } = useIdeaStore();
+
+  type FilterStatus = IdeaStatus | 'all';
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const ideas = getFilteredIdeas();
@@ -158,9 +160,9 @@ function IdeaPage() {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric',
-                  }).format(selectedIdea.created)}</span>
-                  <StatusBadge status={selectedIdea.status} />
-                  <PriorityBadge priority={selectedIdea.priority} />
+                  }).format(new Date(selectedIdea.meta.createdAt))}</span>
+                  <StatusBadge status={selectedIdea.meta.status} />
+                  <PriorityBadge priority={selectedIdea.meta.priority} />
                 </SheetDescription>
               </SheetHeader>
               <ScrollArea className="mt-6 h-[calc(100vh-12rem)]">
@@ -180,7 +182,7 @@ function IdeaPage() {
   );
 }
 
-function StatusBadge({ status }: { status: Idea['status'] }) {
+function StatusBadge({ status }: { status: IdeaStatus }) {
   const config = {
     draft: { icon: Circle, label: 'Draft', className: 'text-muted-foreground' },
     'in-progress': { icon: Loader2, label: 'In Progress', className: 'text-blue-500' },
@@ -196,7 +198,7 @@ function StatusBadge({ status }: { status: Idea['status'] }) {
   );
 }
 
-function PriorityBadge({ priority }: { priority: Idea['priority'] }) {
+function PriorityBadge({ priority }: { priority: IdeaPriority }) {
   const config = {
     low: { label: 'Low', className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
     medium: { label: 'Medium', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' },

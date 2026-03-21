@@ -32,6 +32,10 @@ function formatDate(date: Date): string {
   }).format(date);
 }
 
+function parseDate(dateStr: string): Date {
+  return new Date(dateStr);
+}
+
 export function MemoryCard({
   memory,
   isSelected,
@@ -78,7 +82,7 @@ export function MemoryCard({
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap gap-1.5">
-        {memory.tags.map((tag) => (
+        {memory.meta.tags.map((tag) => (
           <span
             key={tag}
             className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
@@ -90,10 +94,10 @@ export function MemoryCard({
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">
         <Clock className="mr-1 size-3" />
-        Created {formatDate(memory.created)}
-        {memory.updated > memory.created && (
+        Created {formatDate(parseDate(memory.meta.createdAt))}
+        {memory.meta.updatedAt !== memory.meta.createdAt && (
           <span className="ml-2">
-            · Updated {formatDate(memory.updated)}
+            · Updated {formatDate(parseDate(memory.meta.updatedAt))}
           </span>
         )}
       </CardFooter>

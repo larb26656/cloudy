@@ -1,12 +1,36 @@
 import { create } from 'zustand';
+import { parseFrontMatter, stringifyFrontMatter } from '@/lib/front-matter';
 import type { Memory } from '@/types/memory';
 
+function memoryFromMarkdown(name: string, markdown: string, id?: string): Memory {
+  const parsed = parseFrontMatter(markdown, name);
+  const now = new Date().toISOString();
+
+  return {
+    id: id || crypto.randomUUID(),
+    name,
+    markdown,
+    content: parsed.content.trim(),
+    meta: {
+      title: parsed.meta.title || name,
+      tags: parsed.meta.tags || [],
+      createdAt: parsed.meta.createdAt || now,
+      updatedAt: parsed.meta.updatedAt || now,
+    },
+  };
+}
+
 const mockMemories: Memory[] = [
-  {
-    id: '1',
-    name: 'Project Architecture',
-    content: 'Key architectural decisions for the project',
-    markdown: `# Project Architecture
+  memoryFromMarkdown(
+    'Project Architecture',
+    `---
+title: Project Architecture
+tags: ["architecture", "design"]
+createdAt: 2024-01-15
+updatedAt: 2024-01-20
+---
+
+# Project Architecture
 
 ## Core Principles
 - Modular design with clear separation of concerns
@@ -17,15 +41,11 @@ const mockMemories: Memory[] = [
 1. Feature-based organization
 2. Component composition
 3. Store-driven state management`,
-    tags: ['architecture', 'design'],
-    created: new Date('2024-01-15'),
-    updated: new Date('2024-01-20'),
-  },
-  {
-    id: '2',
-    name: 'API Integration Notes',
-    content: 'Notes on OpenCode API integration',
-    markdown: `# API Integration Notes
+    '1'
+  ),
+  memoryFromMarkdown(
+    'API Integration Notes',
+    `# API Integration Notes
 
 ## Authentication
 - Uses SDK client with base URL configuration
@@ -35,15 +55,18 @@ const mockMemories: Memory[] = [
 - \`session.list\` - Get sessions
 - \`session.create\` - Create new session
 - \`message.send\` - Send messages`,
-    tags: ['api', 'integration'],
-    created: new Date('2024-02-10'),
-    updated: new Date('2024-02-12'),
-  },
-  {
-    id: '3',
-    name: 'UI Component Patterns',
-    content: 'Common patterns for UI components',
-    markdown: `# UI Component Patterns
+    '2'
+  ),
+  memoryFromMarkdown(
+    'UI Component Patterns',
+    `---
+title: UI Component Patterns
+tags: ["ui", "components"]
+createdAt: 2024-03-01
+updatedAt: 2024-03-05
+---
+
+# UI Component Patterns
 
 ## Component Structure
 - Use Radix UI primitives for accessibility
@@ -56,15 +79,11 @@ function Button({ variant = 'default', size = 'default' }) {
   return <button className={buttonVariants({ variant, size })} />;
 }
 \`\`\``,
-    tags: ['ui', 'components', 'patterns'],
-    created: new Date('2024-03-01'),
-    updated: new Date('2024-03-05'),
-  },
-  {
-    id: '4',
-    name: 'Routing Setup',
-    content: 'TanStack Router configuration',
-    markdown: `# Routing Setup
+    '3'
+  ),
+  memoryFromMarkdown(
+    'Routing Setup',
+    `# Routing Setup
 
 ## File-based Routing
 - Routes defined in \`/routes\` directory
@@ -74,10 +93,8 @@ function Button({ variant = 'default', size = 'default' }) {
 ## Navigation
 - Use \`Link\` component for client-side navigation
 - \`useLocation\` for path checking`,
-    tags: ['routing', 'tanstack'],
-    created: new Date('2024-03-10'),
-    updated: new Date('2024-03-10'),
-  },
+    '4'
+  ),
 ];
 
 type MemoryStoreState = {
@@ -89,7 +106,7 @@ type MemoryStoreState = {
 
 type MemoryStoreActions = {
   loadMemories: () => Promise<void>;
-  createMemory: (memory: Omit<Memory, 'id' | 'created' | 'updated'>) => Memory;
+  createMemory: (memory: Omit<Memory, 'id' | 'meta'>) => Memory;
   updateMemory: (id: string, updates: Partial<Memory>) => void;
   deleteMemory: (id: string) => void;
   selectMemory: (id: string | null) => void;
@@ -113,21 +130,42 @@ export const useMemoryStore = create<MemoryStore>()(
     },
 
     createMemory: (memoryData) => {
+      const now = new Date().toISOString();
+      const meta = {
+        title: memoryData.meta?.title || memoryData.name,
+        tags: memoryData.meta?.tags || [],
+        createdAt: now,
+        updatedAt: now,
+      };
+
       const newMemory: Memory = {
         ...memoryData,
+        meta,
         id: crypto.randomUUID(),
-        created: new Date(),
-        updated: new Date(),
       };
+
+      newMemory.markdown = stringifyFrontMatter(meta, memoryData.content);
+
       set((state) => ({ memories: [newMemory, ...state.memories] }));
       return newMemory;
     },
 
     updateMemory: (id, updates) => {
       set((state) => ({
-        memories: state.memories.map((m) =>
-          m.id === id ? { ...m, ...updates, updated: new Date() } : m
-        ),
+        memories: state.memories.map((m) => {
+          if (m.id !== id) return m;
+
+          const updated = { ...m, ...updates };
+          const meta = {
+            ...m.meta,
+            ...updates.meta,
+            updatedAt: new Date().toISOString(),
+          };
+          updated.meta = meta;
+          updated.markdown = stringifyFrontMatter(meta, updated.content);
+
+          return updated;
+        }),
       }));
     },
 
@@ -154,7 +192,8 @@ export const useMemoryStore = create<MemoryStore>()(
         (m) =>
           m.name.toLowerCase().includes(query) ||
           m.content.toLowerCase().includes(query) ||
-          m.tags.some((t) => t.toLowerCase().includes(query))
+          m.meta.title?.toLowerCase().includes(query) ||
+          m.meta.tags.some((t) => t.toLowerCase().includes(query))
       );
     },
   })

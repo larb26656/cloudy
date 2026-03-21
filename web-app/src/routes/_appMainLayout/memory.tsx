@@ -133,7 +133,7 @@ function MemoryPage() {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric',
-                  }).format(selectedMemory.created)}
+                  }).format(new Date(selectedMemory.meta.createdAt))}
                 </SheetDescription>
               </SheetHeader>
               <ScrollArea className="mt-6 h-[calc(100vh-12rem)]">

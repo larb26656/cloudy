@@ -61,17 +61,17 @@ const priorityConfig = {
   },
 };
 
-function formatDate(date: Date): string {
+function formatDate(dateStr: string): string {
   return new Intl.DateTimeFormat('en-US', {
     month: 'short',
     day: 'numeric',
     year: 'numeric',
-  }).format(date);
+  }).format(new Date(dateStr));
 }
 
 export function IdeaCard({ idea, isSelected, onSelect, onDelete }: IdeaCardProps) {
-  const status = statusConfig[idea.status];
-  const priority = priorityConfig[idea.priority];
+  const status = statusConfig[idea.meta.status];
+  const priority = priorityConfig[idea.meta.priority];
   const StatusIcon = status.icon;
 
   return (
@@ -121,7 +121,7 @@ export function IdeaCard({ idea, isSelected, onSelect, onDelete }: IdeaCardProps
         <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs ${priority.className}`}>
           {priority.label} priority
         </span>
-        {idea.tags.map((tag) => (
+        {idea.meta.tags.map((tag) => (
           <span
             key={tag}
             className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
@@ -133,10 +133,10 @@ export function IdeaCard({ idea, isSelected, onSelect, onDelete }: IdeaCardProps
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">
         <Clock className="mr-1 size-3" />
-        Created {formatDate(idea.created)}
-        {idea.updated > idea.created && (
+        Created {formatDate(idea.meta.createdAt)}
+        {idea.meta.updatedAt !== idea.meta.createdAt && (
           <span className="ml-2">
-            · Updated {formatDate(idea.updated)}
+            · Updated {formatDate(idea.meta.updatedAt)}
           </span>
         )}
       </CardFooter>

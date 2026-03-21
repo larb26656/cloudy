@@ -20,20 +20,20 @@ import type { Idea } from '@/types/memory';
 interface CreateIdeaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (idea: Omit<Idea, 'id' | 'created' | 'updated'>) => void;
+  onCreate: (idea: Omit<Idea, 'id' | 'meta'>) => void;
 }
 
-const statuses: Idea['status'][] = ['draft', 'in-progress', 'completed', 'archived'];
-const priorities: Idea['priority'][] = ['low', 'medium', 'high'];
+const statuses: IdeaStatus[] = ['draft', 'in-progress', 'completed', 'archived'];
+const priorities: IdeaPriority[] = ['low', 'medium', 'high'];
 
-const statusLabels: Record<Idea['status'], string> = {
+const statusLabels: Record<IdeaStatus, string> = {
   draft: 'Draft',
   'in-progress': 'In Progress',
   completed: 'Completed',
   archived: 'Archived',
 };
 
-const priorityLabels: Record<Idea['priority'], string> = {
+const priorityLabels: Record<IdeaPriority, string> = {
   low: 'Low',
   medium: 'Medium',
   high: 'High',
@@ -48,8 +48,8 @@ export function CreateIdeaDialog({
   const [description, setDescription] = useState('');
   const [markdown, setMarkdown] = useState('');
   const [tagsInput, setTagsInput] = useState('');
-  const [status, setStatus] = useState<Idea['status']>('draft');
-  const [priority, setPriority] = useState<Idea['priority']>('medium');
+  const [status, setStatus] = useState<IdeaStatus>('draft');
+  const [priority, setPriority] = useState<IdeaPriority>('medium');
 
   const handleSubmit = () => {
     if (!name.trim()) return;
@@ -63,9 +63,7 @@ export function CreateIdeaDialog({
       name: name.trim(),
       description: description.trim() || name.trim(),
       markdown: markdown.trim() || `# ${name.trim()}\n\n${description.trim()}`,
-      tags,
-      status,
-      priority,
+      meta: { tags, status, priority, createdAt: '', updatedAt: '' },
     });
 
     setName('');

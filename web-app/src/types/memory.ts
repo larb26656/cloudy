@@ -1,11 +1,28 @@
+export interface MemoryMeta {
+  title?: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Memory {
   id: string;
   name: string;
   content: string;
   markdown: string;
+  meta: MemoryMeta;
+}
+
+export type IdeaStatus = 'draft' | 'in-progress' | 'completed' | 'archived';
+export type IdeaPriority = 'low' | 'medium' | 'high';
+
+export interface IdeaMeta {
+  title?: string;
   tags: string[];
-  created: Date;
-  updated: Date;
+  status: IdeaStatus;
+  priority: IdeaPriority;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface Idea {
@@ -13,9 +30,5 @@ export interface Idea {
   name: string;
   description: string;
   markdown: string;
-  tags: string[];
-  status: 'draft' | 'in-progress' | 'completed' | 'archived';
-  priority: 'low' | 'medium' | 'high';
-  created: Date;
-  updated: Date;
+  meta: IdeaMeta;
 }

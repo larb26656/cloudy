@@ -14,7 +14,7 @@ import type { Memory } from '@/types/memory';
 interface CreateMemoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (memory: Omit<Memory, 'id' | 'created' | 'updated'>) => void;
+  onCreate: (memory: Omit<Memory, 'id' | 'meta'>) => void;
 }
 
 export function CreateMemoryDialog({
@@ -39,7 +39,7 @@ export function CreateMemoryDialog({
       name: name.trim(),
       content: content.trim() || name.trim(),
       markdown: markdown.trim() || `# ${name.trim()}\n\n${content.trim()}`,
-      tags,
+      meta: { title: name.trim(), tags, createdAt: '', updatedAt: '' },
     });
 
     setName('');
