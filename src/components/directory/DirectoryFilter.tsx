@@ -16,8 +16,13 @@ import {
   CommandItem,
 } from "@/components/ui/command";
 import { useDirectoryStore } from "@/stores";
+import { cn } from "@/lib/utils";
 
-export function DirectoryFilter() {
+interface DirectoryFilterProps {
+  className?: string;
+}
+
+export function DirectoryFilter({ className }: DirectoryFilterProps) {
   const {
     selectedDirectory,
     recentDirectories,
@@ -87,127 +92,127 @@ export function DirectoryFilter() {
     : "All Directories";
 
   return (
-    <DropdownMenu
-      open={isOpen}
-      onOpenChange={(open) => {
-        setIsOpen(open);
-        if (!open) {
-          setCustomPath("");
-          setSuggestions([]);
-        }
-      }}
-    >
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="w-full justify-between h-auto py-2 px-3"
-        >
-          <div className="flex items-center gap-2 min-w-0">
-            <Folder className="size-4 shrink-0" />
-            <span className="truncate">{displayPath}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            {selectedDirectory && (
-              <span
-                role="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleSelectDirectory(null);
-                }}
-                className="p-1 hover:bg-accent rounded cursor-pointer"
-              >
-                <X className="size-3" />
-              </span>
-            )}
-            <ChevronDown
-              className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+    <div className={cn(["p-2", className])}>
+      <DropdownMenu
+        open={isOpen}
+        onOpenChange={(open) => {
+          setIsOpen(open);
+          if (!open) {
+            setCustomPath("");
+            setSuggestions([]);
+          }
+        }}
+      >
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="w-full justify-between h-auto py-2 px-3"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <Folder className="size-4 shrink-0" />
+              <span className="truncate">{displayPath}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              {selectedDirectory && (
+                <span
+                  role="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectDirectory(null);
+                  }}
+                  className="p-1 hover:bg-accent rounded cursor-pointer"
+                ></span>
+              )}
+              <ChevronDown
+                className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+              />
+            </div>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-[calc(100%-1rem)] p-0">
+          <Command className="rounded-lg border-0 shadow-none">
+            <CommandInput
+              placeholder="/path/to/project"
+              value={customPath}
+              onValueChange={setCustomPath}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && customPath.trim()) {
+                  handleCustomPathSubmit();
+                }
+              }}
+              className="h-9 text-sm"
             />
-          </div>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[calc(100%-1rem)] p-0">
-        <Command className="rounded-lg border-0 shadow-none">
-          <CommandInput
-            placeholder="/path/to/project"
-            value={customPath}
-            onValueChange={setCustomPath}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && customPath.trim()) {
-                handleCustomPathSubmit();
-              }
-            }}
-            className="h-9 text-sm"
-          />
-          <CommandList className="max-h-[300px]">
-            {suggestions.length > 0 && (
-              <>
-                {suggestions.map((dir) => (
-                  <CommandItem
-                    key={dir}
-                    value={dir}
-                    onSelect={() => handleSuggestionClick(dir)}
-                    className="gap-2 truncate cursor-pointer"
-                  >
-                    <Folder className="size-4 shrink-0" />
-                    <span className="truncate">{dir}</span>
-                  </CommandItem>
-                ))}
-                <DropdownMenuSeparator />
-              </>
-            )}
+            <CommandList className="max-h-[300px]">
+              {suggestions.length > 0 && (
+                <>
+                  {suggestions.map((dir) => (
+                    <CommandItem
+                      key={dir}
+                      value={dir}
+                      onSelect={() => handleSuggestionClick(dir)}
+                      className="gap-2 truncate cursor-pointer"
+                    >
+                      <Folder className="size-4 shrink-0" />
+                      <span className="truncate">{dir}</span>
+                    </CommandItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                </>
+              )}
 
-            <DropdownMenuItem
-              onClick={() => handleSelectDirectory(null)}
-              className="gap-2 cursor-pointer"
-            >
-              <Folder className="size-4" />
-              All Directories
-            </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => handleSelectDirectory(null)}
+                className="gap-2 cursor-pointer"
+              >
+                <Folder className="size-4" />
+                All Directories
+              </DropdownMenuItem>
 
-            {recentDirectories.length > 0 && (
-              <>
-                <DropdownMenuSeparator />
-                <div className="px-2 py-1 text-xs text-muted-foreground flex items-center gap-1">
-                  <History className="size-3" />
-                  Recent
+              {recentDirectories.length > 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-1 text-xs text-muted-foreground flex items-center gap-1">
+                    <History className="size-3" />
+                    Recent
+                  </div>
+                  {recentDirectories.map((dir) => (
+                    <DropdownMenuItem
+                      key={dir}
+                      onClick={() => handleSelectDirectory(dir)}
+                      className="gap-2 truncate cursor-pointer"
+                    >
+                      <Folder className="size-4 shrink-0" />
+                      <span className="truncate">{dir}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </>
+              )}
+
+              {customPath && !isSearching && suggestions.length === 0 && (
+                <>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-2">
+                    <Button
+                      size="sm"
+                      onClick={handleCustomPathSubmit}
+                      className="w-full h-8"
+                    >
+                      Use: {customPath}
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {isSearching && (
+                <div className="flex items-center justify-center py-2 gap-2 text-muted-foreground">
+                  <Loader2 className="size-4 animate-spin" />
+                  <span className="text-xs">Searching...</span>
                 </div>
-                {recentDirectories.map((dir) => (
-                  <DropdownMenuItem
-                    key={dir}
-                    onClick={() => handleSelectDirectory(dir)}
-                    className="gap-2 truncate cursor-pointer"
-                  >
-                    <Folder className="size-4 shrink-0" />
-                    <span className="truncate">{dir}</span>
-                  </DropdownMenuItem>
-                ))}
-              </>
-            )}
-
-            {customPath && !isSearching && suggestions.length === 0 && (
-              <>
-                <DropdownMenuSeparator />
-                <div className="px-2 py-2">
-                  <Button
-                    size="sm"
-                    onClick={handleCustomPathSubmit}
-                    className="w-full h-8"
-                  >
-                    Use: {customPath}
-                  </Button>
-                </div>
-              </>
-            )}
-
-            {isSearching && (
-              <div className="flex items-center justify-center py-2 gap-2 text-muted-foreground">
-                <Loader2 className="size-4 animate-spin" />
-                <span className="text-xs">Searching...</span>
-              </div>
-            )}
-          </CommandList>
-        </Command>
-      </DropdownMenuContent>
-    </DropdownMenu>
+              )}
+            </CommandList>
+          </Command>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 }

@@ -30,7 +30,7 @@ export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
   };
 
   return (
-    <header className="px-4 py-3 bg-white dark:bg-gray-900 flex items-center justify-between">
+    <header className="p-2 bg-white dark:bg-gray-900 flex items-center justify-between">
       <div className="flex items-center gap-3 w-full">
         <Tooltip>
           <TooltipTrigger asChild>

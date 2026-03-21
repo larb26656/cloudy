@@ -1,45 +1,41 @@
-// App.tsx
-import { useEffect, useState } from "react";
-import { SessionList } from "./components/session/SessionList";
-import { ChatContainer } from "./components/chat/ChatContainer";
-import { MobileSidebar } from "./components/layout/Sidebar";
-import { Header } from "./components/layout/Header";
-import { QuestionBanner } from "./components/question/QuestionBanner";
-import { QuestionDialog } from "./components/question/QuestionDialog";
-import { PermissionBanner } from "./components/permission/PermissionBanner";
-import { PermissionDialog } from "./components/permission/PermissionDialog";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { MobileSidebar } from "@/components/layout/Sidebar";
+import { QuestionBanner } from "@/components/question/QuestionBanner";
+import { QuestionDialog } from "@/components/question/QuestionDialog";
+import { PermissionBanner } from "@/components/permission/PermissionBanner";
+import { PermissionDialog } from "@/components/permission/PermissionDialog";
 import {
   ResizablePanel,
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import { useDeviceType } from "./hooks";
+import { useDeviceType } from "@/hooks";
+import { useChatUIStore } from "@/stores/chatUIStore";
+import { useEffect, useState } from "react";
 import {
-  useSessionStore,
   useDirectoryStore,
   useMessageStore,
-  useQuestionStore,
   usePermissionStore,
-} from "./stores";
-import { useEventStream } from "@/hooks/useEventSteam";
-import { useChatUIStore } from "@/stores/chatUIStore";
+  useQuestionStore,
+  useSessionStore,
+} from "@/stores";
 
-function App() {
-  const { sessions, sessionStatuses, selectedSessionId, loadSessions } =
-    useSessionStore();
-  const { selectedDirectory } = useDirectoryStore();
-  const { loadMessages } = useMessageStore();
-  const { loadQuestions } = useQuestionStore();
-  const { loadPermissions } = usePermissionStore();
+export const Route = createFileRoute("/_appMainLayout")({
+  component: AppMainLayout,
+});
+
+function AppMainLayout() {
+  const { isMobile, isTablet } = useDeviceType();
   const { sidebarOpen, setSidebarOpen, isDarkMode, deviceType, setDeviceType } =
     useChatUIStore();
-
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
-
-  useEventStream();
-
-  const { isMobile, isTablet } = useDeviceType();
+  const { loadMessages } = useMessageStore();
+  const { selectedSessionId, loadSessions } = useSessionStore();
+  const { loadQuestions } = useQuestionStore();
+  const { loadPermissions } = usePermissionStore();
+  const { selectedDirectory } = useDirectoryStore();
 
   useEffect(() => {
     if (selectedDirectory) {
@@ -59,8 +55,6 @@ function App() {
     setDeviceType(deviceType);
   }, [deviceType, setDeviceType]);
 
-  const currentSession = sessions.find((s) => s.id === selectedSessionId);
-
   useEffect(() => {
     if (isDarkMode) {
       document.documentElement.classList.add("dark");
@@ -68,12 +62,6 @@ function App() {
       document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
-
-  const sessionDir = currentSession?.directory ?? undefined;
-  const sessionTitle = currentSession?.title;
-  const sessionStatus = selectedSessionId
-    ? (sessionStatuses[selectedSessionId] ?? null)
-    : null;
 
   if (isMobile || isTablet) {
     return (
@@ -84,12 +72,7 @@ function App() {
             onOpenDialog={() => setPermissionDialogOpen(true)}
           />
           <QuestionBanner onOpenDialog={() => setQuestionDialogOpen(true)} />
-          <Header
-            sessionTitle={sessionTitle}
-            sessionDirectory={sessionDir}
-            sessionStatus={sessionStatus}
-          />
-          <ChatContainer sessionId={selectedSessionId} />
+          <Outlet />
         </div>
         <QuestionDialog
           open={questionDialogOpen}
@@ -112,7 +95,7 @@ function App() {
         {sidebarOpen && (
           <>
             <ResizablePanel defaultSize={25} className="p-2">
-              <SessionList />
+              <Sidebar />
             </ResizablePanel>
             <ResizableHandle
               withHandle
@@ -126,12 +109,7 @@ function App() {
               onOpenDialog={() => setPermissionDialogOpen(true)}
             />
             <QuestionBanner onOpenDialog={() => setQuestionDialogOpen(true)} />
-            <Header
-              sessionTitle={sessionTitle}
-              sessionDirectory={sessionDir}
-              sessionStatus={sessionStatus}
-            />
-            <ChatContainer sessionId={selectedSessionId} />
+            <Outlet />
           </div>
         </ResizablePanel>
       </ResizablePanelGroup>
@@ -146,5 +124,3 @@ function App() {
     </div>
   );
 }
-
-export default App;
