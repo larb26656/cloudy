@@ -1,3 +1,6 @@
+import { resolveUrl } from "@/lib/url";
+
 export const env = {
-    OPENCODE_API_URL: import.meta.env.VITE_OPENCODE_URL || "/api",
+    API_URL: resolveUrl(import.meta.env.VITE_API_URL) || window.origin + "/api",
+    OPENCODE_API_URL: resolveUrl(import.meta.env.VITE_OPENCODE_URL) || window.origin + "/api/oc",
 };

@@ -1,0 +1,7 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3007:3000"
+    environment:
+      - OC_API_BASE_PATH=${OC_API_BASE_PATH}

@@ -14,6 +14,7 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
+  base: '/',
   plugins: [tanstackRouter({
     target: 'react',
     autoCodeSplitting: true,
@@ -24,10 +25,10 @@ export default defineConfig({
     }
   },
   server: {
-    port: 3000,
+    port: 3001,
     proxy: {
       '/api': {
-        target: 'http://127.0.0.1:4096',
+        target: 'http://127.0.0.1:3000',
         changeOrigin: true,
         rewrite: path => path.replace(/^\/api/, '')
       }
