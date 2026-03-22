@@ -8,8 +8,8 @@
   "private": true,
   "scripts": {
     "dev": "NODE_ENV=development bun run --title='Bun Monorepo' --filter '*' dev",
-    "dev:api": "NODE_ENV=development bun run --filter @cloudy/api dev",
-    "dev:ui": "NODE_ENV=development bun run --filter @cloudy/ui dev",
+    "dev:server": "NODE_ENV=development bun run --filter @cloudy/server dev",
+    "dev:web-app": "NODE_ENV=development bun run --filter @cloudy/web-app dev",
     "----LINT----": "",
     "lint": "biome check",
     "lint:write": "biome check --write",

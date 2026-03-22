@@ -1,21 +1,21 @@
 /**
- * @bun-monorepo-railway/contracts
+ * @cloudy/contracts
  *
  * Public interface for frontend applications to consume types from the Bun Monorepo.
  * This package aggregates and re-exports types from multiple internal packages.
  *
  * @exports
- * - From `@bun-monorepo-railway/api`: `App`, `Auth` (Elysia app type for Eden, Better Auth type)
+ * - App: Elysia app type for Eden
+ * - IdeaModel, MemoryModel, ServeModel: TypeBox models for type-safe API
  *
  * @security
- * - Only TYPE exports from @bun-monorepo-railway/api (no runtime code)
+ * - Only TYPE exports (no runtime code)
  *
- * @usage Frontend apps (ui) should import from this package:
+ * @usage Frontend apps should import from this package:
  * ```ts
- * import type { App } from "@bun-monorepo-railway/contracts";
+ * import type { App, IdeaModel } from "@cloudy/contracts";
  * ```
  */
 
-// Re-export API types (type-only - App for Elysia app type for Eden)
 export type { App } from "@cloudy/server";
-
+export type { IdeaModel, MemoryModel, ServeModel } from "@cloudy/server";

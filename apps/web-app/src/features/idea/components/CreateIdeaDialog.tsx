@@ -1,42 +1,47 @@
-import { useState } from 'react';
-import { Plus } from 'lucide-react';
+import { useState } from "react";
+import { Plus } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { Idea } from '@/types/memory';
+} from "@/components/ui/dropdown-menu";
+import type { Idea, IdeaStatus, IdeaPriority } from "@/features/idea/types";
 
 interface CreateIdeaDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreate: (idea: Omit<Idea, 'id' | 'meta'>) => void;
+  onCreate: (idea: Omit<Idea, "id" | "meta">) => void;
 }
 
-const statuses: IdeaStatus[] = ['draft', 'in-progress', 'completed', 'archived'];
-const priorities: IdeaPriority[] = ['low', 'medium', 'high'];
+const statuses: IdeaStatus[] = [
+  "draft",
+  "in-progress",
+  "completed",
+  "archived",
+];
+const priorities: IdeaPriority[] = ["low", "medium", "high"];
 
 const statusLabels: Record<IdeaStatus, string> = {
-  draft: 'Draft',
-  'in-progress': 'In Progress',
-  completed: 'Completed',
-  archived: 'Archived',
+  draft: "Draft",
+  "in-progress": "In Progress",
+  completed: "Completed",
+  archived: "Archived",
 };
 
 const priorityLabels: Record<IdeaPriority, string> = {
-  low: 'Low',
-  medium: 'Medium',
-  high: 'High',
+  low: "Low",
+  medium: "Medium",
+  high: "High",
 };
 
 export function CreateIdeaDialog({
@@ -44,34 +49,28 @@ export function CreateIdeaDialog({
   onOpenChange,
   onCreate,
 }: CreateIdeaDialogProps) {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [markdown, setMarkdown] = useState('');
-  const [tagsInput, setTagsInput] = useState('');
-  const [status, setStatus] = useState<IdeaStatus>('draft');
-  const [priority, setPriority] = useState<IdeaPriority>('medium');
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [markdown, setMarkdown] = useState("");
+  const [tagsInput, setTagsInput] = useState("");
+  const [status, setStatus] = useState<IdeaStatus>("draft");
+  const [priority, setPriority] = useState<IdeaPriority>("medium");
 
   const handleSubmit = () => {
     if (!name.trim()) return;
-
-    const tags = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
 
     onCreate({
       name: name.trim(),
       description: description.trim() || name.trim(),
       markdown: markdown.trim() || `# ${name.trim()}\n\n${description.trim()}`,
-      meta: { tags, status, priority, createdAt: '', updatedAt: '' },
     });
 
-    setName('');
-    setDescription('');
-    setMarkdown('');
-    setTagsInput('');
-    setStatus('draft');
-    setPriority('medium');
+    setName("");
+    setDescription("");
+    setMarkdown("");
+    setTagsInput("");
+    setStatus("draft");
+    setPriority("medium");
     onOpenChange(false);
   };
 

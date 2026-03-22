@@ -17,6 +17,8 @@ function InlineCode({ children }: { children: React.ReactNode }) {
 }
 
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
+  const cleanedContent = content.replace(/^---[\s\S]*?---\s*/, "");
+
   return (
     <div className="prose dark:prose-invert text-base max-w-none">
       <ReactMarkdown
@@ -115,7 +117,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           },
         }}
       >
-        {content}
+        {cleanedContent}
       </ReactMarkdown>
     </div>
   );

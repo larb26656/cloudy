@@ -9,4 +9,3 @@ export { useQuestionStore } from './questionStore';
 export { usePermissionStore } from './permissionStore';
 export { useFindFileStore } from './findFileStore';
 export { useMemoryStore } from './memoryStore';
-export { useIdeaStore } from './ideaStore';
