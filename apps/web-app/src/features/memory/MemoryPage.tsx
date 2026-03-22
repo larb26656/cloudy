@@ -1,19 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Plus, Search, FileText, X } from 'lucide-react';
-import { useMemoryStore } from '@/stores/memoryStore';
-import { MemoryCard, CreateMemoryDialog } from '@/components/memory';
-import { MarkdownRenderer } from '@/components/markdown/MarkdownRenderer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useState } from "react";
+import { Plus, Search, FileText, X } from "lucide-react";
+import { useMemoryStore } from "@/stores/memoryStore";
+import { MemoryCard, CreateMemoryDialog } from "@/components/memory";
+import { Header } from "@/components/layout";
+import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from '@/components/ui/sheet';
+} from "@/components/ui/sheet";
 
 export default function MemoryPage() {
   const {
@@ -42,8 +43,18 @@ export default function MemoryPage() {
   };
 
   return (
-    <div className="flex h-full">
-      <div className="flex flex-col flex-1 border-r">
+    <div className="flex h-full flex-col">
+      <Header
+        title="Memories"
+        rightSlot={
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="mr-2 size-4" />
+            New
+          </Button>
+        }
+        showRefresh={false}
+      />
+      <div className="flex flex-col flex-1 border-t">
         <div className="flex items-center gap-2 border-b p-4">
           <div className="relative flex-1">
             <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -58,16 +69,12 @@ export default function MemoryPage() {
                 variant="ghost"
                 size="icon-sm"
                 className="absolute right-1 top-1/2 -translate-y-1/2"
-                onClick={() => setSearchQuery('')}
+                onClick={() => setSearchQuery("")}
               >
                 <X className="size-3" />
               </Button>
             )}
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="mr-2 size-4" />
-            New
-          </Button>
         </div>
 
         <ScrollArea className="flex-1">
@@ -86,8 +93,8 @@ export default function MemoryPage() {
                 <h3 className="mt-4 text-lg font-medium">No memories found</h3>
                 <p className="mt-2 text-sm text-muted-foreground">
                   {searchQuery
-                    ? 'Try adjusting your search terms'
-                    : 'Create your first memory to get started'}
+                    ? "Try adjusting your search terms"
+                    : "Create your first memory to get started"}
                 </p>
                 {!searchQuery && (
                   <Button
@@ -114,7 +121,10 @@ export default function MemoryPage() {
         </ScrollArea>
       </div>
 
-      <Sheet open={!!selectedMemory} onOpenChange={(open) => !open && selectMemory(null)}>
+      <Sheet
+        open={!!selectedMemory}
+        onOpenChange={(open) => !open && selectMemory(null)}
+      >
         <SheetContent className="w-full sm:max-w-2xl">
           {selectedMemory && (
             <>
@@ -124,10 +134,11 @@ export default function MemoryPage() {
                   {selectedMemory.name}
                 </SheetTitle>
                 <SheetDescription>
-                  Created {new Intl.DateTimeFormat('en-US', {
-                    month: 'long',
-                    day: 'numeric',
-                    year: 'numeric',
+                  Created{" "}
+                  {new Intl.DateTimeFormat("en-US", {
+                    month: "long",
+                    day: "numeric",
+                    year: "numeric",
                   }).format(new Date(selectedMemory.meta.createdAt))}
                 </SheetDescription>
               </SheetHeader>

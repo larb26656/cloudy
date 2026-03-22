@@ -2,7 +2,12 @@ import { useEffect, useState, useMemo, useCallback } from "react";
 import { Plus, Search, Lightbulb, X } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
 import { useIdeaUIStore, filterIdeas } from "@/features/idea/store/ideaStore";
-import { IdeaCard, CreateIdeaDialog, IdeaDetailSheet } from "@/features/idea/components";
+import {
+  IdeaCard,
+  CreateIdeaDialog,
+  IdeaDetailSheet,
+} from "@/features/idea/components";
+import { Header } from "@/components/layout";
 import { apiResponseToIdea } from "@/features/idea/api";
 import { stringifyIdeaFrontMatter } from "@/lib/front-matter";
 import { api } from "@/lib/api";
@@ -13,7 +18,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { IdeaModel } from "@cloudy/contracts";
 import type { Idea } from "@/features/idea/types";
 
-const filterOptions: Array<{ value: IdeaModel['ideaStatus'] | "all"; label: string }> = [
+const filterOptions: Array<{
+  value: IdeaModel["ideaStatus"] | "all";
+  label: string;
+}> = [
   { value: "all", label: "All" },
   { value: "draft", label: "Draft" },
   { value: "in-progress", label: "In Progress" },
@@ -40,16 +48,18 @@ export default function IdeaPage() {
     try {
       const { data, error: apiError } = await api.idea.get();
       if (apiError) {
-        const message = typeof apiError.value === 'string' 
-          ? apiError.value 
-          : apiError.value?.message || "Failed to load ideas";
+        const message =
+          typeof apiError.value === "string"
+            ? apiError.value
+            : apiError.value?.message || "Failed to load ideas";
         setError(message);
         setIdeas([]);
         return;
       }
       setIdeas((data || []).map(apiResponseToIdea));
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to load ideas";
+      const message =
+        err instanceof Error ? err.message : "Failed to load ideas";
       setError(message);
       setIdeas([]);
     } finally {
@@ -109,8 +119,18 @@ export default function IdeaPage() {
   };
 
   return (
-    <div className="flex h-full">
-      <div className="flex flex-col flex-1 border-r">
+    <div className="flex h-full flex-col">
+      <Header
+        title="Ideas"
+        rightSlot={
+          <Button onClick={() => {}}>
+            <Plus className="mr-2 size-4" />
+            New
+          </Button>
+        }
+        showRefresh={false}
+      />
+      <div className="flex flex-col flex-1 border-t">
         <div className="flex flex-col gap-2 border-b p-4">
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
@@ -132,10 +152,6 @@ export default function IdeaPage() {
                 </Button>
               )}
             </div>
-            <Button onClick={() => {}}>
-              <Plus className="mr-2 size-4" />
-              New
-            </Button>
           </div>
           <div className="flex gap-1 overflow-x-auto">
             {filterOptions.map((option) => (
@@ -196,7 +212,10 @@ export default function IdeaPage() {
         </ScrollArea>
       </div>
 
-      <IdeaDetailSheet idea={selectedIdea || null} onClose={() => selectIdea(null)} />
+      <IdeaDetailSheet
+        idea={selectedIdea || null}
+        onClose={() => selectIdea(null)}
+      />
 
       <CreateIdeaDialog
         open={false}

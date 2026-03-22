@@ -1,4 +1,4 @@
-// components/layout/Header.tsx
+import type { ReactNode } from "react";
 import { PanelLeftClose, PanelLeft, Sun, Moon, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -6,18 +6,25 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { SessionStatus } from "@opencode-ai/sdk";
-import { useChatUIStore, useMessageStore, useSessionStore } from "@/stores";
+import { useChatUIStore } from "@/stores";
 
 interface HeaderProps {
-  sessionTitle?: string | null;
-  sessionDirectory?: string | null;
-  sessionStatus?: SessionStatus | null;
-  onOpenSidebar?: () => void;
-  onCloseSidebar?: () => void;
+  title?: string;
+  subtitle?: string;
+  centerSlot?: ReactNode;
+  rightSlot?: ReactNode;
+  showRefresh?: boolean;
+  showThemeToggle?: boolean;
 }
 
-export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
+export function Header({
+  title,
+  subtitle,
+  centerSlot,
+  rightSlot,
+  showRefresh = true,
+  showThemeToggle = true,
+}: HeaderProps) {
   const { sidebarOpen, toggleSidebar, isDarkMode, toggleTheme } =
     useChatUIStore();
 
@@ -26,15 +33,15 @@ export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
   };
 
   return (
-    <header className="p-2 bg-white dark:bg-gray-900 flex items-center justify-between">
-      <div className="flex items-center gap-3 w-full">
+    <header className="p-2 bg-white dark:bg-gray-900 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               onClick={toggleSidebar}
-              className="h-9 w-9"
+              className="h-9 w-9 shrink-0"
             >
               {sidebarOpen ? (
                 <PanelLeftClose className="size-5" />
@@ -48,40 +55,28 @@ export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
           </TooltipContent>
         </Tooltip>
 
-        <h1 className="flex-1 font-semibold text-gray-800 dark:text-white truncate">
-          {sessionTitle || "OpenCode Chat"}
-        </h1>
+        <div className="flex flex-col min-w-0">
+          <h1 className="font-semibold text-gray-800 dark:text-white truncate">
+            {title || "OpenCode Chat"}
+          </h1>
+          {subtitle && (
+            <span className="text-xs text-gray-500 dark:text-gray-400 truncate hidden sm:block">
+              {subtitle}
+            </span>
+          )}
+        </div>
+      </div>
 
-        {sessionDirectory && (
-          <span className="text-sm text-gray-500 dark:text-gray-400 truncate hidden sm:inline-block">
-            {sessionDirectory}
-          </span>
-        )}
+      {centerSlot && (
+        <div className="flex-1 flex items-center justify-center min-w-0 max-w-xl">
+          {centerSlot}
+        </div>
+      )}
 
-        <div className="flex items-center gap-1">
-          {/* {sessionStatus && (
-          <div className="flex items-center gap-2">
-            {sessionStatus === "busy" && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 rounded-full text-sm">
-                <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse" />
-                Processing...
-              </div>
-            )}
-            {sessionStatus === "retry" && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-full text-sm">
-                <div className="w-2 h-2 bg-red-500 rounded-full" />
-                Error - Retrying
-              </div>
-            )}
-            {(sessionStatus === "idle" || !sessionStatus) && (
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 rounded-full text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full" />
-                Ready
-              </div>
-            )}
-          </div>
-        )} */}
+      <div className="flex items-center gap-1 shrink-0">
+        {rightSlot}
 
+        {showRefresh && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -95,7 +90,9 @@ export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
             </TooltipTrigger>
             <TooltipContent>Refresh</TooltipContent>
           </Tooltip>
+        )}
 
+        {showThemeToggle && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -115,7 +112,7 @@ export function Header({ sessionTitle, sessionDirectory }: HeaderProps) {
               {isDarkMode ? "Light mode" : "Dark mode"}
             </TooltipContent>
           </Tooltip>
-        </div>
+        )}
       </div>
     </header>
   );

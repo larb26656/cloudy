@@ -18,6 +18,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { StatusBadge, PriorityBadge } from "@/features/idea/components";
 import type { Idea } from "@/features/idea/types";
+import DialogScrollArea from "@/components/layout/DialogScrollArea";
+import SheetScrollArea from "@/components/layout/SheetScrollArea";
 
 function useIsSmallScreen(breakpoint = 1024) {
   const [isSmall, setIsSmall] = useState(false);
@@ -72,9 +74,9 @@ function Description({ idea }: { idea: Idea }) {
 
 function Content({ idea }: { idea: Idea }) {
   return (
-    <>
+    <div className="font-content">
       <MarkdownRenderer content={idea.markdown} />
-    </>
+    </div>
   );
 }
 
@@ -84,16 +86,14 @@ export function IdeaDetailSheet({ idea, onClose }: IdeaDetailSheetProps) {
   if (isSmallScreen) {
     return (
       <Dialog open={!!idea} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent>
+        <DialogContent className="max-w-full md:max-w-2xl ">
           <DialogHeader className="pb-3 border-b">
             <DialogTitle> {idea && <Header idea={idea} />}</DialogTitle>
             <DialogDescription>
               {idea && <Description idea={idea} />}
             </DialogDescription>
           </DialogHeader>
-          <ScrollArea className="h-[calc(100vh-12rem)]">
-            {idea && <Content idea={idea} />}
-          </ScrollArea>
+          <DialogScrollArea>{idea && <Content idea={idea} />}</DialogScrollArea>
         </DialogContent>
       </Dialog>
     );
@@ -110,9 +110,7 @@ export function IdeaDetailSheet({ idea, onClose }: IdeaDetailSheetProps) {
             {idea && <Description idea={idea} />}
           </SheetDescription>
         </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-12rem)] p-4">
-          {idea && <Content idea={idea} />}
-        </ScrollArea>
+        <SheetScrollArea>{idea && <Content idea={idea} />}</SheetScrollArea>
       </SheetContent>
     </Sheet>
   );

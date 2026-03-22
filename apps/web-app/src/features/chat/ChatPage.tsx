@@ -5,15 +5,12 @@ import { useMessageStore, useSessionStore } from "@/stores";
 import { useEffect } from "react";
 
 export default function ChatPage() {
-  const { sessions, sessionStatuses, selectedSessionId } = useSessionStore();
+  const { sessions, selectedSessionId } = useSessionStore();
   const { loadMessages } = useMessageStore();
 
   const currentSession = sessions.find((s) => s.id === selectedSessionId);
   const sessionDir = currentSession?.directory ?? undefined;
   const sessionTitle = currentSession?.title;
-  const sessionStatus = selectedSessionId
-    ? (sessionStatuses[selectedSessionId] ?? null)
-    : null;
 
   useEventStream();
 
@@ -26,9 +23,10 @@ export default function ChatPage() {
   return (
     <>
       <Header
-        sessionTitle={sessionTitle}
-        sessionDirectory={sessionDir}
-        sessionStatus={sessionStatus}
+        title={sessionTitle || undefined}
+        subtitle={sessionDir || undefined}
+        showRefresh
+        showThemeToggle
       />
       <ChatContainer sessionId={selectedSessionId} />
     </>
