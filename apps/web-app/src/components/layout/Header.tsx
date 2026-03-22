@@ -57,7 +57,7 @@ export function Header({
 
         <div className="flex flex-col min-w-0">
           <h1 className="font-semibold text-gray-800 dark:text-white truncate">
-            {title || "OpenCode Chat"}
+            {title || "Cloudy"}
           </h1>
           {subtitle && (
             <span className="text-xs text-gray-500 dark:text-gray-400 truncate hidden sm:block">

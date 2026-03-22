@@ -4,4 +4,6 @@ services:
     ports:
       - "3007:3000"
     environment:
-      - OC_API_BASE_PATH=${OC_API_BASE_PATH}
+      - OC_API_BASE_PATH=http://host.docker.internal:4096
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
