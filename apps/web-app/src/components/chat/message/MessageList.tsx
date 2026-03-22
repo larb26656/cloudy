@@ -6,6 +6,7 @@ import { useMessageStore, useSessionStore } from "@/stores";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
+import ThinkingSpinner from "./ThinkingAnimation";
 
 interface MessageListProps {}
 
@@ -103,7 +104,7 @@ export function MessageList({}: MessageListProps) {
             })}
             {isBusy && (
               <div className="mt-2">
-                <ThinkingAnimation />{" "}
+                <ThinkingSpinner />{" "}
               </div>
             )}
           </div>
@@ -126,12 +127,12 @@ export function MessageList({}: MessageListProps) {
   );
 }
 
-function ThinkingAnimation() {
-  return (
-    <div className="flex items-center gap-1 h-6">
-      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-    </div>
-  );
-}
+// function ThinkingAnimation() {
+//   return (
+//     <div className="flex items-center gap-1 h-6">
+//       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
+//       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
+//       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
+//     </div>
+//   );
+// }
