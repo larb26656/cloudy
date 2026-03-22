@@ -1,4 +1,4 @@
-import { FileText, Clock, Tag, Trash2, MoreVertical } from 'lucide-react';
+import { FileText, Clock, Tag, Trash2, MoreVertical } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -7,33 +7,22 @@ import {
   CardContent,
   CardFooter,
   CardAction,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { Memory } from '@/types/memory';
+} from "@/components/ui/dropdown-menu";
+import { formatDate } from "@/lib/date";
+import type { Memory } from "@/features/memory/types";
 
 interface MemoryCardProps {
   memory: Memory;
   isSelected?: boolean;
   onSelect: () => void;
   onDelete: () => void;
-}
-
-function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  }).format(date);
-}
-
-function parseDate(dateStr: string): Date {
-  return new Date(dateStr);
 }
 
 export function MemoryCard({
@@ -45,7 +34,7 @@ export function MemoryCard({
   return (
     <Card
       className={`cursor-pointer transition-all hover:ring-2 hover:ring-primary/50 ${
-        isSelected ? 'ring-2 ring-primary' : ''
+        isSelected ? "ring-2 ring-primary" : ""
       }`}
       onClick={onSelect}
     >
@@ -77,27 +66,28 @@ export function MemoryCard({
             </DropdownMenu>
           </CardAction>
         </div>
-        <CardDescription className="line-clamp-2">
-          {memory.content}
-        </CardDescription>
+        <CardDescription className="line-clamp-2"></CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-wrap gap-1.5">
-        {memory.meta.tags.map((tag) => (
-          <span
-            key={tag}
-            className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
-          >
-            <Tag className="size-3" />
-            {tag}
-          </span>
-        ))}
+      <CardContent className="flex flex-1 flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          {memory.meta.tags.map((tag) => (
+            <span
+              key={tag}
+              className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
+            >
+              <Tag className="size-3" />
+              {tag}
+            </span>
+          ))}
+        </div>
+        <span className="text-muted-foreground"> {memory.description}</span>
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">
         <Clock className="mr-1 size-3" />
-        Created {formatDate(parseDate(memory.meta.createdAt))}
+        Created {formatDate(memory.meta.createdAt)}
         {memory.meta.updatedAt !== memory.meta.createdAt && (
           <span className="ml-2">
-            · Updated {formatDate(parseDate(memory.meta.updatedAt))}
+            - Updated {formatDate(memory.meta.updatedAt)}
           </span>
         )}
       </CardFooter>

@@ -3,7 +3,6 @@ import {
   Card,
   CardHeader,
   CardTitle,
-  CardDescription,
   CardContent,
   CardFooter,
   CardAction,
@@ -16,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StatusBadge, PriorityBadge } from "@/features/idea/components";
+import { formatDate } from "@/lib/date";
 import type { Idea } from "@/features/idea/types";
 
 interface IdeaCardProps {
@@ -23,14 +23,6 @@ interface IdeaCardProps {
   isSelected?: boolean;
   onSelect: () => void;
   onDelete: () => void;
-}
-
-function formatDate(dateStr: string): string {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(dateStr));
 }
 
 export function IdeaCard({

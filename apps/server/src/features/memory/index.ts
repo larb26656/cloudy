@@ -4,18 +4,19 @@ import { Memory } from './service'
 import { MemoryModel } from './model'
 
 export const memory = new Elysia({ prefix: '/memory' })
-    .get('/', async () => {
-        return await Memory.getFiles();
+    .get('/', async ({ query }) => {
+        return await Memory.listMemories(query);
     }, {
+        query: MemoryModel.querySchema,
         response: {
-            200: MemoryModel.fileListDto,
+            200: t.Array(MemoryModel.memoryDto),
         }
     })
-    .get('/*', async ({ params: { '*': filePath } }) => {
-        return await Memory.getFile(filePath);
+    .get('/:path', async ({ params: { path } }) => {
+        return await Memory.getMemory(path);
     }, {
         response: {
-            200: MemoryModel.fileDto,
+            200: MemoryModel.memoryDto,
             404: MemoryModel.fileNotFound,
         }
     })

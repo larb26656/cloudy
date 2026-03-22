@@ -8,6 +8,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { formatTime, formatNumber } from "@/lib/date";
 
 interface StepFinishPartProps {
   part: StepFinishPartType;
@@ -15,13 +16,6 @@ interface StepFinishPartProps {
 }
 
 export function StepFinishPart({ part, info }: StepFinishPartProps) {
-  const formatNumber = (num: number) => num.toLocaleString();
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
 
   const totalTokens =
     part.tokens.input + part.tokens.output + part.tokens.reasoning;

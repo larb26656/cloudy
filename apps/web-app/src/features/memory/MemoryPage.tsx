@@ -1,41 +1,108 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { Plus, Search, FileText, X } from "lucide-react";
-import { useMemoryStore } from "@/stores/memoryStore";
-import { MemoryCard, CreateMemoryDialog } from "@/components/memory";
+import { ErrorState } from "@/components/ui/error-state";
+import { useMemoryUIStore } from "@/features/memory/store/memoryStore";
 import { Header } from "@/components/layout";
-import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
+import { apiResponseToMemory } from "@/features/memory/api";
+import { stringifyFrontMatter } from "@/lib/front-matter";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
+import type { Memory } from "@/features/memory/types";
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription,
-} from "@/components/ui/sheet";
+  CreateMemoryDialog,
+  MemoryCard,
+  MemoryDetailSheet,
+} from "./components";
 
 export default function MemoryPage() {
-  const {
-    loadMemories,
-    getFilteredMemories,
-    selectedMemoryId,
-    selectMemory,
-    deleteMemory,
-    createMemory,
-    isLoading,
-    searchQuery,
-    setSearchQuery,
-  } = useMemoryStore();
+  const { searchQuery, setSearchQuery, selectedMemoryId, selectMemory } =
+    useMemoryUIStore();
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const memories = getFilteredMemories();
-  const selectedMemory = memories.find((m) => m.id === selectedMemoryId);
+  const loadMemories = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { data, error: apiError } = await api.memory.get();
+      if (apiError) {
+        const message =
+          typeof apiError.value === "string"
+            ? apiError.value
+            : apiError.value?.message || "Failed to load memories";
+        setError(message);
+        setMemories([]);
+        return;
+      }
+      setMemories((data || []).map(apiResponseToMemory));
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to load memories";
+      setError(message);
+      setMemories([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadMemories();
   }, [loadMemories]);
+
+  const createMemory = useCallback(
+    (memoryData: Omit<Memory, "id" | "meta">) => {
+      const now = new Date().toISOString();
+      const meta: Memory["meta"] = {
+        title: memoryData.name,
+        tags: [],
+        createdAt: now,
+        updatedAt: now,
+      };
+
+      const markdown = stringifyFrontMatter(
+        meta,
+        memoryData.description || memoryData.name,
+      );
+
+      const newMemory: Memory = {
+        id: crypto.randomUUID(),
+        name: memoryData.name,
+        description: memoryData.description || "",
+        markdown,
+        meta,
+      };
+
+      setMemories((prev) => [newMemory, ...prev]);
+      return newMemory;
+    },
+    [],
+  );
+
+  const deleteMemory = useCallback(
+    (id: string) => {
+      setMemories((prev) => prev.filter((m) => m.id !== id));
+      if (selectedMemoryId === id) selectMemory(null);
+    },
+    [selectedMemoryId, selectMemory],
+  );
+
+  const filteredMemories = useMemo(() => {
+    if (!searchQuery.trim()) return memories;
+    const query = searchQuery.toLowerCase();
+    return memories.filter(
+      (m) =>
+        m.name.toLowerCase().includes(query) ||
+        m.description.toLowerCase().includes(query) ||
+        m.meta.title?.toLowerCase().includes(query) ||
+        m.meta.tags.some((t) => t.toLowerCase().includes(query)),
+    );
+  }, [memories, searchQuery]);
+
+  const selectedMemory = memories.find((m) => m.id === selectedMemoryId);
 
   const handleCreate = (memoryData: Parameters<typeof createMemory>[0]) => {
     const newMemory = createMemory(memoryData);
@@ -47,7 +114,7 @@ export default function MemoryPage() {
       <Header
         title="Memories"
         rightSlot={
-          <Button onClick={() => setCreateDialogOpen(true)}>
+          <Button onClick={() => {}}>
             <Plus className="mr-2 size-4" />
             New
           </Button>
@@ -87,7 +154,11 @@ export default function MemoryPage() {
                   </div>
                 ))}
               </>
-            ) : memories.length === 0 ? (
+            ) : error ? (
+              <div className="col-span-full">
+                <ErrorState message={error} onRetry={loadMemories} />
+              </div>
+            ) : filteredMemories.length === 0 ? (
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
                 <FileText className="size-12 text-muted-foreground" />
                 <h3 className="mt-4 text-lg font-medium">No memories found</h3>
@@ -97,17 +168,14 @@ export default function MemoryPage() {
                     : "Create your first memory to get started"}
                 </p>
                 {!searchQuery && (
-                  <Button
-                    className="mt-4"
-                    onClick={() => setCreateDialogOpen(true)}
-                  >
+                  <Button className="mt-4" onClick={() => {}}>
                     <Plus className="mr-2 size-4" />
                     Create Memory
                   </Button>
                 )}
               </div>
             ) : (
-              memories.map((memory) => (
+              filteredMemories.map((memory) => (
                 <MemoryCard
                   key={memory.id}
                   memory={memory}
@@ -121,38 +189,14 @@ export default function MemoryPage() {
         </ScrollArea>
       </div>
 
-      <Sheet
-        open={!!selectedMemory}
-        onOpenChange={(open) => !open && selectMemory(null)}
-      >
-        <SheetContent className="w-full sm:max-w-2xl">
-          {selectedMemory && (
-            <>
-              <SheetHeader>
-                <SheetTitle className="flex items-center gap-2">
-                  <FileText className="size-5" />
-                  {selectedMemory.name}
-                </SheetTitle>
-                <SheetDescription>
-                  Created{" "}
-                  {new Intl.DateTimeFormat("en-US", {
-                    month: "long",
-                    day: "numeric",
-                    year: "numeric",
-                  }).format(new Date(selectedMemory.meta.createdAt))}
-                </SheetDescription>
-              </SheetHeader>
-              <ScrollArea className="mt-6 h-[calc(100vh-12rem)]">
-                <MarkdownRenderer content={selectedMemory.markdown} />
-              </ScrollArea>
-            </>
-          )}
-        </SheetContent>
-      </Sheet>
+      <MemoryDetailSheet
+        memory={selectedMemory || null}
+        onClose={() => selectMemory(null)}
+      />
 
       <CreateMemoryDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        open={false}
+        onOpenChange={() => {}}
         onCreate={handleCreate}
       />
     </div>

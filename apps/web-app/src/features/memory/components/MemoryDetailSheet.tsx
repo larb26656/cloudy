@@ -1,4 +1,4 @@
-import { Lightbulb, Tag } from "lucide-react";
+import { FileText, Tag } from "lucide-react";
 import { useState, useEffect } from "react";
 import {
   Sheet,
@@ -15,8 +15,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
-import { StatusBadge, PriorityBadge } from "@/features/idea/components";
-import type { Idea } from "@/features/idea/types";
+import type { Memory } from "@/features/memory/types";
 import DialogScrollArea from "@/components/layout/DialogScrollArea";
 import SheetScrollArea from "@/components/layout/SheetScrollArea";
 
@@ -35,29 +34,25 @@ function useIsSmallScreen(breakpoint = 1024) {
   return isSmall;
 }
 
-interface IdeaDetailSheetProps {
-  idea: Idea | null;
+interface MemoryDetailSheetProps {
+  memory: Memory | null;
   onClose: () => void;
 }
 
-function Header({ idea }: { idea: Idea }) {
+function Header({ memory }: { memory: Memory }) {
   return (
     <div className="flex gap-2">
-      <Lightbulb className="size-5" />
-      {idea.name}
+      <FileText className="size-5" />
+      {memory.name}
     </div>
   );
 }
 
-function Description({ idea }: { idea: Idea }) {
+function Description({ memory }: { memory: Memory }) {
   return (
     <div className="flex flex-1 flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
-        <StatusBadge status={idea.meta.status} />
-        <PriorityBadge priority={idea.meta.priority} />
-      </div>
-      <div className="flex flex-wrap items-center gap-2">
-        {idea.meta.tags.map((tag) => (
+        {memory.meta.tags.map((tag) => (
           <span
             key={tag}
             className="inline-flex items-center gap-1 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground"
@@ -71,45 +66,49 @@ function Description({ idea }: { idea: Idea }) {
   );
 }
 
-function Content({ idea }: { idea: Idea }) {
+function Content({ memory }: { memory: Memory }) {
   return (
     <div className="font-content">
-      <MarkdownRenderer content={idea.markdown} />
+      <MarkdownRenderer content={memory.markdown} />
     </div>
   );
 }
 
-export function IdeaDetailSheet({ idea, onClose }: IdeaDetailSheetProps) {
+export function MemoryDetailSheet({ memory, onClose }: MemoryDetailSheetProps) {
   const isSmallScreen = useIsSmallScreen(1024);
 
   if (isSmallScreen) {
     return (
-      <Dialog open={!!idea} onOpenChange={(open) => !open && onClose()}>
+      <Dialog open={!!memory} onOpenChange={(open) => !open && onClose()}>
         <DialogContent className="max-w-full md:max-w-2xl ">
           <DialogHeader className="pb-3 border-b">
-            <DialogTitle> {idea && <Header idea={idea} />}</DialogTitle>
+            <DialogTitle>{memory && <Header memory={memory} />}</DialogTitle>
             <DialogDescription asChild>
-              {idea && <Description idea={idea} />}
+              {memory && <Description memory={memory} />}
             </DialogDescription>
           </DialogHeader>
-          <DialogScrollArea>{idea && <Content idea={idea} />}</DialogScrollArea>
+          <DialogScrollArea>
+            {memory && <Content memory={memory} />}
+          </DialogScrollArea>
         </DialogContent>
       </Dialog>
     );
   }
 
   return (
-    <Sheet open={!!idea} onOpenChange={(open) => !open && onClose()}>
+    <Sheet open={!!memory} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl">
         <SheetHeader className="pb-3 border-b">
           <SheetTitle className="flex items-center gap-2">
-            {idea && <Header idea={idea} />}
+            {memory && <Header memory={memory} />}
           </SheetTitle>
           <SheetDescription className="flex items-center gap-2" asChild>
-            {idea && <Description idea={idea} />}
+            {memory && <Description memory={memory} />}
           </SheetDescription>
         </SheetHeader>
-        <SheetScrollArea>{idea && <Content idea={idea} />}</SheetScrollArea>
+        <SheetScrollArea>
+          {memory && <Content memory={memory} />}
+        </SheetScrollArea>
       </SheetContent>
     </Sheet>
   );

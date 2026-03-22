@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { formatRelativeFromTimestamp } from "@/lib/date";
 import type { Session, SessionStatus } from "@opencode-ai/sdk/v2";
 
 interface SessionItemProps {
@@ -56,16 +57,7 @@ export function SessionItem({
     }
   };
 
-  const formatTime = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
 
-    if (diff < 60000) return "Just now";
-    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
-    return date.toLocaleDateString();
-  };
 
   return (
     <div
@@ -102,7 +94,7 @@ export function SessionItem({
               {session.title || "New Chat"}
             </p>
             <p className="text-xs text-muted-foreground truncate">
-              {formatTime(session.time.updated)}
+              {formatRelativeFromTimestamp(session.time.updated)}
             </p>
           </>
         )}

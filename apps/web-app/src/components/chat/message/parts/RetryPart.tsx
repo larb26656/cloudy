@@ -2,13 +2,14 @@ import type { RetryPart as RetryPartType } from "@opencode-ai/sdk/v2";
 import { RotateCcw, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import CollapsiblePart from "./CollapsiblePart";
+import { formatTime } from "@/lib/date";
 
 interface RetryPartProps {
   part: RetryPartType;
 }
 
 export function RetryPart({ part }: RetryPartProps) {
-  const time = new Date(part.time.created).toLocaleTimeString();
+  const time = formatTime(part.time.created);
 
   return (
     <CollapsiblePart

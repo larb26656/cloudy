@@ -1,31 +1,43 @@
 import { status } from 'elysia'
 import { MemoryModel } from './model'
 import { resourceConfig } from '../../config'
-import { parseFrontMatter } from '../../lib/front-matter'
+import { readdir } from "node:fs/promises";
+import path from "node:path";
+import { parseFrontMatter } from '../../lib/front-matter';
 
 export abstract class Memory {
 
-    static async getFiles(): Promise<MemoryModel["fileListDto"]> {
-        const dir = Bun.file(resourceConfig.memory);
+    private static async getIndexFiles(): Promise<string[]> {
+        const indexFiles: string[] = [];
+        const allPaths = await readdir(resourceConfig.memory, { recursive: true });
 
-        if (!await dir.exists()) {
-            throw status(404, 'Memory directory not found');
+        for (const filePath of allPaths) {
+            if (typeof filePath !== 'string') continue;
+            if (filePath.endsWith('/')) continue;
+            if (!filePath.endsWith('.md')) continue;
+            indexFiles.push(filePath);
         }
 
-        const files: { name: string; path: string }[] = [];
-        const directory = Bun.spawn(['find', resourceConfig.memory, '-type', 'f']);
-        const output = await new Response(directory.stdout).text();
-        const filePaths = output.trim().split('\n').filter(Boolean);
+        return indexFiles;
+    }
 
-        for (const filePath of filePaths) {
-            const relativePath = filePath.replace(resourceConfig.memory + '/', '');
-            const name = relativePath.split('/').pop() || '';
-            files.push({ name, path: relativePath });
+    static async getFiles(): Promise<MemoryModel["fileListDto"]> {
+        const files: { name: string; path: string }[] = [];
+
+        try {
+            const indexFiles = await this.getIndexFiles();
+
+            for (const filePath of indexFiles) {
+                const name = filePath.split('/').pop()?.replace(/\.md$/, '') || '';
+                files.push({ name, path: filePath });
+            }
+
+        } catch (e) {
+            throw status(404, 'Memory directory not found');
         }
 
         return { source: 'memory', files };
     }
-
     static async getFile(filePath: string): Promise<MemoryModel["fileDto"]> {
         const fullPath = `${resourceConfig.memory}/${filePath}`;
         const file = Bun.file(fullPath);
@@ -65,26 +77,42 @@ export abstract class Memory {
         };
     }
 
-    static async listMemories(): Promise<MemoryModel["memoryDto"][]> {
-        const dir = Bun.file(resourceConfig.memory);
+    private static matchesFilter(memory: MemoryModel["memoryDto"], filters?: MemoryModel["querySchema"]): boolean {
+        if (!filters) return true;
 
-        if (!await dir.exists()) {
-            return [];
+        if (filters.q) {
+            const query = filters.q.toLowerCase();
+            const matchTitle = memory.meta.title?.toLowerCase().includes(query);
+            const matchContent = memory.content.toLowerCase().includes(query);
+            const matchTags = memory.meta.tags.some(t => t.toLowerCase().includes(query));
+            if (!matchTitle && !matchContent && !matchTags) return false;
         }
 
-        const memories: MemoryModel["memoryDto"][] = [];
-        const directory = Bun.spawn(['find', resourceConfig.memory, '-type', 'f', '-name', '*.md']);
-        const output = await new Response(directory.stdout).text();
-        const filePaths = output.trim().split('\n').filter(Boolean);
+        if (filters.tags?.length) {
+            if (!filters.tags.some(t => memory.meta.tags.includes(t))) return false;
+        }
 
-        for (const filePath of filePaths) {
-            try {
-                const relativePath = filePath.replace(resourceConfig.memory + '/', '');
-                const memory = await this.getMemory(relativePath);
-                memories.push(memory);
-            } catch {
-                continue;
+        return true;
+    }
+
+    static async listMemories(filters?: MemoryModel["querySchema"]): Promise<MemoryModel["memoryDto"][]> {
+        const memories: MemoryModel["memoryDto"][] = [];
+
+        try {
+            const indexFiles = await this.getIndexFiles();
+
+            for (const filePath of indexFiles) {
+                try {
+                    const memory = await this.getMemory(filePath);
+                    if (this.matchesFilter(memory, filters)) {
+                        memories.push(memory);
+                    }
+                } catch {
+                    continue;
+                }
             }
+        } catch {
+            return [];
         }
 
         return memories;

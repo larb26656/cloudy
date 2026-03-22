@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import type { Memory } from '@/types/memory';
+import type { Memory } from '@/features/memory/types';
 
 interface CreateMemoryDialogProps {
   open: boolean;
@@ -25,27 +25,19 @@ export function CreateMemoryDialog({
   const [name, setName] = useState('');
   const [content, setContent] = useState('');
   const [markdown, setMarkdown] = useState('');
-  const [tagsInput, setTagsInput] = useState('');
 
   const handleSubmit = () => {
     if (!name.trim()) return;
 
-    const tags = tagsInput
-      .split(',')
-      .map((t) => t.trim())
-      .filter(Boolean);
-
     onCreate({
       name: name.trim(),
-      content: content.trim() || name.trim(),
+      description: content.trim() || name.trim(),
       markdown: markdown.trim() || `# ${name.trim()}\n\n${content.trim()}`,
-      meta: { title: name.trim(), tags, createdAt: '', updatedAt: '' },
     });
 
     setName('');
     setContent('');
     setMarkdown('');
-    setTagsInput('');
     onOpenChange(false);
   };
 
@@ -76,17 +68,6 @@ export function CreateMemoryDialog({
               placeholder="Brief description"
               value={content}
               onChange={(e) => setContent(e.target.value)}
-            />
-          </div>
-          <div className="grid gap-2">
-            <label htmlFor="tags" className="text-sm font-medium">
-              Tags
-            </label>
-            <Input
-              id="tags"
-              placeholder="Comma-separated tags"
-              value={tagsInput}
-              onChange={(e) => setTagsInput(e.target.value)}
             />
           </div>
           <div className="grid gap-2">

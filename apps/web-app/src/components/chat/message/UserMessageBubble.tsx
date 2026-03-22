@@ -1,4 +1,5 @@
 import type { UserMessage, Part } from "@opencode-ai/sdk/v2";
+import { formatTime } from "@/lib/date";
 
 interface UserMessageBubbleProps {
   info: UserMessage;
@@ -18,16 +19,7 @@ export default function UserMessageBubble({
       return "";
     }
 
-    let finalText = texts[0];
-
-    return finalText;
-  };
-
-  const formatTime = (timestamp: number) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return texts[0];
   };
 
   return (

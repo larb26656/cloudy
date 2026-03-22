@@ -28,6 +28,10 @@ export const MemoryModel = {
         })),
     }),
     fileNotFound: t.Literal('File not found'),
+    querySchema: t.Object({
+        q: t.Optional(t.String()),
+        tags: t.Optional(t.Array(t.String())),
+    }),
 } as const
 
 export type MemoryModel = {
