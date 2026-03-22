@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Lightbulb, Brain, MessageCircle } from "lucide-react";
+import { Lightbulb, Brain, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [

@@ -1,6 +1,6 @@
 // components/session/DirectoryFilter.tsx
 import { useState, useEffect, useRef } from "react";
-import { Folder, ChevronDown, X, History, Loader2 } from "lucide-react";
+import { Folder, ChevronDown, History, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,

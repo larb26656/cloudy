@@ -2,7 +2,6 @@ import { status } from 'elysia'
 import { MemoryModel } from './model'
 import { resourceConfig } from '../../config'
 import { readdir } from "node:fs/promises";
-import path from "node:path";
 import { parseFrontMatter } from '../../lib/front-matter';
 
 export abstract class Memory {

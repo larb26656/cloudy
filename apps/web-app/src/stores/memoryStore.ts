@@ -132,8 +132,8 @@ export const useMemoryStore = create<MemoryStore>()(
     createMemory: (memoryData) => {
       const now = new Date().toISOString();
       const meta = {
-        title: memoryData.meta?.title || memoryData.name,
-        tags: memoryData.meta?.tags || [],
+        title: memoryData.name,
+        tags: [],
         createdAt: now,
         updatedAt: now,
       };

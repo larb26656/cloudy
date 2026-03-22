@@ -122,12 +122,12 @@ export default function IdeaPage() {
     <div className="flex h-full flex-col">
       <Header
         title="Ideas"
-        rightSlot={
-          <Button onClick={() => {}}>
-            <Plus className="mr-2 size-4" />
-            New
-          </Button>
-        }
+        // rightSlot={
+        //   <Button onClick={() => {}}>
+        //     <Plus className="mr-2 size-4" />
+        //     New
+        //   </Button>
+        // }
         showRefresh={false}
       />
       <div className="flex flex-col flex-1 border-t">
