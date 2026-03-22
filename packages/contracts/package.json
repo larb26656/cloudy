@@ -1,0 +1,17 @@
+{
+  "name": "@cloudy/contracts",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "devDependencies": {
+    "@cloudy/server": "workspace:*",
+    "@cloudy/api": "workspace:*"
+  }
+}
