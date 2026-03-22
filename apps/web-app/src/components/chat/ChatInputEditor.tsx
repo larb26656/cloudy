@@ -47,7 +47,7 @@ export function ChatInputEditor({
         },
         suggestion: selectedDirectory
           ? createMentionSuggestion(selectedDirectory)
-          : undefined,
+          : {},
       }),
       Placeholder.configure({
         placeholder: placeholder,
