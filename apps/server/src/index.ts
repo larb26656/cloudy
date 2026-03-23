@@ -6,12 +6,14 @@ import { idea } from "./features/idea";
 import { memory } from "./features/memory";
 import { proxy } from "./features/proxy";
 import cors from "@elysiajs/cors";
+import indexHtml from '@public/index.html'
 
 const app = new Elysia()
     .use(cors())
     .get("/", () => new Response(Bun.file("public/index.html"), {
         headers: { "Content-Type": "text/html" }
     }))
+
     .use(staticPlugin({
         assets: "public",
         prefix: "/",
@@ -26,6 +28,7 @@ const app = new Elysia()
             .use(idea)
             .use(memory)
     )
+    .get('/*', () => Bun.file('public/index.html'))
     .listen(3000)
 
 console.log(
