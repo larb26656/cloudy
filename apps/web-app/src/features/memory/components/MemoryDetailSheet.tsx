@@ -87,7 +87,7 @@ export function MemoryDetailSheet({ memory, onClose }: MemoryDetailSheetProps) {
               {memory && <Description memory={memory} />}
             </DialogDescription>
           </DialogHeader>
-          <DialogScrollArea>
+          <DialogScrollArea isLimitSize={true}>
             {memory && <Content memory={memory} />}
           </DialogScrollArea>
         </DialogContent>

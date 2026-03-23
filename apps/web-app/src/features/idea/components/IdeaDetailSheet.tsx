@@ -92,7 +92,9 @@ export function IdeaDetailSheet({ idea, onClose }: IdeaDetailSheetProps) {
               {idea && <Description idea={idea} />}
             </DialogDescription>
           </DialogHeader>
-          <DialogScrollArea>{idea && <Content idea={idea} />}</DialogScrollArea>
+          <DialogScrollArea isLimitSize={true}>
+            {idea && <Content idea={idea} />}
+          </DialogScrollArea>
         </DialogContent>
       </Dialog>
     );
