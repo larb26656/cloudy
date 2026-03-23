@@ -5,10 +5,9 @@ import { useMemoryUIStore } from "@/features/memory/store/memoryStore";
 import { Header } from "@/components/layout";
 import { apiResponseToMemory } from "@/features/memory/api";
 import { stringifyFrontMatter } from "@/lib/front-matter";
-import { api } from "@/lib/api";
+import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Memory } from "@/features/memory/types";
 import {
@@ -28,7 +27,7 @@ export default function MemoryPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: apiError } = await api.memory.get();
+      const { data, error: apiError } = await apiClient.api.memory.get();
       if (apiError) {
         const message =
           typeof apiError.value === "string"
@@ -110,26 +109,20 @@ export default function MemoryPage() {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <Header
-        title="Memories"
-        // rightSlot={
-        //   <Button onClick={() => {}}>
-        //     <Plus className="mr-2 size-4" />
-        //     New
-        //   </Button>
-        // }
-        showRefresh={false}
-      />
-      <div className="flex flex-col flex-1 border-t">
-        <div className="flex items-center gap-2 border-b p-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+    <>
+      <div className="flex h-screen flex-col">
+        {/* Header */}
+        <Header title="Memories" showRefresh={false} />
+
+        {/* Search + Filter */}
+        <div className="flex flex-col gap-2 border-b p-4">
+          <div className="relative flex items-center">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search memories..."
+              placeholder="Search ideas..."
+              className="pl-9 flex-1"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-9"
             />
             {searchQuery && (
               <Button
@@ -144,7 +137,8 @@ export default function MemoryPage() {
           </div>
         </div>
 
-        <ScrollArea className="flex-1">
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-auto">
           <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
             {isLoading ? (
               <>
@@ -186,9 +180,8 @@ export default function MemoryPage() {
               ))
             )}
           </div>
-        </ScrollArea>
+        </div>
       </div>
-
       <MemoryDetailSheet
         memory={selectedMemory || null}
         onClose={() => selectMemory(null)}
@@ -199,6 +192,6 @@ export default function MemoryPage() {
         onOpenChange={() => {}}
         onCreate={handleCreate}
       />
-    </div>
+    </>
   );
 }

@@ -4,6 +4,6 @@ import {
 import type { App } from "@cloudy/contracts";
 import { env } from '@/config/env';
 
-export const api = treaty<App>(env.API_URL, {
+export const apiClient = treaty<App>(env.API_URL, {
     parseDate: false
 })

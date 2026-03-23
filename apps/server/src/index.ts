@@ -14,14 +14,18 @@ const app = new Elysia()
     }))
     .use(staticPlugin({
         assets: "public",
-        prefix: "",
-        indexHTML: false
+        prefix: "/",
+        alwaysStatic: true,
     }))
     .use(openapi())
-    .use(serve)
-    .use(idea)
-    .use(memory)
     .use(proxy)
+    .group("/api", (app) =>
+        app
+            .use(openapi())
+            .use(serve)
+            .use(idea)
+            .use(memory)
+    )
     .listen(3000)
 
 console.log(

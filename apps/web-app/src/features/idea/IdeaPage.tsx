@@ -10,7 +10,7 @@ import {
 import { Header } from "@/components/layout";
 import { apiResponseToIdea } from "@/features/idea/api";
 import { stringifyIdeaFrontMatter } from "@/lib/front-matter";
-import { api } from "@/lib/api";
+import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -46,7 +46,7 @@ export default function IdeaPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: apiError } = await api.idea.get();
+      const { data, error: apiError } = await apiClient.api.idea.get();
       if (apiError) {
         const message =
           typeof apiError.value === "string"
@@ -119,39 +119,31 @@ export default function IdeaPage() {
   };
 
   return (
-    <div className="flex h-full flex-col">
-      <Header
-        title="Ideas"
-        // rightSlot={
-        //   <Button onClick={() => {}}>
-        //     <Plus className="mr-2 size-4" />
-        //     New
-        //   </Button>
-        // }
-        showRefresh={false}
-      />
-      <div className="flex flex-col flex-1 border-t">
+    <>
+      <div className="flex h-screen flex-col">
+        {/* Header */}
+        <Header title="Ideas" showRefresh={false} />
+
+        {/* Search + Filter */}
         <div className="flex flex-col gap-2 border-b p-4">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search ideas..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-              {searchQuery && (
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="absolute right-1 top-1/2 -translate-y-1/2"
-                  onClick={() => setSearchQuery("")}
-                >
-                  <X className="size-3" />
-                </Button>
-              )}
-            </div>
+          <div className="relative flex items-center">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search ideas..."
+              className="pl-9 flex-1"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchQuery && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="absolute right-1 top-1/2 -translate-y-1/2"
+                onClick={() => setSearchQuery("")}
+              >
+                <X className="size-3" />
+              </Button>
+            )}
           </div>
           <div className="flex gap-1 overflow-x-auto">
             {filterOptions.map((option) => (
@@ -167,7 +159,8 @@ export default function IdeaPage() {
           </div>
         </div>
 
-        <ScrollArea className="flex-1">
+        {/* Scrollable content */}
+        <div className="flex-1 overflow-auto">
           <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
             {isLoading ? (
               <>
@@ -209,9 +202,8 @@ export default function IdeaPage() {
               ))
             )}
           </div>
-        </ScrollArea>
+        </div>
       </div>
-
       <IdeaDetailSheet
         idea={selectedIdea || null}
         onClose={() => selectIdea(null)}
@@ -222,6 +214,6 @@ export default function IdeaPage() {
         onOpenChange={() => {}}
         onCreate={handleCreate}
       />
-    </div>
+    </>
   );
 }

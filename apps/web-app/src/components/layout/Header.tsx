@@ -34,7 +34,7 @@ export function Header({
 
   return (
     <header className="p-2 bg-white dark:bg-gray-900 flex items-center justify-between gap-3">
-      <div className="flex items-center gap-2">
+      <div>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button
@@ -54,17 +54,17 @@ export function Header({
             {sidebarOpen ? "Close sidebar" : "Open sidebar"} (Cmd+B)
           </TooltipContent>
         </Tooltip>
+      </div>
 
-        <div className="flex flex-col min-w-0">
-          <h1 className="font-semibold text-gray-800 dark:text-white truncate">
-            {title || "Cloudy"}
-          </h1>
-          {subtitle && (
-            <span className="text-xs text-gray-500 dark:text-gray-400 truncate hidden sm:block">
-              {subtitle}
-            </span>
-          )}
-        </div>
+      <div className="flex-1 flex flex-col min-w-0">
+        <h1 className="font-semibold text-gray-800 dark:text-white truncate">
+          {title || "Cloudy"}
+        </h1>
+        {subtitle && (
+          <span className="text-xs text-gray-500 dark:text-gray-400 truncate hidden sm:block">
+            {subtitle}
+          </span>
+        )}
       </div>
 
       {centerSlot && (
