@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { Plus, Search, FileText, X } from "lucide-react";
+import { Plus, FileText, Search } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
 import { useMemoryUIStore } from "@/features/memory/store/memoryStore";
 import { Header } from "@/components/layout";
@@ -7,7 +7,11 @@ import { apiResponseToMemory } from "@/features/memory/api";
 import { stringifyFrontMatter } from "@/lib/front-matter";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+} from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Memory } from "@/features/memory/types";
 import {
@@ -116,25 +120,27 @@ export default function MemoryPage() {
 
         {/* Search + Filter */}
         <div className="flex flex-col gap-2 border-b p-4">
-          <div className="relative flex items-center">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              placeholder="Search ideas..."
-              className="pl-9 flex-1"
+          <InputGroup>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              placeholder="Search memories..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2"
-                onClick={() => setSearchQuery("")}
-              >
-                <X className="size-3" />
-              </Button>
+              <InputGroupAddon align="inline-end">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setSearchQuery("")}
+                >
+                  ×
+                </Button>
+              </InputGroupAddon>
             )}
-          </div>
+          </InputGroup>
         </div>
 
         {/* Scrollable content */}

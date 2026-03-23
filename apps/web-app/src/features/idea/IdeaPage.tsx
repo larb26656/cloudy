@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
-import { Plus, Search, Lightbulb, X } from "lucide-react";
+import { Plus, Lightbulb, Search } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
 import { useIdeaUIStore, filterIdeas } from "@/features/idea/store/ideaStore";
 import {
@@ -12,7 +12,11 @@ import { apiResponseToIdea } from "@/features/idea/api";
 import { stringifyIdeaFrontMatter } from "@/lib/front-matter";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon,
+} from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { IdeaModel } from "@cloudy/contracts";
 import type { Idea } from "@/features/idea/types";
@@ -127,25 +131,27 @@ export default function IdeaPage() {
 
         {/* Search + Filter */}
         <div className="flex flex-col gap-2 border-b p-4">
-          <div className="relative flex items-center">
-            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-            <Input
+          <InputGroup>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
               placeholder="Search ideas..."
-              className="pl-9 flex-1"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
             {searchQuery && (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="absolute right-1 top-1/2 -translate-y-1/2"
-                onClick={() => setSearchQuery("")}
-              >
-                <X className="size-3" />
-              </Button>
+              <InputGroupAddon align="inline-end">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setSearchQuery("")}
+                >
+                  ×
+                </Button>
+              </InputGroupAddon>
             )}
-          </div>
+          </InputGroup>
           <div className="flex gap-1 overflow-x-auto">
             {filterOptions.map((option) => (
               <Button

@@ -85,7 +85,7 @@ export function MemoryCard({
       <CardFooter className="text-xs text-muted-foreground">
         <Clock className="mr-1 size-3" />
         Created {formatDate(memory.meta.createdAt)}
-        {memory.meta.updatedAt !== memory.meta.createdAt && (
+        {memory.meta.updatedAt && (
           <span className="ml-2">
             - Updated {formatDate(memory.meta.updatedAt)}
           </span>
