@@ -31,6 +31,7 @@ export const MemoryModel = {
     querySchema: t.Object({
         q: t.Optional(t.String()),
         tags: t.Optional(t.Array(t.String())),
+        order: t.Optional(t.String()),
     }),
 } as const
 

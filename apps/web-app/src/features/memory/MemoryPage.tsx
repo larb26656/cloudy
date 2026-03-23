@@ -27,7 +27,7 @@ export default function MemoryPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: apiError } = await apiClient.api.memory.get();
+      const { data, error: apiError } = await apiClient.api.memory.get({ query: { order: 'updatedAt:desc' } });
       if (apiError) {
         const message =
           typeof apiError.value === "string"

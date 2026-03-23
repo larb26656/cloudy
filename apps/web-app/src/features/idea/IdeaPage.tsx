@@ -46,7 +46,7 @@ export default function IdeaPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: apiError } = await apiClient.api.idea.get();
+      const { data, error: apiError } = await apiClient.api.idea.get({ query: { order: 'updatedAt:desc' } });
       if (apiError) {
         const message =
           typeof apiError.value === "string"

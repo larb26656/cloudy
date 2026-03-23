@@ -6,7 +6,6 @@ import { idea } from "./features/idea";
 import { memory } from "./features/memory";
 import { proxy } from "./features/proxy";
 import cors from "@elysiajs/cors";
-import indexHtml from '@public/index.html'
 
 const app = new Elysia()
     .use(cors())

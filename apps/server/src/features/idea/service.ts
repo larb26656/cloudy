@@ -132,6 +132,18 @@ export abstract class Idea {
             return [];
         }
 
+        if (filters?.order) {
+            const [field, direction] = filters.order.split(':');
+            if (field === 'updatedAt') {
+                const dir = direction === 'asc' ? 1 : -1;
+                ideas.sort((a, b) => {
+                    const aTime = a.meta.updatedAt ? new Date(a.meta.updatedAt).getTime() : 0;
+                    const bTime = b.meta.updatedAt ? new Date(b.meta.updatedAt).getTime() : 0;
+                    return (aTime - bTime) * dir;
+                });
+            }
+        }
+
         return ideas;
     }
 }

@@ -50,6 +50,7 @@ export const IdeaModel = {
         tags: t.Optional(t.Array(t.String())),
         status: t.Optional(ideaStatus),
         priority: t.Optional(ideaPriority),
+        order: t.Optional(t.String()),
     }),
 } as const
 
