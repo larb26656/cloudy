@@ -51,7 +51,7 @@ function Header({ idea }: { idea: Idea }) {
 
 function Description({ idea }: { idea: Idea }) {
   return (
-    <div className="flex flex-1 flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
         <StatusBadge status={idea.meta.status} />
         <PriorityBadge priority={idea.meta.priority} />
@@ -85,8 +85,8 @@ export function IdeaDetailSheet({ idea, onClose }: IdeaDetailSheetProps) {
   if (isSmallScreen) {
     return (
       <Dialog open={!!idea} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-full md:max-w-2xl ">
-          <DialogHeader className="pb-3 border-b">
+        <DialogContent className="flex flex-col max-w-screen h-screen rounded-none">
+          <DialogHeader className="pb-3 border-b flex-none">
             <DialogTitle> {idea && <Header idea={idea} />}</DialogTitle>
             <DialogDescription asChild>
               {idea && <Description idea={idea} />}
@@ -109,7 +109,9 @@ export function IdeaDetailSheet({ idea, onClose }: IdeaDetailSheetProps) {
             {idea && <Description idea={idea} />}
           </SheetDescription>
         </SheetHeader>
-        <SheetScrollArea>{idea && <Content idea={idea} />}</SheetScrollArea>
+        <SheetScrollArea className="flex-1">
+          {idea && <Content idea={idea} />}
+        </SheetScrollArea>
       </SheetContent>
     </Sheet>
   );

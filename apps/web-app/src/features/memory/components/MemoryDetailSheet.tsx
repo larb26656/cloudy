@@ -50,7 +50,7 @@ function Header({ memory }: { memory: Memory }) {
 
 function Description({ memory }: { memory: Memory }) {
   return (
-    <div className="flex flex-1 flex-col gap-2">
+    <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2">
         {memory.meta.tags.map((tag) => (
           <span
@@ -80,8 +80,8 @@ export function MemoryDetailSheet({ memory, onClose }: MemoryDetailSheetProps) {
   if (isSmallScreen) {
     return (
       <Dialog open={!!memory} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="max-w-full md:max-w-2xl ">
-          <DialogHeader className="pb-3 border-b">
+        <DialogContent className="flex flex-col max-w-screen h-screen rounded-none">
+          <DialogHeader className="pb-3 border-b flex-none">
             <DialogTitle>{memory && <Header memory={memory} />}</DialogTitle>
             <DialogDescription asChild>
               {memory && <Description memory={memory} />}
