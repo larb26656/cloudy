@@ -13,7 +13,6 @@ import { stringifyIdeaFrontMatter } from "@/lib/front-matter";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { IdeaModel } from "@cloudy/contracts";
 import type { Idea } from "@/features/idea/types";
@@ -46,7 +45,9 @@ export default function IdeaPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: apiError } = await apiClient.api.idea.get({ query: { order: 'updatedAt:desc' } });
+      const { data, error: apiError } = await apiClient.api.idea.get({
+        query: { order: "updatedAt:desc" },
+      });
       if (apiError) {
         const message =
           typeof apiError.value === "string"
