@@ -19,7 +19,7 @@ export function ArtifactDetailSheet({
 }: ArtifactDetailSheetProps) {
   const [showInfoDialog, setShowInfoDialog] = useState(false);
   const artifactUrl = artifact
-    ? `${env.API_URL}/api/artifact/${artifact.name}`
+    ? `${env.API_URL}/api/artifact/${artifact.fileName}`
     : "";
 
   return (
