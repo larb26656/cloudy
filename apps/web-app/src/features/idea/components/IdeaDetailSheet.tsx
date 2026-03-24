@@ -19,6 +19,8 @@ import { StatusBadge, PriorityBadge } from "@/features/idea/components";
 import type { Idea } from "@/features/idea/types";
 import DialogScrollArea from "@/components/layout/DialogScrollArea";
 import SheetScrollArea from "@/components/layout/SheetScrollArea";
+import { cn } from "@/lib/utils";
+import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
 
 function useIsSmallScreen(breakpoint = 1024) {
   const [isSmall, setIsSmall] = useState(false);
@@ -85,14 +87,14 @@ export function IdeaDetailSheet({ idea, onClose }: IdeaDetailSheetProps) {
   if (isSmallScreen) {
     return (
       <Dialog open={!!idea} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="flex flex-col max-w-screen h-screen rounded-none">
+        <DialogContent className={cn("flex flex-col", SHEET_SIZE_CLASSES)}>
           <DialogHeader className="pb-3 border-b flex-none">
             <DialogTitle> {idea && <Header idea={idea} />}</DialogTitle>
             <DialogDescription asChild>
               {idea && <Description idea={idea} />}
             </DialogDescription>
           </DialogHeader>
-          <DialogScrollArea isLimitSize={true}>
+          <DialogScrollArea isLimitSize={true} className="flex-1">
             {idea && <Content idea={idea} />}
           </DialogScrollArea>
         </DialogContent>

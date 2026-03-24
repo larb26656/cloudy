@@ -5,6 +5,8 @@ import { ArtifactInfoDialog } from "@/features/artifact/components/ArtifactInfoD
 import type { Artifact } from "@/features/artifact/types";
 import { env } from "@/config/env";
 import { Button } from "@/components/ui/button";
+import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
+import { cn } from "@/lib/utils";
 
 interface ArtifactDetailSheetProps {
   artifact: Artifact | null;
@@ -24,7 +26,7 @@ export function ArtifactDetailSheet({
     <>
       <Dialog open={!!artifact} onOpenChange={(open) => !open && onClose()}>
         <DialogContent
-          className="flex flex-col h-screen w-screen max-w-none rounded-none p-0 gap-0"
+          className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}
           showCloseButton={false}
         >
           <DialogHeader className="h-12 px-4 border-b flex flex-row items-center justify-between flex-none">

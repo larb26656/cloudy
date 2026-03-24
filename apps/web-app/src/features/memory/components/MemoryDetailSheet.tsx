@@ -18,6 +18,8 @@ import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import type { Memory } from "@/features/memory/types";
 import DialogScrollArea from "@/components/layout/DialogScrollArea";
 import SheetScrollArea from "@/components/layout/SheetScrollArea";
+import { cn } from "@/lib/utils";
+import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
 
 function useIsSmallScreen(breakpoint = 1024) {
   const [isSmall, setIsSmall] = useState(false);
@@ -80,14 +82,14 @@ export function MemoryDetailSheet({ memory, onClose }: MemoryDetailSheetProps) {
   if (isSmallScreen) {
     return (
       <Dialog open={!!memory} onOpenChange={(open) => !open && onClose()}>
-        <DialogContent className="flex flex-col max-w-screen h-screen rounded-none">
+        <DialogContent className={cn("flex flex-col", SHEET_SIZE_CLASSES)}>
           <DialogHeader className="pb-3 border-b flex-none">
             <DialogTitle>{memory && <Header memory={memory} />}</DialogTitle>
             <DialogDescription asChild>
               {memory && <Description memory={memory} />}
             </DialogDescription>
           </DialogHeader>
-          <DialogScrollArea isLimitSize={true}>
+          <DialogScrollArea isLimitSize={true} className="flex-1">
             {memory && <Content memory={memory} />}
           </DialogScrollArea>
         </DialogContent>

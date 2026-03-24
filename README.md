@@ -90,20 +90,10 @@ Open `http://localhost:3001` and start using your AI workspace.
 cloudy/
 ├── apps/
 │   ├── server/           # API server
-│   └── web-app/         # React interface
-│       └── src/features/
-│           ├── chat/     # Chat interface
-│           ├── idea/     # Idea management
-│           ├── memory/   # Knowledge base
-│           └── artifact/ # Artifact management
+│   └── web-app/         # UI interface
 └── packages/
     └── contracts/       # Shared TypeScript types
 ```
-
-## Documentation
-
-- [Product Requirements](apps/web-app/docs/PRD.md) — What Cloudy does and why
-- [Architecture](apps/web-app/docs/ARCHITECTURE.md) — How it's built
 
 ## Contributing
 

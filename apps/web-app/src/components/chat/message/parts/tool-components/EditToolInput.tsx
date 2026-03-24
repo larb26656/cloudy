@@ -54,10 +54,12 @@ export function Preview({ state }: { state: ToolPartType["state"] }) {
 
   return (
     <div className="flex flex-col">
-      <ToolPreviewLabel
-        icon={<Files className="size-3" />}
-        label={`Path: ${filePath || "loading"}`}
-      />
+      {filePath && (
+        <ToolPreviewLabel
+          icon={<Files className="size-3" />}
+          label={`Path: ${filePath}`}
+        />
+      )}
 
       {filePath && oldString && newString && (
         <DiffViewer
