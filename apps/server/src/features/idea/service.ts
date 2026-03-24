@@ -3,7 +3,23 @@ import { IdeaModel } from './model'
 import { resourceConfig } from '../../config'
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { parseIdeaFrontMatter } from '../../lib/front-matter';
+import matter from 'gray-matter';
+
+function parseIdeaFrontMatter(markdown: string, fallbackTitle?: string): { meta: IdeaModel['metaDto']; content: string } {
+    const { data, content } = matter(markdown);
+
+    return {
+        meta: {
+            title: data.title ?? fallbackTitle,
+            tags: Array.isArray(data.tags) ? data.tags : [],
+            status: data.status ?? 'draft',
+            priority: data.priority ?? 'medium',
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt,
+        },
+        content,
+    };
+}
 
 export abstract class Idea {
 

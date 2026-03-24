@@ -5,5 +5,6 @@ export const resourceConfig = {
     ocApiBasePath: env.OC_API_BASE_PATH,
     idea: `${env.ASSISTANT_AI_BASE_PATH}/idea`,
     memory: `${env.ASSISTANT_AI_BASE_PATH}/memory`,
+    artifact: `${env.ASSISTANT_AI_BASE_PATH}/artifact`,
 
 } as const;

@@ -3,8 +3,8 @@ import { t, type UnwrapSchema } from 'elysia'
 const memoryMetaDto = t.Object({
     title: t.Optional(t.String()),
     tags: t.Array(t.String()),
-    createdAt: t.Optional(t.String()),
-    updatedAt: t.Optional(t.String()),
+    createdAt: t.Optional(t.Date()),
+    updatedAt: t.Optional(t.Date()),
 })
 
 export const MemoryModel = {

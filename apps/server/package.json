@@ -11,7 +11,8 @@
     "@elysiajs/openapi": "^1.4.14",
     "@elysiajs/static": "^1.4.7",
     "croner": "6.0.7",
-    "elysia": "catalog:"
+    "elysia": "catalog:",
+    "gray-matter": "^4.0.3"
   },
   "module": "src/index.ts",
   "types": "src/exports.ts",

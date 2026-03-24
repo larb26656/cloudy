@@ -1,11 +1,12 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Lightbulb, Brain, MessageCircle } from "lucide-react";
+import { Lightbulb, Brain, MessageCircle, FileCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { to: "/", label: "Chat", icon: MessageCircle },
   { to: "/idea", label: "Idea", icon: Lightbulb },
   { to: "/memory", label: "Memory", icon: Brain },
+  { to: "/artifact", label: "Artifact", icon: FileCode },
 ];
 
 export function SidebarNav() {

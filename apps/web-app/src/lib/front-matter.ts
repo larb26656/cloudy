@@ -5,8 +5,13 @@ export interface FrontMatterMeta {
   updatedAt?: string;
 }
 
+export type ArtifactType = 'html' | 'pdf' | 'image' | 'video' | 'document';
 export type IdeaStatus = 'draft' | 'in-progress' | 'completed' | 'archived';
 export type IdeaPriority = 'low' | 'medium' | 'high';
+
+export interface ArtifactFrontMatterMeta extends FrontMatterMeta {
+  type?: ArtifactType;
+}
 
 export interface IdeaFrontMatterMeta extends FrontMatterMeta {
   status?: IdeaStatus;
@@ -103,6 +108,31 @@ export function parseIdeaFrontMatter(markdown: string, fallbackTitle?: string): 
   return { ...parsed, meta };
 }
 
+export function parseArtifactFrontMatter(markdown: string, fallbackTitle?: string): {
+  meta: ArtifactFrontMatterMeta;
+  content: string;
+  raw: string;
+} {
+  const parsed = parseFrontMatter(markdown, fallbackTitle);
+  const meta: ArtifactFrontMatterMeta = { ...parsed.meta };
+
+  const frontMatterMatch = parsed.raw.match(/^---\n([\s\S]*?)\n---/m);
+  if (frontMatterMatch) {
+    for (const line of frontMatterMatch[1].split('\n')) {
+      const colonIndex = line.indexOf(':');
+      if (colonIndex === -1) continue;
+      const key = line.slice(0, colonIndex).trim();
+      const value = line.slice(colonIndex + 1).trim();
+
+      if (key === 'type' && ['html', 'pdf', 'image', 'video', 'document'].includes(value)) {
+        meta.type = value as ArtifactType;
+      }
+    }
+  }
+
+  return { ...parsed, meta };
+}
+
 export function stringifyFrontMatter(meta: FrontMatterMeta, content: string): string {
   const parts: string[] = ['---'];
 
@@ -125,6 +155,22 @@ export function stringifyFrontMatter(meta: FrontMatterMeta, content: string): st
   parts.push('---\n');
 
   return parts.join('\n') + content;
+}
+
+export function stringifyArtifactFrontMatter(meta: ArtifactFrontMatterMeta, content: string): string {
+  const frontMeta: FrontMatterMeta = {
+    title: meta.title,
+    tags: meta.tags,
+    createdAt: meta.createdAt,
+    updatedAt: meta.updatedAt,
+  };
+  const base = stringifyFrontMatter(frontMeta, content);
+  const lines = base.split('\n');
+  const dashIndex = lines.indexOf('---', 1);
+  if (dashIndex !== -1) {
+    if (meta.type) lines.splice(dashIndex, 0, `type: ${meta.type}`);
+  }
+  return lines.join('\n');
 }
 
 export function stringifyIdeaFrontMatter(meta: IdeaFrontMatterMeta, content: string): string {

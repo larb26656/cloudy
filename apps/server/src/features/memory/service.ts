@@ -2,7 +2,21 @@ import { status } from 'elysia'
 import { MemoryModel } from './model'
 import { resourceConfig } from '../../config'
 import { readdir } from "node:fs/promises";
-import { parseFrontMatter } from '../../lib/front-matter';
+import matter from 'gray-matter';
+
+function parseMemoryFrontMatter(markdown: string, fallbackTitle?: string): { meta: MemoryModel['metaDto']; content: string } {
+    const { data, content } = matter(markdown);
+
+    return {
+        meta: {
+            title: data.title ?? fallbackTitle,
+            tags: Array.isArray(data.tags) ? data.tags : [],
+            createdAt: data.createdAt,
+            updatedAt: data.updatedAt,
+        },
+        content,
+    };
+}
 
 export abstract class Memory {
 
@@ -61,7 +75,7 @@ export abstract class Memory {
 
         const content = await file.text();
         const name = filePath.split('/').pop()?.replace(/\.md$/, '') || '';
-        const parsed = parseFrontMatter(content, name);
+        const parsed = parseMemoryFrontMatter(content, name);
 
         return {
             name,

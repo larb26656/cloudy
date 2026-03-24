@@ -6,7 +6,7 @@
  *
  * @exports
  * - App: Elysia app type for Eden
- * - IdeaModel, MemoryModel, ServeModel: TypeBox models for type-safe API
+ * - IdeaModel, MemoryModel, ArtifactModel, ServeModel: TypeBox models for type-safe API
  *
  * @security
  * - Only TYPE exports (no runtime code)
@@ -18,4 +18,4 @@
  */
 
 export type { App } from "@cloudy/server";
-export type { IdeaModel, MemoryModel, ServeModel } from "@cloudy/server";
+export type { IdeaModel, MemoryModel, ArtifactModel, ServeModel } from "@cloudy/server";

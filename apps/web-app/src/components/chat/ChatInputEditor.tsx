@@ -1,6 +1,5 @@
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import { TextStyleKit } from "@tiptap/extension-text-style";
 import Mention from "@tiptap/extension-mention";
 import { createMentionSuggestion } from "./extensions/suggestion";
 import { useEffect, useMemo } from "react";
@@ -39,8 +38,13 @@ export function ChatInputEditor({
 
   const extensions = useMemo(() => {
     return [
-      TextStyleKit,
-      StarterKit,
+      StarterKit.configure({
+        bold: false,
+        italic: false,
+        strike: false,
+        code: false,
+        codeBlock: false,
+      }),
       Mention.configure({
         HTMLAttributes: {
           class: "mention",

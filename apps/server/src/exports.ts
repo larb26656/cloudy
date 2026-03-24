@@ -6,7 +6,7 @@
  *
  * @exports
  * - `App`: The Elysia application type for Eden type-safe API client
- * - Model types: IdeaModel, MemoryModel, ServeModel
+ * - Model types: IdeaModel, MemoryModel, ArtifactModel, ServeModel
  *
  * @security
  * - Uses `export type` to guarantee no runtime code leaks

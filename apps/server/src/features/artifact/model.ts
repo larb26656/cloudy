@@ -1,36 +1,35 @@
 import { t, type UnwrapSchema } from 'elysia'
 
-const ideaStatus = t.Union([
-    t.Literal('draft'),
-    t.Literal('in-progress'),
-    t.Literal('completed'),
-    t.Literal('archived'),
+const artifactType = t.Union([
+    t.Literal('html'),
+    t.Literal('pdf'),
+    t.Literal('image'),
+    t.Literal('video'),
+    t.Literal('document'),
 ])
 
-const ideaPriority = t.Union([
-    t.Literal('low'),
-    t.Literal('medium'),
-    t.Literal('high'),
-])
-
-const ideaMetaDto = t.Object({
+const artifactMetaDto = t.Object({
     title: t.Optional(t.String()),
     tags: t.Array(t.String()),
-    status: ideaStatus,
-    priority: ideaPriority,
+    type: artifactType,
     createdAt: t.Optional(t.Date()),
     updatedAt: t.Optional(t.Date()),
 })
 
-export const IdeaModel = {
-    ideaStatus,
-    ideaPriority,
-    metaDto: ideaMetaDto,
-    ideaDto: t.Object({
+export const ArtifactModel = {
+    artifactType,
+    metaDto: artifactMetaDto,
+    artifactDto: t.Object({
         name: t.String(),
         path: t.String(),
         content: t.String(),
-        meta: ideaMetaDto,
+        meta: artifactMetaDto,
+    }),
+    getFileRes: t.Object({
+        name: t.String(),
+        contentType: t.String(),
+        // TODO find better solution
+        file: t.Any(),
     }),
     fileDto: t.Object({
         name: t.String(),
@@ -38,7 +37,7 @@ export const IdeaModel = {
         content: t.String(),
     }),
     fileListDto: t.Object({
-        source: t.Literal('idea'),
+        source: t.Literal('artifact'),
         files: t.Array(t.Object({
             name: t.String(),
             path: t.String(),
@@ -48,12 +47,11 @@ export const IdeaModel = {
     querySchema: t.Object({
         q: t.Optional(t.String()),
         tags: t.Optional(t.Array(t.String())),
-        status: t.Optional(ideaStatus),
-        priority: t.Optional(ideaPriority),
+        type: t.Optional(artifactType),
         order: t.Optional(t.String()),
     }),
 } as const
 
-export type IdeaModel = {
-    [k in keyof typeof IdeaModel]: UnwrapSchema<typeof IdeaModel[k]>
+export type ArtifactModel = {
+    [k in keyof typeof ArtifactModel]: UnwrapSchema<typeof ArtifactModel[k]>
 }

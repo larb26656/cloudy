@@ -4,6 +4,7 @@ import { staticPlugin } from "@elysiajs/static";
 import { serve } from "./features/serve";
 import { idea } from "./features/idea";
 import { memory } from "./features/memory";
+import { artifact } from "./features/artifact";
 import { proxy } from "./features/proxy";
 import cors from "@elysiajs/cors";
 
@@ -26,6 +27,7 @@ const app = new Elysia()
             .use(serve)
             .use(idea)
             .use(memory)
+            .use(artifact)
     )
     .get('/*', () => Bun.file('public/index.html'))
     .listen(3000)
