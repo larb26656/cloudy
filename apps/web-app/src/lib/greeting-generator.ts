@@ -38,7 +38,6 @@ const ART_GREETINGS: Greeting[] = [
 const ART_PLACEHOLDERS: string[] = [
     "Speak your mind, I'm listening 🎧",
     "Craft your next masterpiece here ✍️",
-    "Where bugs go to die 💀",
     "Turn thoughts into code ⌨️",
     "Whisper your ideas softly 🤫",
     "Paint with keystrokes 🎨",

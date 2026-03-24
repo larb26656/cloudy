@@ -33,7 +33,7 @@ export function Header({
   };
 
   return (
-    <header className="p-2 bg-white dark:bg-gray-900 flex items-center justify-between gap-3">
+    <header className="p-2 bg-background flex items-center justify-between gap-3">
       <div>
         <Tooltip>
           <TooltipTrigger asChild>

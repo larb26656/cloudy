@@ -67,7 +67,7 @@ function AppMainLayout() {
     return (
       <>
         <MobileSidebar open={sidebarOpen} onOpenChange={setSidebarOpen} />
-        <div className="flex flex-col h-[100dvh] bg-white dark:bg-gray-900 overflow-hidden">
+        <div className="flex flex-col h-[100dvh] bg-background overflow-hidden">
           <PermissionBanner
             onOpenDialog={() => setPermissionDialogOpen(true)}
           />
@@ -90,7 +90,7 @@ function AppMainLayout() {
     <div className="h-screen">
       <ResizablePanelGroup
         orientation="horizontal"
-        className="bg-white dark:bg-gray-900"
+        className="bg-background"
       >
         {sidebarOpen && (
           <>

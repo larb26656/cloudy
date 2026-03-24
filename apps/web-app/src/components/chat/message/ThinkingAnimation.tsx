@@ -1,9 +1,12 @@
 import { Sprite } from "../../Sprite";
+import { useChatUIStore } from "@/stores/chatUIStore";
 
 export default function ThinkingAnimation() {
+  const isDarkMode = useChatUIStore((state) => state.isDarkMode);
+
   return (
     <Sprite
-      src="/sprite/thinking.png"
+      src={isDarkMode ? "/sprite/thinking-dark.png" : "/sprite/thinking.png"}
       frameWidth={96}
       frameHeight={64}
       cols={2}

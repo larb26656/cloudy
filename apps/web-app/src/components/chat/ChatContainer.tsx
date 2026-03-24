@@ -65,7 +65,7 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-white dark:bg-gray-900 overflow-hidden">
+    <div className="flex-1 flex flex-col bg-background overflow-hidden">
       {/* Messages */}
       <MessageList />
 

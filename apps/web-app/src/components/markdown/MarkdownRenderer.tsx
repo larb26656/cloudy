@@ -10,7 +10,7 @@ interface MarkdownRendererProps {
 
 function InlineCode({ children }: { children: React.ReactNode }) {
   return (
-    <code className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 rounded text-sm font-mono">
+    <code className="px-1.5 py-0.5 bg-muted text-gray-800 dark:text-gray-200 rounded text-sm font-mono">
       {children}
     </code>
   );
@@ -52,7 +52,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
           },
           thead({ children }) {
             return (
-              <thead className="bg-gray-100 dark:bg-gray-800">{children}</thead>
+              <thead className="bg-muted">{children}</thead>
             );
           },
           th({ children }) {
