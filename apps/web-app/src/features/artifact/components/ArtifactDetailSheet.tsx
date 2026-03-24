@@ -1,4 +1,4 @@
-import { Info, FileCode, X } from "lucide-react";
+import { Info, X } from "lucide-react";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { ArtifactInfoDialog } from "@/features/artifact/components/ArtifactInfoDialog";

@@ -1,5 +1,6 @@
 import type { ArtifactModel } from "@cloudy/contracts";
 import { stringifyArtifactFrontMatter } from "@/lib/front-matter";
+import { toISOString } from "@/lib/date";
 import type { Artifact } from "@/features/artifact/types";
 
 export function apiResponseToArtifact(data: ArtifactModel['artifactDto']): Artifact {
@@ -9,14 +10,18 @@ export function apiResponseToArtifact(data: ArtifactModel['artifactDto']): Artif
   return {
     id: data.path,
     name: data.name,
-    markdown: stringifyArtifactFrontMatter(meta, data.content),
+    markdown: stringifyArtifactFrontMatter({
+      ...meta,
+      createdAt: toISOString(meta.createdAt),
+      updatedAt: toISOString(meta.updatedAt),
+    }, data.content),
     description: data.content.split("\n")[0]?.replace(/^#+\s*/, "").trim() || data.name,
     meta: {
       title: meta.title || data.name,
       tags: meta.tags || [],
       type: meta.type,
-      createdAt: meta.createdAt || now,
-      updatedAt: meta.updatedAt || now,
+      createdAt: meta.createdAt ? new Date(meta.createdAt).toISOString() : now,
+      updatedAt: meta.updatedAt ? new Date(meta.updatedAt).toISOString() : now,
     },
   };
 }

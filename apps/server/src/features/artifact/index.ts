@@ -12,7 +12,7 @@ export const artifact = new Elysia({ prefix: '/artifact' })
             200: t.Array(ArtifactModel.artifactDto),
         }
     })
-    .get('/:name', async ({ params: { name }, status }) => {
+    .get('/:name', async ({ params: { name } }) => {
         const { file, contentType } = await Artifact.getByName(name);
 
         return new Response(file, {

@@ -9,7 +9,12 @@ export function apiResponseToMemory(data: MemoryModel['memoryDto']): Memory {
   return {
     id: data.path,
     name: data.name,
-    markdown: stringifyFrontMatter(meta, data.content),
+    markdown: stringifyFrontMatter({
+      title: meta.title,
+      tags: meta.tags,
+      createdAt: toISOString(meta.createdAt),
+      updatedAt: toISOString(meta.updatedAt),
+    }, data.content),
     description: data.content.split("\n")[0]?.replace(/^#+\s*/, "").trim() || data.name,
     meta: {
       title: meta.title || data.name,
