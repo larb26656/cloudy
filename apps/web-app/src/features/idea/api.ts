@@ -9,7 +9,7 @@ export function apiResponseToIdea(data: IdeaModel['ideaDto']): Idea {
 
   return {
     id: data.path,
-    name: data.name,
+    name: meta.title || data.name,
     markdown: stringifyIdeaFrontMatter({
       ...meta,
       createdAt: toISOString(meta.createdAt),

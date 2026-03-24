@@ -5,19 +5,37 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 import matter from 'gray-matter';
 
-function parseArtifactFrontMatter(markdown: string, fallbackTitle?: string): { meta: ArtifactModel['metaDto']; content: string } {
-    const { data, content } = matter(markdown);
+function isDateString(str: string): boolean {
+    return /^\d{4}-\d{2}-\d{2}/.test(str);
+}
 
-    return {
-        meta: {
-            title: data.title ?? fallbackTitle,
-            tags: Array.isArray(data.tags) ? data.tags : [],
-            type: data.type ?? 'html',
-            createdAt: data.createdAt,
-            updatedAt: data.updatedAt,
-        },
-        content,
-    };
+function parseArtifactFrontMatter(markdown: string, fallbackTitle?: string): { meta: ArtifactModel['metaDto']; content: string } {
+    try {
+        const { data, content } = matter(markdown);
+        const title = data.title && typeof data.title === 'string' && !isDateString(data.title)
+            ? data.title
+            : fallbackTitle;
+
+        return {
+            meta: {
+                title,
+                tags: Array.isArray(data.tags) ? data.tags : [],
+                type: data.type ?? 'html',
+                createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
+                updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
+            },
+            content,
+        };
+    } catch {
+        return {
+            meta: {
+                title: fallbackTitle,
+                tags: [],
+                type: 'html',
+            },
+            content: markdown,
+        };
+    }
 }
 
 export abstract class Artifact {

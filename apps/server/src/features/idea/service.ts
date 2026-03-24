@@ -5,20 +5,39 @@ import { readdir } from "node:fs/promises";
 import path from "node:path";
 import matter from 'gray-matter';
 
-function parseIdeaFrontMatter(markdown: string, fallbackTitle?: string): { meta: IdeaModel['metaDto']; content: string } {
-    const { data, content } = matter(markdown);
+function isDateString(str: string): boolean {
+    return /^\d{4}-\d{2}-\d{2}/.test(str);
+}
 
-    return {
-        meta: {
-            title: data.title ?? fallbackTitle,
-            tags: Array.isArray(data.tags) ? data.tags : [],
-            status: data.status ?? 'draft',
-            priority: data.priority ?? 'medium',
-            createdAt: data.createdAt,
-            updatedAt: data.updatedAt,
-        },
-        content,
-    };
+function parseIdeaFrontMatter(markdown: string, fallbackTitle?: string): { meta: IdeaModel['metaDto']; content: string } {
+    try {
+        const { data, content } = matter(markdown);
+        const title = data.title && typeof data.title === 'string' && !isDateString(data.title)
+            ? data.title
+            : fallbackTitle;
+
+        return {
+            meta: {
+                title,
+                tags: Array.isArray(data.tags) ? data.tags : [],
+                status: data.status ?? 'draft',
+                priority: data.priority ?? 'medium',
+                createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
+                updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
+            },
+            content,
+        };
+    } catch {
+        return {
+            meta: {
+                title: fallbackTitle,
+                tags: [],
+                status: 'draft',
+                priority: 'medium',
+            },
+            content: markdown,
+        };
+    }
 }
 
 export abstract class Idea {

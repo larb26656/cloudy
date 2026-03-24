@@ -9,7 +9,7 @@ export function apiResponseToArtifact(data: ArtifactModel['artifactDto']): Artif
 
   return {
     id: data.path,
-    name: data.name,
+    name: meta.title || data.name,
     markdown: stringifyArtifactFrontMatter({
       ...meta,
       createdAt: toISOString(meta.createdAt),

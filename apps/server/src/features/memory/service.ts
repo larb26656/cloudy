@@ -4,18 +4,35 @@ import { resourceConfig } from '../../config'
 import { readdir } from "node:fs/promises";
 import matter from 'gray-matter';
 
-function parseMemoryFrontMatter(markdown: string, fallbackTitle?: string): { meta: MemoryModel['metaDto']; content: string } {
-    const { data, content } = matter(markdown);
+function isDateString(str: string): boolean {
+    return /^\d{4}-\d{2}-\d{2}/.test(str);
+}
 
-    return {
-        meta: {
-            title: data.title ?? fallbackTitle,
-            tags: Array.isArray(data.tags) ? data.tags : [],
-            createdAt: data.createdAt,
-            updatedAt: data.updatedAt,
-        },
-        content,
-    };
+function parseMemoryFrontMatter(markdown: string, fallbackTitle?: string): { meta: MemoryModel['metaDto']; content: string } {
+    try {
+        const { data, content } = matter(markdown);
+        const title = data.title && typeof data.title === 'string' && !isDateString(data.title)
+            ? data.title
+            : fallbackTitle;
+
+        return {
+            meta: {
+                title,
+                tags: Array.isArray(data.tags) ? data.tags : [],
+                createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
+                updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
+            },
+            content,
+        };
+    } catch {
+        return {
+            meta: {
+                title: fallbackTitle,
+                tags: [],
+            },
+            content: markdown,
+        };
+    }
 }
 
 export abstract class Memory {
