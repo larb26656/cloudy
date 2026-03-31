@@ -22,17 +22,6 @@ describe('generateIdeaPath', () => {
         expect(result).toMatch(/^\d+_hello-world-2024$/);
     });
 
-    test('should_handle_empty_title', () => {
-        const before = Date.now();
-        const result = generateIdeaPath();
-        const after = Date.now();
-
-        expect(result).toMatch(/^\d+$/);
-        const timestamp = parseInt(result, 10);
-        expect(timestamp).toBeGreaterThanOrEqual(before);
-        expect(timestamp).toBeLessThanOrEqual(after);
-    });
-
     test('should_trim_leading_and_trailing_dashes', () => {
         const result = generateIdeaPath('  Test Idea  ');
         expect(result).toMatch(/^\d+_test-idea$/);
@@ -92,7 +81,7 @@ describe('IdeaService', () => {
 
             const first = result[0]!;
             expect(result.length).toBe(1);
-            expect(first.name).toBe('test-idea');
+            expect(first.title).toBe('Test Idea');
             expect(first.path).toBe('test-idea');
             expect(first.content).toBe('# Test Content');
             expect(ideaFile.getFile.spy()).toHaveBeenCalledWith('test-idea', 'index.md');
@@ -212,11 +201,14 @@ describe('IdeaService', () => {
             ideaFile.listIdeaFiles.mockResolvedValue([mockFileMeta]);
 
             // Act
-            await service.createIdea({});
+            await service.createIdea({
+                title: 'New idea'
+            });
 
             // Assert
             expect(repository.create.spy()).toHaveBeenCalledWith(
                 expect.objectContaining({
+                    title: 'New idea',
                     tags: [],
                     status: 'draft',
                     priority: 'medium',
@@ -263,7 +255,7 @@ describe('IdeaService', () => {
             // Assert
             expect(ideaFile.getFile.spy()).toHaveBeenCalledWith('test-idea', 'index.md');
             expect(ideaFile.listIdeaFiles.spy()).toHaveBeenCalledWith('test-idea');
-            expect(result.name).toBe('test-idea');
+            expect(result.title).toBe('Test Idea');
             expect(result.path).toBe('test-idea');
             expect(result.content).toBe('# Test Content');
             expect(result.meta.title).toBe('Test Idea');

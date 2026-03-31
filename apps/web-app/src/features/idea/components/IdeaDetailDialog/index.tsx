@@ -40,7 +40,7 @@ const ideaApi = apiClient.api.idea as any;
 
 const MOCK_IDEA_DETAIL: IdeaDetail = {
   id: CREATE_IDEA_ID,
-  name: "",
+  name: "temp",
   path: "",
   content: "",
   files: [{ name: "index.md", path: "", size: 0 }],
@@ -317,7 +317,7 @@ export function IdeaDetailDialog({
       if (!idea.path) {
         // add idea
         const { data, error } = await ideaApi.post({
-          title: idea.name || undefined,
+          title: idea.name,
           status: idea.meta.status,
           priority: idea.meta.priority,
           tags: idea.meta.tags,
@@ -389,9 +389,7 @@ export function IdeaDetailDialog({
       }
     } catch (err) {
       setIdea({ ...idea, files: prevFiles });
-      toast.error(
-        err instanceof Error ? err.message : "Failed to create file",
-      );
+      toast.error(err instanceof Error ? err.message : "Failed to create file");
     }
   };
 

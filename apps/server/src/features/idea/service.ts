@@ -5,7 +5,7 @@ import { IdeaFile } from './file/service';
 import { IDEA_INDEX_FILE } from './types';
 import type { IdeaQuery } from './types';
 
-export function generateIdeaPath(title?: string): string {
+export function generateIdeaPath(title: string): string {
     const timestamp = Date.now();
     const slug = title
         ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
