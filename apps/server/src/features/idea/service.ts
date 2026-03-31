@@ -52,7 +52,7 @@ export class Idea {
         return { success: true };
     }
 
-    async patchMeta(ideaPath: string, updates: IdeaModel["ideaMetaUpdateDto"]): Promise<IdeaModel["ideaDto"]> {
+    async patchMeta(ideaPath: string, updates: IdeaModel["ideaMetaUpdateDto"]): Promise<IdeaModel["ideaDetailDto"]> {
         const existing = await this.repository.findByPath(ideaPath);
 
         if (!existing) {
@@ -80,7 +80,7 @@ export class Idea {
         const files = await this.ideaFile.listIdeaFiles(ideaPath);
 
         return {
-            name: ideaPath,
+            title: record.title,
             path: ideaPath,
             content: file.content,
             files,
@@ -113,7 +113,7 @@ export class Idea {
                 const file = await this.ideaFile.getFile(record.path, IDEA_INDEX_FILE);
 
                 result.push({
-                    name: record.path,
+                    title: record.title,
                     path: record.path,
                     content: file.content,
                     meta: {
@@ -125,7 +125,9 @@ export class Idea {
                         updatedAt: new Date(record.updated_at),
                     },
                 });
-            } catch {
+            } catch (err) {
+                console.log(err)
+
                 continue;
             }
         }

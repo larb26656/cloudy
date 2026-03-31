@@ -156,3 +156,41 @@ ESLint config: `eslint.config.js` with:
 | `mermaid` | Diagrams |
 | `diff2html` | Diff viewing |
 | `highlight.js` | Syntax highlighting |
+| `sonner` | Toast notifications |
+
+## Toast Notifications (Sonner)
+
+Use `sonner` for toast notifications (e.g., form errors, success messages).
+
+```typescript
+import { toast } from "@/components/ui/sonner"
+
+toast.success("Event has been created.")
+toast.error("Failed to submit form")
+toast.warning("Are you sure?")
+toast.info("Here's a tip...")
+toast.promise(promise, { success: "Done!", error: "Failed" })
+```
+
+The `Toaster` component is already added to `main.tsx`.
+
+## Global Loading Overlay
+
+Use `useLoadingStore` for form submission loading states.
+
+```typescript
+import { useLoadingStore } from "@/stores/loadingStore"
+
+const { showLoader, hideLoader } = useLoadingStore()
+
+const handleSubmit = async () => {
+  showLoader("กำลังบันทึก...")
+  try {
+    await saveData()
+  } finally {
+    hideLoader()
+  }
+}
+```
+
+The `LoadingOverlay` component is automatically rendered at root level via `routes/__root.tsx`.

@@ -1,15 +1,14 @@
-import { useEffect, useState, useMemo, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { Plus, Lightbulb, Search } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
-import { useIdeaUIStore, filterIdeas } from "@/features/idea/store/ideaStore";
+import { useIdeaUIStore } from "@/features/idea/store/ideaStore";
+import { useLoadingStore } from "@/stores/loadingStore";
 import {
   IdeaCard,
-  CreateIdeaDialog,
-  IdeaDetailSheet,
+  IdeaDetailDialog,
+  CREATE_IDEA_ID,
 } from "@/features/idea/components";
 import { Header } from "@/components/layout";
-import { apiResponseToIdea } from "@/features/idea/api";
-import { stringifyIdeaFrontMatter } from "@/lib/front-matter";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,8 +17,11 @@ import {
   InputGroupAddon,
 } from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "@/components/ui/sonner";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import type { IdeaModel } from "@cloudy/contracts";
-import type { Idea } from "@/features/idea/types";
+import type { Idea, IdeaDetail } from "@/features/idea/types";
+import { apiResponseToIdeaListItem } from "./types";
 
 const filterOptions: Array<{
   value: IdeaModel["ideaStatus"] | "all";
@@ -41,16 +43,42 @@ export default function IdeaPage() {
     selectedIdeaId,
     selectIdea,
   } = useIdeaUIStore();
+  const { showLoader, hideLoader, isLoading } = useLoadingStore();
   const [ideas, setIdeas] = useState<Idea[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const [inputValue, setInputValue] = useState(searchQuery);
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
+
+  const openIdeaId = isCreating ? CREATE_IDEA_ID : selectedIdeaId;
 
   const loadIdeas = useCallback(async () => {
-    setIsLoading(true);
+    showLoader();
     setError(null);
     try {
+      const query: IdeaModel["querySchema"] = {
+        order: "updatedAt:desc",
+      };
+      if (searchQuery.trim()) {
+        query.q = searchQuery.trim();
+      }
+      if (filterStatus !== "all") {
+        query.status = filterStatus;
+      }
       const { data, error: apiError } = await apiClient.api.idea.get({
-        query: { order: "updatedAt:desc" },
+        query,
       });
       if (apiError) {
         const message =
@@ -59,79 +87,76 @@ export default function IdeaPage() {
             : apiError.value?.message || "Failed to load ideas";
         setError(message);
         setIdeas([]);
+        toast.error(message);
         return;
       }
-      setIdeas((data || []).map(apiResponseToIdea));
+      setIdeas((data || []).map(apiResponseToIdeaListItem));
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to load ideas";
       setError(message);
       setIdeas([]);
+      toast.error(message);
     } finally {
-      setIsLoading(false);
+      hideLoader();
     }
-  }, []);
+  }, [searchQuery, filterStatus]);
 
   useEffect(() => {
     loadIdeas();
   }, [loadIdeas]);
 
-  const createIdea = useCallback((ideaData: Omit<Idea, "id" | "meta">) => {
-    const now = new Date().toISOString();
-    const meta: Idea["meta"] = {
-      title: ideaData.name,
-      tags: [],
-      status: "draft",
-      priority: "medium",
-      createdAt: now,
-      updatedAt: now,
-    };
-
-    const markdown = stringifyIdeaFrontMatter(
-      meta,
-      ideaData.description || ideaData.name,
-    );
-
-    const newIdea: Idea = {
-      id: crypto.randomUUID(),
-      name: ideaData.name,
-      folder: "",
-      description: ideaData.description || "",
-      markdown,
-      files: [],
-      meta,
-    };
-
-    setIdeas((prev) => [newIdea, ...prev]);
-    return newIdea;
+  const handleDeleteClick = useCallback((id: string, name: string) => {
+    setDeleteConfirmDialog({ id, name });
   }, []);
 
-  const deleteIdea = useCallback(
-    (id: string) => {
-      setIdeas((prev) => prev.filter((i) => i.id !== id));
-      if (selectedIdeaId === id) selectIdea(null);
+  const confirmDelete = useCallback(async () => {
+    if (!deleteConfirmDialog) return;
+    try {
+      const { error: apiError } = await (apiClient.api.idea as any)[
+        deleteConfirmDialog.id
+      ].delete();
+      if (apiError) {
+        const message =
+          typeof apiError === "string"
+            ? apiError
+            : apiError?.message || "Failed to delete idea";
+        toast.error(message);
+        return;
+      }
+      setIdeas((prev) => prev.filter((i) => i.id !== deleteConfirmDialog.id));
+      if (selectedIdeaId === deleteConfirmDialog.id) selectIdea(null);
+      toast.success("Idea deleted");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete idea");
+    } finally {
+      setDeleteConfirmDialog(null);
+    }
+  }, [deleteConfirmDialog, selectedIdeaId, selectIdea]);
+
+  const handleIdeaCreated = useCallback(
+    (created: IdeaDetail) => {
+      setIsCreating(false);
+      loadIdeas();
+      selectIdea(created.id);
     },
-    [selectedIdeaId, selectIdea],
+    [loadIdeas, selectIdea],
   );
 
-  const filteredIdeas = useMemo(
-    () => filterIdeas(ideas, searchQuery, filterStatus),
-    [ideas, searchQuery, filterStatus],
-  );
-  const selectedIdea = ideas.find((i) => i.id === selectedIdeaId);
+  const handleCreateClick = useCallback(() => {
+    setIsCreating(true);
+  }, []);
 
-  const handleCreate = (ideaData: Parameters<typeof createIdea>[0]) => {
-    const newIdea = createIdea(ideaData);
-    selectIdea(newIdea.id);
-  };
+  const handleCloseDialog = useCallback(() => {
+    setIsCreating(false);
+    selectIdea(null);
+  }, [selectIdea]);
 
   return (
     <>
       <div className="flex h-screen flex-col">
-        {/* Header */}
         <Header title="Ideas" showRefresh={false} />
 
-        {/* Search + Filter */}
         <div className="flex flex-col gap-2 border-b p-4">
           <InputGroup>
             <InputGroupAddon>
@@ -139,22 +164,37 @@ export default function IdeaPage() {
             </InputGroupAddon>
             <InputGroupInput
               placeholder="Search ideas..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              value={inputValue}
+              onChange={(e) => {
+                const value = e.target.value;
+                setInputValue(value);
+                if (debounceRef.current) {
+                  clearTimeout(debounceRef.current);
+                }
+                debounceRef.current = setTimeout(() => {
+                  setSearchQuery(value);
+                }, 300);
+              }}
             />
-            {searchQuery && (
+            {inputValue && (
               <InputGroupAddon align="inline-end">
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  onClick={() => setSearchQuery("")}
+                  onClick={() => {
+                    setInputValue("");
+                    setSearchQuery("");
+                    if (debounceRef.current) {
+                      clearTimeout(debounceRef.current);
+                    }
+                  }}
                 >
                   ×
                 </Button>
               </InputGroupAddon>
             )}
           </InputGroup>
-          <div className="flex gap-1 overflow-x-auto">
+          <div className="flex gap-1 overflow-x-auto items-center">
             {filterOptions.map((option) => (
               <Button
                 key={option.value}
@@ -165,10 +205,12 @@ export default function IdeaPage() {
                 {option.label}
               </Button>
             ))}
+            <Button size="sm" onClick={handleCreateClick} className="ml-auto">
+              <Plus className="size-4" />
+            </Button>
           </div>
         </div>
 
-        {/* Scrollable content */}
         <div className="flex-1 overflow-auto">
           <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-3">
             {isLoading ? (
@@ -183,7 +225,7 @@ export default function IdeaPage() {
               <div className="col-span-full">
                 <ErrorState message={error} onRetry={loadIdeas} />
               </div>
-            ) : filteredIdeas.length === 0 ? (
+            ) : ideas.length === 0 ? (
               <div className="col-span-full flex flex-col items-center justify-center py-12 text-center">
                 <Lightbulb className="size-12 text-muted-foreground" />
                 <h3 className="mt-4 text-lg font-medium">No ideas found</h3>
@@ -193,40 +235,38 @@ export default function IdeaPage() {
                     : "Capture your first idea to get started"}
                 </p>
                 {!searchQuery && filterStatus === "all" && (
-                  <Button className="mt-4" onClick={() => {}}>
+                  <Button className="mt-4" onClick={handleCreateClick}>
                     <Plus className="mr-2 size-4" />
                     Create Idea
                   </Button>
                 )}
               </div>
             ) : (
-              filteredIdeas.map((idea) => (
+              ideas.map((idea) => (
                 <IdeaCard
                   key={idea.id}
                   idea={idea}
                   isSelected={idea.id === selectedIdeaId}
                   onSelect={() => selectIdea(idea.id)}
-                  onDelete={() => deleteIdea(idea.id)}
+                  onDelete={() => handleDeleteClick(idea.id, idea.name)}
                 />
               ))
             )}
           </div>
         </div>
       </div>
-      <IdeaDetailSheet
-        idea={selectedIdea || null}
-        onClose={() => selectIdea(null)}
-        onIdeaUpdated={(updatedIdea) => {
-          setIdeas((prev) =>
-            prev.map((i) => (i.id === updatedIdea.id ? updatedIdea : i))
-          );
-        }}
+
+      <IdeaDetailDialog
+        ideaId={openIdeaId}
+        onClose={handleCloseDialog}
+        onIdeaUpdated={loadIdeas}
+        onIdeaCreated={handleIdeaCreated}
       />
 
-      <CreateIdeaDialog
-        open={false}
-        onOpenChange={() => {}}
-        onCreate={handleCreate}
+      <DeleteConfirmDialog
+        item={deleteConfirmDialog}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirmDialog(null)}
       />
     </>
   );

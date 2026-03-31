@@ -5,7 +5,7 @@ export type IdeaPriority = 'low' | 'medium' | 'high';
 
 export interface IdeaRecord {
     id: string;
-    title: string | null;
+    title: string;
     tags: string[];
     status: IdeaStatus;
     priority: IdeaPriority;

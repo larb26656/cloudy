@@ -5,7 +5,7 @@ import { ideaFileService } from '../../../container'
 
 export const ideaFile = new Elysia({ prefix: '/idea/:ideaPath/files' })
     .get('/:filename', async ({ params: { ideaPath, filename } }) => {
-        return await ideaFileService.getFile(`${ideaPath}/${filename}`);
+        return await ideaFileService.getFile(ideaPath, filename);
     }, {
         response: {
             200: fileModelSchema.fileDto,

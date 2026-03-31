@@ -27,13 +27,13 @@ export const ideaModelSchema = {
     ideaPriority,
     metaDto: ideaMetaDto,
     ideaDto: t.Object({
-        name: t.String(),
+        title: t.String(),
         path: t.String(),
         content: t.String(),
         meta: ideaMetaDto,
     }),
     ideaDetailDto: t.Object({
-        name: t.String(),
+        title: t.String(),
         path: t.String(),
         content: t.String(),
         files: t.Array(t.Object({

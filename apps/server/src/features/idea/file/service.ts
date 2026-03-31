@@ -21,6 +21,7 @@ export class IdeaFile {
 
     async getFile(ideaPath: string, filename: string = IDEA_INDEX_FILE): Promise<FileModel["fileDto"]> {
         const fullPath = `${resourceConfig.idea}/${ideaPath}/${filename}`;
+        // console.log(fullPath);
         const file = Bun.file(fullPath);
 
         if (!await file.exists()) {

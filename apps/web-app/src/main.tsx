@@ -5,7 +5,8 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
-import { TooltipProvider } from "./components/ui/tooltip";
+import { TooltipProvider } from "./components/ui/tooltip"
+import { Toaster } from "./components/ui/sonner";
 
 // Create a new router instance
 const router = createRouter({ routeTree });
@@ -24,8 +25,8 @@ if (!rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <TooltipProvider>
-        {" "}
         <RouterProvider router={router} />
+        <Toaster />
       </TooltipProvider>
     </StrictMode>,
   );

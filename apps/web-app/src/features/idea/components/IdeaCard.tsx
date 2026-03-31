@@ -87,8 +87,8 @@ export function IdeaCard({
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">
         <Clock className="mr-1 size-3" />
-        Created {formatDate(idea.meta.createdAt)}
-        {idea.meta.updatedAt !== idea.meta.createdAt && (
+        Created {formatDate(idea.meta.createdAt || '')}
+        {idea.meta.updatedAt && idea.meta.updatedAt !== idea.meta.createdAt && (
           <span className="ml-2">
             - Updated {formatDate(idea.meta.updatedAt)}
           </span>
