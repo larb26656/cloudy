@@ -1,14 +1,53 @@
 import { describe, test, expect, beforeEach } from 'bun:test';
 import { mockFn, type MockProxy } from 'bun-automock';
-import { Idea } from '../../../src/features/idea/service';
+import { Idea, generateIdeaPath } from '../../../src/features/idea/service';
 import type { IdeaRecord } from '../../../src/features/idea/types';
 import type { IdeaRepository } from '../../../src/features/idea/repository';
 import type { IdeaFile } from '../../../src/features/idea/file/service';
 
+describe('generateIdeaPath', () => {
+    test('should_generate_path_with_timestamp_and_slug', () => {
+        const before = Date.now();
+        const result = generateIdeaPath('My New Idea');
+        const after = Date.now();
+
+        expect(result).toMatch(/^\d+_my-new-idea$/);
+        const timestamp = parseInt(result.split('_')[0]!, 10);
+        expect(timestamp).toBeGreaterThanOrEqual(before);
+        expect(timestamp).toBeLessThanOrEqual(after);
+    });
+
+    test('should_handle_special_characters_in_title', () => {
+        const result = generateIdeaPath('Hello! World? @2024');
+        expect(result).toMatch(/^\d+_hello-world-2024$/);
+    });
+
+    test('should_handle_empty_title', () => {
+        const before = Date.now();
+        const result = generateIdeaPath();
+        const after = Date.now();
+
+        expect(result).toMatch(/^\d+$/);
+        const timestamp = parseInt(result, 10);
+        expect(timestamp).toBeGreaterThanOrEqual(before);
+        expect(timestamp).toBeLessThanOrEqual(after);
+    });
+
+    test('should_trim_leading_and_trailing_dashes', () => {
+        const result = generateIdeaPath('  Test Idea  ');
+        expect(result).toMatch(/^\d+_test-idea$/);
+    });
+
+    test('should_handle_multiple_spaces', () => {
+        const result = generateIdeaPath('Hello    World   Test');
+        expect(result).toMatch(/^\d+_hello-world-test$/);
+    });
+});
+
 const mockIdeaRecord: IdeaRecord = {
     id: 'idea-123',
     title: 'Test Idea',
-    path: 'test-idea/index.md',
+    path: 'test-idea',
     status: 'draft',
     priority: 'medium',
     tags: ['test', 'idea'],
@@ -21,6 +60,12 @@ const mockFileMeta = {
     path: 'test-idea/index.md',
     size: 100,
     updatedAt: new Date('2024-01-01T00:00:00Z'),
+};
+
+const mockFileDto = {
+    name: 'index.md',
+    path: 'test-idea/index.md',
+    content: '# Test Content',
 };
 
 describe('IdeaService', () => {
@@ -38,7 +83,7 @@ describe('IdeaService', () => {
         test('should_return_list_of_ideas', async () => {
             // Arrange
             repository.findAll.mockResolvedValue([mockIdeaRecord]);
-            ideaFile.getFile.mockResolvedValue({ name: 'index.md', path: mockIdeaRecord.path, content: '# Test Idea' });
+            ideaFile.getFile.mockResolvedValue(mockFileDto);
 
             // Act
             const result = await service.listIdeas();
@@ -48,8 +93,9 @@ describe('IdeaService', () => {
             const first = result[0]!;
             expect(result.length).toBe(1);
             expect(first.name).toBe('test-idea');
-            expect(first.path).toBe('test-idea/index.md');
-            expect(first.content).toBe('# Test Idea');
+            expect(first.path).toBe('test-idea');
+            expect(first.content).toBe('# Test Content');
+            expect(ideaFile.getFile.spy()).toHaveBeenCalledWith('test-idea', 'index.md');
             expect(first.meta.title).toBe('Test Idea');
             expect(first.meta.status).toBe('draft');
             expect(first.meta.priority).toBe('medium');
@@ -71,7 +117,7 @@ describe('IdeaService', () => {
         test('should_pass_status_filter_to_repository', async () => {
             // Arrange
             repository.findAll.mockResolvedValue([mockIdeaRecord]);
-            ideaFile.getFile.mockResolvedValue({ name: 'index.md', path: mockIdeaRecord.path, content: '# Test' });
+            ideaFile.getFile.mockResolvedValue(mockFileDto);
 
             // Act
             await service.listIdeas({ status: 'draft' });
@@ -85,7 +131,7 @@ describe('IdeaService', () => {
         test('should_pass_priority_filter_to_repository', async () => {
             // Arrange
             repository.findAll.mockResolvedValue([mockIdeaRecord]);
-            ideaFile.getFile.mockResolvedValue({ name: 'index.md', path: mockIdeaRecord.path, content: '# Test' });
+            ideaFile.getFile.mockResolvedValue(mockFileDto);
 
             // Act
             await service.listIdeas({ priority: 'high' });
@@ -99,7 +145,7 @@ describe('IdeaService', () => {
         test('should_pass_tags_filter_to_repository', async () => {
             // Arrange
             repository.findAll.mockResolvedValue([mockIdeaRecord]);
-            ideaFile.getFile.mockResolvedValue({ name: 'index.md', path: mockIdeaRecord.path, content: '# Test' });
+            ideaFile.getFile.mockResolvedValue(mockFileDto);
 
             // Act
             await service.listIdeas({ tags: ['test'] });
@@ -113,7 +159,7 @@ describe('IdeaService', () => {
         test('should_pass_query_search_to_repository', async () => {
             // Arrange
             repository.findAll.mockResolvedValue([mockIdeaRecord]);
-            ideaFile.getFile.mockResolvedValue({ name: 'index.md', path: mockIdeaRecord.path, content: '# Test' });
+            ideaFile.getFile.mockResolvedValue(mockFileDto);
 
             // Act
             await service.listIdeas({ q: 'test' });
@@ -128,38 +174,54 @@ describe('IdeaService', () => {
     describe('createIdea', () => {
         test('should_create_folder_and_index_file', async () => {
             // Arrange
-            repository.exists.mockResolvedValue(false);
             ideaFile.createIdeaDirectory.mockResolvedValue();
             repository.create.mockResolvedValue(mockIdeaRecord);
             repository.findByPath.mockResolvedValue(mockIdeaRecord);
-            ideaFile.getFile.mockResolvedValue({ name: 'index.md', path: 'new-idea/index.md', content: '# New Idea' });
+            ideaFile.getFile.mockResolvedValue(mockFileDto);
             ideaFile.listIdeaFiles.mockResolvedValue([mockFileMeta]);
 
             // Act
-            const result = await service.createIdea('new-idea');
+            const result = await service.createIdea({ title: 'New Idea', content: '# New Idea' });
 
             // Assert
-            expect(ideaFile.createIdeaDirectory.spy()).toHaveBeenCalledWith('new-idea');
+            const createdPath = ideaFile.createIdeaDirectory.spy().mock.calls[0]![0];
+            expect(typeof createdPath).toBe('string');
+            expect(createdPath.length).toBeGreaterThan(0);
+            expect(ideaFile.createIdeaDirectory.spy()).toHaveBeenCalledWith(
+                expect.any(String),
+                '# New Idea'
+            );
             expect(repository.create.spy()).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    title: 'new-idea',
-                    path: 'new-idea/index.md',
+                    title: 'New Idea',
+                    tags: [],
                     status: 'draft',
                     priority: 'medium',
                 })
             );
-            expect(ideaFile.getFile.spy()).toHaveBeenCalledWith('new-idea/index.md');
-            expect(repository.findByPath.spy()).toHaveBeenCalledWith('new-idea/index.md');
-            expect(ideaFile.listIdeaFiles.spy()).toHaveBeenCalledWith('new-idea');
-            expect(result.name).toBe('new-idea');
+            expect(repository.create.spy().mock.calls[0]![0]!.path).toBe(createdPath);
+            expect(repository.create.spy().mock.calls[0]![0]!.id).toBe(createdPath);
         });
 
-        test('should_throw_400_when_idea_already_exists', async () => {
+        test('should_use_defaults_when_optional_fields_not_provided', async () => {
             // Arrange
-            repository.exists.mockResolvedValue(true);
+            ideaFile.createIdeaDirectory.mockResolvedValue();
+            repository.create.mockResolvedValue(mockIdeaRecord);
+            repository.findByPath.mockResolvedValue(mockIdeaRecord);
+            ideaFile.getFile.mockResolvedValue(mockFileDto);
+            ideaFile.listIdeaFiles.mockResolvedValue([mockFileMeta]);
 
-            // Act & Assert
-            await expect(service.createIdea('existing-idea')).rejects.toMatchObject({ code: 400 });
+            // Act
+            await service.createIdea({});
+
+            // Assert
+            expect(repository.create.spy()).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    tags: [],
+                    status: 'draft',
+                    priority: 'medium',
+                })
+            );
         });
     });
 
@@ -176,7 +238,7 @@ describe('IdeaService', () => {
             // Assert
             expect(result).toEqual({ success: true });
             expect(ideaFile.deleteIdeaDirectory.spy()).toHaveBeenCalledWith('test-idea');
-            expect(repository.deleteByPath.spy()).toHaveBeenCalledWith('test-idea/index.md');
+            expect(repository.deleteByPath.spy()).toHaveBeenCalledWith('test-idea');
         });
 
         test('should_throw_404_when_idea_not_found', async () => {
@@ -192,26 +254,27 @@ describe('IdeaService', () => {
         test('should_read_file_and_return_idea_with_meta', async () => {
             // Arrange
             repository.findByPath.mockResolvedValue(mockIdeaRecord);
-            ideaFile.getFile.mockResolvedValue({ name: 'index.md', path: 'test-idea/index.md', content: '# Test Content' });
+            ideaFile.getFile.mockResolvedValue(mockFileDto);
             ideaFile.listIdeaFiles.mockResolvedValue([mockFileMeta]);
 
             // Act
-            const result = await service.getIdea('test-idea/some-file.md');
+            const result = await service.getIdea('test-idea');
 
             // Assert
-            expect(ideaFile.getFile.spy()).toHaveBeenCalledWith('test-idea/index.md');
+            expect(ideaFile.getFile.spy()).toHaveBeenCalledWith('test-idea', 'index.md');
             expect(ideaFile.listIdeaFiles.spy()).toHaveBeenCalledWith('test-idea');
             expect(result.name).toBe('test-idea');
+            expect(result.path).toBe('test-idea');
             expect(result.content).toBe('# Test Content');
             expect(result.meta.title).toBe('Test Idea');
         });
 
-        test('should_throw_404_when_idea_file_not_found', async () => {
+        test('should_throw_404_when_idea_not_found', async () => {
             // Arrange
             repository.findByPath.mockResolvedValue(null);
 
             // Act & Assert
-            await expect(service.getIdea('non-existent/index.md')).rejects.toMatchObject({ code: 404 });
+            await expect(service.getIdea('non-existent')).rejects.toMatchObject({ code: 404 });
         });
     });
 
@@ -225,7 +288,7 @@ describe('IdeaService', () => {
             };
             repository.findByPath.mockResolvedValue(updatedRecord);
             repository.updateByPath.mockResolvedValue(updatedRecord);
-            ideaFile.getFile.mockResolvedValue({ name: 'index.md', path: 'test-idea/index.md', content: '# Test Content' });
+            ideaFile.getFile.mockResolvedValue(mockFileDto);
             ideaFile.listIdeaFiles.mockResolvedValue([mockFileMeta]);
 
             // Act
@@ -233,10 +296,10 @@ describe('IdeaService', () => {
 
             // Assert
             expect(repository.updateByPath.spy()).toHaveBeenCalledWith(
-                'test-idea/index.md',
+                'test-idea',
                 expect.objectContaining({ title: 'Updated Title', status: 'in-progress' })
             );
-            expect(ideaFile.getFile.spy()).toHaveBeenCalledWith('test-idea/index.md');
+            expect(ideaFile.getFile.spy()).toHaveBeenCalledWith('test-idea', 'index.md');
             expect(result.meta!.title).toBe('Updated Title');
         });
 

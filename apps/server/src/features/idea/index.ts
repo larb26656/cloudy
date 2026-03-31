@@ -22,11 +22,9 @@ export const idea = new Elysia({ prefix: '/idea' })
         }
     })
     .post('/', async ({ body }) => {
-        return await ideaService.createIdea(body.ideaPath);
+        return await ideaService.createIdea(body);
     }, {
-        body: t.Object({
-            ideaPath: t.String(),
-        }),
+        body: ideaModelSchema.ideaCreateDto,
         response: {
             200: ideaModelSchema.ideaDetailDto,
             400: t.String(),

@@ -76,6 +76,13 @@ export const ideaModelSchema = {
         status: t.Optional(ideaStatus),
         priority: t.Optional(ideaPriority),
     }),
+    ideaCreateDto: t.Object({
+        title: t.Optional(t.String()),
+        tags: t.Optional(t.Array(t.String())),
+        status: t.Optional(ideaStatus),
+        priority: t.Optional(ideaPriority),
+        content: t.Optional(t.String()),
+    }),
 } as const
 
 export const IdeaModel = ideaModelSchema

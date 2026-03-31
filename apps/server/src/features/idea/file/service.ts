@@ -1,6 +1,7 @@
 import { status } from 'elysia'
 import { FileModel } from './model'
 import { resourceConfig } from '../../../config'
+import { IDEA_INDEX_FILE } from '../types';
 import { readdir, stat, rm, mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { IdeaRepository } from '../repository';
@@ -18,8 +19,8 @@ export class IdeaFile {
         };
     }
 
-    async getFile(filePath: string): Promise<FileModel["fileDto"]> {
-        const fullPath = `${resourceConfig.idea}/${filePath}`;
+    async getFile(ideaPath: string, filename: string = IDEA_INDEX_FILE): Promise<FileModel["fileDto"]> {
+        const fullPath = `${resourceConfig.idea}/${ideaPath}/${filename}`;
         const file = Bun.file(fullPath);
 
         if (!await file.exists()) {
@@ -27,12 +28,10 @@ export class IdeaFile {
         }
 
         const rawContent = await file.text();
-        const parts = filePath.split('/');
-        const filename = parts.pop() || '';
 
         return {
             name: filename,
-            path: filePath,
+            path: `${ideaPath}/${filename}`,
             content: rawContent,
         };
     }
@@ -117,7 +116,7 @@ export class IdeaFile {
         return { success: true };
     }
 
-    async createIdeaDirectory(ideaPath: string): Promise<void> {
+    async createIdeaDirectory(ideaPath: string, content: string = ''): Promise<void> {
         const ideaFolder = `${resourceConfig.idea}/${ideaPath}`;
 
         try {
@@ -132,7 +131,7 @@ export class IdeaFile {
         await mkdir(ideaFolder, { recursive: true });
 
         const indexPath = `${ideaFolder}/index.md`;
-        await Bun.write(indexPath, '');
+        await Bun.write(indexPath, content);
     }
 
     async deleteIdeaDirectory(ideaPath: string): Promise<void> {

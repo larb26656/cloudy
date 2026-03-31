@@ -1,3 +1,5 @@
+export const IDEA_INDEX_FILE = 'index.md';
+
 export type IdeaStatus = 'draft' | 'in-progress' | 'completed' | 'archived';
 export type IdeaPriority = 'low' | 'medium' | 'high';
 

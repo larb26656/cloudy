@@ -2,10 +2,15 @@ import { status } from 'elysia'
 import { IdeaModel } from './model'
 import { IdeaRepository } from './repository';
 import { IdeaFile } from './file/service';
+import { IDEA_INDEX_FILE } from './types';
 import type { IdeaQuery } from './types';
 
-function generateId(): string {
-    return crypto.randomUUID();
+export function generateIdeaPath(title?: string): string {
+    const timestamp = Date.now();
+    const slug = title
+        ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        : '';
+    return slug ? `${timestamp}_${slug}` : `${timestamp}`;
 }
 
 export class Idea {
@@ -14,21 +19,21 @@ export class Idea {
         protected ideaFile: IdeaFile,
     ) { }
 
-    async createIdea(ideaPath: string): Promise<IdeaModel["ideaDetailDto"]> {
-        const exists = await this.repository.exists(ideaPath);
-        if (exists) {
-            throw status(400, 'Idea already exists');
-        }
+    async createIdea(
+        input: IdeaModel["ideaCreateDto"],
+    ): Promise<IdeaModel["ideaDetailDto"]> {
+        const ideaPath = generateIdeaPath(input.title);
+        const title = input.title ?? ideaPath;
 
-        await this.ideaFile.createIdeaDirectory(ideaPath);
+        await this.ideaFile.createIdeaDirectory(ideaPath, input.content);
 
-        const id = generateId();
         await this.repository.create({
-            id,
-            title: ideaPath,
-            path: `${ideaPath}/index.md`,
-            status: 'draft',
-            priority: 'medium',
+            id: ideaPath,
+            title,
+            tags: input.tags ?? [],
+            status: input.status ?? 'draft',
+            priority: input.priority ?? 'medium',
+            path: ideaPath,
         });
 
         return await this.getIdea(ideaPath);
@@ -42,20 +47,19 @@ export class Idea {
 
         await this.ideaFile.deleteIdeaDirectory(ideaPath);
 
-        await this.repository.deleteByPath(`${ideaPath}/index.md`);
+        await this.repository.deleteByPath(ideaPath);
 
         return { success: true };
     }
 
     async patchMeta(ideaPath: string, updates: IdeaModel["ideaMetaUpdateDto"]): Promise<IdeaModel["ideaDto"]> {
-        const indexPath = `${ideaPath}/index.md`;
-        const existing = await this.repository.findByPath(indexPath);
+        const existing = await this.repository.findByPath(ideaPath);
 
         if (!existing) {
             throw status(404, 'File not found' satisfies IdeaModel["fileNotFound"]);
         }
 
-        await this.repository.updateByPath(indexPath, {
+        await this.repository.updateByPath(ideaPath, {
             title: updates.title,
             tags: updates.tags,
             status: updates.status,
@@ -65,27 +69,23 @@ export class Idea {
         return await this.getIdea(ideaPath);
     }
 
-    async getIdea(filePath: string): Promise<IdeaModel["ideaDetailDto"]> {
-        const parts = filePath.split('/');
-        const name = parts[0];
-        const indexPath = `${name}/index.md`;
-
-        const record = await this.repository.findByPath(indexPath);
+    async getIdea(ideaPath: string): Promise<IdeaModel["ideaDetailDto"]> {
+        const record = await this.repository.findByPath(ideaPath);
 
         if (!record) {
             throw status(404, 'File not found' satisfies IdeaModel["fileNotFound"]);
         }
 
-        const file = await this.ideaFile.getFile(indexPath);
-        const files = await this.ideaFile.listIdeaFiles(name);
+        const file = await this.ideaFile.getFile(ideaPath, IDEA_INDEX_FILE);
+        const files = await this.ideaFile.listIdeaFiles(ideaPath);
 
         return {
-            name,
-            path: indexPath,
+            name: ideaPath,
+            path: ideaPath,
             content: file.content,
             files,
             meta: {
-                title: record.title || name,
+                title: record.title || ideaPath,
                 tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags || [],
                 status: record.status,
                 priority: record.priority,
@@ -110,14 +110,14 @@ export class Idea {
 
         for (const record of ideas) {
             try {
-                const file = await this.ideaFile.getFile(record.path);
+                const file = await this.ideaFile.getFile(record.path, IDEA_INDEX_FILE);
 
                 result.push({
-                    name: record.path.split('/')[0],
+                    name: record.path,
                     path: record.path,
                     content: file.content,
                     meta: {
-                        title: record.title || record.path.split('/')[0],
+                        title: record.title || record.path,
                         tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags || [],
                         status: record.status,
                         priority: record.priority,

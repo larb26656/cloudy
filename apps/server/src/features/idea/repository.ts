@@ -1,4 +1,5 @@
 import { getDb } from '../../db/client';
+import { IDEA_INDEX_FILE } from './types';
 import type { IdeaRecord, IdeaQuery, CreateIdeaInput, UpdateIdeaInput } from './types';
 
 export class IdeaRepository {
@@ -78,7 +79,7 @@ export class IdeaRepository {
         const db = getDb();
         const result = await db.execute(
             'SELECT 1 FROM ideas WHERE path = ?',
-            [`${ideaPath}/index.md`]
+            [ideaPath]
         );
         return result.rows.length > 0;
     }
@@ -87,7 +88,7 @@ export class IdeaRepository {
         const db = getDb();
         await db.execute(
             'UPDATE ideas SET updated_at = ? WHERE path = ?',
-            [new Date().toISOString(), `${ideaPath}/index.md`]
+            [new Date().toISOString(), ideaPath]
         );
     }
 
@@ -167,8 +168,8 @@ export class IdeaRepository {
         return updated;
     }
 
-    async updateByPath(path: string, input: UpdateIdeaInput): Promise<IdeaRecord> {
-        const existing = await this.findByPath(path);
+    async updateByPath(ideaPath: string, input: UpdateIdeaInput): Promise<IdeaRecord> {
+        const existing = await this.findByPath(ideaPath);
         if (!existing) {
             throw new Error('Idea not found');
         }
@@ -180,8 +181,8 @@ export class IdeaRepository {
         await db.execute('DELETE FROM ideas WHERE id = ?', [id]);
     }
 
-    async deleteByPath(path: string): Promise<void> {
-        const existing = await this.findByPath(path);
+    async deleteByPath(ideaPath: string): Promise<void> {
+        const existing = await this.findByPath(ideaPath);
         if (!existing) {
             throw new Error('Idea not found');
         }
