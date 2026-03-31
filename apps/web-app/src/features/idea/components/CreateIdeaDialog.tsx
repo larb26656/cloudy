@@ -63,6 +63,8 @@ export function CreateIdeaDialog({
       name: name.trim(),
       description: description.trim() || name.trim(),
       markdown: markdown.trim() || `# ${name.trim()}\n\n${description.trim()}`,
+      files: [],
+      folder: "",
     });
 
     setName("");

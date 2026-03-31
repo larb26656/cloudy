@@ -6,16 +6,24 @@ import type { Idea } from "@/features/idea/types";
 export function apiResponseToIdea(data: IdeaModel['ideaDto']): Idea {
   const now = new Date().toISOString();
   const meta = data.meta;
+  const folder = data.path.split('/')[0];
 
   return {
     id: data.path,
     name: meta.title || data.name,
+    folder,
     markdown: stringifyIdeaFrontMatter({
       ...meta,
       createdAt: toISOString(meta.createdAt),
       updatedAt: toISOString(meta.updatedAt),
     }, data.content),
     description: data.content.split("\n")[0]?.replace(/^#+\s*/, "").trim() || data.name,
+    files: (data.files || []).map((f) => ({
+      name: f.name,
+      path: f.path,
+      size: f.size,
+      updatedAt: f.updatedAt ? new Date(f.updatedAt).toISOString() : undefined,
+    })),
     meta: {
       title: meta.title || data.name,
       tags: meta.tags || [],

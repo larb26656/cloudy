@@ -459,3 +459,87 @@ src/
 - Use `calc()` for dynamic spacing
 - Avoid fixed pixel values where possible
 - Test with device emulation in DevTools
+
+---
+
+## 8. Idea System (Multi-File Support)
+
+### 8.1 Overview
+
+The Idea system supports multiple markdown files per idea, allowing users to organize their ideas more effectively.
+
+### 8.2 File Structure
+
+Each idea folder can contain multiple `.md` files:
+
+```
+idea/
+  2026-03-23-idea-index-design/
+    index.md       # Main entry - summary
+    prd.md         # Product requirements
+    architecture.md # Technical design
+    notes.md       # Additional notes
+```
+
+### 8.3 Features
+
+- **Multi-File Support**: Each idea folder can contain multiple `.md` files
+- **In-App Markdown Editor**: Built-in editor with toolbar and preview
+- **File Management**: Create, edit, and delete files within an idea
+- **Split View**: Edit and preview modes with toggle
+- **File Tree Sidebar**: Navigate between files easily
+
+### 8.4 API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/idea` | List all ideas |
+| GET | `/api/idea/:path` | Get idea with file list |
+| GET | `/api/idea/:ideaPath/file/:filename` | Get file content |
+| POST | `/api/idea/:ideaPath/file` | Create new file |
+| PUT | `/api/idea/:ideaPath/file/:filename` | Update file content |
+| DELETE | `/api/idea/:ideaPath/file/:filename` | Delete file |
+
+### 8.5 File Types
+
+```typescript
+interface IdeaFile {
+  name: string;      // e.g., "index.md"
+  path: string;      // e.g., "2026-03-23-idea/index.md"
+  size: number;      // File size in bytes
+  updatedAt?: string; // ISO timestamp
+}
+```
+
+### 8.6 Editor Features
+
+- **Toolbar**: Bold, italic, headings, lists, quotes, code
+- **Preview Mode**: Toggle between edit and preview
+- **Manual Save**: Save button to persist changes
+- **File Management**: Create/delete files from sidebar
+
+### 8.7 Components
+
+```
+src/
+├── components/
+│   ├── markdown/
+│   │   ├── MarkdownEditor.tsx    # Tiptap-based editor
+│   │   └── MarkdownRenderer.tsx   # Preview renderer
+│   └── ui/
+│       └── file-tree-sidebar.tsx  # File navigation
+└── features/
+    └── idea/
+        ├── components/
+        │   └── IdeaDetailSheet.tsx # Main editor interface
+        └── fileApi.ts             # File CRUD operations
+```
+
+---
+
+## Document History
+
+| Version | Date       | Author | Changes |
+| ------- | ---------- | ------ | ------- |
+| 3.0.0   | 2026-03-09 | Luck   | Initial Phase 3 PRD |
+| 3.1.0   | 2026-03-30 | Luck   | Added Idea system documentation |

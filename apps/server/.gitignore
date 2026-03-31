@@ -43,3 +43,6 @@ package-lock.json
 
 base-path/
 public/
+
+# db
+local.db

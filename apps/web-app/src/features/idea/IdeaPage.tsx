@@ -95,8 +95,10 @@ export default function IdeaPage() {
     const newIdea: Idea = {
       id: crypto.randomUUID(),
       name: ideaData.name,
+      folder: "",
       description: ideaData.description || "",
       markdown,
+      files: [],
       meta,
     };
 
@@ -214,6 +216,11 @@ export default function IdeaPage() {
       <IdeaDetailSheet
         idea={selectedIdea || null}
         onClose={() => selectIdea(null)}
+        onIdeaUpdated={(updatedIdea) => {
+          setIdeas((prev) =>
+            prev.map((i) => (i.id === updatedIdea.id ? updatedIdea : i))
+          );
+        }}
       />
 
       <CreateIdeaDialog

@@ -3,14 +3,21 @@
   "version": "1.0.0",
   "scripts": {
     "test": "bun test",
-    "dev": "bun run --watch src/index.ts"
+    "dev": "bun run --watch src/index.ts",
+    "db:migrate": "sqlite3 local.db < src/db/migrations/001_create_ideas.sql",
+    "db:migrate:ideas": "bun run scripts/migrate-ideas-to-db.ts",
+    "db:migrate:clean-meta": "bun run scripts/migrate-separate-meta.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.1",
     "@elysiajs/cron": "^1.4.1",
     "@elysiajs/openapi": "^1.4.14",
     "@elysiajs/static": "^1.4.7",
+    "@libsql/client": "^0.17.2",
+    "@prisma/adapter-better-sqlite3": "^7.6.0",
+    "@prisma/client": "^7.6.0",
     "croner": "6.0.7",
+    "dotenv": "^17.3.1",
     "elysia": "catalog:",
     "gray-matter": "^4.0.3"
   },
@@ -21,5 +28,9 @@
       "types": "./src/exports.ts",
       "default": "./src/index.ts"
     }
+  },
+  "devDependencies": {
+    "@elysiajs/eden": "^1.4.8",
+    "bun-automock": "^0.2.7"
   }
 }
