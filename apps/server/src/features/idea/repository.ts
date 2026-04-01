@@ -1,5 +1,4 @@
 import { getDb } from '../../db/client';
-import { IDEA_INDEX_FILE } from './types';
 import type { IdeaRecord, IdeaQuery, CreateIdeaInput, UpdateIdeaInput } from './types';
 
 export class IdeaRepository {

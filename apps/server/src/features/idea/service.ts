@@ -14,10 +14,13 @@ export function generateIdeaPath(title: string): string {
 }
 
 export class Idea {
-    constructor(
-        protected repository: IdeaRepository,
-        protected ideaFile: IdeaFile,
-    ) { }
+    protected repository: IdeaRepository;
+    protected ideaFile: IdeaFile;
+
+    constructor(repository: IdeaRepository, ideaFile: IdeaFile) {
+        this.repository = repository;
+        this.ideaFile = ideaFile;
+    }
 
     async createIdea(
         input: IdeaModel["ideaCreateDto"],

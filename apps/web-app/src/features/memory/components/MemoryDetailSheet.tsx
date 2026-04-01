@@ -85,7 +85,7 @@ export function MemoryDetailSheet({ memory, onClose }: MemoryDetailSheetProps) {
         <DialogContent className={cn("flex flex-col", SHEET_SIZE_CLASSES)}>
           <DialogHeader className="pb-3 border-b flex-none">
             <DialogTitle>{memory && <Header memory={memory} />}</DialogTitle>
-            <DialogDescription asChild>
+            <DialogDescription>
               {memory && <Description memory={memory} />}
             </DialogDescription>
           </DialogHeader>
@@ -104,7 +104,7 @@ export function MemoryDetailSheet({ memory, onClose }: MemoryDetailSheetProps) {
           <SheetTitle className="flex items-center gap-2">
             {memory && <Header memory={memory} />}
           </SheetTitle>
-          <SheetDescription className="flex items-center gap-2" asChild>
+          <SheetDescription className="flex items-center gap-2">
             {memory && <Description memory={memory} />}
           </SheetDescription>
         </SheetHeader>

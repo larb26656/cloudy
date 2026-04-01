@@ -7,9 +7,11 @@ import path from "node:path";
 import { IdeaRepository } from '../repository';
 
 export class IdeaFile {
-    constructor(
-        protected ideaRepository: IdeaRepository,
-    ) { }
+    protected ideaRepository: IdeaRepository;
+
+    constructor(ideaRepository: IdeaRepository) {
+        this.ideaRepository = ideaRepository;
+    }
 
     private parseFilePath(filePath: string): { ideaPath: string; filename: string } {
         const parts = filePath.split('/');
