@@ -21,8 +21,7 @@
   "workspaces": {
     "packages": [
       "apps/*",
-      "packages/*",
-      ".opencode/*"
+      "packages/*"
     ],
     "catalog": {
       "elysia": "^1.4.28"

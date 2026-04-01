@@ -1,6 +1,7 @@
 import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
 import path from "node:path";
-import { extractIdeaPath, isDestructiveBashOnIdea, isFileIdeaFile, isIdeaIndexMd, IdeaPlugin } from "../../plugin/idea-plugins";
+import { extractIdeaPath, isDestructiveBashOnIdea, isFileIdeaFile, isIdeaIndexMd } from "../../src/plugins/idea-plugins";
+import { IdeaPlugin } from "../../src/plugins/index";
 import type { PluginInput } from "@opencode-ai/plugin";
 
 

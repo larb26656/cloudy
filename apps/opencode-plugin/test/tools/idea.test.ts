@@ -5,14 +5,14 @@ const mockCreateIdea = mock();
 const mockUpdateIdeaMeta = mock();
 const mockDeleteIdea = mock();
 
-mock.module("../../lib/api", () => ({
+mock.module("../../src/lib/api", () => ({
   listIdeas: mockListIdeas,
   createIdea: mockCreateIdea,
   updateIdeaMeta: mockUpdateIdeaMeta,
   deleteIdea: mockDeleteIdea,
 }));
 
-import { list, create, update, remove } from "../../tools/idea";
+import { list, create, update, remove } from "../../src/tools/idea";
 
 const mockContext = {
   sessionID: "test-session",
