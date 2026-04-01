@@ -1,10 +1,10 @@
 import { existsSync } from "node:fs"
 import { mkdir } from "node:fs/promises"
-import { dirname, resolve } from "node:path"
+import { dirname, isAbsolute, resolve } from "node:path"
 
 export function resolveTargetDir(dir?: string): string {
-	const target = dir ? resolve(dir) : process.cwd()
-	return target
+	if (!dir) return process.cwd()
+	return isAbsolute(dir) ? dir : resolve(process.cwd(), dir)
 }
 
 export async function ensureDir(filePath: string): Promise<void> {

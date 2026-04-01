@@ -1,17 +1,23 @@
 import pc from "picocolors"
 
-const LOGO = `
-${pc.cyan("   ____ _                        _       _ _         ")}
-${pc.cyan("  / ___| | __ _ ___ ___  ___  __| | __ _| | |        ")}
-${pc.cyan(" | |   | |/ _` / __/ __|/ _ \\/ _` |/ _` | | |        ")}
-${pc.cyan(" | |___| | (_| \\__ \\__ \\  __/ (_| | (_| | | |        ")}
-${pc.cyan("  \\____|_|\\__,_|___/___/\\___|\\__,_|\\__,_|_|_|        ")}
-${pc.dim("                                                      ")}
-${pc.yellow("         ☁️  Your Personal AI Agent                   ")}
-${pc.dim("                                                      ")}
-`
+function makeText(): string {
+	return pc.cyan([
+		"  .oooooo.   oooo                              .o8             ",
+		" d8P'  `Y8b  `888                             \"888             ",
+		"888           888   .ooooo.  oooo  oooo   .oooo888  oooo    ooo",
+		"888           888  d88' `88b `888  `888  d88' `888   `88.  .8' ",
+		"888           888  888   888  888   888  888   888    `88..8'  ",
+		"`88b    ooo   888  888   888  888   888  888   888     `888'   ",
+		" `Y8bood8P'  o888o `Y8bod8P'  `V88V\"V8P' `Y8bod88P\"     .8'    ",
+		"                                                    .o..P'     ",
+		"                                                    `Y8P'      ",
+	].join("\n"))
+}
 
 export function showLogo(): void {
-	console.log(LOGO)
+	console.log()
+	console.log(makeText())
+	console.log()
+	console.log(pc.yellow(`              ${pc.bold("Cloudy")} - Your Personal AI Agent`))
 	console.log(pc.dim("  Welcome! Let's set up your opencode project.\n"))
 }
