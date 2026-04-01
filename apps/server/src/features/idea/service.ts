@@ -95,6 +95,15 @@ export class Idea {
         };
     }
 
+    async touchUpdatedAt(ideaPath: string): Promise<void> {
+        const exists = await this.repository.exists(ideaPath);
+        if (!exists) {
+            throw status(404, 'Idea not found');
+        }
+
+        await this.repository.touchUpdatedAt(ideaPath);
+    }
+
     async listIdeas(filters?: IdeaModel["querySchema"]): Promise<IdeaModel["ideaDto"][]> {
         const query: IdeaQuery = {
             q: filters?.q,

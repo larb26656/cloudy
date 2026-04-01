@@ -11,6 +11,12 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileTreeSidebar } from "@/components/ui/file-tree-sidebar";
 import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import {
   type Idea,
   type IdeaFile,
   type IdeaStatus,
@@ -29,6 +35,7 @@ import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 import { useLoadingStore } from "@/stores/loadingStore";
+import { useDeviceType } from "@/hooks";
 import { SelectStatus } from "./SelectStatus";
 import { SelectPriority } from "./SelectPriority";
 import { TagList } from "./TagList";
@@ -203,6 +210,8 @@ export function IdeaDetailDialog({
     "preview",
   );
   const { showLoader, hideLoader } = useLoadingStore();
+  const { isMobile, isTablet } = useDeviceType();
+  const isSmallScreen = isMobile || isTablet;
   const [deleteFileConfirm, setDeleteFileConfirm] = useState<{
     name: string;
   } | null>(null);
@@ -507,7 +516,19 @@ export function IdeaDetailDialog({
             </Tabs>
           </div>
         )}
-        {!isLoadingIdea && idea && (
+        {!isLoadingIdea && idea && isSmallScreen && (
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <MarkdownEditor
+              content={markdownBody}
+              onSave={handleSave}
+              isSaving={isSaving}
+              hasChanges={hasChanges}
+              autoFocus={false}
+              view={editorView}
+            />
+          </div>
+        )}
+        {!isLoadingIdea && idea && !isSmallScreen && (
           <ResizablePanelGroup orientation="horizontal" className="flex-1">
             {isSidebarOpen && (
               <ResizablePanel defaultSize="30%">
@@ -535,6 +556,31 @@ export function IdeaDetailDialog({
           </ResizablePanelGroup>
         )}
       </DialogContent>
+      {isSmallScreen && idea && (
+        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+          <SheetContent
+            side="left"
+            className="w-[280px] sm:w-[320px] p-0"
+            onInteractOutside={() => setIsSidebarOpen(false)}
+            showCloseButton={false}
+          >
+            <SheetHeader className="sr-only">
+              <SheetTitle>Files</SheetTitle>
+            </SheetHeader>
+            <FileTreeSidebar
+              files={idea.files}
+              selectedFile={selectedFile?.name ?? ""}
+              onSelectFile={(file) => {
+                handleSelectFile(file);
+                setIsSidebarOpen(false);
+              }}
+              onCreateFile={handleCreateFile}
+              onDeleteFile={handleDeleteFile}
+              disabled={isSaving || hasNoPath}
+            />
+          </SheetContent>
+        </Sheet>
+      )}
       <DeleteConfirmDialog
         item={
           deleteFileConfirm

@@ -48,4 +48,13 @@ export const idea = new Elysia({ prefix: '/idea' })
             404: ideaModelSchema.fileNotFound,
         }
     })
+    .patch('/:path/touch', async ({ params: { path } }) => {
+        await ideaService.touchUpdatedAt(path);
+        return { success: true };
+    }, {
+        response: {
+            200: t.Object({ success: t.Boolean() }),
+            404: t.String(),
+        }
+    })
     .use(ideaFile)
