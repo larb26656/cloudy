@@ -4,6 +4,7 @@ import pc from "picocolors"
 import { buildAgentsMd } from "./templates/agents-md"
 import { buildEnvExample } from "./templates/env-example"
 import { buildIdeaToolUsageSkill } from "./templates/skills/idea-tool-usage"
+import { buildMemoryMd } from "./templates/memory-md"
 import { buildOpencodeJson } from "./templates/opencode-json"
 import { buildSoulMd } from "./templates/soul-md"
 import { buildUserMd } from "./templates/user-md"
@@ -20,7 +21,7 @@ function buildFiles(answers: PromptAnswers, targetDir: string): GeneratedFile[] 
 	const files: GeneratedFile[] = [
 		{
 			path: join(targetDir, "AGENTS.md"),
-			content: buildAgentsMd({ agentName: answers.agentName }),
+			content: buildAgentsMd({ agentName: answers.agentName, userName: answers.userName }),
 			label: "AGENTS.md",
 		},
 		{
@@ -32,6 +33,11 @@ function buildFiles(answers: PromptAnswers, targetDir: string): GeneratedFile[] 
 			path: join(targetDir, "USER.md"),
 			content: buildUserMd({ userName: answers.userName, language: answers.language }),
 			label: "USER.md",
+		},
+		{
+			path: join(targetDir, "MEMORY.md"),
+			content: buildMemoryMd(),
+			label: "MEMORY.md",
 		},
 		{
 			path: join(targetDir, "opencode.json"),
