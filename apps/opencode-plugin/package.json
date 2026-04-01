@@ -1,0 +1,28 @@
+{
+  "name": "@cloudy/opencode-plugin",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/plugins/index.js",
+  "types": "./src/plugins/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/plugins/index.ts",
+      "default": "./dist/plugins/index.js"
+    },
+    "./tools": {
+      "types": "./src/tools/index.ts",
+      "default": "./dist/tools/index.js"
+    },
+    "./plugins": {
+      "types": "./src/plugins/index.ts",
+      "default": "./dist/plugins/index.js"
+    }
+  },
+  "scripts": {
+    "build": "bun build ./src/plugins/index.ts --outdir ./dist/plugins --target bun && bun build ./src/tools/index.ts --outdir ./dist/tools --target bun",
+    "test": "bun test"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "1.2.23"
+  }
+}

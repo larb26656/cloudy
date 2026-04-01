@@ -89,10 +89,12 @@ Open `http://localhost:3001` and start using your AI workspace.
 ```
 cloudy/
 ├── apps/
-│   ├── server/           # API server
-│   └── web-app/         # UI interface
+│   ├── server/              # API server
+│   ├── web-app/             # UI interface
+│   └── opencode-plugin/     # OpenCode AI plugin — idea management tools & safety guardrails
 └── packages/
-    └── contracts/       # Shared TypeScript types
+    ├── contracts/           # Shared TypeScript types
+    └── create-cloudy/       # CLI scaffolding tool — bootstrap OpenCode project config
 ```
 
 ## Contributing

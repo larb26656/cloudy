@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "devDependencies": {
     "@types/bun": "^1.3.5",
+    "biome": "^0.3.3",
     "typescript": "^5.9.3"
   },
   "private": true,
@@ -10,6 +11,9 @@
     "dev": "NODE_ENV=development bun run --title='Bun Monorepo' --filter '*' dev",
     "dev:server": "NODE_ENV=development bun run --filter @cloudy/server dev",
     "dev:web-app": "NODE_ENV=development bun run --filter @cloudy/web-app dev",
+    "----CLI----": "",
+    "dev:cli": "rm -rf packages/create-cloudy/.test-output && bun run packages/create-cloudy/src/index.ts --dir=packages/create-cloudy/.test-output",
+    "test:cli": "bun run --filter create-cloudy test:cli",
     "----LINT----": "",
     "lint": "biome check",
     "lint:write": "biome check --write",
@@ -29,5 +33,8 @@
   "packageManager": "bun@1.3.5",
   "engines": {
     "bun": ">=1.3.5"
+  },
+  "dependencies": {
+    "sonner": "^2.0.7"
   }
 }

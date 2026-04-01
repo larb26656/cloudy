@@ -1,184 +1,149 @@
 import { status } from 'elysia'
 import { IdeaModel } from './model'
-import { resourceConfig } from '../../config'
-import { readdir } from "node:fs/promises";
-import path from "node:path";
-import matter from 'gray-matter';
+import { IdeaRepository } from './repository';
+import { IdeaFile } from './file/service';
+import { IDEA_INDEX_FILE } from './types';
+import type { IdeaQuery } from './types';
 
-function isDateString(str: string): boolean {
-    return /^\d{4}-\d{2}-\d{2}/.test(str);
+export function generateIdeaPath(title: string): string {
+    const timestamp = Date.now();
+    const slug = title
+        ? title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+        : '';
+    return slug ? `${timestamp}_${slug}` : `${timestamp}`;
 }
 
-function parseIdeaFrontMatter(markdown: string, fallbackTitle?: string): { meta: IdeaModel['metaDto']; content: string } {
-    try {
-        const { data, content } = matter(markdown);
-        const title = data.title && typeof data.title === 'string' && !isDateString(data.title)
-            ? data.title
-            : fallbackTitle;
+export class Idea {
+    protected repository: IdeaRepository;
+    protected ideaFile: IdeaFile;
 
-        return {
-            meta: {
-                title,
-                tags: Array.isArray(data.tags) ? data.tags : [],
-                status: data.status ?? 'draft',
-                priority: data.priority ?? 'medium',
-                createdAt: data.createdAt ? new Date(data.createdAt) : undefined,
-                updatedAt: data.updatedAt ? new Date(data.updatedAt) : undefined,
-            },
-            content,
-        };
-    } catch {
-        return {
-            meta: {
-                title: fallbackTitle,
-                tags: [],
-                status: 'draft',
-                priority: 'medium',
-            },
-            content: markdown,
-        };
-    }
-}
-
-export abstract class Idea {
-
-    private static async getIndexFiles(): Promise<string[]> {
-        const indexFiles: string[] = [];
-        const allPaths = await readdir(resourceConfig.idea, { recursive: true });
-
-        const subfolders = new Set<string>();
-        for (const filePath of allPaths) {
-            if (typeof filePath !== 'string' || filePath.endsWith('/')) continue;
-            const parts = filePath.split('/').filter(Boolean);
-            if (parts.length >= 1) {
-                subfolders.add(parts[0]);
-            }
-        }
-
-        for (const folder of subfolders) {
-            const folderPath = path.join(resourceConfig.idea, folder);
-            const indexPath = path.join(folderPath, 'index.md');
-            const indexFile = Bun.file(indexPath);
-            if (await indexFile.exists()) {
-                indexFiles.push(`${folder}/index.md`);
-            }
-        }
-
-        return indexFiles;
+    constructor(repository: IdeaRepository, ideaFile: IdeaFile) {
+        this.repository = repository;
+        this.ideaFile = ideaFile;
     }
 
-    static async getFiles(): Promise<IdeaModel["fileListDto"]> {
-        const files: { name: string; path: string }[] = [];
+    async createIdea(
+        input: IdeaModel["ideaCreateDto"],
+    ): Promise<IdeaModel["ideaDetailDto"]> {
+        const ideaPath = generateIdeaPath(input.title);
+        const title = input.title ?? ideaPath;
 
-        try {
-            const indexFiles = await this.getIndexFiles();
+        await this.ideaFile.createIdeaDirectory(ideaPath, input.content);
 
-            for (const filePath of indexFiles) {
-                const name = filePath.split('/')[0];
-                files.push({ name, path: filePath });
-            }
+        await this.repository.create({
+            id: ideaPath,
+            title,
+            tags: input.tags ?? [],
+            status: input.status ?? 'draft',
+            priority: input.priority ?? 'medium',
+            path: ideaPath,
+        });
 
-        } catch (e) {
-            throw status(404, 'Idea directory not found');
+        return await this.getIdea(ideaPath);
+    }
+
+    async deleteIdea(ideaPath: string): Promise<{ success: boolean }> {
+        const exists = await this.repository.exists(ideaPath);
+        if (!exists) {
+            throw status(404, 'Idea not found');
         }
 
-        return { source: 'idea', files };
-    }
-    static async getFile(filePath: string): Promise<IdeaModel["fileDto"]> {
-        const fullPath = `${resourceConfig.idea}/${filePath}`;
-        const file = Bun.file(fullPath);
+        await this.ideaFile.deleteIdeaDirectory(ideaPath);
 
-        if (!await file.exists()) {
+        await this.repository.deleteByPath(ideaPath);
+
+        return { success: true };
+    }
+
+    async patchMeta(ideaPath: string, updates: IdeaModel["ideaMetaUpdateDto"]): Promise<IdeaModel["ideaDetailDto"]> {
+        const existing = await this.repository.findByPath(ideaPath);
+
+        if (!existing) {
             throw status(404, 'File not found' satisfies IdeaModel["fileNotFound"]);
         }
 
-        const content = await file.text();
-        const name = filePath.split('/').pop() || '';
+        await this.repository.updateByPath(ideaPath, {
+            title: updates.title,
+            tags: updates.tags,
+            status: updates.status,
+            priority: updates.priority,
+        });
 
-        return { name, path: filePath, content };
+        return await this.getIdea(ideaPath);
     }
 
-    static async getIdea(filePath: string): Promise<IdeaModel["ideaDto"]> {
-        const fullPath = `${resourceConfig.idea}/${filePath}`;
-        const file = Bun.file(fullPath);
+    async getIdea(ideaPath: string): Promise<IdeaModel["ideaDetailDto"]> {
+        const record = await this.repository.findByPath(ideaPath);
 
-        if (!await file.exists()) {
+        if (!record) {
             throw status(404, 'File not found' satisfies IdeaModel["fileNotFound"]);
         }
 
-        const content = await file.text();
-        const parts = filePath.split('/');
-        const name = parts[0];
-        const parsed = parseIdeaFrontMatter(content, name);
+        const file = await this.ideaFile.getFile(ideaPath, IDEA_INDEX_FILE);
+        const files = await this.ideaFile.listIdeaFiles(ideaPath);
 
         return {
-            name,
-            path: filePath,
-            content: parsed.content,
+            title: record.title,
+            path: ideaPath,
+            content: file.content,
+            files,
             meta: {
-                title: parsed.meta.title || name,
-                tags: parsed.meta.tags || [],
-                status: parsed.meta.status || 'draft',
-                priority: parsed.meta.priority || 'medium',
-                createdAt: parsed.meta.createdAt,
-                updatedAt: parsed.meta.updatedAt,
+                title: record.title || ideaPath,
+                tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags || [],
+                status: record.status,
+                priority: record.priority,
+                createdAt: new Date(record.created_at),
+                updatedAt: new Date(record.updated_at),
             },
         };
     }
 
-    private static matchesFilter(idea: IdeaModel["ideaDto"], filters?: IdeaModel["querySchema"]): boolean {
-        if (!filters) return true;
-
-        if (filters.q) {
-            const query = filters.q.toLowerCase();
-            const matchTitle = idea.meta.title?.toLowerCase().includes(query);
-            const matchContent = idea.content.toLowerCase().includes(query);
-            const matchTags = idea.meta.tags.some(t => t.toLowerCase().includes(query));
-            if (!matchTitle && !matchContent && !matchTags) return false;
+    async touchUpdatedAt(ideaPath: string): Promise<void> {
+        const exists = await this.repository.exists(ideaPath);
+        if (!exists) {
+            throw status(404, 'Idea not found');
         }
 
-        if (filters.tags?.length) {
-            if (!filters.tags.some(t => idea.meta.tags.includes(t))) return false;
-        }
-
-        if (filters.status && idea.meta.status !== filters.status) return false;
-        if (filters.priority && idea.meta.priority !== filters.priority) return false;
-
-        return true;
+        await this.repository.touchUpdatedAt(ideaPath);
     }
 
-    static async listIdeas(filters?: IdeaModel["querySchema"]): Promise<IdeaModel["ideaDto"][]> {
-        const ideas: IdeaModel["ideaDto"][] = [];
+    async listIdeas(filters?: IdeaModel["querySchema"]): Promise<IdeaModel["ideaDto"][]> {
+        const query: IdeaQuery = {
+            q: filters?.q,
+            tags: filters?.tags,
+            status: filters?.status,
+            priority: filters?.priority,
+            order: filters?.order,
+        };
 
-        try {
-            const indexFiles = await this.getIndexFiles();
+        const ideas = await this.repository.findAll(query);
 
-            for (const filePath of indexFiles) {
-                try {
-                    const idea = await this.getIdea(filePath);
-                    if (this.matchesFilter(idea, filters)) {
-                        ideas.push(idea);
-                    }
-                } catch {
-                    continue;
-                }
-            }
-        } catch {
-            return [];
-        }
+        const result: IdeaModel["ideaDto"][] = [];
 
-        if (filters?.order) {
-            const [field, direction] = filters.order.split(':');
-            if (field === 'updatedAt') {
-                const dir = direction === 'asc' ? 1 : -1;
-                ideas.sort((a, b) => {
-                    const aTime = a.meta.updatedAt ? new Date(a.meta.updatedAt).getTime() : 0;
-                    const bTime = b.meta.updatedAt ? new Date(b.meta.updatedAt).getTime() : 0;
-                    return (aTime - bTime) * dir;
+        for (const record of ideas) {
+            try {
+                const file = await this.ideaFile.getFile(record.path, IDEA_INDEX_FILE);
+
+                result.push({
+                    title: record.title,
+                    path: record.path,
+                    content: file.content,
+                    meta: {
+                        title: record.title || record.path,
+                        tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags || [],
+                        status: record.status,
+                        priority: record.priority,
+                        createdAt: new Date(record.created_at),
+                        updatedAt: new Date(record.updated_at),
+                    },
                 });
+            } catch (err) {
+                console.log(err)
+
+                continue;
             }
         }
 
-        return ideas;
+        return result;
     }
 }

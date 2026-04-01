@@ -1,5 +1,4 @@
 export { IdeaCard } from './IdeaCard';
-export { CreateIdeaDialog } from './CreateIdeaDialog';
-export { IdeaDetailSheet } from './IdeaDetailSheet';
+export { IdeaDetailDialog, CREATE_IDEA_ID } from './IdeaDetailDialog';
 export { StatusBadge } from './StatusBadge';
 export { PriorityBadge } from './PriorityBadge';

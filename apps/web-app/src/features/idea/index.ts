@@ -1,2 +1,2 @@
-export { IdeaCard, CreateIdeaDialog } from './components';
+export { IdeaCard } from './components';
 export { default } from './IdeaPage';

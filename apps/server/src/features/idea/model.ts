@@ -22,14 +22,26 @@ const ideaMetaDto = t.Object({
     updatedAt: t.Optional(t.Date()),
 })
 
-export const IdeaModel = {
+export const ideaModelSchema = {
     ideaStatus,
     ideaPriority,
     metaDto: ideaMetaDto,
     ideaDto: t.Object({
-        name: t.String(),
+        title: t.String(),
         path: t.String(),
         content: t.String(),
+        meta: ideaMetaDto,
+    }),
+    ideaDetailDto: t.Object({
+        title: t.String(),
+        path: t.String(),
+        content: t.String(),
+        files: t.Array(t.Object({
+            name: t.String(),
+            path: t.String(),
+            size: t.Number(),
+            updatedAt: t.Optional(t.Date()),
+        })),
         meta: ideaMetaDto,
     }),
     fileDto: t.Object({
@@ -44,6 +56,12 @@ export const IdeaModel = {
             path: t.String(),
         })),
     }),
+    fileMetaDto: t.Object({
+        name: t.String(),
+        path: t.String(),
+        size: t.Number(),
+        updatedAt: t.Optional(t.Date()),
+    }),
     fileNotFound: t.Literal('File not found'),
     querySchema: t.Object({
         q: t.Optional(t.String()),
@@ -52,8 +70,23 @@ export const IdeaModel = {
         priority: t.Optional(ideaPriority),
         order: t.Optional(t.String()),
     }),
+    ideaMetaUpdateDto: t.Object({
+        title: t.Optional(t.String()),
+        tags: t.Optional(t.Array(t.String())),
+        status: t.Optional(ideaStatus),
+        priority: t.Optional(ideaPriority),
+    }),
+    ideaCreateDto: t.Object({
+        title: t.String(),
+        tags: t.Optional(t.Array(t.String())),
+        status: t.Optional(ideaStatus),
+        priority: t.Optional(ideaPriority),
+        content: t.Optional(t.String()),
+    }),
 } as const
 
+export const IdeaModel = ideaModelSchema
+
 export type IdeaModel = {
-    [k in keyof typeof IdeaModel]: UnwrapSchema<typeof IdeaModel[k]>
+    [k in keyof typeof ideaModelSchema]: UnwrapSchema<typeof ideaModelSchema[k]>
 }
