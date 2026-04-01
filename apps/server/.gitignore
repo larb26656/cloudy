@@ -45,4 +45,5 @@ base-path/
 public/
 
 # db
-local.db
+data/*
+!data/.gitkeep

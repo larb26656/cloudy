@@ -11,9 +11,10 @@ bun test --watch src/features/serve/service.test.ts  # Watch mode
 
 bun run dev                                 # Run in dev mode
 
-bun run db:migrate                          # Run migrations
-bun run db:migrate:ideas
-bun run db:migrate:clean-meta
+bun run db:migrate                          # Run pending migrations
+bun run db:migration:create <name>          # Create new migration file (e.g., add_description_column)
+bun run db:migrate:ideas                    # Data migration: markdown files → DB
+bun run db:migrate:clean-meta               # Clean YAML frontmatter from .md files
 ```
 
 ## TypeScript
@@ -74,11 +75,11 @@ Services use instance-based design with dependency injection:
 import { IdeaRepository } from "./repository";
 
 export class Idea {
-    constructor(protected repository: IdeaRepository) {}
+  constructor(protected repository: IdeaRepository) {}
 
-    async getIdea(filePath: string) {
-        /* ... */
-    }
+  async getIdea(filePath: string) {
+    /* ... */
+  }
 }
 ```
 
@@ -166,25 +167,25 @@ import type { IdeaRecord } from "../../../src/features/idea/types";
 import type { IdeaRepository } from "../../../src/features/idea/repository";
 
 describe("IdeaService", () => {
-    let repository: MockProxy<IdeaRepository>;
-    let service: Idea;
+  let repository: MockProxy<IdeaRepository>;
+  let service: Idea;
 
-    beforeEach(() => {
-        repository = mockFn<IdeaRepository>();
-        service = new Idea(repository);
-    });
+  beforeEach(() => {
+    repository = mockFn<IdeaRepository>();
+    service = new Idea(repository);
+  });
 
-    test("should_return_file_list_with_source_idea", async () => {
-        // Arrange
-        repository.findAll.mockResolvedValue([mockIdeaRecord]);
+  test("should_return_file_list_with_source_idea", async () => {
+    // Arrange
+    repository.findAll.mockResolvedValue([mockIdeaRecord]);
 
-        // Act
-        const result = await service.getFiles();
+    // Act
+    const result = await service.getFiles();
 
-        // Assert
-        expect(result.source).toBe("idea");
-        expect(result.files.length).toBe(1);
-    });
+    // Assert
+    expect(result.source).toBe("idea");
+    expect(result.files.length).toBe(1);
+  });
 });
 ```
 
@@ -207,8 +208,42 @@ describe("IdeaService", () => {
 ## Database
 
 - **Turso** (libSQL)
+- Database file stored in `data/` directory (easily mountable in Docker)
 - Schema in `src/db/migrations/`
 - Repository pattern for data access
+
+### Migration System
+
+Migrations use a simple version-based system stored in `_migration_version` table.
+
+**File naming:** `v{N}_{description}.sql` (e.g., `v1_create_ideas.sql`, `v2_add_description.sql`)
+
+**Commands:**
+
+```bash
+bun run db:migrate                    # Run pending migrations
+bun run db:migration:create <name>    # Create new migration (auto-increments version)
+```
+
+**How it works:**
+
+1. `_migration_version` table stores current version (default 0)
+2. Runner scans `src/db/migrations/v*_*.sql` files, parses version from filename
+3. Runs only files with version > current version, in order
+4. Updates version after each successful migration
+5. If already at latest version, prints "Already at latest version (v{N})"
+
+**Docker:** Migrations run automatically on container startup via `entrypoint.sh` (fail-fast — if migration fails, server won't start). Database directory is volume-mapped via `./data:/app/apps/server/data`.
+
+**Creating a new migration:**
+
+```bash
+cd apps/server
+bun run db:migration:create add_description_column
+# → Created: src/db/migrations/v2_add_description_column.sql
+# Edit the generated file with your SQL, then run:
+bun run db:migrate
+```
 
 ## Config
 
@@ -219,7 +254,7 @@ describe("IdeaService", () => {
 export const env = {
   ASSISTANT_AI_BASE_PATH: process.env.ASSISTANT_AI_BASE_PATH || "./base-path",
   OC_API_BASE_PATH: process.env.OC_API_BASE_PATH || "http://localhost:4096",
-  TURSO_DATABASE_URL: process.env.TURSO_DATABASE_URL || "file:local.db",
-  TURSO_AUTH_TOKEN: process.env.TURSO_AUTH_TOKEN,
+  DB_DATA_DIR: process.env.DB_DATA_DIR || "./data",
+  DB_DATABASE_URL: process.env.DB_DATABASE_URL || "file:./data/local.db",
 } as const;
 ```

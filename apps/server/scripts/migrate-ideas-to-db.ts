@@ -2,10 +2,10 @@ import { createClient } from '@libsql/client';
 import { readdir, stat, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';
+import { env } from '../src/config';
 
 const client = createClient({
-    url: process.env.TURSO_DATABASE_URL || 'file:local.db',
-    authToken: process.env.TURSO_AUTH_TOKEN,
+    url: env.DB_DATABASE_URL,
 });
 
 const BASE_PATH = process.env.ASSISTANT_AI_BASE_PATH || './base-path';

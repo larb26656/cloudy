@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { Plus, Lightbulb, Search } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
 import { useIdeaUIStore } from "@/features/idea/store/ideaStore";
-import { useLoadingStore } from "@/stores/loadingStore";
+
 import {
   IdeaCard,
   IdeaDetailDialog,
@@ -43,9 +43,9 @@ export default function IdeaPage() {
     selectedIdeaId,
     selectIdea,
   } = useIdeaUIStore();
-  const { showLoader, hideLoader, isLoading } = useLoadingStore();
   const [ideas, setIdeas] = useState<Idea[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [inputValue, setInputValue] = useState(searchQuery);
   const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{
@@ -65,7 +65,7 @@ export default function IdeaPage() {
   const openIdeaId = isCreating ? CREATE_IDEA_ID : selectedIdeaId;
 
   const loadIdeas = useCallback(async () => {
-    showLoader();
+    setIsLoading(true);
     setError(null);
     try {
       const query: IdeaModel["querySchema"] = {
@@ -98,7 +98,7 @@ export default function IdeaPage() {
       setIdeas([]);
       toast.error(message);
     } finally {
-      hideLoader();
+      setIsLoading(false);
     }
   }, [searchQuery, filterStatus]);
 
@@ -126,7 +126,6 @@ export default function IdeaPage() {
       }
       setIdeas((prev) => prev.filter((i) => i.id !== deleteConfirmDialog.id));
       if (selectedIdeaId === deleteConfirmDialog.id) selectIdea(null);
-      toast.success("Idea deleted");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to delete idea");
     } finally {

@@ -4,7 +4,8 @@
   "scripts": {
     "test": "bun test",
     "dev": "bun run --watch src/index.ts",
-    "db:migrate": "sqlite3 local.db < src/db/migrations/001_create_ideas.sql",
+    "db:migrate": "bun run scripts/migrate.ts",
+    "db:migration:create": "bun run scripts/create-migration.ts",
     "db:migrate:ideas": "bun run scripts/migrate-ideas-to-db.ts",
     "db:migrate:clean-meta": "bun run scripts/migrate-separate-meta.ts"
   },
