@@ -1,0 +1,7 @@
+# Dependencies
+node_modules/
+
+# CLI test output
+.test-output/
+
+dist/

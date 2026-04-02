@@ -1,5 +1,4 @@
 import path from "node:path";
-import { touchIdea } from "../lib/api";
 
 const WORKSPACE_PATH =
   "/Users/luckytime1996/Documents/Work/One-man-show/Code/opencode-chat/apps/server/base-path";
@@ -12,7 +11,7 @@ export function isDestructiveBashOnIdea(command: string, ideaDir: string): boole
   const tokens = command.trim().split(/\s+/);
   const cmd = tokens[0];
 
-  if (!DESTRUCTIVE_COMMANDS.includes(cmd)) return false;
+  if (!DESTRUCTIVE_COMMANDS.includes(cmd ?? '')) return false;
 
   const normalizedIdeaDir = path.resolve(ideaDir);
 

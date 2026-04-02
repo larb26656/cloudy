@@ -8,10 +8,10 @@ Bun workspace monorepo for Cloudy — AI agent sidekick with chat, ideas, memori
 cloudy/
 ├── apps/
 │   ├── server/              # @cloudy/server — Elysia API server
-│   ├── web-app/             # @cloudy/web-app — React 19 + Vite frontend
-│   └── opencode-plugin/     # @cloudy/opencode-plugin — OpenCode plugin SDK
+│   └── web-app/             # @cloudy/web-app — React 19 + Vite frontend
 ├── packages/
 │   ├── contracts/           # @cloudy/contracts — Shared TypeScript types
+│   ├── opencode-plugin/     # @cloudy/opencode-plugin — OpenCode plugin SDK
 │   └── create-cloudy/       # create-cloudy — CLI scaffolding tool
 ├── tsconfig.json            # Root project references
 └── tsconfig.base.json       # Shared TS compiler options
@@ -63,7 +63,7 @@ Each app/package has its own `AGENTS.md` with specific conventions:
 |---------|------|---------|----------|
 | server | `apps/server/` | Bun + Elysia | elysia, @libsql/client, prisma |
 | web-app | `apps/web-app/` | Vite + React 19 | react, zustand, tanstack/router, tiptap, shadcn |
-| opencode-plugin | `apps/opencode-plugin/` | Bun | @opencode-ai/plugin |
+| opencode-plugin | `packages/opencode-plugin/` | Bun | @opencode-ai/plugin |
 | contracts | `packages/contracts/` | TypeScript only | @cloudy/server (dev) |
 | create-cloudy | `packages/create-cloudy/` | Bun CLI | @clack/prompts, picocolors |
 
@@ -93,7 +93,7 @@ Each app/package has its own `AGENTS.md` with specific conventions:
 |---------|--------|---------|
 | server | `bun:test` | `bun test` (inside apps/server) |
 | web-app | `vitest` | `bun test` (inside apps/web-app) |
-| opencode-plugin | `bun:test` | `bun test` (inside apps/opencode-plugin) |
+| opencode-plugin | `bun:test` | `bun test` (inside packages/opencode-plugin) |
 | create-cloudy | manual | `bun run test:cli` (from root or package) |
 
 ## Docker

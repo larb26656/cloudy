@@ -13,13 +13,6 @@
         "typescript": "^5.9.3",
       },
     },
-    "apps/opencode-plugin": {
-      "name": "@cloudy/opencode-plugin",
-      "version": "1.0.0",
-      "dependencies": {
-        "@opencode-ai/plugin": "1.2.23",
-      },
-    },
     "apps/server": {
       "name": "@cloudy/server",
       "version": "1.0.0",
@@ -143,6 +136,13 @@
         "picocolors": "^1.1.1",
       },
     },
+    "packages/opencode-plugin": {
+      "name": "@cloudy/opencode-plugin",
+      "version": "1.0.0",
+      "dependencies": {
+        "@opencode-ai/plugin": "1.2.23",
+      },
+    },
   },
   "catalog": {
     "elysia": "^1.4.28",
@@ -244,7 +244,7 @@
 
     "@cloudy/contracts": ["@cloudy/contracts@workspace:packages/contracts"],
 
-    "@cloudy/opencode-plugin": ["@cloudy/opencode-plugin@workspace:apps/opencode-plugin"],
+    "@cloudy/opencode-plugin": ["@cloudy/opencode-plugin@workspace:packages/opencode-plugin"],
 
     "@cloudy/server": ["@cloudy/server@workspace:apps/server"],
 
