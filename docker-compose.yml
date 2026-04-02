@@ -4,7 +4,11 @@ services:
     ports:
       - "3007:3000"
     environment:
-      - OC_API_BASE_PATH=http://host.docker.internal:4096
+      OC_API_BASE_PATH: http://host.docker.internal:4096
+      ASSISTANT_AI_BASE_PATH: /app/base-path
+      DB_DATA_DIR: /app/data
+      DB_DATABASE_URL: file:/app/data/local.db
+
     volumes:
       - ./data:/app/apps/server/data
     extra_hosts:
