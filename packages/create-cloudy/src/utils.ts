@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs"
-import { mkdir } from "node:fs/promises"
+import { mkdir, writeFile as fsWriteFile } from "node:fs/promises"
 import { dirname, isAbsolute, resolve } from "node:path"
 
 export function resolveTargetDir(dir?: string): string {
@@ -16,5 +16,5 @@ export async function ensureDir(filePath: string): Promise<void> {
 
 export async function writeFile(path: string, content: string): Promise<void> {
 	await ensureDir(path)
-	await Bun.write(path, content)
+	await fsWriteFile(path, content, "utf-8")
 }

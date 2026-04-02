@@ -1,9 +1,7 @@
-import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import * as clack from "@clack/prompts"
 import pc from "picocolors"
 import { buildAgentsMd } from "./templates/agents-md"
-import { buildEnvExample } from "./templates/env-example"
 import { buildMemoryMd } from "./templates/memory-md"
 import { buildOpencodeJson } from "./templates/opencode-json"
 import { buildSoulMd } from "./templates/soul-md"
@@ -11,10 +9,20 @@ import { buildUserMd } from "./templates/user-md"
 import type { PromptAnswers } from "./prompts"
 import { writeFile } from "./utils"
 
-const SKILLS_DIR = join(import.meta.dir, "templates", "skills")
+import skillIdeaToolUsage from "./templates/skills/idea-tool-usage.md?raw"
+import skillMemory from "./templates/skills/memory.md?raw"
+import skillArtifact from "./templates/skills/artifact.md?raw"
+
+const skills: Record<string, string> = {
+	"idea-tool-usage": skillIdeaToolUsage,
+	memory: skillMemory,
+	artifact: skillArtifact,
+}
 
 function loadSkill(name: string): string {
-	return readFileSync(join(SKILLS_DIR, `${name}.md`), "utf-8")
+	const content = skills[name]
+	if (!content) throw new Error(`Unknown skill: ${name}`)
+	return content
 }
 
 interface GeneratedFile {
@@ -49,11 +57,6 @@ function buildFiles(answers: PromptAnswers, targetDir: string): GeneratedFile[] 
 			path: join(targetDir, "opencode.json"),
 			content: buildOpencodeJson({ agentName: answers.agentName, includeSkill: answers.installSkill }),
 			label: "opencode.json",
-		},
-		{
-			path: join(targetDir, ".env.example"),
-			content: buildEnvExample(),
-			label: ".env.example",
 		},
 	]
 

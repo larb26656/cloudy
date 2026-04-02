@@ -1,17 +1,26 @@
 {
-  "name": "create-cloudy",
+  "name": "@cloudy-app/create-cloudy",
   "version": "0.1.0",
   "type": "module",
   "description": "CLI tool to scaffold opencode project config with interactive prompts",
   "bin": {
-    "create-cloudy": "./src/index.ts"
+    "create-cloudy": "./dist/index.js"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "files": [
-    "src/"
+    "dist/"
   ],
   "scripts": {
+    "build": "tsup",
     "dev": "bun run ./src/index.ts",
-    "test:cli": "rm -rf .test-output && bun run ./src/index.ts --yes --dir=.test-output",
+    "prepublishOnly": "bun run build",
+    "test:cli": "bun run build && node ./dist/index.js --dir=.test-output",
+    "test:cli:y": "bun run build && node ./dist/index.js --yes --dir=.test-output",
+    "test:local": "bun run build && bun link",
+    "test:unlink": "bun unlink",
+    "test:pack": "bun run build && bun pm pack",
     "lint": "biome check",
     "lint:write": "biome check --write"
   },
@@ -19,14 +28,14 @@
     "@clack/prompts": "^0.9.1",
     "picocolors": "^1.1.1"
   },
-  "engines": {
-    "bun": ">=1.0.0"
-  },
   "keywords": [
     "opencode",
     "cli",
     "scaffold",
     "ai-agent"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "tsup": "^8.5.1"
+  }
 }
