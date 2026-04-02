@@ -20,8 +20,8 @@ export type Idea = {
     tags: string[];
     status: IdeaStatus;
     priority: IdeaPriority;
-    createdAt?: string;
-    updatedAt?: string;
+    createdAt: string;
+    updatedAt: string;
   };
 };
 

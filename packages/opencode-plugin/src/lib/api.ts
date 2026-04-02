@@ -1,8 +1,16 @@
 import { env } from "./env";
 
+function getAuthHeader(): Record<string, string> {
+  const username = env.CLOUDY_API_USERNAME;
+  const password = env.CLOUDY_API_PASSWORD;
+  if (!username && !password) return {};
+  const credentials = Buffer.from(`${username}:${password}`).toString("base64");
+  return { Authorization: `Basic ${credentials}` };
+}
+
 async function ideaApi(path: string, options?: RequestInit) {
   const res = await fetch(`${env.CLOUDY_API_BASE_PATH}/api/idea${path}`, {
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...getAuthHeader() },
     ...options,
   });
 

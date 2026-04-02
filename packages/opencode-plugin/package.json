@@ -1,6 +1,6 @@
 {
   "name": "@cloudy-app/opencode-plugin",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "OpenCode plugin for Cloudy — idea management tools and session tracking",
   "type": "module",
   "main": "./dist/index.js",

@@ -9,7 +9,7 @@
   },
   "private": true,
   "scripts": {
-    "dev": "NODE_ENV=development bun run --title='Bun Monorepo' --filter '*' dev",
+    "dev": "NODE_ENV=development bun run --title='Bun Monorepo' --filter @cloudy/server --filter @cloudy/web-app dev",
     "dev:server": "NODE_ENV=development bun run --filter @cloudy/server dev",
     "dev:web-app": "NODE_ENV=development bun run --filter @cloudy/web-app dev",
     "----CLI----": "",
@@ -23,6 +23,10 @@
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish",
+    "---CREATE-CLOUDY---": "",
+    "publish:create-cloudy": "cd packages/create-cloudy && npm publish",
+    "---OPENCODE-PLUGIN---": "",
+    "publish:opencode-plugin": "cd packages/opencode-plugin && npm publish",
     "----CLEAN----": ""
   },
   "workspaces": {

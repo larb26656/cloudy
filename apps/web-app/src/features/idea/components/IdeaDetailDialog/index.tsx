@@ -205,13 +205,13 @@ export function IdeaDetailDialog({
   const [markdownBody, setMarkdownBody] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [editorView, setEditorView] = useState<"preview" | "wysiwyg">(
-    "preview",
-  );
   const { showLoader, hideLoader } = useLoadingStore();
   const { isMobile, isTablet } = useDeviceType();
   const isSmallScreen = isMobile || isTablet;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(!isSmallScreen);
+  const [editorView, setEditorView] = useState<"preview" | "wysiwyg">(
+    "preview",
+  );
   const [deleteFileConfirm, setDeleteFileConfirm] = useState<{
     name: string;
   } | null>(null);
@@ -296,7 +296,7 @@ export function IdeaDetailDialog({
       setSelectedFile(null);
       setMarkdownBody("");
       setHasChanges(false);
-      setIsSidebarOpen(true);
+      setIsSidebarOpen(!isSmallScreen);
     }
   }, [idea]);
 

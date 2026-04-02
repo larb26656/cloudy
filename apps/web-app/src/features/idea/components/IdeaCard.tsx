@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { StatusBadge, PriorityBadge } from "@/features/idea/components";
-import { formatDate } from "@/lib/date";
+import { formatDateTime } from "@/lib/date";
 import type { Idea } from "@/features/idea/types";
 
 interface IdeaCardProps {
@@ -87,12 +87,7 @@ export function IdeaCard({
       </CardContent>
       <CardFooter className="text-xs text-muted-foreground">
         <Clock className="mr-1 size-3" />
-        Created {formatDate(idea.meta.createdAt || '')}
-        {idea.meta.updatedAt && idea.meta.updatedAt !== idea.meta.createdAt && (
-          <span className="ml-2">
-            - Updated {formatDate(idea.meta.updatedAt)}
-          </span>
-        )}
+        Updated {formatDateTime(idea.meta.updatedAt)}
       </CardFooter>
     </Card>
   );
