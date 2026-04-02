@@ -1,9 +1,9 @@
 import path from "node:path";
+import { env } from "../lib/env";
 
-const WORKSPACE_PATH =
-  "/Users/luckytime1996/Documents/Work/One-man-show/Code/opencode-chat/apps/server/base-path";
-
-const IDEA_DIR = path.join(WORKSPACE_PATH, "idea");
+function getIdeaDir() {
+  return path.resolve(env.CLOUDY_ASSISTANT_BASE_PATH, "idea");
+}
 
 const DESTRUCTIVE_COMMANDS = ["rm", "mv", "cp", "rmdir", "chmod", "chown", "ln"];
 
@@ -21,19 +21,19 @@ export function isDestructiveBashOnIdea(command: string, ideaDir: string): boole
   });
 }
 
-export function isFileIdeaFile(filePath: string, ideaDir: string = IDEA_DIR): boolean {
+export function isFileIdeaFile(filePath: string, ideaDir: string = getIdeaDir()): boolean {
   const normalizedIdeaPath = path.resolve(ideaDir);
   const normalizedFile = path.resolve(filePath);
 
   return normalizedFile.startsWith(normalizedIdeaPath + path.sep);
 }
 
-export function isIdeaIndexMd(filePath: string, ideaDir: string = IDEA_DIR): boolean {
+export function isIdeaIndexMd(filePath: string, ideaDir: string = getIdeaDir()): boolean {
   if (!isFileIdeaFile(filePath, ideaDir)) return false;
   return path.basename(filePath) === "index.md";
 }
 
-export function extractIdeaPath(filePath: string, ideaDir: string = IDEA_DIR): string {
+export function extractIdeaPath(filePath: string, ideaDir: string = getIdeaDir()): string {
   const normalizedIdeaPath = path.resolve(ideaDir);
   const normalizedFile = path.resolve(filePath);
   const relative = normalizedFile.slice(normalizedIdeaPath.length + 1);
@@ -41,4 +41,4 @@ export function extractIdeaPath(filePath: string, ideaDir: string = IDEA_DIR): s
   return relative.split(path.sep)[0] ?? "";
 }
 
-export { IDEA_DIR };
+export { getIdeaDir as IDEA_DIR };

@@ -21,7 +21,7 @@ export const IdeaPlugin: Plugin = async ({
       if (input.tool === "bash") {
         const command = (output.args.command as string) ?? "";
 
-        if (isDestructiveBashOnIdea(command, IDEA_DIR)) {
+        if (isDestructiveBashOnIdea(command, IDEA_DIR())) {
           throw new Error(`Cannot run destructive command on idea directory`);
         }
       }

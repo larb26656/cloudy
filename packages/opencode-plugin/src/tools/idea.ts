@@ -1,7 +1,7 @@
-import { tool } from "@opencode-ai/plugin";
+import { tool, type ToolDefinition } from "@opencode-ai/plugin";
 import { listIdeas, createIdea, updateIdeaMeta, deleteIdea } from "../lib/api";
 
-export const list = tool({
+export const list: ToolDefinition = tool({
   description:
     "List all ideas with optional filters. Returns idea path, title, status, priority, tags, and content.",
   args: {
@@ -34,7 +34,7 @@ export const list = tool({
   },
 });
 
-export const create = tool({
+export const create: ToolDefinition = tool({
   description:
     "Create a new idea with title and optional metadata. Returns the created idea detail.",
   args: {
@@ -62,7 +62,7 @@ export const create = tool({
   },
 });
 
-export const update = tool({
+export const update: ToolDefinition = tool({
   description:
     "Update idea metadata (title, tags, status, priority). Use the idea 'path' value as identifier.",
   args: {
@@ -90,7 +90,7 @@ export const update = tool({
   },
 });
 
-export const remove = tool({
+export const remove: ToolDefinition = tool({
   description:
     "Delete an idea by its path. This removes the idea and all its files permanently.",
   args: {

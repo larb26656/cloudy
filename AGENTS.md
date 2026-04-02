@@ -11,7 +11,7 @@ cloudy/
 │   └── web-app/             # @cloudy/web-app — React 19 + Vite frontend
 ├── packages/
 │   ├── contracts/           # @cloudy/contracts — Shared TypeScript types
-│   ├── opencode-plugin/     # @cloudy/opencode-plugin — OpenCode plugin SDK
+│   ├── opencode-plugin/     # @cloudy-app/opencode-plugin — OpenCode plugin SDK
 │   └── create-cloudy/       # create-cloudy — CLI scaffolding tool
 ├── tsconfig.json            # Root project references
 └── tsconfig.base.json       # Shared TS compiler options
@@ -53,19 +53,19 @@ graph TD
 
 - `@cloudy/contracts` — shared types consumed by both `server` and `web-app`
 - `@cloudy/web-app` uses `@elysiajs/eden` to get type-safe API client from server
-- `@cloudy/opencode-plugin` and `create-cloudy` are standalone packages
+- `@cloudy-app/opencode-plugin` and `create-cloudy` are standalone packages
 
 ## Per-Package Details
 
 Each app/package has its own `AGENTS.md` with specific conventions:
 
-| Package | Path | Runtime | Key deps |
-|---------|------|---------|----------|
-| server | `apps/server/` | Bun + Elysia | elysia, @libsql/client, prisma |
-| web-app | `apps/web-app/` | Vite + React 19 | react, zustand, tanstack/router, tiptap, shadcn |
-| opencode-plugin | `packages/opencode-plugin/` | Bun | @opencode-ai/plugin |
-| contracts | `packages/contracts/` | TypeScript only | @cloudy/server (dev) |
-| create-cloudy | `packages/create-cloudy/` | Bun CLI | @clack/prompts, picocolors |
+| Package         | Path                        | Runtime         | Key deps                                        |
+| --------------- | --------------------------- | --------------- | ----------------------------------------------- |
+| server          | `apps/server/`              | Bun + Elysia    | elysia, @libsql/client, prisma                  |
+| web-app         | `apps/web-app/`             | Vite + React 19 | react, zustand, tanstack/router, tiptap, shadcn |
+| opencode-plugin | `packages/opencode-plugin/` | Bun             | @opencode-ai/plugin                             |
+| contracts       | `packages/contracts/`       | TypeScript only | @cloudy/server (dev)                            |
+| create-cloudy   | `packages/create-cloudy/`   | Bun CLI         | @clack/prompts, picocolors                      |
 
 ## Adding a New Workspace Package
 
@@ -89,12 +89,12 @@ Each app/package has its own `AGENTS.md` with specific conventions:
 
 ## Testing
 
-| Package | Runner | Command |
-|---------|--------|---------|
-| server | `bun:test` | `bun test` (inside apps/server) |
-| web-app | `vitest` | `bun test` (inside apps/web-app) |
+| Package         | Runner     | Command                                      |
+| --------------- | ---------- | -------------------------------------------- |
+| server          | `bun:test` | `bun test` (inside apps/server)              |
+| web-app         | `vitest`   | `bun test` (inside apps/web-app)             |
 | opencode-plugin | `bun:test` | `bun test` (inside packages/opencode-plugin) |
-| create-cloudy | manual | `bun run test:cli` (from root or package) |
+| create-cloudy   | manual     | `bun run test:cli` (from root or package)    |
 
 ## Docker
 
@@ -106,17 +106,17 @@ Each app/package has its own `AGENTS.md` with specific conventions:
 
 Copy `.env.example` to `.env`. Key variables:
 
-| Variable | Default | Used by |
-|----------|---------|---------|
-| `ASSISTANT_AI_BASE_PATH` | `./base-path` | server |
-| `OC_API_BASE_PATH` | `http://localhost:4096` | server |
-| `DB_DATA_DIR` | `./data` | server |
-| `DB_DATABASE_URL` | `file:./data/local.db` | server |
+| Variable                 | Default                 | Used by |
+| ------------------------ | ----------------------- | ------- |
+| `ASSISTANT_AI_BASE_PATH` | `./base-path`           | server  |
+| `OC_API_BASE_PATH`       | `http://localhost:4096` | server  |
+| `DB_DATA_DIR`            | `./data`                | server  |
+| `DB_DATABASE_URL`        | `file:./data/local.db`  | server  |
 
 ## Ports
 
-| Service | Port |
-|---------|------|
-| API server | 3000 |
-| Web app | 3001 |
+| Service                 | Port |
+| ----------------------- | ---- |
+| API server              | 3000 |
+| Web app                 | 3001 |
 | OpenCode API (external) | 4096 |

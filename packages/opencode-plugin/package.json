@@ -1,28 +1,47 @@
 {
-  "name": "@cloudy/opencode-plugin",
-  "version": "1.0.0",
+  "name": "@cloudy-app/opencode-plugin",
+  "version": "0.0.1",
+  "description": "OpenCode plugin for Cloudy — idea management tools and session tracking",
   "type": "module",
-  "main": "./dist/plugins/index.js",
-  "types": "./src/plugins/index.ts",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "exports": {
     ".": {
-      "types": "./src/plugins/index.ts",
-      "default": "./dist/plugins/index.js"
-    },
-    "./tools": {
-      "types": "./src/tools/index.ts",
-      "default": "./dist/tools/index.js"
-    },
-    "./plugins": {
-      "types": "./src/plugins/index.ts",
-      "default": "./dist/plugins/index.js"
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
     }
   },
   "scripts": {
-    "build": "bun build ./src/plugins/index.ts --outdir ./dist/plugins --target bun && bun build ./src/tools/index.ts --outdir ./dist/tools --target bun",
+    "build": "tsup",
+    "prepublishOnly": "bun run build",
     "test": "bun test"
   },
-  "dependencies": {
-    "@opencode-ai/plugin": "1.2.23"
+  "keywords": [
+    "opencode",
+    "plugin",
+    "cloudy",
+    "idea",
+    "ai",
+    "llm"
+  ],
+  "license": "MIT",
+  "peerDependencies": {
+    "@opencode-ai/plugin": ">=0.15.0"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "1.2.23",
+    "@types/bun": "^1.3.1",
+    "tsup": "^8.5.1",
+    "typescript": "^5.9.3",
+    "zod": "^4.3.6"
   }
 }

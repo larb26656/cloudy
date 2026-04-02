@@ -1,5 +1,10 @@
 import { describe, test, expect, mock, beforeEach, afterEach } from "bun:test";
 import path from "node:path";
+import os from "node:os";
+
+const BASE_PATH = path.join(os.tmpdir(), "cloudy-test", "base-path");
+process.env.CLOUDY_ASSISTANT_BASE_PATH = BASE_PATH;
+
 import { extractIdeaPath, isDestructiveBashOnIdea, isFileIdeaFile, isIdeaIndexMd } from "../../src/plugins/idea-plugins";
 import { IdeaPlugin } from "../../src/plugins/index";
 import type { PluginInput } from "@opencode-ai/plugin";
@@ -141,7 +146,7 @@ describe("extractIdeaPath", () => {
     });
 });
 
-const PLUGIN_IDEA_DIR = path.join("/Users/luckytime1996/Documents/Work/One-man-show/Code/opencode-chat/apps/server/base-path", "idea");
+const PLUGIN_IDEA_DIR = path.join(BASE_PATH, "idea");
 
 function createMockInput(): PluginInput {
     return {

@@ -1,7 +1,7 @@
 import { env } from "./env";
 
 async function ideaApi(path: string, options?: RequestInit) {
-  const res = await fetch(`${env.ASSISTANT_AI_BASE_PATH}/api/idea${path}`, {
+  const res = await fetch(`${env.CLOUDY_API_BASE_PATH}/api/idea${path}`, {
     headers: { "Content-Type": "application/json" },
     ...options,
   });
