@@ -57,13 +57,13 @@ export function SessionItem({
     }
   };
 
-
-
   return (
     <div
       onClick={onClick}
       className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
-        isActive ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+        isActive
+          ? "bg-primary dark:bg-muted text-primary-foreground dark:text-inherit"
+          : "hover:bg-accent"
       }`}
     >
       <div
