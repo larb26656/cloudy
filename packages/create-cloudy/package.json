@@ -1,6 +1,6 @@
 {
   "name": "@cloudy-app/create-cloudy",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "type": "module",
   "description": "CLI tool to scaffold opencode project config with interactive prompts",
   "bin": {

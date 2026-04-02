@@ -60,6 +60,24 @@ function buildFiles(answers: PromptAnswers, targetDir: string): GeneratedFile[] 
 		},
 	]
 
+	files.push(
+		{
+			path: join(targetDir, "idea", ".gitkeep"),
+			content: "",
+			label: "idea/",
+		},
+		{
+			path: join(targetDir, "artifact", ".gitkeep"),
+			content: "",
+			label: "artifact/",
+		},
+		{
+			path: join(targetDir, "memory", ".gitkeep"),
+			content: "",
+			label: "memory/",
+		},
+	)
+
 	if (answers.installSkill) {
 		const skillNames = ["idea-tool-usage", "memory", "artifact"]
 		for (const name of skillNames) {
