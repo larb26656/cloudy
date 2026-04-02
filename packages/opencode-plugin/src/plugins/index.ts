@@ -42,10 +42,6 @@ export const IdeaPlugin: Plugin = async ({
       if (input.tool === "edit") {
         const filePath = output.args.filePath as string;
 
-        if (isIdeaIndexMd(filePath)) {
-          throw new Error("Cannot modify index.md in idea directory");
-        }
-
         if (isFileIdeaFile(filePath)) {
           const ideaPath = extractIdeaPath(filePath);
           await touchIdea(ideaPath);

@@ -246,15 +246,6 @@ describe("IdeaPlugin", () => {
     });
 
     describe("edit tool", () => {
-        test("should throw when editing index.md in idea dir", async () => {
-            const hook = await getHook();
-            await expect(
-                hook(
-                    { tool: "edit", sessionID: "s1", callID: "c1" },
-                    { args: { filePath: `${PLUGIN_IDEA_DIR}/my-idea/index.md` } },
-                ),
-            ).rejects.toThrow("Cannot modify index.md in idea directory");
-        });
 
         test("should call touchIdea when editing idea file", async () => {
             const hook = await getHook();
