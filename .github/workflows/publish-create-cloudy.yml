@@ -1,4 +1,4 @@
-name: Release opencode plugin
+name: Release create-cloudy
 
 on:
   push:
@@ -23,16 +23,16 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Build
-        run: bun run --filter @cloudy-app/opencode-plugin build
+        run: bun run --filter @cloudy-app/create-cloudy build
 
-      - name: Test
-        run: bun run --filter @cloudy-app/opencode-plugin test
+      - name: Test CLI
+        run: bun run --filter @cloudy-app/create-cloudy test
 
       - name: Create Release Pull Request or Publish
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: cd packages/opencode-plugin && npm publish
+          publish: cd packages/create-cloudy && npm publish
           version: bun run version-packages
           title: "chore: version packages"
           commit: "chore: version packages"
