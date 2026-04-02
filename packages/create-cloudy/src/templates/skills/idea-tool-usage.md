@@ -5,7 +5,7 @@ description: Guide for choosing the right tool when working with ideas. Use this
 
 ## Idea Tools vs Standard Tools
 
-This project has a dedicated idea management system. Each idea lives as a folder under `base-path/idea/` with an `index.md` file generated from metadata. Understanding which tool to use prevents data corruption and keeps metadata in sync.
+This project has a dedicated idea management system. Each idea lives as a folder with an `index.md` file generated from metadata. Understanding which tool to use prevents data corruption and keeps metadata in sync.
 
 ## Custom Idea Tools
 
@@ -83,17 +83,3 @@ Even outside ideas, bash should NOT be used to modify files. These patterns are 
 | `tee file` | `write` tool |
 
 Bash is for: `git`, `npm`, `bun`, `docker`, `make`, `tsc`, `biome`, `pytest`, `bun test`, `ls`, `grep`, `find`, `gh`, etc.
-
-## Quick Reference
-
-| Goal | Correct Tool |
-|------|-------------|
-| "What ideas do we have?" | `idea-list` |
-| "Create idea: redesign landing page" | `idea-create` |
-| "Mark idea X as completed" | `idea-update` (status: completed) |
-| "Change idea X priority to high" | `idea-update` (priority: high) |
-| "Delete idea X" | `idea-delete` |
-| "Read idea X's notes" | `read` |
-| "Add notes to idea X" | `write` (new file in idea folder) |
-| "Edit idea X's notes" | `edit` |
-| "Change idea X's title" | `idea-update` (NOT edit index.md) |

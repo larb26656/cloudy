@@ -32,7 +32,7 @@ export async function runPrompts(): Promise<PromptAnswers | null> {
 				}),
 			installSkill: () =>
 				clack.confirm({
-					message: "Include idea-tool-usage skill?",
+					message: "Include basic skills?",
 					initialValue: true,
 				}),
 		},

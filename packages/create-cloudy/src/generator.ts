@@ -1,15 +1,21 @@
+import { readFileSync } from "node:fs"
 import { join } from "node:path"
 import * as clack from "@clack/prompts"
 import pc from "picocolors"
 import { buildAgentsMd } from "./templates/agents-md"
 import { buildEnvExample } from "./templates/env-example"
-import { buildIdeaToolUsageSkill } from "./templates/skills/idea-tool-usage"
 import { buildMemoryMd } from "./templates/memory-md"
 import { buildOpencodeJson } from "./templates/opencode-json"
 import { buildSoulMd } from "./templates/soul-md"
 import { buildUserMd } from "./templates/user-md"
 import type { PromptAnswers } from "./prompts"
 import { writeFile } from "./utils"
+
+const SKILLS_DIR = join(import.meta.dir, "templates", "skills")
+
+function loadSkill(name: string): string {
+	return readFileSync(join(SKILLS_DIR, `${name}.md`), "utf-8")
+}
 
 interface GeneratedFile {
 	path: string
@@ -21,7 +27,7 @@ function buildFiles(answers: PromptAnswers, targetDir: string): GeneratedFile[] 
 	const files: GeneratedFile[] = [
 		{
 			path: join(targetDir, "AGENTS.md"),
-			content: buildAgentsMd({ agentName: answers.agentName, userName: answers.userName }),
+			content: buildAgentsMd(),
 			label: "AGENTS.md",
 		},
 		{
@@ -52,11 +58,14 @@ function buildFiles(answers: PromptAnswers, targetDir: string): GeneratedFile[] 
 	]
 
 	if (answers.installSkill) {
-		files.push({
-			path: join(targetDir, ".opencode", "skills", "idea-tool-usage", "SKILL.md"),
-			content: buildIdeaToolUsageSkill(),
-			label: ".opencode/skills/idea-tool-usage/SKILL.md",
-		})
+		const skillNames = ["idea-tool-usage", "memory", "artifact"]
+		for (const name of skillNames) {
+			files.push({
+				path: join(targetDir, ".opencode", "skills", name, "SKILL.md"),
+				content: loadSkill(name),
+				label: `.opencode/skills/${name}/SKILL.md`,
+			})
+		}
 	}
 
 	return files
