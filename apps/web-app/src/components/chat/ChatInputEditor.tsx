@@ -74,8 +74,9 @@ export function ChatInputEditor({
   useEffect(() => {
     if (!editor) return;
 
-    if (content.text === "") {
-      editor.commands.setContent("");
+    const currentText = editor.getText();
+    if (content.text !== currentText) {
+      editor.commands.setContent(content.text);
     }
   }, [content.text, editor]);
 

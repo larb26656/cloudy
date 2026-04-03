@@ -1,5 +1,5 @@
 // components/chat/ChatInput.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { ModelSelector } from "./ModelSelector";
 import { AgentSelector } from "./AgentSelector";
@@ -19,6 +19,7 @@ interface ChatInputProps {
   isLoading?: boolean;
   placeholder?: string;
   directory?: string;
+  initialValue?: string;
 }
 
 export function ChatInput({
@@ -27,11 +28,21 @@ export function ChatInput({
   isLoading,
   placeholder = "Type a message...",
   directory,
+  initialValue,
 }: ChatInputProps) {
   const [chatInputContent, setChatInputContent] = useState<ChatInputContent>({
     text: "",
     mentions: [],
   });
+
+  useEffect(() => {
+    if (initialValue) {
+      setChatInputContent({
+        text: initialValue,
+        mentions: [],
+      });
+    }
+  }, [initialValue]);
   const { selectedModel } = useModelStore();
   const { selectedAgent } = useAgentStore();
 

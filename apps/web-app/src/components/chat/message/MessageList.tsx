@@ -8,9 +8,11 @@ import { ChevronDown } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
 import ThinkingAnimation from "./ThinkingAnimation";
 
-interface MessageListProps {}
+interface MessageListProps {
+  onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
+}
 
-export function MessageList({}: MessageListProps) {
+export function MessageList({ onSnippetSelect }: MessageListProps) {
   const isLoading = useMessageStore((state) => state.isLoading);
   const error = useMessageStore((state) => state.error);
   const loadMessages = useMessageStore((state) => state.loadMessages);
@@ -90,7 +92,7 @@ export function MessageList({}: MessageListProps) {
         className="absolute inset-0 flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
       >
         {messages.length === 0 ? (
-          <EmptyChatState />
+          <EmptyChatState onSnippetSelect={onSnippetSelect} />
         ) : (
           <div className="max-w-4xl mx-auto space-y-4 pb-4">
             {messages.map((message: Message) => {

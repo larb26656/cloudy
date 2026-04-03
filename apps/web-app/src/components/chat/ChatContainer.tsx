@@ -8,11 +8,15 @@ import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useMemo } from "react";
 import type { ChatInputContent } from "@/lib/opencode";
 
+type SnippetType = "idea" | "memory" | "artifact";
+
 interface ChatContainerProps {
   sessionId: string | null;
+  initialInput?: string;
+  onSnippetSelect?: (type: SnippetType) => void;
 }
 
-export function ChatContainer({ sessionId }: ChatContainerProps) {
+export function ChatContainer({ sessionId, onSnippetSelect, initialInput }: ChatContainerProps) {
   const createSession = useSessionStore((s) => s.createSession);
   const activeQuestion = useSessionStore((s) => s.activeQuestion);
   const sendMessage = useMessageStore((s) => s.sendMessage);
@@ -67,7 +71,7 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
   return (
     <div className="flex-1 flex flex-col bg-background overflow-hidden">
       {/* Messages */}
-      <MessageList />
+      <MessageList onSnippetSelect={onSnippetSelect} />
 
       {/* Input */}
       <ChatInput
@@ -76,6 +80,7 @@ export function ChatContainer({ sessionId }: ChatContainerProps) {
         isLoading={isBusy}
         placeholder={chatplaceholder}
         directory={selectedDirectory || ""}
+        initialValue={initialInput}
       />
 
       {/* Question Sheet */}

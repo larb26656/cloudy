@@ -2,11 +2,20 @@ import { ChatContainer } from "@/components/chat/ChatContainer";
 import { Header } from "@/components/layout";
 import { useEventStream } from "@/hooks/useEventSteam";
 import { useMessageStore, useSessionStore } from "@/stores";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+
+type SnippetType = "idea" | "memory" | "artifact";
+
+const snippetPrompts: Record<SnippetType, string> = {
+  idea: "ฉันอยากได้ไอเดียใหม่ๆ ช่วย brainstorm ให้หน่อย",
+  memory: "ฉันอยากบันทึกความจำสำคัญ",
+  artifact: "ช่วยสร้าง artifact ให้หน่อย",
+};
 
 export default function ChatPage() {
   const { sessions, selectedSessionId } = useSessionStore();
   const { loadMessages } = useMessageStore();
+  const [initialInput, setInitialInput] = useState<string>("");
 
   const currentSession = sessions.find((s) => s.id === selectedSessionId);
   const sessionDir = currentSession?.directory ?? undefined;
@@ -20,6 +29,10 @@ export default function ChatPage() {
     }
   }, [selectedSessionId, loadMessages]);
 
+  const handleSnippetSelect = (type: SnippetType) => {
+    setInitialInput(snippetPrompts[type]);
+  };
+
   return (
     <>
       <Header
@@ -28,7 +41,11 @@ export default function ChatPage() {
         showRefresh
         showThemeToggle
       />
-      <ChatContainer sessionId={selectedSessionId} />
+      <ChatContainer
+        sessionId={selectedSessionId}
+        onSnippetSelect={handleSnippetSelect}
+        initialInput={initialInput}
+      />
     </>
   );
 }
