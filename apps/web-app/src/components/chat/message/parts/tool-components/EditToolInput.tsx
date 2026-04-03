@@ -48,9 +48,9 @@ export function Detail({ input }: EditToolInputProps) {
 }
 
 export function Preview({ state }: { state: ToolPartType["state"] }) {
-  const filePath = state.input.filePath as string | undefined;
-  const oldString = state.input.oldString as string | undefined;
-  const newString = state.input.newString as string | undefined;
+  const filePath = String(state.input.filePath ?? "");
+  const oldString = String(state.input.oldString ?? "");
+  const newString = String(state.input.newString ?? "");
 
   return (
     <div className="flex flex-col">
@@ -61,7 +61,7 @@ export function Preview({ state }: { state: ToolPartType["state"] }) {
         />
       )}
 
-      {filePath && oldString && newString && (
+      {filePath && (oldString || newString) && (
         <DiffViewer
           diff={createTwoFilesPatch(filePath, filePath, oldString, newString)}
           viewMode="line-by-line"
