@@ -2,7 +2,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
+} from "@cloudy/ui";
 import { ChevronDownIcon } from "lucide-react";
 import { type ReactNode } from "react";
 

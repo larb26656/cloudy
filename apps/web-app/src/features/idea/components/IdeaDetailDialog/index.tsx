@@ -1,21 +1,21 @@
 import { Lightbulb, PanelLeftClose, PanelLeft, Loader2 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@cloudy/ui";
 import { Button } from "@/components/ui/button";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@cloudy/ui";
+import { Tabs, TabsList, TabsTrigger } from "@cloudy/ui";
 import { FileTreeSidebar } from "@/components/ui/file-tree-sidebar";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@cloudy/ui";
 import {
   type Idea,
   type IdeaFile,
@@ -30,10 +30,10 @@ import {
   ResizablePanelGroup,
   ResizablePanel,
   ResizableHandle,
-} from "@/components/ui/resizable";
+} from "@cloudy/ui";
 import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
 import { cn } from "@/lib/utils";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@cloudy/ui";
 import { useLoadingStore } from "@/stores/loadingStore";
 import { useDeviceType } from "@/hooks";
 import { SelectStatus } from "./SelectStatus";

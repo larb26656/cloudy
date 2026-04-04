@@ -5,7 +5,7 @@ import {
   InputGroup,
   InputGroupInput,
   InputGroupAddon,
-} from "@/components/ui/input-group";
+} from "@cloudy/ui";
 import { SidebarNav } from "./SidebarNav";
 import { useSessionStore } from "@cloudy/core-chat";
 

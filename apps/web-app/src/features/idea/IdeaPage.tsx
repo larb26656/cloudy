@@ -15,9 +15,9 @@ import {
   InputGroup,
   InputGroupInput,
   InputGroupAddon,
-} from "@/components/ui/input-group";
-import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "@/components/ui/sonner";
+} from "@cloudy/ui";
+import { Skeleton } from "@cloudy/ui";
+import { toast } from "@cloudy/ui";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import type { IdeaModel } from "@cloudy/contracts";
 import type { Idea, IdeaDetail } from "@/features/idea/types";

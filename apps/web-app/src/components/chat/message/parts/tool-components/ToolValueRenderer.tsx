@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@cloudy/ui";
 
 interface ToolValueRendererProps {
   value: unknown;

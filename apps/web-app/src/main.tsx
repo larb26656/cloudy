@@ -5,8 +5,8 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
-import { TooltipProvider } from "./components/ui/tooltip"
-import { Toaster } from "./components/ui/sonner";
+import { TooltipProvider } from "@cloudy/ui"
+import { Toaster } from "@cloudy/ui";
 import { initCoreChat } from "@cloudy/core-chat";
 import { oc } from "./lib/opencode";
 

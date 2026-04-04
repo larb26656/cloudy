@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Spinner } from "./spinner";
+import { Spinner } from "@cloudy/ui";
 
 interface LoadingOverlayProps {
     className?: string;

@@ -4,7 +4,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@cloudy/ui";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { TypeBadge } from "@/features/artifact/components";
 import type { Artifact } from "@/features/artifact/types";

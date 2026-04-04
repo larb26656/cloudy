@@ -1,6 +1,6 @@
 import { Info, X } from "lucide-react";
 import { useState } from "react";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader } from "@cloudy/ui";
 import { ArtifactInfoDialog } from "@/features/artifact/components/ArtifactInfoDialog";
 import type { Artifact } from "@/features/artifact/types";
 import { env } from "@/config/env";

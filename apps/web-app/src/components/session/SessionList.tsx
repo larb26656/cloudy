@@ -1,5 +1,5 @@
 import { SessionItem } from "./SessionItem";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Skeleton } from "@cloudy/ui";
 import { useDirectoryStore } from "@/stores";
 import { useSessionStore } from "@cloudy/core-chat";
 import { ErrorState } from "@/components/ui/error-state";

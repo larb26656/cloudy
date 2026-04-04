@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card } from "@cloudy/ui";
 import { DirectoryPicker } from "@/components/directory/DirectoryPickerDialog";
 import { generateGreeting } from "@/lib/greeting-generator";
 import { Lightbulb, Brain, FileCode } from "lucide-react";

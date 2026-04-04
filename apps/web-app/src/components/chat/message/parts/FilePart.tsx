@@ -3,7 +3,7 @@ import type {
   FilePartSource,
 } from "@opencode-ai/sdk/v2";
 import { Paperclip } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@cloudy/ui";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface FilePartProps {

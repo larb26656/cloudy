@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { MoreHorizontal, Edit2, Trash2, GitBranch } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@cloudy/ui";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@cloudy/ui";
 import { formatRelativeFromTimestamp } from "@/lib/date";
 import type { Session, SessionStatus } from "@opencode-ai/sdk/v2";
 

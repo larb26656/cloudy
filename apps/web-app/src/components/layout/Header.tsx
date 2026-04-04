@@ -5,7 +5,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@cloudy/ui";
 import { useChatUIStore } from "@/stores";
 
 interface HeaderProps {

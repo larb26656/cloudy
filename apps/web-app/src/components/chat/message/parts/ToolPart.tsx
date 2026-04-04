@@ -1,6 +1,6 @@
 import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
 import { Wrench } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@cloudy/ui";
 import CollapsiblePart from "./CollapsiblePart";
 import { ToolStateDisplay } from "./ToolStateDisplay";
 import { Detail, Preview } from "./tool-components";

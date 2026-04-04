@@ -1,6 +1,6 @@
 import type { StepStartPart as StepStartPartType } from "@opencode-ai/sdk/v2";
 import { Play } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@cloudy/ui";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface StepStartPartProps {

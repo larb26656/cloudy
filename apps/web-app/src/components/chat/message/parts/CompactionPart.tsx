@@ -1,6 +1,6 @@
 import type { CompactionPart as CompactionPartType } from "@opencode-ai/sdk/v2";
 import { Minimize2, Sparkles } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@cloudy/ui";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface CompactionPartProps {

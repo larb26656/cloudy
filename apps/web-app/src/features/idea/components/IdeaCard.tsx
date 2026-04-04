@@ -6,14 +6,14 @@ import {
   CardContent,
   CardFooter,
   CardAction,
-} from "@/components/ui/card";
+} from "@cloudy/ui";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@cloudy/ui";
 import { StatusBadge, PriorityBadge } from "@/features/idea/components";
 import { formatDateTime } from "@/lib/date";
 import type { Idea } from "@/features/idea/types";

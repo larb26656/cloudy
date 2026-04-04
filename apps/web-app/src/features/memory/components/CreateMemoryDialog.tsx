@@ -6,9 +6,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from '@cloudy/ui';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Input } from '@cloudy/ui';
 import type { Memory } from '@/features/memory/types';
 
 interface CreateMemoryDialogProps {

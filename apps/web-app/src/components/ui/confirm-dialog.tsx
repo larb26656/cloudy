@@ -5,7 +5,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@cloudy/ui";
 import { Button } from "@/components/ui/button";
 
 interface ConfirmDialogProps {

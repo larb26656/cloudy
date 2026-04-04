@@ -7,14 +7,14 @@ import {
   CardContent,
   CardFooter,
   CardAction,
-} from "@/components/ui/card";
+} from "@cloudy/ui";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@cloudy/ui";
 import { formatDate } from "@/lib/date";
 import type { Memory } from "@/features/memory/types";
 

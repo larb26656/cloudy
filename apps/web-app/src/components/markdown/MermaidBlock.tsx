@@ -6,8 +6,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@cloudy/ui";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@cloudy/ui";
 import panzoom from "panzoom";
 import { v4 as uuidv4 } from "uuid";
 import { CodeBlock } from "./CodeBlock";

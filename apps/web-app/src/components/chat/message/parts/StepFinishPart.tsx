@@ -7,7 +7,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@cloudy/ui";
 import { formatTime, formatNumber } from "@/lib/date";
 
 interface StepFinishPartProps {

@@ -6,7 +6,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@cloudy/ui";
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {

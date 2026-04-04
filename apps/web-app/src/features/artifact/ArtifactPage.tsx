@@ -14,8 +14,8 @@ import {
   InputGroup,
   InputGroupInput,
   InputGroupAddon,
-} from "@/components/ui/input-group";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@cloudy/ui";
+import { Skeleton } from "@cloudy/ui";
 import type { ArtifactModel } from "@cloudy/contracts";
 import type { Artifact } from "@/features/artifact/types";
 

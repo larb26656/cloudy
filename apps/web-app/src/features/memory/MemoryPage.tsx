@@ -11,8 +11,8 @@ import {
   InputGroup,
   InputGroupInput,
   InputGroupAddon,
-} from "@/components/ui/input-group";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@cloudy/ui";
+import { Skeleton } from "@cloudy/ui";
 import type { Memory } from "@/features/memory/types";
 import {
   CreateMemoryDialog,

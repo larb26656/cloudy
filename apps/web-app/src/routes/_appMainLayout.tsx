@@ -9,7 +9,7 @@ import {
   ResizablePanel,
   ResizablePanelGroup,
   ResizableHandle,
-} from "@/components/ui/resizable";
+} from "@cloudy/ui";
 import { useDeviceType } from "@/hooks";
 import { useEffect, useState } from "react";
 import {

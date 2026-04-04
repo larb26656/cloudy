@@ -1,6 +1,6 @@
 import type { ReasoningPart as ReasoningPartType } from "@opencode-ai/sdk/v2";
 import { Brain } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@cloudy/ui";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface ReasoningPartProps {

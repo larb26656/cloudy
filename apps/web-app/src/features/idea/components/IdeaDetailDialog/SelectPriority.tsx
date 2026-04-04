@@ -5,7 +5,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-} from "@/components/ui/select";
+} from "@cloudy/ui";
 
 interface SelectPriorityProps {
   value: IdeaPriority;

@@ -1,6 +1,6 @@
 import { FileText, Plus, Trash2, FolderOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@cloudy/ui";
 import { cn } from "@/lib/utils";
 import type { IdeaFile } from "@/features/idea/types";
 import { useState } from "react";

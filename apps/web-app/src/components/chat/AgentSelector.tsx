@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Bot, ChevronDown, Search, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@cloudy/ui";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuGroup,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@cloudy/ui";
 import { useAgentStore } from "@cloudy/core-chat";
 
 const agentModeLabels: Record<string, string> = {

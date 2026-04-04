@@ -6,14 +6,14 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
-} from "@/components/ui/sheet";
+} from "@cloudy/ui";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@cloudy/ui";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import type { Memory } from "@/features/memory/types";
 import DialogScrollArea from "@/components/layout/DialogScrollArea";

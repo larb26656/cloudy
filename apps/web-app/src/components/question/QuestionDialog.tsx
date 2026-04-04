@@ -7,9 +7,9 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
+} from "@cloudy/ui";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { ScrollArea } from "@cloudy/ui";
 import { cn } from "@/lib/utils";
 import { MessageCircleQuestion, Trash2, SendHorizontal } from "lucide-react";
 
