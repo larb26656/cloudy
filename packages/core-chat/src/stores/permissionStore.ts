@@ -1,4 +1,4 @@
-import { getErrorMessage, oc, type SdkError } from "@/lib/opencode";
+import { getOc, getErrorMessage, type SdkError } from "../lib/client";
 import type { PermissionRequest } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -20,7 +20,7 @@ type PermissionStoreActions = {
     addPermission: (permission: PermissionRequest) => void;
 }
 
-type PermissionStore = PermissionStoreState & PermissionStoreActions
+export type PermissionStore = PermissionStoreState & PermissionStoreActions
 
 export const usePermissionStore = create<PermissionStore>()(
     persist(
@@ -33,6 +33,7 @@ export const usePermissionStore = create<PermissionStore>()(
             loadPermissions: async (directory: string) => {
                 set({ isLoading: true, error: null });
 
+                const oc = getOc();
                 const result = await oc.permission.list({ directory });
 
                 if (result.error) {
@@ -47,7 +48,7 @@ export const usePermissionStore = create<PermissionStore>()(
                     if (!grouped[permission.sessionID]) {
                         grouped[permission.sessionID] = [];
                     }
-                    grouped[permission.sessionID].push(permission);
+                    grouped[permission.sessionID]!.push(permission);
                 }
 
                 set({
@@ -60,6 +61,7 @@ export const usePermissionStore = create<PermissionStore>()(
             replyPermission: async (requestID: string, reply: "once" | "always" | "reject", directory: string) => {
                 set({ error: null });
 
+                const oc = getOc();
                 const result = await oc.permission.reply({
                     requestID,
                     reply,
@@ -75,10 +77,10 @@ export const usePermissionStore = create<PermissionStore>()(
                 const newPermissions = { ...permissions };
 
                 for (const sessionId of Object.keys(newPermissions)) {
-                    newPermissions[sessionId] = newPermissions[sessionId].filter(
+                    newPermissions[sessionId] = newPermissions[sessionId]!.filter(
                         (p) => p.id !== requestID
                     );
-                    if (newPermissions[sessionId].length === 0) {
+                    if (newPermissions[sessionId]!.length === 0) {
                         delete newPermissions[sessionId];
                     }
                 }
@@ -123,11 +125,11 @@ export const usePermissionStore = create<PermissionStore>()(
                     if (!newPermissions[permission.sessionID]) {
                         newPermissions[permission.sessionID] = [];
                     }
-                    const exists = newPermissions[permission.sessionID].some(
+                    const exists = newPermissions[permission.sessionID]!.some(
                         (p) => p.id === permission.id
                     );
                     if (!exists) {
-                        newPermissions[permission.sessionID].push(permission);
+                        newPermissions[permission.sessionID]!.push(permission);
                     }
                     return { permissions: newPermissions, dismissed: false };
                 });

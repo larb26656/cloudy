@@ -1,4 +1,4 @@
-import { getErrorMessage, oc, type SdkError } from "@/lib/opencode";
+import { getOc, getErrorMessage, type SdkError } from "../lib/client";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -16,7 +16,7 @@ type DirectoryStoreActions = {
     searchDirectories: (query: string) => Promise<void>;
 }
 
-type DirectoryStore = DirectoryStoreState & DirectoryStoreActions
+export type DirectoryStore = DirectoryStoreState & DirectoryStoreActions
 
 export const useDirectoryStore = create<DirectoryStore>()(
     persist(
@@ -39,6 +39,7 @@ export const useDirectoryStore = create<DirectoryStore>()(
             searchDirectories: async (query: string) => {
                 set({ isLoading: true, error: null });
 
+                const oc = getOc();
                 const result = await oc.find.files({
                     query,
                     type: 'directory',
@@ -62,5 +63,3 @@ export const useDirectoryStore = create<DirectoryStore>()(
         }
     )
 )
-
-

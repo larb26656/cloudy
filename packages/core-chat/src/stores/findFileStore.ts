@@ -1,6 +1,5 @@
 import { create } from "zustand";
-import { oc, getErrorMessage } from "@/lib/opencode";
-import type { SdkError } from "@/lib/opencode";
+import { getOc, getErrorMessage, type SdkError } from "../lib/client";
 
 type FindType = "file" | "directory";
 
@@ -19,7 +18,7 @@ type FindFileStoreActions = {
   clearResults: () => void;
 }
 
-type FindFileStore = FindFileStoreState & FindFileStoreActions
+export type FindFileStore = FindFileStoreState & FindFileStoreActions
 
 export const useFindFileStore = create<FindFileStore>()(
   (set) => ({
@@ -30,6 +29,7 @@ export const useFindFileStore = create<FindFileStore>()(
     searchFiles: async (directory, query, options) => {
       set({ isLoading: true, error: null });
       try {
+        const oc = getOc();
         const result = await oc.find.files({
           directory,
           query,
@@ -43,11 +43,11 @@ export const useFindFileStore = create<FindFileStore>()(
 
         const files = result.data ?? [];
         set({ results: files, isLoading: false });
-        return files; // <-- return string[]
+        return files;
       } catch (err) {
         const message = (err as Error).message;
         set({ error: message, isLoading: false, results: [] });
-        return []; // <-- return empty array on error
+        return [];
       }
     },
 

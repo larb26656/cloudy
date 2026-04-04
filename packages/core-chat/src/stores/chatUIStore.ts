@@ -1,6 +1,7 @@
-import type { DeviceType } from "@/hooks";
+import { getOc, getErrorMessage, type SdkError } from "../lib/client";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import type { DeviceType } from "../types/device";
 
 type ChatUIStoreState = {
     deviceType: DeviceType;
@@ -17,7 +18,7 @@ type ChatUIStoreActions = {
     toggleTheme: () => void;
 }
 
-type ChatUIStore = ChatUIStoreState & ChatUIStoreActions
+export type ChatUIStore = ChatUIStoreState & ChatUIStoreActions
 
 export const useChatUIStore = create<ChatUIStore>()(
     persist(
@@ -55,5 +56,3 @@ export const useChatUIStore = create<ChatUIStore>()(
         }
     )
 )
-
-

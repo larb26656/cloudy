@@ -1,6 +1,8 @@
-// stores/index.ts
-export { useDirectoryStore } from './directoryStore';
-export { useChatUIStore } from './chatUIStore';
-export { usePermissionStore } from './permissionStore';
-export { useFindFileStore } from './findFileStore';
-export { useMemoryStore } from './memoryStore';
+// stores/index.ts - re-export from @cloudy/core-chat
+export {
+  useChatUIStore,
+  useDirectoryStore,
+  useFindFileStore,
+  useMemoryStore,
+  usePermissionStore,
+} from "@cloudy/core-chat";

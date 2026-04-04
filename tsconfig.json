@@ -3,6 +3,7 @@
   "references": [
     { "path": "./apps/web-app" },
     { "path": "./apps/server" },
-    { "path": "./packages/contracts" }
+    { "path": "./packages/contracts" },
+    { "path": "./packages/core-chat" }
   ]
 }

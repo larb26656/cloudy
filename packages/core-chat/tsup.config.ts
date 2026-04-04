@@ -5,6 +5,7 @@ export default defineConfig({
     index: "src/index.ts",
     stores: "src/stores/index.ts",
     lib: "src/lib/index.ts",
+    types: "src/types/index.ts",
   },
   format: ["esm"],
   dts: true,

@@ -53,6 +53,153 @@ function buildParts(directory, content) {
   return [textPart, ...mentionParts];
 }
 
+// src/types/device.ts
+var BREAKPOINTS = {
+  mobile: 640,
+  tablet: 1024
+};
+function getDeviceType(width) {
+  if (width < BREAKPOINTS.mobile) return "mobile";
+  if (width < BREAKPOINTS.tablet) return "tablet";
+  return "desktop";
+}
+
+// src/lib/front-matter.ts
+function parseFrontMatter(markdown, fallbackTitle) {
+  const frontMatterRegex = /^---\n([\s\S]*?)\n---\n?/;
+  const match = markdown.match(frontMatterRegex);
+  if (!match) {
+    return {
+      meta: {
+        title: fallbackTitle,
+        tags: []
+      },
+      content: markdown,
+      raw: markdown
+    };
+  }
+  const metaString = match[1];
+  const content = markdown.slice(match[0].length);
+  const meta = {
+    title: fallbackTitle,
+    tags: []
+  };
+  for (const line of (metaString ?? "").split("\n")) {
+    const colonIndex = line.indexOf(":");
+    if (colonIndex === -1) continue;
+    const key = line.slice(0, colonIndex).trim();
+    const value = line.slice(colonIndex + 1).trim();
+    switch (key) {
+      case "title":
+        meta.title = value || fallbackTitle;
+        break;
+      case "tags":
+        try {
+          if (value.startsWith("[")) {
+            meta.tags = JSON.parse(value.replace(/'/g, '"'));
+          } else {
+            meta.tags = value.split(",").map((t) => t.trim()).filter(Boolean);
+          }
+        } catch {
+          meta.tags = [];
+        }
+        break;
+      case "createdAt":
+      case "updatedAt":
+        if (/^\d{4}-\d{2}-\d{2}/.test(value)) {
+          meta[key] = value;
+        }
+        break;
+    }
+  }
+  return { meta, content, raw: markdown };
+}
+function parseIdeaFrontMatter(markdown, fallbackTitle) {
+  const parsed = parseFrontMatter(markdown, fallbackTitle);
+  const meta = { ...parsed.meta };
+  const statusMatch = parsed.raw.match(/^---\n([\s\S]*?)\n---/m);
+  if (statusMatch && statusMatch[1]) {
+    for (const line of statusMatch[1].split("\n")) {
+      const colonIndex = line.indexOf(":");
+      if (colonIndex === -1) continue;
+      const key = line.slice(0, colonIndex).trim();
+      const value = line.slice(colonIndex + 1).trim();
+      if (key === "status" && ["draft", "in-progress", "completed", "archived"].includes(value)) {
+        meta.status = value;
+      }
+      if (key === "priority" && ["low", "medium", "high"].includes(value)) {
+        meta.priority = value;
+      }
+    }
+  }
+  return { ...parsed, meta };
+}
+function parseArtifactFrontMatter(markdown, fallbackTitle) {
+  const parsed = parseFrontMatter(markdown, fallbackTitle);
+  const meta = { ...parsed.meta };
+  const frontMatterMatch = parsed.raw.match(/^---\n([\s\S]*?)\n---/m);
+  if (frontMatterMatch && frontMatterMatch[1]) {
+    for (const line of frontMatterMatch[1].split("\n")) {
+      const colonIndex = line.indexOf(":");
+      if (colonIndex === -1) continue;
+      const key = line.slice(0, colonIndex).trim();
+      const value = line.slice(colonIndex + 1).trim();
+      if (key === "type" && ["html", "pdf", "image", "video", "document"].includes(value)) {
+        meta.type = value;
+      }
+    }
+  }
+  return { ...parsed, meta };
+}
+function stringifyFrontMatter(meta, content) {
+  const parts = ["---"];
+  if (meta.title) {
+    parts.push(`title: "${meta.title}"`);
+  }
+  if (meta.tags && meta.tags.length > 0) {
+    parts.push(`tags: [${meta.tags.map((t) => `"${t}"`).join(", ")}]`);
+  }
+  if (meta.createdAt) {
+    parts.push(`createdAt: ${meta.createdAt}`);
+  }
+  if (meta.updatedAt) {
+    parts.push(`updatedAt: ${meta.updatedAt}`);
+  }
+  parts.push("---\n");
+  return parts.join("\n") + content;
+}
+function stringifyArtifactFrontMatter(meta, content) {
+  const frontMeta = {
+    title: meta.title,
+    tags: meta.tags,
+    createdAt: meta.createdAt,
+    updatedAt: meta.updatedAt
+  };
+  const base = stringifyFrontMatter(frontMeta, content);
+  const lines = base.split("\n");
+  const dashIndex = lines.indexOf("---", 1);
+  if (dashIndex !== -1) {
+    if (meta.type) lines.splice(dashIndex, 0, `type: ${meta.type}`);
+  }
+  return lines.join("\n");
+}
+function stringifyIdeaFrontMatter(meta, content) {
+  const frontMeta = {
+    title: meta.title,
+    tags: meta.tags,
+    createdAt: meta.createdAt,
+    updatedAt: meta.updatedAt
+  };
+  const base = stringifyFrontMatter(frontMeta, content);
+  const lines = base.split("\n");
+  const dashIndex = lines.indexOf("---", 1);
+  if (dashIndex !== -1) {
+    if (meta.status) lines.splice(dashIndex, 0, `status: ${meta.status}`);
+    if (meta.priority) lines.splice(dashIndex + (meta.status ? 1 : 0), 0, `priority: ${meta.priority}`);
+  }
+  return lines.join("\n");
+}
+
 // src/stores/messageStore.ts
 import { create } from "zustand";
 var useMessageStore = create()(
@@ -547,15 +694,411 @@ var useQuestionStore = create5()(
     }
   )
 );
+
+// src/stores/chatUIStore.ts
+import { create as create6 } from "zustand";
+import { persist as persist4 } from "zustand/middleware";
+var useChatUIStore = create6()(
+  persist4(
+    (set) => ({
+      deviceType: "desktop",
+      sidebarOpen: false,
+      sidebarWidth: 0,
+      isDarkMode: false,
+      setDeviceType: (deviceType) => set({ deviceType }),
+      toggleSidebar: () => set((state) => {
+        const newValue = !state.sidebarOpen;
+        return { sidebarOpen: newValue };
+      }),
+      setSidebarOpen: (open) => {
+        set({ sidebarOpen: open });
+      },
+      setSidebarWidth: (width) => {
+        const clampedWidth = Math.max(200, Math.min(400, width));
+        set({ sidebarWidth: clampedWidth });
+      },
+      toggleTheme: () => set((state) => ({ isDarkMode: !state.isDarkMode }))
+    }),
+    {
+      name: "chat-storage",
+      partialize: (state) => ({
+        sidebarOpen: state.sidebarOpen,
+        sidebarWidth: state.sidebarWidth,
+        isDarkMode: state.isDarkMode
+      })
+    }
+  )
+);
+
+// src/stores/directoryStore.ts
+import { create as create7 } from "zustand";
+import { persist as persist5 } from "zustand/middleware";
+var useDirectoryStore = create7()(
+  persist5(
+    (set) => ({
+      directories: [],
+      selectedDirectory: null,
+      recentDirectories: [],
+      isLoading: false,
+      error: null,
+      setSelectedDirectory: (directory) => {
+        set({ selectedDirectory: directory });
+      },
+      addRecentDirectory: (directory) => set((state) => {
+        const updated = [directory, ...state.recentDirectories.filter((d) => d !== directory)].slice(0, 5);
+        return { recentDirectories: updated };
+      }),
+      searchDirectories: async (query) => {
+        set({ isLoading: true, error: null });
+        const oc = getOc();
+        const result = await oc.find.files({
+          query,
+          type: "directory",
+          limit: 10
+        });
+        if (result.error) {
+          set({ error: getErrorMessage(result.error), isLoading: false });
+          return;
+        }
+        const data = result.data;
+        set({ isLoading: false, directories: data });
+      }
+    }),
+    {
+      name: "directory-storage",
+      partialize: (state) => ({
+        selectedDirectory: state.selectedDirectory,
+        recentDirectories: state.recentDirectories
+      })
+    }
+  )
+);
+
+// src/stores/findFileStore.ts
+import { create as create8 } from "zustand";
+var useFindFileStore = create8()(
+  (set) => ({
+    results: [],
+    isLoading: false,
+    error: null,
+    searchFiles: async (directory, query, options) => {
+      set({ isLoading: true, error: null });
+      try {
+        const oc = getOc();
+        const result = await oc.find.files({
+          directory,
+          query,
+          type: options?.type,
+          limit: options?.limit ?? 10
+        });
+        if (result.error) {
+          throw new Error(getErrorMessage(result.error));
+        }
+        const files = result.data ?? [];
+        set({ results: files, isLoading: false });
+        return files;
+      } catch (err) {
+        const message = err.message;
+        set({ error: message, isLoading: false, results: [] });
+        return [];
+      }
+    },
+    clearResults: () => {
+      set({ results: [], error: null });
+    }
+  })
+);
+
+// src/stores/memoryStore.ts
+import { create as create9 } from "zustand";
+function memoryFromMarkdown(name, markdown, id) {
+  const parsed = parseFrontMatter(markdown, name);
+  const now = (/* @__PURE__ */ new Date()).toISOString();
+  return {
+    id: id || crypto.randomUUID(),
+    name,
+    markdown,
+    content: parsed.content.trim(),
+    meta: {
+      title: parsed.meta.title || name,
+      tags: parsed.meta.tags || [],
+      createdAt: parsed.meta.createdAt || now,
+      updatedAt: parsed.meta.updatedAt || now
+    }
+  };
+}
+var mockMemories = [
+  memoryFromMarkdown(
+    "Project Architecture",
+    `---
+title: Project Architecture
+tags: ["architecture", "design"]
+createdAt: 2024-01-15
+updatedAt: 2024-01-20
+---
+
+# Project Architecture
+
+## Core Principles
+- Modular design with clear separation of concerns
+- State management using Zustand
+- Type-safe with TypeScript
+
+## Key Patterns
+1. Feature-based organization
+2. Component composition
+3. Store-driven state management`,
+    "1"
+  ),
+  memoryFromMarkdown(
+    "API Integration Notes",
+    `# API Integration Notes
+
+## Authentication
+- Uses SDK client with base URL configuration
+- Error handling with typed error responses
+
+## Endpoints Used
+- \`session.list\` - Get sessions
+- \`session.create\` - Create new session
+- \`message.send\` - Send messages`,
+    "2"
+  ),
+  memoryFromMarkdown(
+    "UI Component Patterns",
+    `---
+title: UI Component Patterns
+tags: ["ui", "components"]
+createdAt: 2024-03-01
+updatedAt: 2024-03-05
+---
+
+# UI Component Patterns
+
+## Component Structure
+- Use Radix UI primitives for accessibility
+- Tailwind CSS for styling
+- Variant-based theming with cva
+
+## Example
+\`\`\`tsx
+function Button({ variant = 'default', size = 'default' }) {
+  return <button className={buttonVariants({ variant, size })} />;
+}
+\`\`\``,
+    "3"
+  ),
+  memoryFromMarkdown(
+    "Routing Setup",
+    `# Routing Setup
+
+## File-based Routing
+- Routes defined in \`/routes\` directory
+- Layout routes with \`_prefix\`
+- Nested routes for sub-pages
+
+## Navigation
+- Use \`Link\` component for client-side navigation
+- \`useLocation\` for path checking`,
+    "4"
+  )
+];
+var useMemoryStore = create9()(
+  (set, get) => ({
+    memories: [],
+    selectedMemoryId: null,
+    isLoading: false,
+    searchQuery: "",
+    loadMemories: async () => {
+      set({ isLoading: true });
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      set({ memories: mockMemories, isLoading: false });
+    },
+    createMemory: (memoryData) => {
+      const now = (/* @__PURE__ */ new Date()).toISOString();
+      const meta = {
+        title: memoryData.name,
+        tags: [],
+        createdAt: now,
+        updatedAt: now
+      };
+      const newMemory = {
+        ...memoryData,
+        meta,
+        id: crypto.randomUUID()
+      };
+      newMemory.markdown = stringifyFrontMatter(meta, memoryData.content);
+      set((state) => ({ memories: [newMemory, ...state.memories] }));
+      return newMemory;
+    },
+    updateMemory: (id, updates) => {
+      set((state) => ({
+        memories: state.memories.map((m) => {
+          if (m.id !== id) return m;
+          const updated = { ...m, ...updates };
+          const meta = {
+            ...m.meta,
+            ...updates.meta,
+            updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+          };
+          updated.meta = meta;
+          updated.markdown = stringifyFrontMatter(meta, updated.content);
+          return updated;
+        })
+      }));
+    },
+    deleteMemory: (id) => {
+      set((state) => ({
+        memories: state.memories.filter((m) => m.id !== id),
+        selectedMemoryId: state.selectedMemoryId === id ? null : state.selectedMemoryId
+      }));
+    },
+    selectMemory: (id) => {
+      set({ selectedMemoryId: id });
+    },
+    setSearchQuery: (query) => {
+      set({ searchQuery: query });
+    },
+    getFilteredMemories: () => {
+      const { memories, searchQuery } = get();
+      if (!searchQuery.trim()) return memories;
+      const query = searchQuery.toLowerCase();
+      return memories.filter(
+        (m) => m.name.toLowerCase().includes(query) || m.content.toLowerCase().includes(query) || m.meta.title?.toLowerCase().includes(query) || m.meta.tags.some((t) => t.toLowerCase().includes(query))
+      );
+    }
+  })
+);
+
+// src/stores/permissionStore.ts
+import { create as create10 } from "zustand";
+import { persist as persist6 } from "zustand/middleware";
+var usePermissionStore = create10()(
+  persist6(
+    (set, get) => ({
+      permissions: {},
+      isLoading: false,
+      error: null,
+      dismissed: false,
+      loadPermissions: async (directory) => {
+        set({ isLoading: true, error: null });
+        const oc = getOc();
+        const result = await oc.permission.list({ directory });
+        if (result.error) {
+          set({ error: getErrorMessage(result.error), isLoading: false });
+          return;
+        }
+        const permissionList = result.data || [];
+        const grouped = {};
+        for (const permission of permissionList) {
+          if (!grouped[permission.sessionID]) {
+            grouped[permission.sessionID] = [];
+          }
+          grouped[permission.sessionID].push(permission);
+        }
+        set({
+          permissions: grouped,
+          isLoading: false,
+          dismissed: false
+        });
+      },
+      replyPermission: async (requestID, reply, directory) => {
+        set({ error: null });
+        const oc = getOc();
+        const result = await oc.permission.reply({
+          requestID,
+          reply,
+          directory
+        });
+        if (result.error) {
+          set({ error: getErrorMessage(result.error) });
+          return;
+        }
+        const { permissions } = get();
+        const newPermissions = { ...permissions };
+        for (const sessionId of Object.keys(newPermissions)) {
+          newPermissions[sessionId] = newPermissions[sessionId].filter(
+            (p) => p.id !== requestID
+          );
+          if (newPermissions[sessionId].length === 0) {
+            delete newPermissions[sessionId];
+          }
+        }
+        set({ permissions: newPermissions });
+      },
+      dismissNotification: () => {
+        set({ dismissed: true });
+      },
+      restoreNotification: () => {
+        set({ dismissed: false });
+      },
+      clearPermissionsForSession: (sessionId) => {
+        set((state) => {
+          const newPermissions = { ...state.permissions };
+          delete newPermissions[sessionId];
+          return { permissions: newPermissions };
+        });
+      },
+      removePermission: (sessionId, requestId) => {
+        set((state) => {
+          const newPermissions = { ...state.permissions };
+          if (newPermissions[sessionId]) {
+            newPermissions[sessionId] = newPermissions[sessionId].filter(
+              (p) => p.id !== requestId
+            );
+            if (newPermissions[sessionId].length === 0) {
+              delete newPermissions[sessionId];
+            }
+          }
+          return { permissions: newPermissions };
+        });
+      },
+      addPermission: (permission) => {
+        set((state) => {
+          const newPermissions = { ...state.permissions };
+          if (!newPermissions[permission.sessionID]) {
+            newPermissions[permission.sessionID] = [];
+          }
+          const exists = newPermissions[permission.sessionID].some(
+            (p) => p.id === permission.id
+          );
+          if (!exists) {
+            newPermissions[permission.sessionID].push(permission);
+          }
+          return { permissions: newPermissions, dismissed: false };
+        });
+      }
+    }),
+    {
+      name: "permission-storage",
+      partialize: (state) => ({
+        dismissed: state.dismissed
+      })
+    }
+  )
+);
 export {
+  BREAKPOINTS,
   buildParts,
   createDefaultTitle,
+  getDeviceType,
   getErrorMessage,
   getOc,
   initCoreChat,
+  parseArtifactFrontMatter,
+  parseFrontMatter,
+  parseIdeaFrontMatter,
+  stringifyArtifactFrontMatter,
+  stringifyFrontMatter,
+  stringifyIdeaFrontMatter,
   useAgentStore,
+  useChatUIStore,
+  useDirectoryStore,
+  useFindFileStore,
+  useMemoryStore,
   useMessageStore,
   useModelStore,
+  usePermissionStore,
   useQuestionStore,
   useSessionStore
 };

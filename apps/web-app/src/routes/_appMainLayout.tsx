@@ -11,13 +11,11 @@ import {
   ResizableHandle,
 } from "@/components/ui/resizable";
 import { useDeviceType } from "@/hooks";
-import { useChatUIStore } from "@/stores/chatUIStore";
 import { useEffect, useState } from "react";
 import {
+  useChatUIStore,
   useDirectoryStore,
   usePermissionStore,
-} from "@/stores";
-import {
   useMessageStore,
   useQuestionStore,
   useSessionStore,

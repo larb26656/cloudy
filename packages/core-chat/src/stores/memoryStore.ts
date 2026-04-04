@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { parseFrontMatter, stringifyFrontMatter } from '@/lib/front-matter';
-import type { Memory } from '@/types/memory';
+import { parseFrontMatter, stringifyFrontMatter } from '../lib/front-matter';
+import type { Memory } from '../types/memory';
 
 function memoryFromMarkdown(name: string, markdown: string, id?: string): Memory {
   const parsed = parseFrontMatter(markdown, name);
@@ -114,7 +114,7 @@ type MemoryStoreActions = {
   getFilteredMemories: () => Memory[];
 }
 
-type MemoryStore = MemoryStoreState & MemoryStoreActions;
+export type MemoryStore = MemoryStoreState & MemoryStoreActions;
 
 export const useMemoryStore = create<MemoryStore>()(
   (set, get) => ({

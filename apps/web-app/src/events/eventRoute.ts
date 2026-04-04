@@ -1,5 +1,4 @@
-import { useMessageStore, useSessionStore, useQuestionStore } from "@cloudy/core-chat"
-import { usePermissionStore } from "@/stores/permissionStore"
+import { useMessageStore, useSessionStore, useQuestionStore, usePermissionStore } from "@cloudy/core-chat"
 import type { Event, QuestionRequest, PermissionRequest, SessionStatus } from "@opencode-ai/sdk/v2";
 
 export function handleEvent(event: Event) {

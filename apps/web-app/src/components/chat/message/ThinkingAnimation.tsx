@@ -1,5 +1,5 @@
 import { Sprite } from "../../Sprite";
-import { useChatUIStore } from "@/stores/chatUIStore";
+import { useChatUIStore } from "@cloudy/core-chat";
 
 export default function ThinkingAnimation() {
   const isDarkMode = useChatUIStore((state) => state.isDarkMode);
