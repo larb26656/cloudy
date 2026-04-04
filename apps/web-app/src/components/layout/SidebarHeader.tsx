@@ -7,7 +7,7 @@ import {
   InputGroupAddon,
 } from "@/components/ui/input-group";
 import { SidebarNav } from "./SidebarNav";
-import { useSessionStore } from "@/stores";
+import { useSessionStore } from "@cloudy/core-chat";
 
 interface SidebarHeaderProps {
   onSearchChange: (query: string) => void;

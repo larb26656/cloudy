@@ -5,7 +5,7 @@ import { ModelSelector } from "./ModelSelector";
 import { AgentSelector } from "./AgentSelector";
 import type { ModelConfig } from "../../types";
 import { Button } from "@/components/ui/button";
-import { useAgentStore, useModelStore } from "@/stores";
+import { useAgentStore, useModelStore } from "@cloudy/core-chat";
 import type { ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "./ChatInputEditor";
 

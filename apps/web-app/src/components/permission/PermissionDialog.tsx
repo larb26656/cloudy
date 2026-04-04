@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { usePermissionStore, useSessionStore, useDirectoryStore } from "@/stores";
+import { usePermissionStore, useDirectoryStore } from "@/stores";
+import { useSessionStore } from "@cloudy/core-chat";
 import {
   Dialog,
   DialogContent,

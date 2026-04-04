@@ -1,7 +1,7 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import { Header } from "@/components/layout";
 import { useEventStream } from "@/hooks/useEventSteam";
-import { useMessageStore, useSessionStore } from "@/stores";
+import { useMessageStore, useSessionStore } from "@cloudy/core-chat";
 import { useEffect, useState } from "react";
 
 type SnippetType = "idea" | "memory" | "artifact";

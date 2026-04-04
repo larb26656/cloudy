@@ -15,11 +15,13 @@ import { useChatUIStore } from "@/stores/chatUIStore";
 import { useEffect, useState } from "react";
 import {
   useDirectoryStore,
-  useMessageStore,
   usePermissionStore,
+} from "@/stores";
+import {
+  useMessageStore,
   useQuestionStore,
   useSessionStore,
-} from "@/stores";
+} from "@cloudy/core-chat";
 
 export const Route = createFileRoute("/_appMainLayout")({
   component: AppMainLayout,

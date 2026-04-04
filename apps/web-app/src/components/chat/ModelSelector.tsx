@@ -9,7 +9,7 @@ import {
   ChevronDown,
   Search,
 } from "lucide-react";
-import { useModelStore } from "@/stores";
+import { useModelStore } from "@cloudy/core-chat";
 import type { ModelConfig } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

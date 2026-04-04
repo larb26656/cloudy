@@ -1,6 +1,4 @@
-import { useMessageStore } from "@/stores/messageStore"
-import { useSessionStore } from "@/stores/sessionStore"
-import { useQuestionStore } from "@/stores/questionStore"
+import { useMessageStore, useSessionStore, useQuestionStore } from "@cloudy/core-chat"
 import { usePermissionStore } from "@/stores/permissionStore"
 import type { Event, QuestionRequest, PermissionRequest, SessionStatus } from "@opencode-ai/sdk/v2";
 

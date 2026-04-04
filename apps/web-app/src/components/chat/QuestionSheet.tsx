@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { HelpCircle, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useSessionStore, useQuestionStore, useDirectoryStore } from "@/stores";
+import { useDirectoryStore } from "@/stores";
+import { useSessionStore, useQuestionStore } from "@cloudy/core-chat";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 

@@ -11,7 +11,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAgentStore } from "@/stores";
+import { useAgentStore } from "@cloudy/core-chat";
 
 const agentModeLabels: Record<string, string> = {
   primary: "Primary",

@@ -2,7 +2,7 @@
 import { useEffect, useRef, useMemo, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import type { Message } from "@/types/message";
-import { useMessageStore, useSessionStore } from "@/stores";
+import { useMessageStore, useSessionStore } from "@cloudy/core-chat";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";

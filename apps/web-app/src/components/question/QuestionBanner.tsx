@@ -1,4 +1,4 @@
-import { useQuestionStore } from "@/stores";
+import { useQuestionStore } from "@cloudy/core-chat";
 import { Button } from "@/components/ui/button";
 import { MessageCircleQuestion, XIcon } from "lucide-react";
 

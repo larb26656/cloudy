@@ -1,6 +1,7 @@
 import { SessionItem } from "./SessionItem";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSessionStore, useDirectoryStore } from "@/stores";
+import { useDirectoryStore } from "@/stores";
+import { useSessionStore } from "@cloudy/core-chat";
 import { ErrorState } from "@/components/ui/error-state";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 
