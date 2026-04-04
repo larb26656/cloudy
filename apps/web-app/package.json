@@ -15,6 +15,7 @@
     "@base-ui/react": "^1.2.0",
     "@cloudy/chat-ui": "workspace:*",
     "@cloudy/contracts": "workspace:*",
+    "@cloudy/core-chat": "workspace:*",
     "@cloudy/ui": "workspace:*",
     "@elysiajs/eden": "^1.4.8",
     "@floating-ui/dom": "^1.7.6",

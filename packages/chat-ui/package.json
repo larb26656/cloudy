@@ -18,6 +18,7 @@
     "react-dom": "^19.0.0"
   },
   "dependencies": {
+    "@cloudy/core-chat": "workspace:*",
     "@cloudy/ui": "workspace:*"
   },
   "devDependencies": {

@@ -40,6 +40,7 @@
         "@base-ui/react": "^1.2.0",
         "@cloudy/chat-ui": "workspace:*",
         "@cloudy/contracts": "workspace:*",
+        "@cloudy/core-chat": "workspace:*",
         "@cloudy/ui": "workspace:*",
         "@elysiajs/eden": "^1.4.8",
         "@floating-ui/dom": "^1.7.6",
@@ -125,6 +126,7 @@
       "name": "@cloudy/chat-ui",
       "version": "0.0.0",
       "dependencies": {
+        "@cloudy/core-chat": "workspace:*",
         "@cloudy/ui": "workspace:*",
       },
       "devDependencies": {
@@ -143,6 +145,21 @@
       "version": "1.0.0",
       "devDependencies": {
         "@cloudy/server": "workspace:*",
+      },
+    },
+    "packages/core-chat": {
+      "name": "@cloudy/core-chat",
+      "version": "0.0.0",
+      "dependencies": {
+        "zustand": "^5.0.11",
+      },
+      "devDependencies": {
+        "@opencode-ai/sdk": "^1.2.26",
+        "tsup": "^8.4.0",
+        "typescript": "~5.9.3",
+      },
+      "peerDependencies": {
+        "@opencode-ai/sdk": "^1.2.26",
       },
     },
     "packages/create-cloudy": {
@@ -336,6 +353,8 @@
     "@cloudy/chat-ui": ["@cloudy/chat-ui@workspace:packages/chat-ui"],
 
     "@cloudy/contracts": ["@cloudy/contracts@workspace:packages/contracts"],
+
+    "@cloudy/core-chat": ["@cloudy/core-chat@workspace:packages/core-chat"],
 
     "@cloudy/server": ["@cloudy/server@workspace:apps/server"],
 

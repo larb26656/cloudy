@@ -7,6 +7,11 @@ import { RouterProvider, createRouter } from "@tanstack/react-router";
 import { routeTree } from "./routeTree.gen";
 import { TooltipProvider } from "./components/ui/tooltip"
 import { Toaster } from "./components/ui/sonner";
+import { initCoreChat } from "@cloudy/core-chat";
+import { oc } from "./lib/opencode";
+
+// Initialize core-chat with OpenCode client
+initCoreChat(oc);
 
 // Create a new router instance
 const router = createRouter({ routeTree });
