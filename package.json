@@ -26,6 +26,8 @@
     "publish:create-cloudy": "cd packages/create-cloudy && npm publish",
     "---OPENCODE-PLUGIN---": "",
     "publish:opencode-plugin": "cd packages/opencode-plugin && npm publish",
+    "---PACKAGES---": "",
+    "build:packages": "bun run --filter @cloudy/ui --filter @cloudy/chat-ui build",
     "----CLEAN----": ""
   },
   "workspaces": {

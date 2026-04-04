@@ -38,3 +38,6 @@ coverage/
 
 *storybook.log
 storybook-static
+
+# Tanstack
+.tanstack/
