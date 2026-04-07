@@ -1,5 +1,11 @@
 # @cloudy-app/opencode-plugin
 
+## 0.0.6
+
+### Patch Changes
+
+- 0b686d5: fix: disable overwrite index.md
+
 ## 0.0.5
 
 ### Patch Changes
