@@ -86,12 +86,12 @@ export function ChatInput({
               />
             </div>
 
-            <div className="flex justify-between">
-              <div className="flex gap-1">
+            <div className="flex justify-between gap-2">
+              <div className="flex gap-1 min-w-0 overflow-x-auto">
                 <AgentSelector />
                 <ModelSelector />
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-2 shrink-0">
                 <SpeechBtn
                   onTranscript={(text) =>
                     setChatInputContent((prev) => ({ ...prev, text }))

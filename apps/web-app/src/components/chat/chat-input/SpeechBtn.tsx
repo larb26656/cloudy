@@ -10,12 +10,24 @@ type SpeechBtnProps = {
   onListeningChange?: (listening: boolean) => void;
 };
 
-export default function SpeechBtn({ onTranscript, onListeningChange }: SpeechBtnProps) {
-  const {
-    transcript,
-    listening,
-    browserSupportsSpeechRecognition,
-  } = useSpeechRecognition();
+export default function SpeechBtn({
+  onTranscript,
+  onListeningChange,
+}: SpeechBtnProps) {
+  const { transcript, listening, browserSupportsSpeechRecognition } =
+    useSpeechRecognition();
+
+  useEffect(() => {
+    console.log("SpeechRecognition exists:", !!window.SpeechRecognition);
+    console.log(
+      "webkitSpeechRecognition exists:",
+      !!window.webkitSpeechRecognition,
+    );
+    console.log(
+      "browserSupportsSpeechRecognition:",
+      browserSupportsSpeechRecognition,
+    );
+  }, [browserSupportsSpeechRecognition]);
 
   useEffect(() => {
     if (transcript && onTranscript) {
