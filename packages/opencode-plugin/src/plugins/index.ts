@@ -29,10 +29,6 @@ export const IdeaPlugin: Plugin = async ({
       if (input.tool === "write") {
         const filePath = output.args.filePath as string;
 
-        if (isIdeaIndexMd(filePath)) {
-          throw new Error("Cannot overwrite index.md in idea directory");
-        }
-
         if (isFileIdeaFile(filePath)) {
           const ideaPath = extractIdeaPath(filePath);
           await touchIdea(ideaPath);
