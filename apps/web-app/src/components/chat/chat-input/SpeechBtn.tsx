@@ -43,11 +43,30 @@ export default function SpeechBtn({
     return null;
   }
 
-  const toggleListening = () => {
-    if (listening) {
-      SpeechRecognition.stopListening();
-    } else {
-      SpeechRecognition.startListening({ language: "th-TH", continuous: true });
+  const toggleListening = async () => {
+    console.log("=== TOGGLE CLICKED ===");
+    console.log("before listening:", listening);
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log("mic permission granted");
+      stream.getTracks().forEach((track) => track.stop());
+
+      if (listening) {
+        console.log("calling stopListening()");
+        await SpeechRecognition.stopListening();
+        console.log("stopListening done");
+      } else {
+        console.log("calling startListening()");
+        await SpeechRecognition.startListening({
+          language: "th-TH",
+          continuous: true,
+          interimResults: true,
+        });
+        console.log("startListening done");
+      }
+    } catch (err) {
+      console.error("toggleListening ERROR:", err);
     }
   };
 
