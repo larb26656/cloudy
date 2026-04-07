@@ -1,13 +1,14 @@
 // components/chat/ChatInput.tsx
 import { useState, useEffect } from "react";
 import { ArrowUp, Square } from "lucide-react";
-import { ModelSelector } from "./ModelSelector";
-import { AgentSelector } from "./AgentSelector";
-import type { ModelConfig } from "../../types";
+import { ModelSelector } from "../ModelSelector";
+import { AgentSelector } from "../AgentSelector";
+import type { ModelConfig } from "../../../types";
 import { Button } from "@/components/ui/button";
 import { useAgentStore, useModelStore } from "@/stores";
 import type { ChatInputContent } from "@/lib/opencode";
-import { ChatInputEditor } from "./ChatInputEditor";
+import { ChatInputEditor } from "../ChatInputEditor";
+import SpeechBtn from "./SpeechBtn";
 
 interface ChatInputProps {
   onSend: (
@@ -34,6 +35,7 @@ export function ChatInput({
     text: "",
     mentions: [],
   });
+  const [isListening, setIsListening] = useState(false);
 
   useEffect(() => {
     if (initialValue) {
@@ -89,26 +91,34 @@ export function ChatInput({
                 <AgentSelector />
                 <ModelSelector />
               </div>
-              {isLoading ? (
-                <Button
-                  size="icon"
-                  className="rounded-full p-4"
-                  onClick={onAbort}
-                  title="Stop generating"
-                >
-                  <Square className="size-5" />
-                </Button>
-              ) : (
-                <Button
-                  size="icon"
-                  className="rounded-full p-4"
-                  onClick={handleSubmit}
-                  disabled={!chatInputContent.text.trim()}
-                  title="Send message"
-                >
-                  <ArrowUp className="size-5" />
-                </Button>
-              )}
+              <div className="flex gap-2">
+                <SpeechBtn
+                  onTranscript={(text) =>
+                    setChatInputContent((prev) => ({ ...prev, text }))
+                  }
+                  onListeningChange={setIsListening}
+                />
+                {isLoading ? (
+                  <Button
+                    size="icon"
+                    className="rounded-full p-4"
+                    onClick={onAbort}
+                    title="Stop generating"
+                  >
+                    <Square className="size-5" />
+                  </Button>
+                ) : !isListening ? (
+                  <Button
+                    size="icon"
+                    className="rounded-full p-4"
+                    onClick={handleSubmit}
+                    disabled={!chatInputContent.text.trim()}
+                    title="Send message"
+                  >
+                    <ArrowUp className="size-5" />
+                  </Button>
+                ) : null}
+              </div>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 // components/chat/ChatContainer.tsx
 import { MessageList } from "./message/MessageList";
-import { ChatInput } from "./ChatInput";
+import { ChatInput } from "./chat-input";
 import { QuestionSheet } from "./QuestionSheet";
 import type { ModelConfig } from "../../types";
 import { useSessionStore, useDirectoryStore, useMessageStore } from "@/stores";
@@ -16,7 +16,11 @@ interface ChatContainerProps {
   onSnippetSelect?: (type: SnippetType) => void;
 }
 
-export function ChatContainer({ sessionId, onSnippetSelect, initialInput }: ChatContainerProps) {
+export function ChatContainer({
+  sessionId,
+  onSnippetSelect,
+  initialInput,
+}: ChatContainerProps) {
   const createSession = useSessionStore((s) => s.createSession);
   const activeQuestion = useSessionStore((s) => s.activeQuestion);
   const sendMessage = useMessageStore((s) => s.sendMessage);

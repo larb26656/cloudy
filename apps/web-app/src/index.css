@@ -75,6 +75,33 @@
 }
 
 @theme inline {
+  --animate-aura: aura 2s ease-in-out infinite;
+  --animate-pulse-shadow: pulse-shadow 2s ease-in-out infinite;
+
+  @keyframes aura {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.15);
+    }
+  }
+
+  @keyframes pulse-shadow {
+    0%,
+    100% {
+      outline: 1px solid oklch(from var(--color-foreground) l c h / 0.2);
+      outline-offset: 0px;
+    }
+    50% {
+      outline: 2px solid oklch(from var(--color-foreground) l c h / 0.6);
+      outline-offset: 3px;
+    }
+  }
+
   --font-sans: "Geist Variable", sans-serif;
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);

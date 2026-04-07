@@ -1,0 +1,60 @@
+import { useEffect } from "react";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
+import { Mic } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+type SpeechBtnProps = {
+  onTranscript?: (transcript: string) => void;
+  onListeningChange?: (listening: boolean) => void;
+};
+
+export default function SpeechBtn({ onTranscript, onListeningChange }: SpeechBtnProps) {
+  const {
+    transcript,
+    listening,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
+
+  useEffect(() => {
+    if (transcript && onTranscript) {
+      onTranscript(transcript);
+    }
+  }, [transcript, onTranscript]);
+
+  useEffect(() => {
+    onListeningChange?.(listening);
+  }, [listening, onListeningChange]);
+
+  if (!browserSupportsSpeechRecognition) {
+    return null;
+  }
+
+  const toggleListening = () => {
+    if (listening) {
+      SpeechRecognition.stopListening();
+    } else {
+      SpeechRecognition.startListening({ language: "th-TH", continuous: true });
+    }
+  };
+
+  return (
+    <Button
+      size="icon"
+      variant="ghost"
+      className={`rounded-full p-4 relative overflow-visible${listening ? " bg-foreground text-background animate-pulse-shadow" : ""}`}
+      onClick={toggleListening}
+      title={listening ? "Stop speaking" : "Speak"}
+    >
+      {listening && (
+        <>
+          <span className="absolute inset-[-3px] rounded-full border border-foreground/40 animate-aura [animation-delay:0s]" />
+          <span className="absolute inset-[-7px] rounded-full border border-foreground/25 animate-aura [animation-delay:0.5s]" />
+          <span className="absolute inset-[-12px] rounded-full border border-foreground/15 animate-aura [animation-delay:1s]" />
+        </>
+      )}
+      <Mic className="size-5 relative" />
+    </Button>
+  );
+}
