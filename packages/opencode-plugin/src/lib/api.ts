@@ -9,10 +9,16 @@ function getAuthHeader(): Record<string, string> {
 }
 
 async function ideaApi(path: string, options?: RequestInit) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+
   const res = await fetch(`${env.CLOUDY_API_BASE_PATH}/api/idea${path}`, {
     headers: { "Content-Type": "application/json", ...getAuthHeader() },
+    signal: controller.signal,
     ...options,
   });
+
+  clearTimeout(timeout);
 
   if (!res.ok) {
     throw new Error(`API error ${res.status}: ${await res.text()}`);
