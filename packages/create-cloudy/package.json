@@ -16,6 +16,7 @@
     "build": "tsup",
     "dev": "bun run ./src/index.ts",
     "prepublishOnly": "bun run build",
+    "test": "bun test",
     "test:cli": "bun run build && node ./dist/index.js --dir=.test-output",
     "test:cli:y": "bun run build && node ./dist/index.js --yes --dir=.test-output",
     "test:local": "bun run build && bun link",

@@ -32,6 +32,7 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
+          publish: npm run publish:opencode-plugin
           publish: cd packages/opencode-plugin && npm publish
           version: bun run version-packages
           title: "chore: version packages"
