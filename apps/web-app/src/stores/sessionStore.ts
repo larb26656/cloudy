@@ -41,7 +41,7 @@ export const useSessionStore = create<SessionStore>()(
         loadSessions: async (directory: string) => {
             set({ isLoading: true, error: null });
 
-            const result = await oc.session.list({ directory, limit: 20 });
+            const result = await oc.session.list({ directory, limit: 20, roots: true });
 
             if (result.error) {
                 set({ error: getErrorMessage(result.error as SdkError), isLoading: false });
@@ -74,9 +74,18 @@ export const useSessionStore = create<SessionStore>()(
         },
 
         setCreateSession: (session: Session) => {
+            // skip auto select for sub agent session
+            if (!session.parentID) {
+                set((state) => ({
+                    sessions: [session, ...state.sessions],
+                    selectedSessionId: session.id,
+                }));
+
+                return;
+            }
+
             set((state) => ({
                 sessions: [session, ...state.sessions],
-                selectedSessionId: session.id,
             }));
         },
 

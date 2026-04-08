@@ -47,6 +47,7 @@ export function handleEvent(event: Event) {
         case 'session.created':
             {
                 const props = event.properties;
+                console.log(props);
                 sessionStore.setCreateSession(props.info);
                 break;
             }

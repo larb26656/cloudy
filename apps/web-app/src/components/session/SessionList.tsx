@@ -25,11 +25,13 @@ export function SessionList({ searchQuery }: SessionListProps) {
   } = useSessionStore();
   const { selectedDirectory } = useDirectoryStore();
 
-  const filteredSessions = sessions.filter((session) =>
-    (session.title || "New Chat")
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase()),
-  );
+  const filteredSessions = sessions
+    .filter((session) => !session.parentID)
+    .filter((session) =>
+      (session.title || "New Chat")
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase()),
+    );
 
   const handleSelect = async (sessionId: string) => {
     const isInChat = location.pathname.startsWith("/chat");

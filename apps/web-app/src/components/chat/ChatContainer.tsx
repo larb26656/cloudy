@@ -26,6 +26,7 @@ export function ChatContainer({
   const sendMessage = useMessageStore((s) => s.sendMessage);
   const abortGeneration = useMessageStore((s) => s.abortGeneration);
   const selectedDirectory = useDirectoryStore((s) => s.selectedDirectory);
+  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const sessionStatuses = useSessionStore((s) => s.sessionStatuses);
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
   const isBusy = Boolean(
@@ -75,7 +76,10 @@ export function ChatContainer({
   return (
     <div className="flex-1 flex flex-col bg-background overflow-hidden">
       {/* Messages */}
-      <MessageList onSnippetSelect={onSnippetSelect} />
+      <MessageList
+        selectedSessionId={selectedSessionId}
+        onSnippetSelect={onSnippetSelect}
+      />
 
       {/* Input */}
       <ChatInput

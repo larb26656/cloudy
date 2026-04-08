@@ -9,15 +9,20 @@ import { ErrorState } from "@/components/ui/error-state";
 import ThinkingAnimation from "./ThinkingAnimation";
 
 interface MessageListProps {
+  selectedSessionId: string | null;
+  isShowEmptyState: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
 }
 
-export function MessageList({ onSnippetSelect }: MessageListProps) {
+export function MessageList({
+  selectedSessionId,
+  isShowEmptyState = true,
+  onSnippetSelect,
+}: MessageListProps) {
   const isLoading = useMessageStore((state) => state.isLoading);
   const error = useMessageStore((state) => state.error);
   const loadMessages = useMessageStore((state) => state.loadMessages);
   const messagesMap = useMessageStore((state) => state.messages);
-  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
   const sessionStatuses = useSessionStore((s) => s.sessionStatuses);
@@ -92,7 +97,9 @@ export function MessageList({ onSnippetSelect }: MessageListProps) {
         className="absolute inset-0 flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
       >
         {messages.length === 0 ? (
-          <EmptyChatState onSnippetSelect={onSnippetSelect} />
+          isShowEmptyState && (
+            <EmptyChatState onSnippetSelect={onSnippetSelect} />
+          )
         ) : (
           <div className="max-w-4xl mx-auto space-y-4 pb-4">
             {messages.map((message: Message) => {
@@ -118,7 +125,7 @@ export function MessageList({ onSnippetSelect }: MessageListProps) {
         <div className="absolute bottom-4 mx-auto w-full">
           <button
             onClick={scrollToBottom}
-            className="mx-auto w-10 h-10 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
+            className="mx-auto w-10 h-10 rounded-full bg-primary dark:bg-muted text-primary-foreground dark:text-muted-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
             aria-label="Scroll to bottom"
           >
             <ChevronDown className="w-5 h-5" />
