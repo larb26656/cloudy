@@ -14,26 +14,18 @@ export default function SpeechBtn({
   onTranscript,
   onListeningChange,
 }: SpeechBtnProps) {
-  const { transcript, listening, browserSupportsSpeechRecognition } =
-    useSpeechRecognition();
+  const {
+    interimTranscript,
+    finalTranscript,
+    listening,
+    browserSupportsSpeechRecognition,
+    resetTranscript,
+  } = useSpeechRecognition();
 
   useEffect(() => {
-    console.log("SpeechRecognition exists:", !!window.SpeechRecognition);
-    console.log(
-      "webkitSpeechRecognition exists:",
-      !!window.webkitSpeechRecognition,
-    );
-    console.log(
-      "browserSupportsSpeechRecognition:",
-      browserSupportsSpeechRecognition,
-    );
-  }, [browserSupportsSpeechRecognition]);
-
-  useEffect(() => {
-    if (transcript && onTranscript) {
-      onTranscript(transcript);
-    }
-  }, [transcript, onTranscript]);
+    const liveTranscript = `${finalTranscript} ${interimTranscript}`.trim();
+    onTranscript?.(liveTranscript);
+  }, [interimTranscript, finalTranscript]);
 
   useEffect(() => {
     onListeningChange?.(listening);
@@ -44,26 +36,19 @@ export default function SpeechBtn({
   }
 
   const toggleListening = async () => {
-    console.log("=== TOGGLE CLICKED ===");
-    console.log("before listening:", listening);
-
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      console.log("mic permission granted");
       stream.getTracks().forEach((track) => track.stop());
 
       if (listening) {
-        console.log("calling stopListening()");
         await SpeechRecognition.stopListening();
-        console.log("stopListening done");
       } else {
-        console.log("calling startListening()");
+        resetTranscript();
         await SpeechRecognition.startListening({
           language: "th-TH",
           continuous: true,
           interimResults: true,
         });
-        console.log("startListening done");
       }
     } catch (err) {
       console.error("toggleListening ERROR:", err);

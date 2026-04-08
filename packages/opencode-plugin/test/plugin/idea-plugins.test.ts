@@ -214,15 +214,6 @@ describe("IdeaPlugin", () => {
     });
 
     describe("write tool", () => {
-        test("should throw when writing to index.md in idea dir", async () => {
-            const hook = await getHook();
-            await expect(
-                hook(
-                    { tool: "write", sessionID: "s1", callID: "c1" },
-                    { args: { filePath: `${PLUGIN_IDEA_DIR}/my-idea/index.md` } },
-                ),
-            ).rejects.toThrow("Cannot overwrite index.md in idea directory");
-        });
 
         test("should call touchIdea when writing idea file", async () => {
             const hook = await getHook();

@@ -1,5 +1,5 @@
 // components/chat/ChatInput.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
@@ -35,7 +35,12 @@ export function ChatInput({
     text: "",
     mentions: [],
   });
+
   const [isListening, setIsListening] = useState(false);
+  const [speechDraft, setSpeechDraft] = useState("");
+
+  const speechBaseRef = useRef("");
+  const prevListeningRef = useRef(false);
 
   useEffect(() => {
     if (initialValue) {
@@ -43,19 +48,57 @@ export function ChatInput({
         text: initialValue,
         mentions: [],
       });
+      setSpeechDraft("");
+      speechBaseRef.current = initialValue;
     }
   }, [initialValue]);
+
+  useEffect(() => {
+    if (isListening && !prevListeningRef.current) {
+      // เริ่มพูด: จำข้อความเดิมไว้
+      speechBaseRef.current = chatInputContent.text;
+    }
+
+    if (!isListening && prevListeningRef.current) {
+      // หยุดพูด: merge speech เข้า text จริง
+      const merged = `${speechBaseRef.current} ${speechDraft}`.trim();
+
+      setChatInputContent((prev) => ({
+        ...prev,
+        text: merged,
+      }));
+
+      setSpeechDraft("");
+    }
+
+    prevListeningRef.current = isListening;
+  }, [isListening, speechDraft, chatInputContent.text]);
+
   const { selectedModel } = useModelStore();
   const { selectedAgent } = useAgentStore();
 
+  const displayText = isListening
+    ? `${speechBaseRef.current} ${speechDraft}`.trim()
+    : chatInputContent.text;
+
   const handleSubmit = () => {
-    const text = chatInputContent.text.trim();
-    if (text && !isLoading) {
-      onSend(chatInputContent, selectedModel, selectedAgent);
+    const finalText = displayText.trim();
+
+    if (finalText && !isLoading) {
+      onSend(
+        {
+          ...chatInputContent,
+          text: finalText,
+        },
+        selectedModel,
+        selectedAgent,
+      );
+
       setChatInputContent({
         text: "",
         mentions: [],
       });
+      setSpeechDraft("");
     }
   };
 
@@ -65,6 +108,7 @@ export function ChatInput({
         return;
       }
     }
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit();
@@ -78,8 +122,21 @@ export function ChatInput({
           <div className="flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full">
             <div className="flex gap-2 w-full pt-2">
               <ChatInputEditor
-                content={chatInputContent}
-                onChange={setChatInputContent}
+                content={{
+                  ...chatInputContent,
+                  text: displayText,
+                }}
+                onChange={(next) => {
+                  if (!isListening) {
+                    setChatInputContent(next);
+                    return;
+                  }
+
+                  // ถ้ากำลังพูด แล้ว user แก้ข้อความเอง
+                  setChatInputContent(next);
+                  speechBaseRef.current = next.text;
+                  setSpeechDraft("");
+                }}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 disabled={isLoading}
@@ -91,13 +148,15 @@ export function ChatInput({
                 <AgentSelector />
                 <ModelSelector />
               </div>
+
               <div className="flex gap-2 shrink-0">
                 <SpeechBtn
-                  onTranscript={(text) =>
-                    setChatInputContent((prev) => ({ ...prev, text }))
-                  }
+                  onTranscript={(text) => {
+                    setSpeechDraft(text);
+                  }}
                   onListeningChange={setIsListening}
                 />
+
                 {isLoading ? (
                   <Button
                     size="icon"
@@ -112,7 +171,7 @@ export function ChatInput({
                     size="icon"
                     className="rounded-full p-4"
                     onClick={handleSubmit}
-                    disabled={!chatInputContent.text.trim()}
+                    disabled={!displayText.trim()}
                     title="Send message"
                   >
                     <ArrowUp className="size-5" />
