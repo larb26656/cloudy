@@ -15,6 +15,7 @@ import {
   Save,
   Undo,
   Redo,
+  Table,
 } from "lucide-react";
 
 interface ToolbarButtonProps {
@@ -125,6 +126,13 @@ export function MarkdownToolbar({
             onClick={() => editor.chain().focus().toggleOrderedList().run()}
             icon={ListOrdered}
             label="Numbered List"
+          />
+          <ToolbarButton
+            onClick={() =>
+              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+            }
+            icon={Table}
+            label="Insert Table"
           />
           <ToolbarButton
             onClick={() => editor.chain().focus().toggleBlockquote().run()}
