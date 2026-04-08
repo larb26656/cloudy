@@ -1,7 +1,6 @@
 // components/chat/AgentSelector.tsx
 import { useState, useEffect, useRef } from "react";
 import { Bot, ChevronDown, Search, Loader2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -77,12 +76,10 @@ export function AgentSelector() {
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-2 h-auto py-1.5 px-3">
-          <Bot className="size-4" />
-          <span className="max-w-[120px] truncate">{getDisplayName()}</span>
-          <ChevronDown className="size-3.5" />
-        </Button>
+      <DropdownMenuTrigger className="gap-2 h-auto py-1.5 px-3 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground">
+        <Bot className="size-4" />
+        <span className="max-w-[120px] truncate">{getDisplayName()}</span>
+        <ChevronDown className="size-3.5" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <div className="p-2">

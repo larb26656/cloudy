@@ -50,8 +50,8 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
         )}
 
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Info className="size-3.5 text-muted-foreground cursor-pointer hover:text-foreground" />
+          <TooltipTrigger className="inline-flex items-center justify-center rounded-md size-5 hover:bg-muted hover:text-foreground cursor-pointer">
+            <Info className="size-3.5" />
           </TooltipTrigger>
           <TooltipContent className="w-auto">
             <div className="space-y-1 text-xs">

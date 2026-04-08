@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { MoreHorizontal, Edit2, Trash2, GitBranch } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -102,14 +101,8 @@ export function SessionItem({
 
       {!isEditing && (
         <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
+          <DropdownMenuTrigger className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground">
+            <MoreHorizontal className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem

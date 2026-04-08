@@ -41,13 +41,10 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={onOpenChange} modal={false}>
       <SheetContent
         side="left"
         className="w-[300px] sm:w-[320px] p-0"
-        onInteractOutside={() => {
-          onOpenChange(false);
-        }}
         showCloseButton={false}
       >
         <SheetHeader className="sr-only">

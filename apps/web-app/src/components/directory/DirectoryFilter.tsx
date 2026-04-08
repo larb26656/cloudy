@@ -103,31 +103,26 @@ export function DirectoryFilter({ className }: DirectoryFilterProps) {
           }
         }}
       >
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="w-full justify-between h-auto py-2 px-3"
-          >
-            <div className="flex items-center gap-2 min-w-0">
-              <Folder className="size-4 shrink-0" />
-              <span className="truncate">{displayPath}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              {selectedDirectory && (
-                <span
-                  role="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSelectDirectory(null);
-                  }}
-                  className="p-1 hover:bg-accent rounded cursor-pointer"
-                ></span>
-              )}
-              <ChevronDown
-                className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-              />
-            </div>
-          </Button>
+        <DropdownMenuTrigger className="w-full flex items-center justify-between h-auto py-2 px-3 rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground">
+          <div className="flex items-center gap-2 min-w-0">
+            <Folder className="size-4 shrink-0" />
+            <span className="truncate">{displayPath}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            {selectedDirectory && (
+              <span
+                role="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleSelectDirectory(null);
+                }}
+                className="p-1 hover:bg-accent rounded cursor-pointer"
+              ></span>
+            )}
+            <ChevronDown
+              className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
+          </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-[calc(100%-1rem)] p-0">
           <Command className="rounded-lg border-0 shadow-none">

@@ -7,7 +7,6 @@ import {
   CardFooter,
   CardAction,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,10 +45,8 @@ export function ArtifactCard({
           </div>
           <CardAction onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon-sm">
-                  <MoreVertical className="size-4" />
-                </Button>
+              <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-md size-8 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground">
+                <MoreVertical className="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuItem

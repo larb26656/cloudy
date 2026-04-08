@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { PanelLeftClose, PanelLeft, Sun, Moon, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import {
   Tooltip,
   TooltipContent,
@@ -36,19 +35,15 @@ export function Header({
     <header className="p-2 bg-background flex items-center justify-between gap-3">
       <div>
         <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleSidebar}
-              className="h-9 w-9 shrink-0"
-            >
-              {sidebarOpen ? (
-                <PanelLeftClose className="size-5" />
-              ) : (
-                <PanelLeft className="size-5" />
-              )}
-            </Button>
+          <TooltipTrigger
+            onClick={toggleSidebar}
+            className="h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
+          >
+            {sidebarOpen ? (
+              <PanelLeftClose className="size-5" />
+            ) : (
+              <PanelLeft className="size-5" />
+            )}
           </TooltipTrigger>
           <TooltipContent>
             {sidebarOpen ? "Close sidebar" : "Open sidebar"} (Cmd+B)
@@ -78,15 +73,11 @@ export function Header({
 
         {showRefresh && (
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleRefresh}
-                className="h-9 w-9"
-              >
-                <RefreshCw className="size-5" />
-              </Button>
+            <TooltipTrigger
+              onClick={handleRefresh}
+              className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
+            >
+              <RefreshCw className="size-5" />
             </TooltipTrigger>
             <TooltipContent>Refresh</TooltipContent>
           </Tooltip>
@@ -94,19 +85,15 @@ export function Header({
 
         {showThemeToggle && (
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={toggleTheme}
-                className="h-9 w-9"
-              >
-                {isDarkMode ? (
-                  <Sun className="size-5" />
-                ) : (
-                  <Moon className="size-5" />
-                )}
-              </Button>
+            <TooltipTrigger
+              onClick={toggleTheme}
+              className="h-9 w-9 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
+            >
+              {isDarkMode ? (
+                <Sun className="size-5" />
+              ) : (
+                <Moon className="size-5" />
+              )}
             </TooltipTrigger>
             <TooltipContent>
               {isDarkMode ? "Light mode" : "Dark mode"}

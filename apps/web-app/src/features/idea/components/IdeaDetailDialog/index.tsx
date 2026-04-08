@@ -516,19 +516,15 @@ export function IdeaDetailDialog({
         {idea && (
           <div className="p-2 border-b flex justify-between items-center gap-1">
             <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIsSidebarOpen((prev) => !prev)}
-                  className="h-8 w-8 p-0"
-                >
-                  {isSidebarOpen ? (
-                    <PanelLeftClose className="size-4" />
-                  ) : (
-                    <PanelLeft className="size-4" />
-                  )}
-                </Button>
+              <TooltipTrigger
+                onClick={() => setIsSidebarOpen((prev) => !prev)}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
+              >
+                {isSidebarOpen ? (
+                  <PanelLeftClose className="size-4" />
+                ) : (
+                  <PanelLeft className="size-4" />
+                )}
               </TooltipTrigger>
               <TooltipContent>
                 {isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
@@ -587,11 +583,10 @@ export function IdeaDetailDialog({
         )}
       </DialogContent>
       {isSmallScreen && idea && (
-        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
+        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen} modal={false}>
           <SheetContent
             side="left"
             className="w-[280px] sm:w-[320px] p-0"
-            onInteractOutside={() => setIsSidebarOpen(false)}
             showCloseButton={false}
           >
             <SheetHeader className="sr-only">

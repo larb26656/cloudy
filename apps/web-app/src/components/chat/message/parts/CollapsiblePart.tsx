@@ -19,16 +19,14 @@ export default function CollapsiblePart({
 }: CollapsiblePartProps) {
   return (
     <Collapsible>
-      <CollapsibleTrigger asChild>
-        <div className="flex justify-start items-center">
-          <span className="text-sm">{label}</span>
-          {detail && (
-            <span className="ml-2 text-muted-foreground text-xs truncate">
-              {detail}
-            </span>
-          )}
-          <ChevronDownIcon className="ml-auto group-data-[state=open]:rotate-180" />
-        </div>
+      <CollapsibleTrigger className="flex justify-start items-center w-full">
+        <span className="text-sm">{label}</span>
+        {detail && (
+          <span className="ml-2 text-muted-foreground text-xs truncate">
+            {detail}
+          </span>
+        )}
+        <ChevronDownIcon className="ml-auto group-data-[state=open]:rotate-180" />
       </CollapsibleTrigger>
       <CollapsibleContent className="p-2">{children}</CollapsibleContent>
     </Collapsible>
