@@ -1,8 +1,7 @@
 import { useState } from "react";
-import { Bot, ExternalLink, ListTodo, Zap } from "lucide-react";
+import { Bot, ExternalLink, ListTodo } from "lucide-react";
 import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { SessionViewDialog } from "@/components/chat/dialogs/SessionViewDialog";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 
@@ -16,14 +15,9 @@ function getSessionID(state: ToolPartType["state"]): string | undefined {
   return data?.metadata?.sessionId as string | undefined;
 }
 
-function getAgent(state: TaskToolInputProps["state"]): string | undefined {
-  return state.input?.agent as string | undefined;
-}
-
 export function Preview({ state }: TaskToolInputProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const sessionID = getSessionID(state);
-  const agent = getAgent(state);
   if (!sessionID) return null;
 
   return (

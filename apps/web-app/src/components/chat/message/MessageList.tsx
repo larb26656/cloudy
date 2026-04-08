@@ -10,7 +10,7 @@ import ThinkingAnimation from "./ThinkingAnimation";
 
 interface MessageListProps {
   selectedSessionId: string | null;
-  isShowEmptyState: boolean;
+  isShowEmptyState?: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
 }
 

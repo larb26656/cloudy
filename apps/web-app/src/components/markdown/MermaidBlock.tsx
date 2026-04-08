@@ -54,9 +54,12 @@ const MermaidDiagram: React.FC<{ chart: string }> = ({ chart }) => {
       const mermaidEl = containerRef.current.querySelector(
         `#${id}`,
       ) as HTMLElement | null;
-        if (mermaidEl) {
-          mermaid.run({ nodes: [mermaidEl] }).then(initPanZoom).catch(() => {});
-        }
+      if (mermaidEl) {
+        mermaid
+          .run({ nodes: [mermaidEl] })
+          .then(initPanZoom)
+          .catch(() => {});
+      }
     } catch (e) {
       console.error("Mermaid render error:", e);
     }
@@ -106,14 +109,12 @@ const MermaidBlockInner: React.FC<MermaidBlockProps> = ({ chart }) => {
             </TabsList>
             <TabsContent
               value="diagram"
-              forceMount
               className="flex-1 min-h-0 overflow-hidden data-[state=inactive]:hidden"
             >
               <MermaidDiagram chart={chart} />
             </TabsContent>
             <TabsContent
               value="code"
-              forceMount
               className="flex-1 min-h-0 overflow-hidden p-4 data-[state=inactive]:hidden"
             >
               <CodeBlock>{chart}</CodeBlock>
