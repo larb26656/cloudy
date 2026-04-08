@@ -55,13 +55,12 @@ export function ChatInput({
 
   useEffect(() => {
     if (isListening && !prevListeningRef.current) {
-      // เริ่มพูด: จำข้อความเดิมไว้
       speechBaseRef.current = chatInputContent.text;
     }
 
     if (!isListening && prevListeningRef.current) {
-      // หยุดพูด: merge speech เข้า text จริง
       const merged = `${speechBaseRef.current} ${speechDraft}`.trim();
+      speechBaseRef.current = merged;
 
       setChatInputContent((prev) => ({
         ...prev,
@@ -129,13 +128,9 @@ export function ChatInput({
                 onChange={(next) => {
                   if (!isListening) {
                     setChatInputContent(next);
+                    speechBaseRef.current = next.text;
                     return;
                   }
-
-                  // ถ้ากำลังพูด แล้ว user แก้ข้อความเอง
-                  setChatInputContent(next);
-                  speechBaseRef.current = next.text;
-                  setSpeechDraft("");
                 }}
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
