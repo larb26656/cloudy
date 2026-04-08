@@ -193,17 +193,24 @@ export default function IdeaPage() {
               </InputGroupAddon>
             )}
           </InputGroup>
-          <div className="flex gap-1 overflow-x-auto items-center">
-            {filterOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={filterStatus === option.value ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setFilterStatus(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
+          <div className="flex gap-1 items-center">
+            <div className="flex-1 overflow-x-auto">
+              <div className="flex w-max gap-1">
+                {filterOptions.map((option) => (
+                  <Button
+                    key={option.value}
+                    variant={
+                      filterStatus === option.value ? "default" : "ghost"
+                    }
+                    size="sm"
+                    onClick={() => setFilterStatus(option.value)}
+                    className="shrink-0"
+                  >
+                    {option.label}
+                  </Button>
+                ))}
+              </div>
+            </div>
             <Button size="sm" onClick={handleCreateClick} className="ml-auto">
               <Plus className="size-4" />
             </Button>

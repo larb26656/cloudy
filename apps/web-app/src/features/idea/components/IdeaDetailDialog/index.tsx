@@ -1,4 +1,10 @@
-import { Lightbulb, PanelLeftClose, PanelLeft, Loader2 } from "lucide-react";
+import {
+  Lightbulb,
+  PanelLeftClose,
+  PanelLeft,
+  Loader2,
+  Ellipsis,
+} from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -72,6 +78,8 @@ function EditableHeader({
   const [localStatus, setLocalStatus] = useState(idea.meta.status);
   const [localPriority, setLocalPriority] = useState(idea.meta.priority);
   const [localTags, setLocalTags] = useState(idea.meta.tags);
+  const [detailExpanded, setDetailExpanded] = useState(false);
+  const { isMobile } = useDeviceType();
 
   useEffect(() => {
     console.log(idea.name);
@@ -80,6 +88,10 @@ function EditableHeader({
     setLocalPriority(idea.meta.priority);
     setLocalTags(idea.meta.tags);
   }, [idea.name, idea.meta.status, idea.meta.priority, idea.meta.tags]);
+
+  const handleDetailToogle = () => {
+    setDetailExpanded(!detailExpanded);
+  };
 
   const handleUpdate = async (updates: {
     title?: string;
@@ -152,8 +164,8 @@ function EditableHeader({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-2 items-center">
-        <Lightbulb className="size-5" />
+      <div className="flex gap-2 mr-[32px]">
+        <Lightbulb className="size-5 shrink-0" />
         <span
           contentEditable
           suppressContentEditableWarning
@@ -164,31 +176,49 @@ function EditableHeader({
           {localName}
         </span>
       </div>
-      <div className="flex items-center justify-start md:justify-between gap-2 flex-wrap">
-        <div className="flex items-center gap-2 flex-1">
-          <SelectStatus
-            value={localStatus}
-            onValueChange={(value) => handleUpdate({ status: value })}
-          />
-          <SelectPriority
-            value={localPriority}
-            onValueChange={(value) => handleUpdate({ priority: value })}
-          />
-        </div>
 
-        <Timestamps
-          createdAt={idea.meta.createdAt}
-          updatedAt={idea.meta.updatedAt}
+      <div className="flex items-center gap-2 flex-1">
+        <SelectStatus
+          value={localStatus}
+          onValueChange={(value) => handleUpdate({ status: value })}
+        />
+        <SelectPriority
+          value={localPriority}
+          onValueChange={(value) => handleUpdate({ priority: value })}
         />
       </div>
 
-      <TagList
-        tags={localTags}
-        onAddTag={(tag) => handleUpdate({ tags: [...localTags, tag] })}
-        onRemoveTag={(tag) =>
-          handleUpdate({ tags: localTags.filter((t) => t !== tag) })
-        }
-      />
+      {(!isMobile || detailExpanded) && (
+        <div className="flex flex-col gap-2">
+          <div className="flex items-center justify-start md:justify-between gap-2 flex-wrap">
+            <Timestamps
+              createdAt={idea.meta.createdAt}
+              updatedAt={idea.meta.updatedAt}
+            />
+          </div>
+
+          <TagList
+            tags={localTags}
+            onAddTag={(tag) => handleUpdate({ tags: [...localTags, tag] })}
+            onRemoveTag={(tag) =>
+              handleUpdate({ tags: localTags.filter((t) => t !== tag) })
+            }
+          />
+        </div>
+      )}
+
+      {isMobile && (
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          title="Toggle detail"
+          className="self-center h-[16px] w-full text-muted-foreground"
+          onClick={handleDetailToogle}
+        >
+          <Ellipsis />
+        </Button>
+      )}
     </div>
   );
 }
