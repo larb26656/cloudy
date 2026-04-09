@@ -1,24 +1,31 @@
+import { useRef, useCallback } from "react";
 import { SessionItem } from "./SessionItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSessionStore, useDirectoryStore } from "@/stores";
 import { ErrorState } from "@/components/ui/error-state";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
+import { InfiniteScrollTrigger } from "../InfiniteScrollTrigger";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 
-interface SessionListProps {
+type SessionListProps = {
   searchQuery: string;
-}
+};
 
 export function SessionList({ searchQuery }: SessionListProps) {
   const navigate = useNavigate();
   const { location } = useRouterState();
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const {
     selectedSessionId,
     sessions,
     sessionStatuses,
     isLoading,
+    isLoadingMore,
+    nextCursor,
     error,
     loadSessions,
+    loadMoreSessions,
     updateSession,
     deleteSession,
     selectSession,
@@ -46,6 +53,11 @@ export function SessionList({ searchQuery }: SessionListProps) {
   const handleFork = async (sessionId: string) => {
     console.log("Fork session:", sessionId);
   };
+
+  const sentinelRef = useInfiniteScroll({
+    enabled: !!nextCursor && !searchQuery,
+    onLoadMore: () => loadMoreSessions(selectedDirectory!),
+  });
 
   return (
     <div className="flex-1 p-2 min-h-0 overflow-y-auto">
@@ -86,6 +98,11 @@ export function SessionList({ searchQuery }: SessionListProps) {
               onFork={() => handleFork(session.id)}
             />
           ))}
+          <InfiniteScrollTrigger
+            enabled={!searchQuery && !!nextCursor}
+            isLoading={isLoadingMore}
+            sentinelRef={sentinelRef}
+          />
         </div>
       )}
     </div>

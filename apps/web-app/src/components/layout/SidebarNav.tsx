@@ -3,7 +3,7 @@ import { Lightbulb, Brain, MessageCircle, FileCode } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Chat", icon: MessageCircle },
-  { to: "/idea", label: "Idea", icon: Lightbulb },
+  { to: "/ideas", label: "Idea", icon: Lightbulb },
   { to: "/memory", label: "Memory", icon: Brain },
   { to: "/artifact", label: "Artifact", icon: FileCode },
 ];

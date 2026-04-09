@@ -11,9 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppMainLayoutRouteImport } from './routes/_appMainLayout'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/_appMainLayout/index'
+import { Route as IdeasIdRouteImport } from './routes/ideas.$id'
 import { Route as AppMainLayoutMemoryRouteImport } from './routes/_appMainLayout/memory'
-import { Route as AppMainLayoutIdeaRouteImport } from './routes/_appMainLayout/idea'
 import { Route as AppMainLayoutArtifactRouteImport } from './routes/_appMainLayout/artifact'
+import { Route as AppMainLayoutIdeasIndexRouteImport } from './routes/_appMainLayout/ideas/index'
+import { Route as AppMainLayoutIdeasNewRouteImport } from './routes/_appMainLayout/ideas/new'
 
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/_appMainLayout',
@@ -24,14 +26,14 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppMainLayoutRoute,
 } as any)
+const IdeasIdRoute = IdeasIdRouteImport.update({
+  id: '/ideas/$id',
+  path: '/ideas/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppMainLayoutMemoryRoute = AppMainLayoutMemoryRouteImport.update({
   id: '/memory',
   path: '/memory',
-  getParentRoute: () => AppMainLayoutRoute,
-} as any)
-const AppMainLayoutIdeaRoute = AppMainLayoutIdeaRouteImport.update({
-  id: '/idea',
-  path: '/idea',
   getParentRoute: () => AppMainLayoutRoute,
 } as any)
 const AppMainLayoutArtifactRoute = AppMainLayoutArtifactRouteImport.update({
@@ -39,43 +41,68 @@ const AppMainLayoutArtifactRoute = AppMainLayoutArtifactRouteImport.update({
   path: '/artifact',
   getParentRoute: () => AppMainLayoutRoute,
 } as any)
+const AppMainLayoutIdeasIndexRoute = AppMainLayoutIdeasIndexRouteImport.update({
+  id: '/ideas/',
+  path: '/ideas/',
+  getParentRoute: () => AppMainLayoutRoute,
+} as any)
+const AppMainLayoutIdeasNewRoute = AppMainLayoutIdeasNewRouteImport.update({
+  id: '/ideas/new',
+  path: '/ideas/new',
+  getParentRoute: () => AppMainLayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppMainLayoutIndexRoute
   '/artifact': typeof AppMainLayoutArtifactRoute
-  '/idea': typeof AppMainLayoutIdeaRoute
   '/memory': typeof AppMainLayoutMemoryRoute
+  '/ideas/$id': typeof IdeasIdRoute
+  '/ideas/new': typeof AppMainLayoutIdeasNewRoute
+  '/ideas/': typeof AppMainLayoutIdeasIndexRoute
 }
 export interface FileRoutesByTo {
   '/artifact': typeof AppMainLayoutArtifactRoute
-  '/idea': typeof AppMainLayoutIdeaRoute
   '/memory': typeof AppMainLayoutMemoryRoute
+  '/ideas/$id': typeof IdeasIdRoute
   '/': typeof AppMainLayoutIndexRoute
+  '/ideas/new': typeof AppMainLayoutIdeasNewRoute
+  '/ideas': typeof AppMainLayoutIdeasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_appMainLayout': typeof AppMainLayoutRouteWithChildren
   '/_appMainLayout/artifact': typeof AppMainLayoutArtifactRoute
-  '/_appMainLayout/idea': typeof AppMainLayoutIdeaRoute
   '/_appMainLayout/memory': typeof AppMainLayoutMemoryRoute
+  '/ideas/$id': typeof IdeasIdRoute
   '/_appMainLayout/': typeof AppMainLayoutIndexRoute
+  '/_appMainLayout/ideas/new': typeof AppMainLayoutIdeasNewRoute
+  '/_appMainLayout/ideas/': typeof AppMainLayoutIdeasIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/artifact' | '/idea' | '/memory'
+  fullPaths:
+    | '/'
+    | '/artifact'
+    | '/memory'
+    | '/ideas/$id'
+    | '/ideas/new'
+    | '/ideas/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/artifact' | '/idea' | '/memory' | '/'
+  to: '/artifact' | '/memory' | '/ideas/$id' | '/' | '/ideas/new' | '/ideas'
   id:
     | '__root__'
     | '/_appMainLayout'
     | '/_appMainLayout/artifact'
-    | '/_appMainLayout/idea'
     | '/_appMainLayout/memory'
+    | '/ideas/$id'
     | '/_appMainLayout/'
+    | '/_appMainLayout/ideas/new'
+    | '/_appMainLayout/ideas/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
+  IdeasIdRoute: typeof IdeasIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -94,18 +121,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMainLayoutIndexRouteImport
       parentRoute: typeof AppMainLayoutRoute
     }
+    '/ideas/$id': {
+      id: '/ideas/$id'
+      path: '/ideas/$id'
+      fullPath: '/ideas/$id'
+      preLoaderRoute: typeof IdeasIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_appMainLayout/memory': {
       id: '/_appMainLayout/memory'
       path: '/memory'
       fullPath: '/memory'
       preLoaderRoute: typeof AppMainLayoutMemoryRouteImport
-      parentRoute: typeof AppMainLayoutRoute
-    }
-    '/_appMainLayout/idea': {
-      id: '/_appMainLayout/idea'
-      path: '/idea'
-      fullPath: '/idea'
-      preLoaderRoute: typeof AppMainLayoutIdeaRouteImport
       parentRoute: typeof AppMainLayoutRoute
     }
     '/_appMainLayout/artifact': {
@@ -115,21 +142,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMainLayoutArtifactRouteImport
       parentRoute: typeof AppMainLayoutRoute
     }
+    '/_appMainLayout/ideas/': {
+      id: '/_appMainLayout/ideas/'
+      path: '/ideas'
+      fullPath: '/ideas/'
+      preLoaderRoute: typeof AppMainLayoutIdeasIndexRouteImport
+      parentRoute: typeof AppMainLayoutRoute
+    }
+    '/_appMainLayout/ideas/new': {
+      id: '/_appMainLayout/ideas/new'
+      path: '/ideas/new'
+      fullPath: '/ideas/new'
+      preLoaderRoute: typeof AppMainLayoutIdeasNewRouteImport
+      parentRoute: typeof AppMainLayoutRoute
+    }
   }
 }
 
 interface AppMainLayoutRouteChildren {
   AppMainLayoutArtifactRoute: typeof AppMainLayoutArtifactRoute
-  AppMainLayoutIdeaRoute: typeof AppMainLayoutIdeaRoute
   AppMainLayoutMemoryRoute: typeof AppMainLayoutMemoryRoute
   AppMainLayoutIndexRoute: typeof AppMainLayoutIndexRoute
+  AppMainLayoutIdeasNewRoute: typeof AppMainLayoutIdeasNewRoute
+  AppMainLayoutIdeasIndexRoute: typeof AppMainLayoutIdeasIndexRoute
 }
 
 const AppMainLayoutRouteChildren: AppMainLayoutRouteChildren = {
   AppMainLayoutArtifactRoute: AppMainLayoutArtifactRoute,
-  AppMainLayoutIdeaRoute: AppMainLayoutIdeaRoute,
   AppMainLayoutMemoryRoute: AppMainLayoutMemoryRoute,
   AppMainLayoutIndexRoute: AppMainLayoutIndexRoute,
+  AppMainLayoutIdeasNewRoute: AppMainLayoutIdeasNewRoute,
+  AppMainLayoutIdeasIndexRoute: AppMainLayoutIdeasIndexRoute,
 }
 
 const AppMainLayoutRouteWithChildren = AppMainLayoutRoute._addFileChildren(
@@ -138,6 +181,7 @@ const AppMainLayoutRouteWithChildren = AppMainLayoutRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
+  IdeasIdRoute: IdeasIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

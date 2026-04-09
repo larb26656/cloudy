@@ -11,12 +11,14 @@ import ThinkingAnimation from "./ThinkingAnimation";
 interface MessageListProps {
   selectedSessionId: string | null;
   isShowEmptyState?: boolean;
+  showShadowEdge?: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
 }
 
 export function MessageList({
   selectedSessionId,
   isShowEmptyState = true,
+  showShadowEdge = true,
   onSnippetSelect,
 }: MessageListProps) {
   const isLoading = useMessageStore((state) => state.isLoading);
@@ -119,8 +121,12 @@ export function MessageList({
           </div>
         )}
       </div>
-      <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none" />
-      <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+      {showShadowEdge && (
+        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none" />
+      )}
+      {showShadowEdge && (
+        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+      )}
       {showScrollButton && (
         <div className="absolute bottom-4 mx-auto w-full">
           <button

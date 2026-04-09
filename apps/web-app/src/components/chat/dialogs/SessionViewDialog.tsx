@@ -35,12 +35,18 @@ export function SessionViewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("flex flex-col", SHEET_SIZE_CLASSES)}>
-        <DialogHeader className="flex-none">
+      <DialogContent
+        className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}
+      >
+        <DialogHeader className="p-4 flex-none">
           <DialogTitle>{session?.title ?? "Session"}</DialogTitle>
         </DialogHeader>
         <div className="flex-1 flex flex-col overflow-hidden">
-          <MessageList selectedSessionId={sessionId} isShowEmptyState={false} />
+          <MessageList
+            selectedSessionId={sessionId}
+            isShowEmptyState={false}
+            showShadowEdge={false}
+          />
         </div>
       </DialogContent>
     </Dialog>

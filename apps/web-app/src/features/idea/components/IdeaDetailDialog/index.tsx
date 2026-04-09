@@ -2,8 +2,8 @@ import {
   Lightbulb,
   PanelLeftClose,
   PanelLeft,
-  Loader2,
   Ellipsis,
+  Link,
 } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
@@ -42,6 +42,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/sonner";
 import { useLoadingStore } from "@/stores/loadingStore";
 import { useDeviceType } from "@/hooks";
+import { Skeleton } from "@/components/ui/skeleton";
 import { SelectStatus } from "./SelectStatus";
 import { SelectPriority } from "./SelectPriority";
 import { TagList } from "./TagList";
@@ -60,11 +61,76 @@ const MOCK_IDEA_DETAIL: IdeaDetail = {
   meta: { status: "draft", priority: "medium", tags: [] },
 };
 
-interface IdeaDetailDialogProps {
+interface IdeaDetailViewProps {
   ideaId: string | null;
-  onClose: () => void;
+  onBack?: () => void;
   onIdeaUpdated?: (idea: IdeaDetail) => void;
   onIdeaCreated?: (idea: IdeaDetail) => void;
+  viewOnly?: boolean;
+}
+
+function IdeaDetailSkeleton() {
+  return (
+    <>
+      <div className="p-4 pb-3 border-b flex-none">
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2 mr-[32px]">
+            <Skeleton className="size-5" />
+            <Skeleton className="h-5 w-48" />
+          </div>
+          <div className="flex items-center gap-2 flex-1">
+            <Skeleton className="h-8 w-24" />
+            <Skeleton className="h-8 w-24" />
+          </div>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-32" />
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-6 w-16" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 flex flex-col p-4 gap-4">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-8" />
+          <Skeleton className="h-8 w-20" />
+          <Skeleton className="h-8 w-20" />
+        </div>
+        <div className="flex-1 flex gap-4">
+          <Skeleton className="h-full w-[30%] rounded-lg" />
+          <Skeleton className="h-full flex-1 rounded-lg" />
+        </div>
+      </div>
+    </>
+  );
+}
+
+function CopyLinkButton({ ideaId }: { ideaId: string }) {
+  const handleCopyLink = useCallback(async () => {
+    const url = `${window.location.origin}/ideas/${ideaId}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied to clipboard");
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  }, [ideaId]);
+
+  return (
+    <Tooltip>
+      <TooltipTrigger
+        onClick={handleCopyLink}
+        className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground"
+      >
+        <Link className="size-4" />
+      </TooltipTrigger>
+      <TooltipContent>Copy link</TooltipContent>
+    </Tooltip>
+  );
 }
 
 function EditableHeader({
@@ -223,12 +289,13 @@ function EditableHeader({
   );
 }
 
-export function IdeaDetailDialog({
+export function IdeaDetailView({
   ideaId,
-  onClose,
+  onBack,
   onIdeaUpdated,
   onIdeaCreated,
-}: IdeaDetailDialogProps) {
+  viewOnly = false,
+}: IdeaDetailViewProps) {
   const [idea, setIdea] = useState<IdeaDetail | null>(null);
   const [isLoadingIdea, setIsLoadingIdea] = useState(false);
   const [selectedFile, setSelectedFile] = useState<IdeaFile | null>(null);
@@ -242,6 +309,7 @@ export function IdeaDetailDialog({
   const [editorView, setEditorView] = useState<"preview" | "wysiwyg">(
     "preview",
   );
+  const effectiveEditorView = viewOnly ? "preview" : editorView;
   const [deleteFileConfirm, setDeleteFileConfirm] = useState<{
     name: string;
   } | null>(null);
@@ -354,7 +422,6 @@ export function IdeaDetailDialog({
     setIsSaving(true);
     try {
       if (!idea.path) {
-        // add idea
         const { data, error } = await ideaApi.post({
           title: idea.name,
           status: idea.meta.status,
@@ -379,7 +446,6 @@ export function IdeaDetailDialog({
 
       if (!selectedFile) return;
 
-      // edit idea
       const { error } = await ideaApi.idea[idea.path].files[
         selectedFile.name
       ].put({ content });
@@ -498,92 +564,112 @@ export function IdeaDetailDialog({
 
   const hasNoPath = idea !== null && !idea.path;
 
+  if (isLoadingIdea) {
+    return <IdeaDetailSkeleton />;
+  }
+
+  if (!idea) {
+    return null;
+  }
+
   return (
-    <Dialog open={!!ideaId} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent
-        className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}
-      >
-        <DialogHeader className="p-4 pb-3 border-b flex-none">
-          {isLoadingIdea ? (
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
-              <span className="text-sm"> Loading...</span>
-            </div>
-          ) : idea ? (
-            <EditableHeader idea={idea} onUpdate={handleMetaUpdate} />
-          ) : null}
-        </DialogHeader>
-        {idea && (
-          <div className="p-2 border-b flex justify-between items-center gap-1">
+    <div className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}>
+      <DialogHeader className="p-4 pb-3 border-b flex-none">
+        <EditableHeader idea={idea} onUpdate={handleMetaUpdate} />
+      </DialogHeader>
+
+      <div className="p-2 border-b flex justify-between items-center gap-1">
+        <div className="flex items-center gap-1">
+          {onBack && (
             <Tooltip>
               <TooltipTrigger
-                onClick={() => setIsSidebarOpen((prev) => !prev)}
-                className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
+                onClick={onBack}
+                className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground"
               >
-                {isSidebarOpen ? (
-                  <PanelLeftClose className="size-4" />
-                ) : (
-                  <PanelLeft className="size-4" />
-                )}
+                <PanelLeftClose className="size-4" />
               </TooltipTrigger>
-              <TooltipContent>
-                {isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
-              </TooltipContent>
+              <TooltipContent>Back</TooltipContent>
             </Tooltip>
-
-            <Tabs
-              value={editorView}
-              onValueChange={(v) => setEditorView(v as "preview" | "wysiwyg")}
+          )}
+          <Tooltip>
+            <TooltipTrigger
+              onClick={() => setIsSidebarOpen((prev) => !prev)}
+              className="h-8 w-8 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
             >
-              <TabsList>
-                <TabsTrigger value="preview"> Preview </TabsTrigger>
-                <TabsTrigger value="wysiwyg"> Edit </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
-        )}
-        {!isLoadingIdea && idea && isSmallScreen && (
-          <div className="flex-1 flex flex-col overflow-hidden">
+              {isSidebarOpen ? (
+                <PanelLeftClose className="size-4" />
+              ) : (
+                <PanelLeft className="size-4" />
+              )}
+            </TooltipTrigger>
+            <TooltipContent>
+              {isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
+            </TooltipContent>
+          </Tooltip>
+          {ideaId && ideaId !== CREATE_IDEA_ID && (
+            <CopyLinkButton ideaId={ideaId} />
+          )}
+        </div>
+
+        <Tabs
+          value={editorView}
+          onValueChange={(v) => setEditorView(v as "preview" | "wysiwyg")}
+        >
+          <TabsList>
+            <TabsTrigger value="preview"> Preview </TabsTrigger>
+            {!viewOnly && <TabsTrigger value="wysiwyg"> Edit </TabsTrigger>}
+          </TabsList>
+        </Tabs>
+      </div>
+
+      {isSmallScreen && (
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <MarkdownEditor
+            content={markdownBody}
+            onSave={handleSave}
+            isSaving={isSaving}
+            hasChanges={hasChanges}
+            autoFocus={false}
+            view={effectiveEditorView}
+          />
+        </div>
+      )}
+
+      {!isSmallScreen && (
+        <ResizablePanelGroup orientation="horizontal" className="flex-1">
+          {isSidebarOpen && (
+            <ResizablePanel defaultSize="30%">
+              <FileTreeSidebar
+                files={idea.files}
+                selectedFile={selectedFile?.name ?? ""}
+                onSelectFile={handleSelectFile}
+                onCreateFile={handleCreateFile}
+                onDeleteFile={handleDeleteFile}
+                disabled={isSaving || hasNoPath}
+                readOnly={viewOnly}
+              />
+            </ResizablePanel>
+          )}
+          {isSidebarOpen && <ResizableHandle withHandle />}
+          <ResizablePanel defaultSize={isSidebarOpen ? "70%" : "100%"}>
             <MarkdownEditor
               content={markdownBody}
               onSave={handleSave}
               isSaving={isSaving}
               hasChanges={hasChanges}
               autoFocus={false}
-              view={editorView}
+              view={effectiveEditorView}
             />
-          </div>
-        )}
-        {!isLoadingIdea && idea && !isSmallScreen && (
-          <ResizablePanelGroup orientation="horizontal" className="flex-1">
-            {isSidebarOpen && (
-              <ResizablePanel defaultSize="30%">
-                <FileTreeSidebar
-                  files={idea.files}
-                  selectedFile={selectedFile?.name ?? ""}
-                  onSelectFile={handleSelectFile}
-                  onCreateFile={handleCreateFile}
-                  onDeleteFile={handleDeleteFile}
-                  disabled={isSaving || hasNoPath}
-                />
-              </ResizablePanel>
-            )}
-            {isSidebarOpen && <ResizableHandle withHandle />}
-            <ResizablePanel defaultSize={isSidebarOpen ? "70%" : "100%"}>
-              <MarkdownEditor
-                content={markdownBody}
-                onSave={handleSave}
-                isSaving={isSaving}
-                hasChanges={hasChanges}
-                autoFocus={false}
-                view={editorView}
-              />
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        )}
-      </DialogContent>
-      {isSmallScreen && idea && (
-        <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen} modal={false}>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      )}
+
+      {isSmallScreen && (
+        <Sheet
+          open={isSidebarOpen}
+          onOpenChange={setIsSidebarOpen}
+          modal={false}
+        >
           <SheetContent
             side="left"
             className="w-[280px] sm:w-[320px] p-0"
@@ -602,10 +688,12 @@ export function IdeaDetailDialog({
               onCreateFile={handleCreateFile}
               onDeleteFile={handleDeleteFile}
               disabled={isSaving || hasNoPath}
+              readOnly={viewOnly}
             />
           </SheetContent>
         </Sheet>
       )}
+
       <DeleteConfirmDialog
         item={
           deleteFileConfirm
@@ -615,6 +703,32 @@ export function IdeaDetailDialog({
         onConfirm={confirmDeleteFile}
         onCancel={() => setDeleteFileConfirm(null)}
       />
+    </div>
+  );
+}
+
+interface IdeaDetailDialogProps {
+  ideaId: string | null;
+  onClose: () => void;
+  onIdeaUpdated?: (idea: IdeaDetail) => void;
+  onIdeaCreated?: (idea: IdeaDetail) => void;
+}
+
+export function IdeaDetailDialog({
+  ideaId,
+  onClose,
+  onIdeaUpdated,
+  onIdeaCreated,
+}: IdeaDetailDialogProps) {
+  return (
+    <Dialog open={!!ideaId} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}>
+        <IdeaDetailView
+          ideaId={ideaId}
+          onIdeaUpdated={onIdeaUpdated}
+          onIdeaCreated={onIdeaCreated}
+        />
+      </DialogContent>
     </Dialog>
   );
 }

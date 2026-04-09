@@ -1,2 +1,2 @@
 export const SHEET_SIZE_CLASSES =
-  "!max-w-none h-screen w-screen lg:w-5xl rounded-none lg:rounded-xl";
+  "!max-w-none h-screen w-screen rounded-none lg:rounded-xl";

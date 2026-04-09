@@ -2,17 +2,22 @@ import { createDefaultTitle, getErrorMessage, oc, type SdkError } from "@/lib/op
 import type { QuestionRequest, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 
+const PAGE_SIZE = 20;
+
 type SessionStoreState = {
     sessions: Session[];
     selectedSessionId: string | null;
     sessionStatuses: Record<string, SessionStatus>;
     isLoading: boolean;
+    isLoadingMore: boolean;
+    nextCursor: number | undefined;
     error: string | null;
     activeQuestion: QuestionRequest | null;
 }
 
 type SessionsStoreSessionActions = {
     loadSessions: (directory: string) => Promise<void>;
+    loadMoreSessions: (directory: string) => Promise<void>;
     createSession: (directory: string, title?: string) => Promise<Session>;
     createTempSession: () => void,
     setCreateSession: (session: Session) => void;
@@ -30,25 +35,60 @@ type SessionsStoreSessionActions = {
 
 type SessionStore = SessionStoreState & SessionsStoreSessionActions
 
+function getNextCursor(sessions: Session[]): number | undefined {
+    if (sessions.length === 0) {
+        return undefined;
+    }
+
+    const last = sessions[sessions.length - 1];
+
+    return last.time.created;
+}
+
 export const useSessionStore = create<SessionStore>()(
-    (set) => ({
+    (set, get) => ({
         sessions: [],
         selectedSessionId: null,
         sessionStatuses: {},
         isLoading: false,
+        isLoadingMore: false,
+        nextCursor: undefined,
         error: null,
         activeQuestion: null,
         loadSessions: async (directory: string) => {
-            set({ isLoading: true, error: null });
+            set({ isLoading: true, error: null, nextCursor: undefined });
 
-            const result = await oc.session.list({ directory, limit: 20, roots: true });
+            const result = await oc.experimental.session.list({ directory, limit: PAGE_SIZE, roots: true, cursor: get().nextCursor });
 
             if (result.error) {
                 set({ error: getErrorMessage(result.error as SdkError), isLoading: false });
                 return;
             }
-            const data = result.data;
-            set({ isLoading: false, sessions: data });
+            const data = result.data ?? [];
+            const nextCursor = getNextCursor(data);
+
+            console.log(nextCursor);
+
+            set({ isLoading: false, sessions: data, nextCursor });
+        },
+
+        loadMoreSessions: async (directory: string) => {
+            set({ isLoadingMore: true, error: null });
+
+            const result = await oc.experimental.session.list({ directory, limit: PAGE_SIZE, roots: true, cursor: get().nextCursor });
+
+            if (result.error) {
+                set({ error: getErrorMessage(result.error as SdkError), isLoadingMore: false });
+                return;
+            }
+            const data = result.data ?? [];
+            const nextCursor = getNextCursor(data);
+
+            set((prev) => ({
+                isLoadingMore: false,
+                sessions: [...prev.sessions, ...data],
+                nextCursor,
+            }));
         },
 
         createSession: async (directory: string, title?: string) => {

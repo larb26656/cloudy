@@ -12,6 +12,7 @@ interface FileTreeSidebarProps {
   onCreateFile: (filename: string) => void;
   onDeleteFile: (filename: string) => void;
   disabled?: boolean;
+  readOnly?: boolean;
 }
 
 export function FileTreeSidebar({
@@ -21,6 +22,7 @@ export function FileTreeSidebar({
   onCreateFile,
   onDeleteFile,
   disabled = false,
+  readOnly = false,
 }: FileTreeSidebarProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [newFilename, setNewFilename] = useState("");
@@ -53,16 +55,18 @@ export function FileTreeSidebar({
           <FolderOpen className="size-4" />
           Files
         </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          onClick={() => setIsCreating(true)}
-          disabled={disabled}
-          title="New file"
-        >
-          <Plus className="size-4" />
-        </Button>
+        {!readOnly && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setIsCreating(true)}
+            disabled={disabled}
+            title="New file"
+          >
+            <Plus className="size-4" />
+          </Button>
+        )}
       </div>
 
       {isCreating && (
@@ -103,7 +107,7 @@ export function FileTreeSidebar({
                 <FileText className="size-4 flex-shrink-0 text-muted-foreground" />
                 <span className="truncate">{file.name}</span>
               </button>
-              {canDelete(file.name) && !disabled && (
+              {canDelete(file.name) && !disabled && !readOnly && (
                 <button
                   onClick={() => onDeleteFile(file.name)}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-1 hover:bg-destructive/10 rounded opacity-100 transition-opacity"
