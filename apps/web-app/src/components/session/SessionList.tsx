@@ -1,4 +1,3 @@
-import { useRef, useCallback } from "react";
 import { SessionItem } from "./SessionItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSessionStore, useDirectoryStore } from "@/stores";
@@ -14,7 +13,6 @@ type SessionListProps = {
 export function SessionList({ searchQuery }: SessionListProps) {
   const navigate = useNavigate();
   const { location } = useRouterState();
-  const observerRef = useRef<IntersectionObserver | null>(null);
 
   const {
     selectedSessionId,

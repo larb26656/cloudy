@@ -1,4 +1,5 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
+import { TokenUsageIndicator } from "@/components/chat/TokenUsageIndicator";
 import { Header } from "@/components/layout";
 import { useEventStream } from "@/hooks/useEventSteam";
 import { useMessageStore, useSessionStore } from "@/stores";
@@ -55,6 +56,7 @@ export default function ChatPage() {
         showMinimapToggle
         isMinimapVisible={showMinimap}
         onToggleMinimap={handleToggleMinimap}
+        rightSlot={<TokenUsageIndicator sessionId={selectedSessionId} />}
       />
       <ChatContainer
         sessionId={selectedSessionId}
