@@ -7,12 +7,15 @@ import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
 import ThinkingAnimation from "./ThinkingAnimation";
+import { ChatMinimap } from "../ChatMinimap";
 
 interface MessageListProps {
   selectedSessionId: string | null;
   isShowEmptyState?: boolean;
   showShadowEdge?: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
+  showMinimap?: boolean;
+  onCloseMinimap?: () => void;
 }
 
 export function MessageList({
@@ -20,6 +23,8 @@ export function MessageList({
   isShowEmptyState = true,
   showShadowEdge = true,
   onSnippetSelect,
+  showMinimap = false,
+  onCloseMinimap,
 }: MessageListProps) {
   const isLoading = useMessageStore((state) => state.isLoading);
   const error = useMessageStore((state) => state.error);
@@ -138,6 +143,12 @@ export function MessageList({
           </button>
         </div>
       )}
+      <ChatMinimap
+        messages={messages}
+        scrollRef={scrollRef}
+        isVisible={showMinimap}
+        onClose={onCloseMinimap}
+      />
     </div>
   );
 }

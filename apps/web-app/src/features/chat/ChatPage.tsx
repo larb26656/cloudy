@@ -16,6 +16,7 @@ export default function ChatPage() {
   const { sessions, selectedSessionId } = useSessionStore();
   const { messages, loadMessages } = useMessageStore();
   const [initialInput, setInitialInput] = useState<string>("");
+  const [showMinimap, setShowMinimap] = useState(false);
 
   const currentSession = sessions.find((s) => s.id === selectedSessionId);
   const sessionDir = currentSession?.directory ?? undefined;
@@ -36,6 +37,14 @@ export default function ChatPage() {
     setInitialInput(snippetPrompts[type]);
   };
 
+  const handleToggleMinimap = () => {
+    setShowMinimap((prev) => !prev);
+  };
+
+  const handleCloseMinimap = () => {
+    setShowMinimap(false);
+  };
+
   return (
     <>
       <Header
@@ -43,11 +52,16 @@ export default function ChatPage() {
         subtitle={sessionDir || undefined}
         showRefresh
         showThemeToggle
+        showMinimapToggle
+        isMinimapVisible={showMinimap}
+        onToggleMinimap={handleToggleMinimap}
       />
       <ChatContainer
         sessionId={selectedSessionId}
         onSnippetSelect={handleSnippetSelect}
         initialInput={initialInput}
+        showMinimap={showMinimap}
+        onCloseMinimap={handleCloseMinimap}
       />
     </>
   );

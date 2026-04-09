@@ -14,12 +14,16 @@ interface ChatContainerProps {
   sessionId: string | null;
   initialInput?: string;
   onSnippetSelect?: (type: SnippetType) => void;
+  showMinimap?: boolean;
+  onCloseMinimap?: () => void;
 }
 
 export function ChatContainer({
   sessionId,
   onSnippetSelect,
   initialInput,
+  showMinimap = false,
+  onCloseMinimap,
 }: ChatContainerProps) {
   const createSession = useSessionStore((s) => s.createSession);
   const activeQuestion = useSessionStore((s) => s.activeQuestion);
@@ -79,6 +83,8 @@ export function ChatContainer({
       <MessageList
         selectedSessionId={selectedSessionId}
         onSnippetSelect={onSnippetSelect}
+        showMinimap={showMinimap}
+        onCloseMinimap={onCloseMinimap}
       />
 
       {/* Input */}

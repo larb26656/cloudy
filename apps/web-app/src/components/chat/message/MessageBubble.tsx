@@ -12,8 +12,16 @@ interface MessageBubbleProps {
 
 export function MessageBubble({ message }: MessageBubbleProps) {
   if (message.info.role === "user") {
-    return <UserMessageBubble info={message.info} parts={message.parts} />;
+    return (
+      <div data-message-id={message.info.id}>
+        <UserMessageBubble info={message.info} parts={message.parts} />
+      </div>
+    );
   }
 
-  return <AssistantMessageBubble info={message.info} parts={message.parts} />;
+  return (
+    <div data-message-id={message.info.id}>
+      <AssistantMessageBubble info={message.info} parts={message.parts} />
+    </div>
+  );
 }

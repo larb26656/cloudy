@@ -77,6 +77,7 @@
 @theme inline {
   --animate-aura: aura 2s ease-in-out infinite;
   --animate-pulse-shadow: pulse-shadow 2s ease-in-out infinite;
+  --animate-glow-pulse: glow-pulse 2s ease-in-out 1;
 
   @keyframes aura {
     0%,
@@ -99,6 +100,18 @@
     50% {
       outline: 2px solid oklch(from var(--color-foreground) l c h / 0.6);
       outline-offset: 3px;
+    }
+  }
+
+  @keyframes glow-pulse {
+    0% {
+      box-shadow: 0 0 0 0 oklch(from var(--color-primary) l c h / 0.4);
+    }
+    50% {
+      box-shadow: 0 0 8px 2px oklch(from var(--color-primary) l c h / 0.6);
+    }
+    100% {
+      box-shadow: 0 0 0 0 oklch(from var(--color-primary) l c h / 0);
     }
   }
 
