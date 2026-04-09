@@ -14,7 +14,7 @@ const snippetPrompts: Record<SnippetType, string> = {
 
 export default function ChatPage() {
   const { sessions, selectedSessionId } = useSessionStore();
-  const { loadMessages } = useMessageStore();
+  const { messages, loadMessages } = useMessageStore();
   const [initialInput, setInitialInput] = useState<string>("");
 
   const currentSession = sessions.find((s) => s.id === selectedSessionId);
@@ -24,10 +24,13 @@ export default function ChatPage() {
   useEventStream();
 
   useEffect(() => {
-    if (selectedSessionId) {
-      loadMessages(selectedSessionId);
-    }
-  }, [selectedSessionId, loadMessages]);
+    if (!selectedSessionId) return;
+
+    const hasLoaded = !!messages[selectedSessionId];
+    if (hasLoaded) return;
+
+    loadMessages(selectedSessionId);
+  }, [selectedSessionId, messages, loadMessages]);
 
   const handleSnippetSelect = (type: SnippetType) => {
     setInitialInput(snippetPrompts[type]);

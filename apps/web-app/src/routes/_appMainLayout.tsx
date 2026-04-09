@@ -15,7 +15,6 @@ import { useChatUIStore } from "@/stores/chatUIStore";
 import { useEffect, useState } from "react";
 import {
   useDirectoryStore,
-  useMessageStore,
   usePermissionStore,
   useQuestionStore,
   useSessionStore,
@@ -31,8 +30,7 @@ function AppMainLayout() {
     useChatUIStore();
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
-  const { loadMessages } = useMessageStore();
-  const { selectedSessionId, loadSessions } = useSessionStore();
+  const { loadSessions } = useSessionStore();
   const { loadQuestions } = useQuestionStore();
   const { loadPermissions } = usePermissionStore();
   const { selectedDirectory } = useDirectoryStore();
@@ -44,12 +42,6 @@ function AppMainLayout() {
       loadPermissions(selectedDirectory);
     }
   }, [selectedDirectory, loadSessions, loadQuestions, loadPermissions]);
-
-  useEffect(() => {
-    if (selectedSessionId) {
-      loadMessages(selectedSessionId);
-    }
-  }, [selectedSessionId, loadMessages]);
 
   useEffect(() => {
     setDeviceType(deviceType);
@@ -88,10 +80,7 @@ function AppMainLayout() {
 
   return (
     <div className="h-screen">
-      <ResizablePanelGroup
-        orientation="horizontal"
-        className="bg-background"
-      >
+      <ResizablePanelGroup orientation="horizontal" className="bg-background">
         {sidebarOpen && (
           <>
             <ResizablePanel defaultSize={25} className="p-2">
