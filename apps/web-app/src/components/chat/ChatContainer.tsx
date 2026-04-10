@@ -16,6 +16,7 @@ interface ChatContainerProps {
   onSnippetSelect?: (type: SnippetType) => void;
   showMinimap?: boolean;
   onCloseMinimap?: () => void;
+  showModelSelector?: boolean;
 }
 
 export function ChatContainer({
@@ -24,6 +25,7 @@ export function ChatContainer({
   initialInput,
   showMinimap = false,
   onCloseMinimap,
+  showModelSelector = true,
 }: ChatContainerProps) {
   const createSession = useSessionStore((s) => s.createSession);
   const activeQuestion = useSessionStore((s) => s.activeQuestion);
@@ -95,6 +97,7 @@ export function ChatContainer({
         placeholder={chatplaceholder}
         directory={selectedDirectory || ""}
         initialValue={initialInput}
+        showModelSelector={showModelSelector}
       />
 
       {/* Question Sheet */}

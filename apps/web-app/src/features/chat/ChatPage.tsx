@@ -8,10 +8,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useEventStream } from "@/hooks/useEventSteam";
+import { useDeviceType } from "@/hooks";
 import { useChatUIStore, useMessageStore, useSessionStore } from "@/stores";
 import { useEffect, useState } from "react";
 import { RefreshCw, Sun, Moon, PanelRight, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { ModelSelector } from "@/components/chat/ModelSelector";
 
 type SnippetType = "idea" | "memory" | "artifact";
 
@@ -25,6 +27,7 @@ export default function ChatPage() {
   const { selectedSessionId } = useSessionStore();
   const { messages, loadMessages } = useMessageStore();
   const { isDarkMode, toggleTheme } = useChatUIStore();
+  const { isMobile } = useDeviceType();
   const [initialInput, setInitialInput] = useState<string>("");
   const [showMinimap, setShowMinimap] = useState(false);
 
@@ -54,6 +57,7 @@ export default function ChatPage() {
   return (
     <>
       <Header
+        centerSlot={isMobile ? <ModelSelector /> : undefined}
         actions={[
           <TokenUsageIndicator key="token" sessionId={selectedSessionId} />,
           <DropdownMenu key="menu">
@@ -90,6 +94,7 @@ export default function ChatPage() {
         initialInput={initialInput}
         showMinimap={showMinimap}
         onCloseMinimap={handleCloseMinimap}
+        showModelSelector={!isMobile}
       />
     </>
   );

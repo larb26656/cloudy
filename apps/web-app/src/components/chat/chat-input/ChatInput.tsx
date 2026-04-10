@@ -21,6 +21,7 @@ interface ChatInputProps {
   placeholder?: string;
   directory?: string;
   initialValue?: string;
+  showModelSelector?: boolean;
 }
 
 export function ChatInput({
@@ -30,6 +31,7 @@ export function ChatInput({
   placeholder = "Type a message...",
   directory,
   initialValue,
+  showModelSelector = true,
 }: ChatInputProps) {
   const [chatInputContent, setChatInputContent] = useState<ChatInputContent>({
     text: "",
@@ -141,7 +143,7 @@ export function ChatInput({
             <div className="flex justify-between gap-2">
               <div className="flex gap-2 min-w-0 overflow-x-auto">
                 <AgentSelector />
-                <ModelSelector />
+                {showModelSelector && <ModelSelector />}
               </div>
 
               <div className="flex gap-2 shrink-0">
