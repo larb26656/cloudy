@@ -76,7 +76,7 @@ export function AgentSelector() {
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger className="gap-2 h-auto py-1.5 px-3 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground">
+      <DropdownMenuTrigger className="inline-flex items-center justify-center gap-1">
         <Bot className="size-4" />
         <span className="max-w-[120px] truncate">{getDisplayName()}</span>
         <ChevronDown className="size-3.5" />
