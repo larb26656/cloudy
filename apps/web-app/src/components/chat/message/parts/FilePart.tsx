@@ -40,21 +40,21 @@ export function FilePart({ part }: FilePartProps) {
       label="File"
       detail={part.filename || "Untitled"}
     >
-      <Card className="bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800">
+      <Card>
         <CardContent className="p-3">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
-              <Paperclip className="size-4 text-green-600 dark:text-green-400" />
-              <span className="text-xs font-medium text-green-700 dark:text-green-300">
+              <Paperclip className="size-4 text-muted-foreground" />
+              <span className="text-xs font-medium text-muted-foreground">
                 File
               </span>
-              <span className="text-sm text-green-900 dark:text-green-100 font-medium">
+              <span className="text-sm font-medium">
                 {part.filename || "Untitled"}
               </span>
             </div>
             {part.source && <FileSourceDisplay source={part.source} />}
             {part.mime && (
-              <div className="text-xs text-green-700 dark:text-green-300">
+              <div className="text-xs text-muted-foreground">
                 MIME: {part.mime}
               </div>
             )}

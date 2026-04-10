@@ -27,16 +27,16 @@ export function ToolPart({ part }: ToolPartProps) {
         label="Tool Call"
         detail={`${part.tool} - ${stateLabel}`}
       >
-        <Card className="bg-blue-50 dark:bg-blue-950/30 border-blue-200 dark:border-blue-800">
+        <Card>
           <CardContent>
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <Wrench className="size-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                <Wrench className="size-4 text-muted-foreground" />
+                <span className="text-xs font-medium text-muted-foreground">
                   Tool Call
                 </span>
               </div>
-              <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
+              <div className="text-sm font-medium">
                 {part.tool}
               </div>
               <ToolStateDisplay state={part.state}>

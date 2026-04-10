@@ -1,9 +1,17 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import { TokenUsageIndicator } from "@/components/chat/TokenUsageIndicator";
 import { Header } from "@/components/layout";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useEventStream } from "@/hooks/useEventSteam";
-import { useMessageStore, useSessionStore } from "@/stores";
+import { useChatUIStore, useMessageStore, useSessionStore } from "@/stores";
 import { useEffect, useState } from "react";
+import { RefreshCw, Sun, Moon, PanelRight, MoreHorizontal } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type SnippetType = "idea" | "memory" | "artifact";
 
@@ -14,14 +22,11 @@ const snippetPrompts: Record<SnippetType, string> = {
 };
 
 export default function ChatPage() {
-  const { sessions, selectedSessionId } = useSessionStore();
+  const { selectedSessionId } = useSessionStore();
   const { messages, loadMessages } = useMessageStore();
+  const { isDarkMode, toggleTheme } = useChatUIStore();
   const [initialInput, setInitialInput] = useState<string>("");
   const [showMinimap, setShowMinimap] = useState(false);
-
-  const currentSession = sessions.find((s) => s.id === selectedSessionId);
-  const sessionDir = currentSession?.directory ?? undefined;
-  const sessionTitle = currentSession?.title;
 
   useEventStream();
 
@@ -49,14 +54,35 @@ export default function ChatPage() {
   return (
     <>
       <Header
-        title={sessionTitle || undefined}
-        subtitle={sessionDir || undefined}
-        showRefresh
-        showThemeToggle
-        showMinimapToggle
-        isMinimapVisible={showMinimap}
-        onToggleMinimap={handleToggleMinimap}
-        rightSlot={<TokenUsageIndicator sessionId={selectedSessionId} />}
+        actions={[
+          <TokenUsageIndicator key="token" sessionId={selectedSessionId} />,
+          <DropdownMenu key="menu">
+            <DropdownMenuTrigger>
+              <Button variant={"ghost"} size={"icon-sm"}>
+                <MoreHorizontal />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handleToggleMinimap}>
+                <PanelRight />
+                <span className="whitespace-nowrap">Chat Outline</span>
+                {showMinimap && (
+                  <span className="ml-2 text-xs text-muted-foreground whitespace-nowrap">
+                    (On)
+                  </span>
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={toggleTheme}>
+                {isDarkMode ? <Sun /> : <Moon />}
+                <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => window.location.reload()}>
+                <RefreshCw />
+                <span>Refresh</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>,
+        ]}
       />
       <ChatContainer
         sessionId={selectedSessionId}

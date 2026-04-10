@@ -3,7 +3,11 @@ import { Plus, Lightbulb, Search } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
 import { useIdeaUIStore } from "@/features/idea/store/ideaStore";
 
-import { IdeaCard, IdeaDetailDialog, CREATE_IDEA_ID } from "@/features/idea/components";
+import {
+  IdeaCard,
+  IdeaDetailDialog,
+  CREATE_IDEA_ID,
+} from "@/features/idea/components";
 import { Header } from "@/components/layout";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -15,6 +19,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/sonner";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { TabGroupButton } from "@/components/ui/tab-group-button";
 import type { IdeaModel } from "@cloudy/contracts";
 import type { Idea, IdeaDetail } from "@/features/idea/types";
 import { apiResponseToIdeaListItem } from "./types";
@@ -150,7 +155,18 @@ export default function IdeaPage() {
   return (
     <>
       <div className="flex h-screen flex-col">
-        <Header title="Ideas" showRefresh={false} />
+        <Header
+          title="Ideas"
+          actions={[
+            <Button
+              variant={"ghost"}
+              size="icon-sm"
+              onClick={handleCreateClick}
+            >
+              <Plus />
+            </Button>,
+          ]}
+        />
 
         <div className="flex flex-col gap-2 border-b p-4">
           <InputGroup>
@@ -189,28 +205,11 @@ export default function IdeaPage() {
               </InputGroupAddon>
             )}
           </InputGroup>
-          <div className="flex gap-1 items-center">
-            <div className="flex-1 overflow-x-auto">
-              <div className="flex w-max gap-1">
-                {filterOptions.map((option) => (
-                  <Button
-                    key={option.value}
-                    variant={
-                      filterStatus === option.value ? "default" : "ghost"
-                    }
-                    size="sm"
-                    onClick={() => setFilterStatus(option.value)}
-                    className="shrink-0"
-                  >
-                    {option.label}
-                  </Button>
-                ))}
-              </div>
-            </div>
-            <Button size="sm" onClick={handleCreateClick} className="ml-auto">
-              <Plus className="size-4" />
-            </Button>
-          </div>
+          <TabGroupButton
+            options={filterOptions}
+            value={filterStatus}
+            onChange={setFilterStatus}
+          />
         </div>
 
         <div className="flex-1 overflow-auto">

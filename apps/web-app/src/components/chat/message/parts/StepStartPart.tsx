@@ -13,16 +13,16 @@ export function StepStartPart({ part }: StepStartPartProps) {
       label="Step Started"
       detail={part.snapshot?.slice(0, 50) || ""}
     >
-      <Card className="bg-cyan-50 dark:bg-cyan-950/30 border-cyan-200 dark:border-cyan-800">
+      <Card>
         <CardContent className="p-3">
           <div className="flex items-center gap-2">
-            <Play className="size-4 text-cyan-600 dark:text-cyan-400" />
-            <span className="text-xs font-medium text-cyan-700 dark:text-cyan-300">
+            <Play className="size-4 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">
               Step Started
             </span>
           </div>
           {part.snapshot && (
-            <div className="mt-2 text-xs font-mono bg-cyan-100 dark:bg-cyan-900/50 rounded p-2 overflow-x-auto">
+            <div className="mt-2 text-xs font-mono bg-muted rounded p-2 overflow-x-auto">
               {part.snapshot}
             </div>
           )}

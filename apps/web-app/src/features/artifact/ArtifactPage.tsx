@@ -10,6 +10,7 @@ import { Header } from "@/components/layout";
 import { apiResponseToArtifact } from "@/features/artifact/api";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
+import { TabGroupButton } from "@/components/ui/tab-group-button";
 import {
   InputGroup,
   InputGroupInput,
@@ -92,7 +93,7 @@ export default function ArtifactPage() {
   return (
     <>
       <div className="flex h-screen flex-col">
-        <Header title="Artifacts" showRefresh={false} />
+        <Header title="Artifacts" />
 
         <div className="flex flex-col gap-2 border-b p-4">
           <InputGroup>
@@ -116,18 +117,11 @@ export default function ArtifactPage() {
               </InputGroupAddon>
             )}
           </InputGroup>
-          <div className="flex gap-1 overflow-x-auto">
-            {filterOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={filterType === option.value ? "default" : "ghost"}
-                size="sm"
-                onClick={() => setFilterType(option.value)}
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
+          <TabGroupButton
+            options={filterOptions}
+            value={filterType}
+            onChange={setFilterType}
+          />
         </div>
 
         <div className="flex-1 overflow-auto">

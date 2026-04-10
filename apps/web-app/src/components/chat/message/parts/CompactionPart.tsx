@@ -12,20 +12,20 @@ export function CompactionPart({ part }: CompactionPartProps) {
 
   return (
     <CollapsiblePart label="Compaction" detail={detail}>
-      <Card className="bg-violet-50 dark:bg-violet-950/30 border-violet-200 dark:border-violet-800">
+      <Card>
         <CardContent className="p-3">
           <div className="flex items-center gap-2">
-            <Minimize2 className="size-4 text-violet-600 dark:text-violet-400" />
-            <span className="text-xs font-medium text-violet-700 dark:text-violet-300">
+            <Minimize2 className="size-4 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">
               Compaction
             </span>
             {part.auto ? (
-              <div className="flex items-center gap-1 text-xs text-violet-600 dark:text-violet-400">
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Sparkles className="size-3" />
                 <span>Auto</span>
               </div>
             ) : (
-              <span className="text-xs text-violet-600 dark:text-violet-400">
+              <span className="text-xs text-muted-foreground">
                 Manual
               </span>
             )}

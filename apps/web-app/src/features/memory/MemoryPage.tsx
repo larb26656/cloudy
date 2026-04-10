@@ -116,7 +116,7 @@ export default function MemoryPage() {
     <>
       <div className="flex h-screen flex-col">
         {/* Header */}
-        <Header title="Memories" showRefresh={false} />
+        <Header title="Memories" />
 
         {/* Search + Filter */}
         <div className="flex flex-col gap-2 border-b p-4">

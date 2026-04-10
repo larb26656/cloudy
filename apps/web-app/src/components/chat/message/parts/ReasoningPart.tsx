@@ -14,20 +14,20 @@ export function ReasoningPart({ part }: ReasoningPartProps) {
 
   return (
     <CollapsiblePart label="Thinking" detail={duration || ""}>
-      <Card className="bg-purple-50 dark:bg-purple-950/30 border-purple-200 dark:border-purple-800">
+      <Card>
         <CardContent>
           <div className="flex items-center gap-2 mb-2">
-            <Brain className="size-4 text-purple-600 dark:text-purple-400" />
-            <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
+            <Brain className="size-4 text-muted-foreground" />
+            <span className="text-xs font-medium text-muted-foreground">
               Reasoning
             </span>
             {duration && (
-              <span className="text-xs text-purple-600 dark:text-purple-400">
+              <span className="text-xs text-muted-foreground">
                 {duration}
               </span>
             )}
           </div>
-          <div className="text-sm text-purple-900 dark:text-purple-100 font-mono leading-relaxed whitespace-pre-wrap">
+          <div className="text-sm font-mono leading-relaxed whitespace-pre-wrap">
             {part.text}
           </div>
         </CardContent>
