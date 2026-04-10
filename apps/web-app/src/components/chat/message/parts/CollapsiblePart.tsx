@@ -20,7 +20,7 @@ export default function CollapsiblePart({
   children,
 }: CollapsiblePartProps) {
   return (
-    <Collapsible>
+    <Collapsible className="group">
       <CollapsibleTrigger className="flex justify-start items-center w-full gap-2">
         <span className="text-sm">{label}</span>
         {detail && (
@@ -29,7 +29,7 @@ export default function CollapsiblePart({
           </span>
         )}
         {trailing}
-        <ChevronDownIcon className="ml-auto group-data-[state=open]:rotate-180" />
+        <ChevronDownIcon className="ml-auto opacity-0 group-hover:opacity-100 group-data-[open]:opacity-100 group-data-[open]:rotate-180 transition-opacity" />
       </CollapsibleTrigger>
       <CollapsibleContent className="p-2">{children}</CollapsibleContent>
     </Collapsible>

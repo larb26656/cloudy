@@ -1,4 +1,4 @@
-import { Files, FileText } from "lucide-react";
+import { Files } from "lucide-react";
 import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
 import { createTwoFilesPatch } from "diff";
 import { DiffViewer } from "@/components/markdown/DiffViewer";
