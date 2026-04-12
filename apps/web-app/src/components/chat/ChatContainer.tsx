@@ -2,11 +2,12 @@
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./chat-input";
 import { QuestionSheet } from "./QuestionSheet";
-import type { ModelConfig } from "../../types";
 import { useSessionStore, useDirectoryStore, useMessageStore } from "@/stores";
 import { generatePlaceholder } from "@/lib/greeting-generator";
+import { isCommand, parseCommand, executeOCCommand } from "@/lib/command";
 import { useMemo } from "react";
 import type { ChatInputContent } from "@/lib/opencode";
+import type { ModelConfig } from "@/types";
 
 type SnippetType = "idea" | "memory" | "artifact";
 
@@ -62,6 +63,23 @@ export function ChatContainer({
       ...content,
       text: content.text.trim(),
     };
+
+    const text = normalizedContent.text;
+
+    if (isCommand(text)) {
+      const parsed = parseCommand(text);
+      if (parsed) {
+        await executeOCCommand({
+          directory: selectedDirectory,
+          sessionId: currentSessionId,
+          command: parsed.command,
+          arguments: parsed.arguments,
+          model,
+          agent,
+        });
+        return;
+      }
+    }
 
     await sendMessage(
       selectedDirectory,

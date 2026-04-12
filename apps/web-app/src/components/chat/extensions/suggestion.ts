@@ -15,7 +15,7 @@ type CommandItem = {
   label: string
   name: string
   description?: string
-  source?: 'command' | 'mcp' | 'skill'
+  source?: 'command' | 'mcp' | 'skill' | 'system'
   hints: Array<string>
 }
 

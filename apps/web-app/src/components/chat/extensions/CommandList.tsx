@@ -7,7 +7,7 @@ import {
   CommandEmpty,
 } from "@/components/ui/command";
 
-type CommandSource = "command" | "mcp" | "skill";
+type CommandSource = "command" | "mcp" | "skill" | "system";
 
 type CommandItem = {
   id: string;
@@ -84,6 +84,7 @@ const CommandListComponent = forwardRef<CommandListRef, CommandListProps>(
         command: "bg-blue-500/10 text-blue-500",
         mcp: "bg-purple-500/10 text-purple-500",
         skill: "bg-green-500/10 text-green-500",
+        system: "bg-orange-500/10 text-orange-500",
       };
       return (
         <span className={`text-[10px] px-1.5 py-0.5 rounded ${colors[source]}`}>

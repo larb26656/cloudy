@@ -1,8 +1,9 @@
 import { create } from "zustand";
 import { oc, getErrorMessage } from "@/lib/opencode";
 import type { SdkError } from "@/lib/opencode";
+import { systemCommands } from "@/lib/command";
 
-type CommandSource = "command" | "mcp" | "skill";
+type CommandSource = "command" | "mcp" | "skill" | "system";
 
 type Command = {
   name: string;
@@ -42,7 +43,16 @@ export const useCommandSuggestionStore = create<CommandSuggestionStore>()((set, 
         throw new Error(getErrorMessage(result.error as SdkError));
       }
 
-      const commands = result.data ?? [];
+      const openCodeCommands = result.data ?? [];
+      const systemCommandItems: Command[] = systemCommands.map((cmd) => ({
+        name: cmd.name,
+        description: cmd.description,
+        source: "system" as CommandSource,
+        template: "",
+        hints: [],
+      }));
+
+      const commands = [...systemCommandItems, ...openCodeCommands];
       set({ commands, isLoading: false });
       return commands;
     } catch (err) {
