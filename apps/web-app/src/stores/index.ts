@@ -8,4 +8,5 @@ export { useModelStore } from './modelStore';
 export { useQuestionStore } from './questionStore';
 export { usePermissionStore } from './permissionStore';
 export { useFindFileStore } from './findFileStore';
+export { useCommandSuggestionStore } from './commandSuggestionStore';
 export { useMemoryStore } from './memoryStore';

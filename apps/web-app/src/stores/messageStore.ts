@@ -99,16 +99,30 @@ export const useMessageStore = create<MessageStore>()(
             set({ error: null, isThinking: true });
 
             const selectedModel = useModelStore.getState().selectedModel;
+            const text = content.text.trim();
             const parts = buildParts(directory, content);
 
-            await oc.session.promptAsync({
-                sessionID: sessionId,
-                parts,
-                model: model ?? selectedModel ?? undefined,
-                agent: agent ?? undefined,
-            }, {
-                headers: { 'x-opencode-directory': directory }
-            });
+            if (text.startsWith('/')) {
+                const fileParts = parts.filter((p): p is FilePartInput => p.type === 'file');
+                await oc.session.command({
+                    sessionID: sessionId,
+                    command: text,
+                    parts: fileParts.length > 0 ? fileParts : undefined,
+                    model: model?.modelID ?? selectedModel?.modelID ?? undefined,
+                    agent: agent ?? undefined,
+                }, {
+                    headers: { 'x-opencode-directory': directory }
+                });
+            } else {
+                await oc.session.promptAsync({
+                    sessionID: sessionId,
+                    parts,
+                    model: model ?? selectedModel ?? undefined,
+                    agent: agent ?? undefined,
+                }, {
+                    headers: { 'x-opencode-directory': directory }
+                });
+            }
 
             set({ isThinking: false });
         },

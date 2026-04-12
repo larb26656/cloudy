@@ -1,7 +1,7 @@
 import { useEditor, EditorContent, Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Mention from "@tiptap/extension-mention";
-import { createMentionSuggestion } from "./extensions/suggestion";
+import { createMentionSuggestion, createCommandSuggestion } from "./extensions/suggestion";
 import { useEffect, useMemo } from "react";
 import { useDirectoryStore } from "@/stores";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
@@ -52,6 +52,19 @@ export function ChatInputEditor({
         suggestion: selectedDirectory
           ? createMentionSuggestion(selectedDirectory)
           : {},
+      }),
+      Mention.configure({
+        HTMLAttributes: {
+          class: "mention",
+        },
+        suggestion: {
+          char: "/",
+          allow: ({ state, range }: { state: Editor['state']; range: { from: number; to: number } }) => {
+            const textBefore = state.doc.textBetween(0, range.from, " ", "\n");
+            return textBefore.trim() === "";
+          },
+          ...createCommandSuggestion(),
+        },
       }),
       Placeholder.configure({
         placeholder: placeholder,
