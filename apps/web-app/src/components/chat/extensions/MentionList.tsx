@@ -57,7 +57,8 @@ const MentionList = forwardRef<MentionListRef, MentionListProps>(
           return true;
         }
 
-        if (event.key === "Tab") {
+        if (event.key === "Tab" || event.key === "Enter") {
+          event.stopPropagation();
           enterHandler();
           return true;
         }
