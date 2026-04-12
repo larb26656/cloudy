@@ -102,13 +102,16 @@ export const useMessageStore = create<MessageStore>()(
             const text = content.text.trim();
             const parts = buildParts(directory, content);
 
+            const useModel = model ?? selectedModel;
+            const sendModel = useModel ? `${useModel.providerID}/${useModel.modelID}` : undefined;
+
             if (text.startsWith('/')) {
-                const fileParts = parts.filter((p): p is FilePartInput => p.type === 'file');
+                const command = text.slice(1);
                 await oc.session.command({
                     sessionID: sessionId,
-                    command: text,
-                    parts: fileParts.length > 0 ? fileParts : undefined,
-                    model: model?.modelID ?? selectedModel?.modelID ?? undefined,
+                    command,
+                    arguments: "",
+                    model: sendModel,
                     agent: agent ?? undefined,
                 }, {
                     headers: { 'x-opencode-directory': directory }
