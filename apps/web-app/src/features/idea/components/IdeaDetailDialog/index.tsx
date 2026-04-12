@@ -1,10 +1,4 @@
-import {
-  Lightbulb,
-  PanelLeftClose,
-  PanelLeft,
-  Ellipsis,
-  Link,
-} from "lucide-react";
+import { PanelLeftClose, PanelLeft, Ellipsis, Link, X } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -64,6 +58,7 @@ const MOCK_IDEA_DETAIL: IdeaDetail = {
 interface IdeaDetailViewProps {
   ideaId: string | null;
   onBack?: () => void;
+  onClose?: () => void;
   onIdeaUpdated?: (idea: IdeaDetail) => void;
   onIdeaCreated?: (idea: IdeaDetail) => void;
   viewOnly?: boolean;
@@ -101,7 +96,7 @@ function IdeaDetailSkeleton() {
           <Skeleton className="h-8 w-20" />
         </div>
         <div className="flex-1 flex gap-4">
-          <Skeleton className="h-full w-[30%] rounded-lg" />
+          <Skeleton className="hidden h-full w-[30%] rounded-lg lg:block" />
           <Skeleton className="h-full flex-1 rounded-lg" />
         </div>
       </div>
@@ -133,12 +128,14 @@ function CopyLinkButton({ ideaId }: { ideaId: string }) {
   );
 }
 
-function EditableHeader({
+function Header({
   idea,
   onUpdate,
+  onClose,
 }: {
   idea: IdeaDetail;
   onUpdate: (updatedMeta: Idea["meta"]) => void;
+  onClose?: () => void;
 }) {
   const [localName, setLocalName] = useState(idea.name);
   const [localStatus, setLocalStatus] = useState(idea.meta.status);
@@ -230,9 +227,8 @@ function EditableHeader({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-2 mr-[32px]">
-        <Lightbulb className="size-5 shrink-0" />
-        <span
+      <div className="flex gap-2 justify-between">
+        <p
           contentEditable
           suppressContentEditableWarning
           onKeyDown={handleTitleKeyDown}
@@ -240,7 +236,18 @@ function EditableHeader({
           className="font-semibold outline-none focus:ring-2 focus:ring-ring rounded px-1 cursor-text"
         >
           {localName}
-        </span>
+        </p>
+
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onClose}
+            className="text-muted-foreground"
+          >
+            <X className="size-4" />
+          </Button>
+        )}
       </div>
 
       <div className="flex items-center gap-2 flex-1">
@@ -292,6 +299,7 @@ function EditableHeader({
 export function IdeaDetailView({
   ideaId,
   onBack,
+  onClose,
   onIdeaUpdated,
   onIdeaCreated,
   viewOnly = false,
@@ -575,7 +583,7 @@ export function IdeaDetailView({
   return (
     <div className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}>
       <DialogHeader className="p-4 pb-3 border-b flex-none">
-        <EditableHeader idea={idea} onUpdate={handleMetaUpdate} />
+        <Header idea={idea} onUpdate={handleMetaUpdate} onClose={onClose} />
       </DialogHeader>
 
       <div className="p-2 border-b flex justify-between items-center gap-1">
@@ -722,11 +730,15 @@ export function IdeaDetailDialog({
 }: IdeaDetailDialogProps) {
   return (
     <Dialog open={!!ideaId} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}>
+      <DialogContent
+        className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}
+        showCloseButton={false}
+      >
         <IdeaDetailView
           ideaId={ideaId}
           onIdeaUpdated={onIdeaUpdated}
           onIdeaCreated={onIdeaCreated}
+          onClose={onClose}
         />
       </DialogContent>
     </Dialog>

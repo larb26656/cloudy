@@ -9,16 +9,13 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { formatTime, formatNumber } from "@/lib/date";
 import { useFileCacheStore } from "@/stores/fileCacheStore";
 import { useMessageStore } from "@/stores/messageStore";
 import { traverseByParentId } from "@/lib/message/message";
-import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
-import { cn } from "@/lib/utils";
 import { extractFromMessages } from "@/lib/message/file-summarize";
-import { FileUpdateViewer } from "@/components/file-update-viewer";
+import { FileUpdateViewerDialog } from "@/components/file-update-viewer/FileUpdateViewerDialog";
 
 interface StepFinishPartProps {
   part: StepFinishPartType;
@@ -64,8 +61,10 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
       {files.length > 0 && (
         <div className="flex items-center gap-2">
           <p className="text-sm">
-            {" "}
-            File changes: {files.length} file{files.length > 1 ? "s" : ""}
+            File change{" "}
+            <span className="text-muted-foreground">
+              {files.length} file{files.length > 1 ? "s" : ""}
+            </span>
           </p>
           <Button
             variant="ghost"
@@ -149,13 +148,11 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
         </Tooltip>
       </div>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent
-          className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}
-        >
-          <FileUpdateViewer files={files} />
-        </DialogContent>
-      </Dialog>
+      <FileUpdateViewerDialog
+        files={files}
+        isOpen={isOpen}
+        onOpenChange={setIsOpen}
+      />
     </div>
   );
 }

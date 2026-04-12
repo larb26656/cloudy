@@ -1,4 +1,4 @@
-import { Lightbulb, Clock, Tag, Trash2, MoreVertical } from "lucide-react";
+import { Clock, Tag, Trash2, MoreVertical } from "lucide-react";
 import {
   Card,
   CardHeader,
@@ -40,14 +40,11 @@ export function IdeaCard({
       <CardHeader>
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
-            <Lightbulb className="size-4 text-muted-foreground" />
             <CardTitle className="line-clamp-1">{idea.name}</CardTitle>
           </div>
           <CardAction onClick={(e) => e.stopPropagation()}>
             <DropdownMenu>
-              <DropdownMenuTrigger
-                className="inline-flex shrink-0 items-center justify-center rounded-md size-8 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
-              >
+              <DropdownMenuTrigger className="inline-flex shrink-0 items-center justify-center rounded-md size-8 hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground">
                 <MoreVertical className="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

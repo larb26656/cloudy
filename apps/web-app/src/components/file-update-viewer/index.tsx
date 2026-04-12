@@ -1,5 +1,5 @@
 import { createTwoFilesPatch } from "diff";
-import { PanelLeftClose, PanelLeft } from "lucide-react";
+import { PanelLeftClose, PanelLeft, X } from "lucide-react";
 import { useState } from "react";
 import { useDeviceType } from "@/hooks";
 import {
@@ -18,6 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
 import { FileListSidebar } from "./FileListSidebar";
 import { CodeBlock } from "@/components/markdown/CodeBlock";
 import { DiffViewer } from "@/components/markdown/DiffViewer";
@@ -33,14 +34,15 @@ export interface FileUpdateViewerProps {
   files: FileItem[];
   selectedFile?: string;
   onSelectFile?: (file: FileItem) => void;
+  onClose?: () => void;
 }
 
 export function FileUpdateViewer({
   files,
   selectedFile: externalSelectedFile,
   onSelectFile: externalOnSelectFile,
+  onClose,
 }: FileUpdateViewerProps) {
-  console.log(files);
   const { isMobile, isTablet } = useDeviceType();
   const isSmallScreen = isMobile || isTablet;
   const [isSidebarOpen, setIsSidebarOpen] = useState(!isSmallScreen);
@@ -50,15 +52,6 @@ export function FileUpdateViewer({
 
   const selectedFile = externalSelectedFile ?? internalSelectedFile;
   const currentFile = files.find((f) => f.name === selectedFile) ?? files[0];
-
-  function shortenPath(path: string, maxLen = 40): string {
-    if (path.length <= maxLen) return path;
-    const parts = path.split("/");
-    if (parts.length <= 2) return path;
-    const filename = parts.pop()!;
-    const first = parts.shift()!;
-    return `${first}/…/${filename}`;
-  }
 
   const handleSelectFile = (file: FileItem) => {
     setInternalSelectedFile(file.name);
@@ -116,6 +109,16 @@ export function FileUpdateViewer({
             {isSidebarOpen ? "Hide sidebar" : "Show sidebar"}
           </TooltipContent>
         </Tooltip>
+        {onClose && (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={onClose}
+            className="text-muted-foreground"
+          >
+            <X className="size-4" />
+          </Button>
+        )}
       </div>
 
       {isSmallScreen && (
@@ -140,7 +143,7 @@ export function FileUpdateViewer({
             <div className="h-full flex flex-col overflow-auto bg-[#1e1e1e]">
               {currentFile && (
                 <div className="px-3 py-1.5 text-xs text-muted-foreground border-b border-border/50 bg-[#1e1e1e]">
-                  {shortenPath(currentFile.name)}
+                  {currentFile.name}
                 </div>
               )}
               {renderContent()}
