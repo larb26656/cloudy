@@ -6,9 +6,10 @@ import { CodeFrame } from "./CodeFrame";
 interface CodeBlockProps {
   children: string;
   className?: string;
+  headless?: boolean;
 }
 
-export function CodeBlock({ children, className }: CodeBlockProps) {
+export function CodeBlock({ children, className, headless = false }: CodeBlockProps) {
   const language = className?.replace("language-", "") || "text";
 
   const highlightedCode = useMemo(() => {
@@ -27,7 +28,7 @@ export function CodeBlock({ children, className }: CodeBlockProps) {
   }, [children, language]);
 
   return (
-    <CodeFrame language={language} code={children}>
+    <CodeFrame language={language} code={children} headless={headless}>
       <pre className="p-4 overflow-x-auto">
         <code
           className={`${className} text-sm font-mono leading-relaxed text-gray-300`}

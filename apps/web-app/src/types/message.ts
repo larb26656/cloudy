@@ -14,3 +14,11 @@ export interface AssistantSessionMessage {
     info: AssistantMessage;
     parts: Array<Part>;
 }
+
+export interface MessageFileItem {
+    name: string;
+    path: string;
+    type: "write" | "edit";
+    content: string;
+    originalContent?: string;
+}

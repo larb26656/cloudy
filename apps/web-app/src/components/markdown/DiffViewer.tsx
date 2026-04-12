@@ -12,6 +12,8 @@ interface DiffViewerProps {
   fileNames?: { old: string; new: string };
   inline?: boolean;
   defaultViewMode?: "side-by-side" | "line-by-line";
+  headless?: boolean;
+  showLineNumbers?: boolean;
 }
 
 export function DiffViewer({
@@ -21,12 +23,17 @@ export function DiffViewer({
   fileNames,
   inline = false,
   defaultViewMode = "side-by-side",
+  headless = false,
+  showLineNumbers: controlledShowLineNumbers,
 }: DiffViewerProps) {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState(defaultViewMode);
-  const [showLineNumbers, setShowLineNumbers] = useState(false);
+  const [showLineNumbersState, setShowLineNumbersState] = useState(false);
 
   const isControlled = initialViewMode !== undefined;
+  const isLineNumbersControlled = controlledShowLineNumbers !== undefined;
+
+  const showLineNumbers = isLineNumbersControlled ? controlledShowLineNumbers : showLineNumbersState;
 
   const currentViewMode = isControlled ? initialViewMode : viewMode;
 
@@ -103,6 +110,15 @@ export function DiffViewer({
   if (inline) {
     return (
       <div
+        className={headless ? "" : "overflow-x-auto"}
+        dangerouslySetInnerHTML={{ __html: diffHtml }}
+      />
+    );
+  }
+
+  if (headless) {
+    return (
+      <div
         className="overflow-x-auto"
         dangerouslySetInnerHTML={{ __html: diffHtml }}
       />
@@ -146,14 +162,16 @@ export function DiffViewer({
           )}
         </button>
       )}
-      <button
-        onClick={() => setShowLineNumbers(!showLineNumbers)}
-        className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-white transition-colors rounded hover:bg-[#404040]"
-        title={showLineNumbers ? "Hide line numbers" : "Show line numbers"}
-      >
-        <Hash className="w-3 h-3" />
-        {showLineNumbers ? "Hide #" : "Show #"}
-      </button>
+      {!isLineNumbersControlled && (
+        <button
+          onClick={() => setShowLineNumbersState((prev) => !prev)}
+          className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-white transition-colors rounded hover:bg-[#404040]"
+          title={showLineNumbers ? "Hide line numbers" : "Show line numbers"}
+        >
+          <Hash className="w-3 h-3" />
+          {showLineNumbers ? "Hide #" : "Show #"}
+        </button>
+      )}
       <button
         onClick={handleCopy}
         className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-white transition-colors rounded hover:bg-[#404040]"

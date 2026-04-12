@@ -61,11 +61,13 @@ export default function ChatPage() {
         actions={[
           <TokenUsageIndicator key="token" sessionId={selectedSessionId} />,
           <DropdownMenu key="menu">
-            <DropdownMenuTrigger>
-              <Button variant={"ghost"} size={"icon-sm"}>
-                <MoreHorizontal />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button variant={"ghost"} size={"icon-sm"}>
+                  <MoreHorizontal />
+                </Button>
+              }
+            ></DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleToggleMinimap}>
                 <PanelRight />

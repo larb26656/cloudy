@@ -1,14 +1,24 @@
+import { useState } from "react";
 import type {
   StepFinishPart as StepFinishPartType,
   AssistantMessage,
 } from "@opencode-ai/sdk/v2";
-import { Info } from "lucide-react";
+import { Info, Eye } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { formatTime, formatNumber } from "@/lib/date";
+import { useFileCacheStore } from "@/stores/fileCacheStore";
+import { useMessageStore } from "@/stores/messageStore";
+import { traverseByParentId } from "@/lib/message/message";
+import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
+import { cn } from "@/lib/utils";
+import { extractFromMessages } from "@/lib/message/file-summarize";
+import { FileUpdateViewer } from "@/components/file-update-viewer";
 
 interface StepFinishPartProps {
   part: StepFinishPartType;
@@ -16,11 +26,32 @@ interface StepFinishPartProps {
 }
 
 export function StepFinishPart({ part, info }: StepFinishPartProps) {
+  const [isOpen, setIsOpen] = useState(false);
 
   const totalTokens =
     part.tokens.input + part.tokens.output + part.tokens.reasoning;
 
   const isLastMessage = part.reason === "stop";
+
+  const messageId = info?.id;
+  const parentId = info?.parentID;
+
+  const cachedFiles = useFileCacheStore((s) =>
+    messageId ? s.getFiles(messageId) : null,
+  );
+
+  let files = cachedFiles ?? [];
+
+  if (isLastMessage && cachedFiles === null && messageId && parentId) {
+    const sessionId = info?.sessionID;
+    const allMessages =
+      useMessageStore.getState().messages[sessionId ?? ""] ?? [];
+    const messagesInChain = traverseByParentId(allMessages, parentId);
+    const extractedFiles = extractFromMessages(messagesInChain);
+
+    useFileCacheStore.getState().setFiles(messageId, extractedFiles);
+    files = extractedFiles;
+  }
 
   if (!isLastMessage) {
     return;
@@ -30,6 +61,22 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
 
   return (
     <div className="flex flex-col gap-2">
+      {files.length > 0 && (
+        <div className="flex items-center gap-2">
+          <p className="text-sm">
+            {" "}
+            File changes: {files.length} file{files.length > 1 ? "s" : ""}
+          </p>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => setIsOpen(true)}
+            className="text-muted-foreground"
+          >
+            <Eye />
+          </Button>
+        </div>
+      )}
       <div className="flex items-center gap-2">
         {finishTimestamp && (
           <span className="text-xs text-muted-foreground">
@@ -101,6 +148,14 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
           </TooltipContent>
         </Tooltip>
       </div>
+
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogContent
+          className={cn("flex flex-col p-0 gap-0", SHEET_SIZE_CLASSES)}
+        >
+          <FileUpdateViewer files={files} />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
