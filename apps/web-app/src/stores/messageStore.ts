@@ -3,6 +3,7 @@ import type { ModelConfig } from "@/types";
 import type { AgentPartInput, FilePartInput, Message, Part, SessionMessagesResponse, SubtaskPartInput, TextPartInput } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { useModelStore } from "./modelStore";
+import { isCommand, parseCommand } from "@/lib/command";
 
 type MessageStoreState = {
     messages: Record<string, SessionMessagesResponse>;
@@ -105,12 +106,13 @@ export const useMessageStore = create<MessageStore>()(
             const useModel = model ?? selectedModel;
             const sendModel = useModel ? `${useModel.providerID}/${useModel.modelID}` : undefined;
 
-            if (text.startsWith('/')) {
-                const command = text.slice(1);
+            if (isCommand(text)) {
+                // TODO refactor this
+                const parse = parseCommand(text)!;
                 await oc.session.command({
                     sessionID: sessionId,
-                    command,
-                    arguments: "",
+                    command: parse.command,
+                    arguments: parse.arguments,
                     model: sendModel,
                     agent: agent ?? undefined,
                 }, {
