@@ -1,6 +1,6 @@
 import { SessionItem } from "./SessionItem";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useSessionStore, useDirectoryStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import { ErrorState } from "@/components/ui/error-state";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { InfiniteScrollTrigger } from "../InfiniteScrollTrigger";
@@ -27,8 +27,8 @@ export function SessionList({ searchQuery }: SessionListProps) {
     updateSession,
     deleteSession,
     selectSession,
-  } = useSessionStore();
-  const { selectedDirectory } = useDirectoryStore();
+  } = useStore("session");
+  const { selectedDirectory } = useStore("directory");
 
   const filteredSessions = sessions
     .filter((session) => !session.parentID)

@@ -15,7 +15,7 @@ import {
   CommandList,
   CommandItem,
 } from "@/components/ui/command";
-import { useDirectoryStore } from "@/stores";
+import { useStore, getStore } from "@/stores/instance";
 import { cn } from "@/lib/utils";
 
 interface DirectoryFilterProps {
@@ -29,7 +29,7 @@ export function DirectoryFilter({ className }: DirectoryFilterProps) {
     addRecentDirectory,
     searchDirectories,
     setSelectedDirectory,
-  } = useDirectoryStore();
+  } = useStore("directory");
 
   const [isOpen, setIsOpen] = useState(false);
   const [customPath, setCustomPath] = useState("");
@@ -51,7 +51,7 @@ export function DirectoryFilter({ className }: DirectoryFilterProps) {
       setIsSearching(true);
       try {
         await searchDirectories(customPath);
-        const results = useDirectoryStore.getState().directories;
+        const results = getStore("directory").getState().directories;
         setSuggestions(results);
       } finally {
         setIsSearching(false);

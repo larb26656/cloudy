@@ -1,4 +1,4 @@
-import { useSessionStore } from "@/stores";
+import { getStore } from "@/stores/instance";
 import { oc } from "./opencode";
 import type { ChatInputContent } from "./opencode";
 import type { ModelConfig } from "@/types";
@@ -64,7 +64,7 @@ export const systemCommands: SystemCommand[] = [
     name: "new",
     description: "Create a new session",
     execute: async () => {
-      useSessionStore.getState().createTempSession();
+      getStore("session").getState().createTempSession();
     },
   },
 ];

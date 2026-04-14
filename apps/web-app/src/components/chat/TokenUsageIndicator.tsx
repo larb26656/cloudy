@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useModelStore, useMessageStore, useSessionStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import { formatNumber } from "@/lib/date";
 import {
   Tooltip,
@@ -12,9 +12,9 @@ interface TokenUsageIndicatorProps {
 }
 
 export function TokenUsageIndicator({ sessionId }: TokenUsageIndicatorProps) {
-  const { selectedModel } = useModelStore();
-  const { messages } = useMessageStore();
-  const { selectedSessionId } = useSessionStore();
+  const { selectedModel } = useStore("model");
+  const { messages } = useStore("message");
+  const { selectedSessionId } = useStore("session");
 
   const { totalTokens, totalCost, inputTokens, outputTokens, reasoningTokens, cacheReadTokens, cacheWriteTokens, percent, sessionIdToUse } = useMemo(() => {
     const currentSessionId = sessionId ?? selectedSessionId;

@@ -1,11 +1,11 @@
 import { useEffect } from "react"
-import { useDirectoryStore } from "@/stores"
+import { useStore } from "@/stores/instance"
 import type { Event as OpencodeEvent } from "@opencode-ai/sdk/v2";
 import { getEvent } from "@/lib/opencode"
 import { handleEvent } from "@/events/eventRoute";
 
 export function useEventStream() {
-    const selectedDirectory = useDirectoryStore(s => s.selectedDirectory)
+    const selectedDirectory = useStore("directory").selectedDirectory
 
     // TODO replace with global event
     useEffect(() => {

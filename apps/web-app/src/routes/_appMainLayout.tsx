@@ -13,12 +13,7 @@ import {
 import { useDeviceType } from "@/hooks";
 import { useChatUIStore } from "@/stores/chatUIStore";
 import { useEffect, useState } from "react";
-import {
-  useDirectoryStore,
-  usePermissionStore,
-  useQuestionStore,
-  useSessionStore,
-} from "@/stores";
+import { useStore } from "@/stores/instance";
 
 export const Route = createFileRoute("/_appMainLayout")({
   component: AppMainLayout,
@@ -30,10 +25,10 @@ function AppMainLayout() {
     useChatUIStore();
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
-  const { loadSessions } = useSessionStore();
-  const { loadQuestions } = useQuestionStore();
-  const { loadPermissions } = usePermissionStore();
-  const { selectedDirectory } = useDirectoryStore();
+  const { loadSessions } = useStore("session");
+  const { loadQuestions } = useStore("question");
+  const { loadPermissions } = useStore("permission");
+  const { selectedDirectory } = useStore("directory");
 
   useEffect(() => {
     if (selectedDirectory) {

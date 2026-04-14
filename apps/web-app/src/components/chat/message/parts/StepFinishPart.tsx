@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatTime, formatNumber } from "@/lib/date";
 import { useFileCacheStore } from "@/stores/fileCacheStore";
-import { useMessageStore } from "@/stores/messageStore";
+import { getStore } from "@/stores/instance";
 import { traverseByParentId } from "@/lib/message/message";
 import { extractFromMessages } from "@/lib/message/file-summarize";
 import { FileUpdateViewerDialog } from "@/components/file-update-viewer/FileUpdateViewerDialog";
@@ -42,7 +42,7 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
   if (isLastMessage && cachedFiles === null && messageId && parentId) {
     const sessionId = info?.sessionID;
     const allMessages =
-      useMessageStore.getState().messages[sessionId ?? ""] ?? [];
+      getStore("message").getState().messages[sessionId ?? ""] ?? [];
     const messagesInChain = traverseByParentId(allMessages, parentId);
     const extractedFiles = extractFromMessages(messagesInChain);
 

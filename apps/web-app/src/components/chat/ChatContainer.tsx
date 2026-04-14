@@ -2,7 +2,7 @@
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./chat-input";
 import { QuestionSheet } from "./QuestionSheet";
-import { useSessionStore, useDirectoryStore, useMessageStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import { isCommand, parseCommand, executeOCCommand } from "@/lib/command";
 import { useMemo } from "react";
@@ -28,13 +28,13 @@ export function ChatContainer({
   onCloseMinimap,
   showModelSelector = true,
 }: ChatContainerProps) {
-  const createSession = useSessionStore((s) => s.createSession);
-  const activeQuestion = useSessionStore((s) => s.activeQuestion);
-  const sendMessage = useMessageStore((s) => s.sendMessage);
-  const abortGeneration = useMessageStore((s) => s.abortGeneration);
-  const selectedDirectory = useDirectoryStore((s) => s.selectedDirectory);
-  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
-  const sessionStatuses = useSessionStore((s) => s.sessionStatuses);
+  const createSession = useStore("session").createSession;
+  const activeQuestion = useStore("session").activeQuestion;
+  const sendMessage = useStore("message").sendMessage;
+  const abortGeneration = useStore("message").abortGeneration;
+  const selectedDirectory = useStore("directory").selectedDirectory;
+  const selectedSessionId = useStore("session").selectedSessionId;
+  const sessionStatuses = useStore("session").sessionStatuses;
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
   const isBusy = Boolean(
     sessionId && sessionStatuses[sessionId]?.type === "busy",

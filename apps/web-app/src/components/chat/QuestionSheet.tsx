@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { HelpCircle, ChevronLeft, ChevronRight, X } from "lucide-react";
-import { useSessionStore, useQuestionStore, useDirectoryStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -9,9 +9,9 @@ interface QuestionSheetProps {
 }
 
 export function QuestionSheet({ open }: QuestionSheetProps) {
-  const { activeQuestion, clearActiveQuestion } = useSessionStore();
-  const { replyQuestion, rejectQuestion } = useQuestionStore();
-  const { selectedDirectory } = useDirectoryStore();
+  const { activeQuestion, clearActiveQuestion } = useStore("session");
+  const { replyQuestion, rejectQuestion } = useStore("question");
+  const { selectedDirectory } = useStore("directory");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, string[]>>({});
   const [customText, setCustomText] = useState("");

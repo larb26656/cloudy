@@ -1,23 +1,24 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { oc, getErrorMessage } from "@/lib/opencode";
+import { getErrorMessage } from "@/lib/opencode";
 import type { ModelConfig, ModelProvider } from "@/types";
+import type { OpencodeClient } from "@opencode-ai/sdk/v2";
 
-type ModelStoreState = {
+export type ModelStoreState = {
   selectedModel: ModelConfig | null;
   providers: ModelProvider[];
   isLoading: boolean;
   error: string | null;
 }
 
-type ModelStoreActions = {
+export type ModelStoreActions = {
   setSelectedModel: (model: ModelConfig | null) => void;
   fetchProviders: () => Promise<void>;
 }
 
-type ModelStore = ModelStoreState & ModelStoreActions
+export type ModelStore = ModelStoreState & ModelStoreActions
 
-export const useModelStore = create<ModelStore>()(
+export const createModelStore = (oc: OpencodeClient) => create<ModelStore>()(
   persist(
     (set) => ({
       selectedModel: null,

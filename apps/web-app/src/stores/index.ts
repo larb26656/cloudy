@@ -1,12 +1,6 @@
 // stores/index.ts
-export { useMessageStore } from './messageStore';
-export { useSessionStore } from './sessionStore';
-export { useDirectoryStore } from './directoryStore';
+// Global stores (not instance-scoped)
 export { useChatUIStore } from './chatUIStore';
-export { useAgentStore } from './agentStore';
-export { useModelStore } from './modelStore';
-export { useQuestionStore } from './questionStore';
-export { usePermissionStore } from './permissionStore';
-export { useFindFileStore } from './findFileStore';
-export { useCommandSuggestionStore } from './commandSuggestionStore';
+export { useLoadingStore } from './loadingStore';
 export { useMemoryStore } from './memoryStore';
+export { useFileCacheStore } from './fileCacheStore';

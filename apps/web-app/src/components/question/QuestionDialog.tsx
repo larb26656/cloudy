@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuestionStore, useSessionStore, useDirectoryStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import {
   Dialog,
   DialogContent,
@@ -18,9 +18,9 @@ interface QuestionDialogProps {
 }
 
 export function QuestionDialog({ open, onOpenChange }: QuestionDialogProps) {
-  const { questions, rejectQuestion } = useQuestionStore();
-  const { setActiveQuestion, sessions } = useSessionStore();
-  const { selectedDirectory } = useDirectoryStore();
+  const { questions, rejectQuestion } = useStore("question");
+  const { setActiveQuestion, sessions } = useStore("session");
+  const { selectedDirectory } = useStore("directory");
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

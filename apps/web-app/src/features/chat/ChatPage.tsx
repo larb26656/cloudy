@@ -9,7 +9,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useEventStream } from "@/hooks/useEventSteam";
 import { useDeviceType } from "@/hooks";
-import { useChatUIStore, useMessageStore, useSessionStore } from "@/stores";
+import { useChatUIStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import { useEffect, useState } from "react";
 import { RefreshCw, Sun, Moon, PanelRight, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -24,8 +25,8 @@ const snippetPrompts: Record<SnippetType, string> = {
 };
 
 export default function ChatPage() {
-  const { selectedSessionId } = useSessionStore();
-  const { messages, loadMessages } = useMessageStore();
+  const { selectedSessionId } = useStore("session");
+  const { messages, loadMessages } = useStore("message");
   const { isDarkMode, toggleTheme } = useChatUIStore();
   const { isMobile } = useDeviceType();
   const [initialInput, setInitialInput] = useState<string>("");

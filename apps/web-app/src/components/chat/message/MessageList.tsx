@@ -2,7 +2,7 @@
 import { useEffect, useRef, useMemo, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import type { Message } from "@/types/message";
-import { useMessageStore, useSessionStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
@@ -26,13 +26,14 @@ export function MessageList({
   showMinimap = false,
   onCloseMinimap,
 }: MessageListProps) {
-  const isLoading = useMessageStore((state) => state.isLoading);
-  const error = useMessageStore((state) => state.error);
-  const loadMessages = useMessageStore((state) => state.loadMessages);
-  const messagesMap = useMessageStore((state) => state.messages);
+  const messageStore = useStore("message");
+  const isLoading = messageStore.isLoading;
+  const error = messageStore.error;
+  const loadMessages = messageStore.loadMessages;
+  const messagesMap = messageStore.messages;
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
-  const sessionStatuses = useSessionStore((s) => s.sessionStatuses);
+  const sessionStatuses = useStore("session").sessionStatuses;
   const isBusy = Boolean(
     selectedSessionId && sessionStatuses[selectedSessionId]?.type === "busy",
   );

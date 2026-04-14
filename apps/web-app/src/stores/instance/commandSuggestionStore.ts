@@ -1,11 +1,12 @@
 import { create } from "zustand";
-import { oc, getErrorMessage } from "@/lib/opencode";
+import { getErrorMessage } from "@/lib/opencode";
 import type { SdkError } from "@/lib/opencode";
 import { systemCommands } from "@/lib/command";
+import type { OpencodeClient } from "@opencode-ai/sdk/v2";
 
-type CommandSource = "command" | "mcp" | "skill" | "system";
+export type CommandSource = "command" | "mcp" | "skill" | "system";
 
-type Command = {
+export type Command = {
   name: string;
   description?: string;
   agent?: string;
@@ -16,20 +17,20 @@ type Command = {
   hints: Array<string>;
 };
 
-type CommandSuggestionStoreState = {
+export type CommandSuggestionStoreState = {
   commands: Command[];
   isLoading: boolean;
   error: string | null;
 };
 
-type CommandSuggestionStoreActions = {
+export type CommandSuggestionStoreActions = {
   loadCommands: () => Promise<Command[]>;
   getFilteredCommands: (query: string) => Command[];
 };
 
-type CommandSuggestionStore = CommandSuggestionStoreState & CommandSuggestionStoreActions;
+export type CommandSuggestionStore = CommandSuggestionStoreState & CommandSuggestionStoreActions;
 
-export const useCommandSuggestionStore = create<CommandSuggestionStore>()((set, get) => ({
+export const createCommandSuggestionStore = (oc: OpencodeClient) => create<CommandSuggestionStore>()((set, get) => ({
   commands: [],
   isLoading: false,
   error: null,

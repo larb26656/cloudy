@@ -7,7 +7,7 @@ import {
   InputGroupAddon,
 } from "@/components/ui/input-group";
 import { SidebarNav } from "./SidebarNav";
-import { useSessionStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 
 interface SidebarHeaderProps {
   onSearchChange: (query: string) => void;
@@ -18,7 +18,7 @@ export function SidebarHeader({
   onSearchChange,
   searchQuery,
 }: SidebarHeaderProps) {
-  const { createTempSession } = useSessionStore();
+  const { createTempSession } = useStore("session");
 
   return (
     <div className="flex flex-col">

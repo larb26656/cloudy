@@ -5,7 +5,7 @@ import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
 import type { ModelConfig } from "../../../types";
 import { Button } from "@/components/ui/button";
-import { useAgentStore, useModelStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import type { ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "../ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
@@ -75,8 +75,8 @@ export function ChatInput({
     prevListeningRef.current = isListening;
   }, [isListening, speechDraft, chatInputContent.text]);
 
-  const { selectedModel } = useModelStore();
-  const { selectedAgent } = useAgentStore();
+  const { selectedModel } = useStore("model");
+  const { selectedAgent } = useStore("agent");
 
   const displayText = isListening
     ? `${speechBaseRef.current} ${speechDraft}`.trim()

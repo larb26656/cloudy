@@ -6,7 +6,7 @@ import MentionCommandList, { type CommandListRef } from './CommandList'
 import MentionList from './MentionList'
 import type { SuggestionKeyDownProps, SuggestionProps } from '@tiptap/suggestion'
 import type { MentionNodeAttrs } from '@tiptap/extension-mention'
-import { useFindFileStore, useCommandSuggestionStore } from '@/stores'
+import { getStore } from '@/stores/instance'
 
 type MentionItem = string
 
@@ -45,7 +45,7 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
 }
 
 export function createMentionSuggestion(directory: string) {
-  const { searchFiles } = useFindFileStore.getState();
+  const { searchFiles } = getStore("findFile").getState();
   return {
     items: async ({ query }: { query: string }): Promise<string[]> => {
       return searchFiles(directory, query);
@@ -100,7 +100,7 @@ export function createMentionSuggestion(directory: string) {
 }
 
 export function createCommandSuggestion() {
-  const { loadCommands, getFilteredCommands } = useCommandSuggestionStore.getState();
+  const { loadCommands, getFilteredCommands } = getStore("commandSuggestion").getState();
   let commandsLoaded = false;
 
   return {

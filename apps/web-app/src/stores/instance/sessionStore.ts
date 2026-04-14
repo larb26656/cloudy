@@ -1,10 +1,10 @@
-import { createDefaultTitle, getErrorMessage, oc, type SdkError } from "@/lib/opencode";
-import type { QuestionRequest, Session, SessionStatus } from "@opencode-ai/sdk/v2";
+import { createDefaultTitle, getErrorMessage, type SdkError } from "@/lib/opencode";
+import type { OpencodeClient, QuestionRequest, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 
 const PAGE_SIZE = 20;
 
-type SessionStoreState = {
+export type SessionStoreState = {
     sessions: Session[];
     selectedSessionId: string | null;
     sessionStatuses: Record<string, SessionStatus>;
@@ -15,7 +15,7 @@ type SessionStoreState = {
     activeQuestion: QuestionRequest | null;
 }
 
-type SessionsStoreSessionActions = {
+export type SessionsStoreSessionActions = {
     loadSessions: (directory: string) => Promise<void>;
     loadMoreSessions: (directory: string) => Promise<void>;
     createSession: (directory: string, title?: string) => Promise<Session>;
@@ -33,7 +33,7 @@ type SessionsStoreSessionActions = {
     clearActiveQuestion: () => void;
 }
 
-type SessionStore = SessionStoreState & SessionsStoreSessionActions
+export type SessionStore = SessionStoreState & SessionsStoreSessionActions
 
 function getNextCursor(sessions: Session[]): number | undefined {
     if (sessions.length === 0) {
@@ -45,7 +45,7 @@ function getNextCursor(sessions: Session[]): number | undefined {
     return last.time.created;
 }
 
-export const useSessionStore = create<SessionStore>()(
+export const createSessionStore = (oc: OpencodeClient) => create<SessionStore>()(
     (set, get) => ({
         sessions: [],
         selectedSessionId: null,

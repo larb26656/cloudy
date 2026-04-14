@@ -1,10 +1,9 @@
-import { getErrorMessage, oc, type ChatInputContent, type SdkError } from "@/lib/opencode";
+import { getErrorMessage, type ChatInputContent, type SdkError } from "@/lib/opencode";
 import type { ModelConfig } from "@/types";
-import type { AgentPartInput, FilePartInput, Message, Part, SessionMessagesResponse, SubtaskPartInput, TextPartInput } from "@opencode-ai/sdk/v2";
+import type { AgentPartInput, FilePartInput, Message, OpencodeClient, Part, SessionMessagesResponse, SubtaskPartInput, TextPartInput } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
-import { useModelStore } from "./modelStore";
 
-type MessageStoreState = {
+export type MessageStoreState = {
     messages: Record<string, SessionMessagesResponse>;
     streamingMessageIds: Record<string, string | null>;
     isLoading: boolean;
@@ -14,7 +13,7 @@ type MessageStoreState = {
     thinkingState: Record<string, 'active' | 'complete' | null>;
 }
 
-type MessageStoreSessionActions = {
+export type MessageStoreSessionActions = {
     loadMessages: (sessionId: string) => Promise<void>;
     sendMessage: (directory: string, sessionId: string, content: ChatInputContent, model?: ModelConfig | null, agent?: string | null) => Promise<void>;
     abortGeneration: (directory: string, sessionId: string) => Promise<void>;
@@ -24,7 +23,7 @@ type MessageStoreSessionActions = {
     clearMessages: (sessionId: string) => void;
 }
 
-type MessageStore = MessageStoreState & MessageStoreSessionActions
+export type MessageStore = MessageStoreState & MessageStoreSessionActions
 
 export function buildParts(
     directory: string,
@@ -58,7 +57,7 @@ export function buildParts(
     return [textPart, ...mentionParts];
 }
 
-export const useMessageStore = create<MessageStore>()(
+export const createMessageStore = (oc: OpencodeClient) => create<MessageStore>()(
     (set) => ({
         messages: {},
         streamingMessageIds: {},
@@ -98,13 +97,12 @@ export const useMessageStore = create<MessageStore>()(
         sendMessage: async (directory, sessionId, content, model, agent) => {
             set({ error: null, isThinking: true });
 
-            const selectedModel = useModelStore.getState().selectedModel;
             const parts = buildParts(directory, content);
 
             await oc.session.promptAsync({
                 sessionID: sessionId,
                 parts,
-                model: model ?? selectedModel ?? undefined,
+                model: model ?? undefined,
                 agent: agent ?? undefined,
             }, {
                 headers: { 'x-opencode-directory': directory }

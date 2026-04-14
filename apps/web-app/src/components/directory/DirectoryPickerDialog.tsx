@@ -12,7 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useDirectoryStore } from "@/stores";
+import { useStore, getStore } from "@/stores/instance";
 
 interface DirectoryPickerProps {
   value?: string | null;
@@ -29,7 +29,7 @@ export function DirectoryPicker({
   onOpenChange,
 }: DirectoryPickerProps) {
   const { recentDirectories, addRecentDirectory, searchDirectories } =
-    useDirectoryStore();
+    useStore("directory");
 
   const [isOpen, setIsOpen] = useState(false);
   const [customPath, setCustomPath] = useState("");
@@ -63,7 +63,7 @@ export function DirectoryPicker({
       setIsSearching(true);
       try {
         await searchDirectories(customPath);
-        const results = useDirectoryStore.getState().directories;
+        const results = getStore("directory").getState().directories;
         setSuggestions(results);
       } finally {
         setIsSearching(false);

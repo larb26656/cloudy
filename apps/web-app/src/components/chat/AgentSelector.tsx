@@ -10,7 +10,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useAgentStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 
 const agentModeLabels: Record<string, string> = {
   primary: "Primary",
@@ -29,7 +29,7 @@ export function AgentSelector() {
     fetchAgents,
     selectedAgent,
     setSelectedAgent,
-  } = useAgentStore();
+  } = useStore("agent");
 
   useEffect(() => {
     fetchAgents();

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { usePermissionStore, useSessionStore, useDirectoryStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import {
   Dialog,
   DialogContent,
@@ -18,9 +18,9 @@ interface PermissionDialogProps {
 }
 
 export function PermissionDialog({ open, onOpenChange }: PermissionDialogProps) {
-  const { permissions, replyPermission } = usePermissionStore();
-  const { sessions } = useSessionStore();
-  const { selectedDirectory } = useDirectoryStore();
+  const { permissions, replyPermission } = useStore("permission");
+  const { sessions } = useStore("session");
+  const { selectedDirectory } = useStore("directory");
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

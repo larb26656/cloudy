@@ -6,7 +6,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { MessageList } from "@/components/chat/message/MessageList";
-import { useSessionStore, useMessageStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import { cn } from "@/lib/utils";
 import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
 
@@ -22,10 +22,9 @@ export function SessionViewDialog({
   onOpenChange,
 }: SessionViewDialogProps) {
   // TODO investigate why session is undified
-  const session = useSessionStore((s) =>
-    s.sessions.find((session) => session.id === sessionId),
-  );
-  const loadMessages = useMessageStore((s) => s.loadMessages);
+  const sessionStore = useStore("session");
+  const session = sessionStore.sessions.find((session) => session.id === sessionId);
+  const loadMessages = useStore("message").loadMessages;
 
   useEffect(() => {
     if (open && sessionId) {

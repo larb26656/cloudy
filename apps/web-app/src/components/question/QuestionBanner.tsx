@@ -1,4 +1,4 @@
-import { useQuestionStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import { Button } from "@/components/ui/button";
 import { MessageCircleQuestion, XIcon } from "lucide-react";
 
@@ -7,7 +7,7 @@ interface QuestionBannerProps {
 }
 
 export function QuestionBanner({ onOpenDialog }: QuestionBannerProps) {
-  const { questions, dismissed, dismissNotification } = useQuestionStore();
+  const { questions, dismissed, dismissNotification } = useStore("question");
 
   const questionCount = Object.values(questions).flat().length;
 

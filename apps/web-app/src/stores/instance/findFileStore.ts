@@ -1,16 +1,17 @@
 import { create } from "zustand";
-import { oc, getErrorMessage } from "@/lib/opencode";
+import { getErrorMessage } from "@/lib/opencode";
 import type { SdkError } from "@/lib/opencode";
+import type { OpencodeClient } from "@opencode-ai/sdk/v2";
 
-type FindType = "file" | "directory";
+export type FindType = "file" | "directory";
 
-type FindFileStoreState = {
+export type FindFileStoreState = {
   results: string[];
   isLoading: boolean;
   error: string | null;
 }
 
-type FindFileStoreActions = {
+export type FindFileStoreActions = {
   searchFiles: (
     directory: string,
     query: string,
@@ -19,9 +20,9 @@ type FindFileStoreActions = {
   clearResults: () => void;
 }
 
-type FindFileStore = FindFileStoreState & FindFileStoreActions
+export type FindFileStore = FindFileStoreState & FindFileStoreActions
 
-export const useFindFileStore = create<FindFileStore>()(
+export const createFindFileStore = (oc: OpencodeClient) => create<FindFileStore>()(
   (set) => ({
     results: [],
     isLoading: false,

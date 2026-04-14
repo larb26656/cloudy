@@ -1,16 +1,16 @@
-import { getErrorMessage, oc, type SdkError } from "@/lib/opencode";
-import type { PermissionRequest } from "@opencode-ai/sdk/v2";
+import { getErrorMessage, type SdkError } from "@/lib/opencode";
+import type { OpencodeClient, PermissionRequest } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type PermissionStoreState = {
+export type PermissionStoreState = {
     permissions: Record<string, PermissionRequest[]>;
     isLoading: boolean;
     error: string | null;
     dismissed: boolean;
 }
 
-type PermissionStoreActions = {
+export type PermissionStoreActions = {
     loadPermissions: (directory: string) => Promise<void>;
     replyPermission: (requestID: string, reply: "once" | "always" | "reject", directory: string) => Promise<void>;
     dismissNotification: () => void;
@@ -20,9 +20,9 @@ type PermissionStoreActions = {
     addPermission: (permission: PermissionRequest) => void;
 }
 
-type PermissionStore = PermissionStoreState & PermissionStoreActions
+export type PermissionStore = PermissionStoreState & PermissionStoreActions
 
-export const usePermissionStore = create<PermissionStore>()(
+export const createPermissionStore = (oc: OpencodeClient) => create<PermissionStore>()(
     persist(
         (set, get) => ({
             permissions: {},

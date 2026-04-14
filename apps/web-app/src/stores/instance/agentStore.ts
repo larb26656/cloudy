@@ -1,23 +1,24 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { oc, getErrorMessage } from "@/lib/opencode";
+import { getErrorMessage } from "@/lib/opencode";
 import type { Agent } from "@/types";
+import type { OpencodeClient } from "@opencode-ai/sdk/v2";
 
-type AgentStoreState = {
+export type AgentStoreState = {
   selectedAgent: string | null;
   agents: Agent[];
   isLoading: boolean;
   error: string | null;
 }
 
-type AgentStoreActions = {
+export type AgentStoreActions = {
   setSelectedAgent: (agent: string | null) => void;
   fetchAgents: () => Promise<void>;
 }
 
-type AgentStore = AgentStoreState & AgentStoreActions
+export type AgentStore = AgentStoreState & AgentStoreActions
 
-export const useAgentStore = create<AgentStore>()(
+export const createAgentStore = (oc: OpencodeClient) => create<AgentStore>()(
   persist(
     (set) => ({
       selectedAgent: null,

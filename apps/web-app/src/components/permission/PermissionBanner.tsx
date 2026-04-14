@@ -1,4 +1,4 @@
-import { usePermissionStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import { Button } from "@/components/ui/button";
 import { Shield, XIcon } from "lucide-react";
 
@@ -7,7 +7,7 @@ interface PermissionBannerProps {
 }
 
 export function PermissionBanner({ onOpenDialog }: PermissionBannerProps) {
-  const { permissions, dismissed, dismissNotification } = usePermissionStore();
+  const { permissions, dismissed, dismissNotification } = useStore("permission");
 
   const permissionCount = Object.values(permissions).flat().length;
 

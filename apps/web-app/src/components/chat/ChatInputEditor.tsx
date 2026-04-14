@@ -7,7 +7,7 @@ import {
 } from "./extensions/suggestion";
 import { shouldShowSlashCommand } from "@/lib/command";
 import { useEffect, useMemo } from "react";
-import { useDirectoryStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
 
@@ -38,7 +38,7 @@ export function ChatInputEditor({
   placeholder,
   disabled,
 }: ChatInputEditorProps) {
-  const { selectedDirectory } = useDirectoryStore();
+  const { selectedDirectory } = useStore("directory");
 
   const extensions = useMemo(() => {
     return [

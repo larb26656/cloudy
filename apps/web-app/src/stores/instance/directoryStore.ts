@@ -1,8 +1,9 @@
-import { getErrorMessage, oc, type SdkError } from "@/lib/opencode";
+import { getErrorMessage, type SdkError } from "@/lib/opencode";
+import type { OpencodeClient } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type DirectoryStoreState = {
+export type DirectoryStoreState = {
     directories: string[];
     selectedDirectory: string | null;
     recentDirectories: string[];
@@ -10,15 +11,15 @@ type DirectoryStoreState = {
     error: string | null;
 }
 
-type DirectoryStoreActions = {
+export type DirectoryStoreActions = {
     setSelectedDirectory: (directory: string | null) => void;
     addRecentDirectory: (directory: string) => void;
     searchDirectories: (query: string) => Promise<void>;
 }
 
-type DirectoryStore = DirectoryStoreState & DirectoryStoreActions
+export type DirectoryStore = DirectoryStoreState & DirectoryStoreActions
 
-export const useDirectoryStore = create<DirectoryStore>()(
+export const createDirectoryStore = (oc: OpencodeClient) => create<DirectoryStore>()(
     persist(
         (set) => ({
             directories: [],

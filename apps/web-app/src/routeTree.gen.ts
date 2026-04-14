@@ -9,14 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as AppMainLayoutRouteImport } from './routes/_appMainLayout'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/_appMainLayout/index'
+import { Route as SettingsPersonalizeRouteImport } from './routes/settings/personalize'
+import { Route as SettingsModelRouteImport } from './routes/settings/model'
 import { Route as IdeasIdRouteImport } from './routes/ideas.$id'
 import { Route as AppMainLayoutMemoryRouteImport } from './routes/_appMainLayout/memory'
 import { Route as AppMainLayoutArtifactRouteImport } from './routes/_appMainLayout/artifact'
 import { Route as AppMainLayoutIdeasIndexRouteImport } from './routes/_appMainLayout/ideas/index'
 import { Route as AppMainLayoutIdeasNewRouteImport } from './routes/_appMainLayout/ideas/new'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/_appMainLayout',
   getParentRoute: () => rootRouteImport,
@@ -25,6 +33,16 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppMainLayoutRoute,
+} as any)
+const SettingsPersonalizeRoute = SettingsPersonalizeRouteImport.update({
+  id: '/personalize',
+  path: '/personalize',
+  getParentRoute: () => SettingsRoute,
+} as any)
+const SettingsModelRoute = SettingsModelRouteImport.update({
+  id: '/model',
+  path: '/model',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const IdeasIdRoute = IdeasIdRouteImport.update({
   id: '/ideas/$id',
@@ -54,16 +72,22 @@ const AppMainLayoutIdeasNewRoute = AppMainLayoutIdeasNewRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppMainLayoutIndexRoute
+  '/settings': typeof SettingsRouteWithChildren
   '/artifact': typeof AppMainLayoutArtifactRoute
   '/memory': typeof AppMainLayoutMemoryRoute
   '/ideas/$id': typeof IdeasIdRoute
+  '/settings/model': typeof SettingsModelRoute
+  '/settings/personalize': typeof SettingsPersonalizeRoute
   '/ideas/new': typeof AppMainLayoutIdeasNewRoute
   '/ideas/': typeof AppMainLayoutIdeasIndexRoute
 }
 export interface FileRoutesByTo {
+  '/settings': typeof SettingsRouteWithChildren
   '/artifact': typeof AppMainLayoutArtifactRoute
   '/memory': typeof AppMainLayoutMemoryRoute
   '/ideas/$id': typeof IdeasIdRoute
+  '/settings/model': typeof SettingsModelRoute
+  '/settings/personalize': typeof SettingsPersonalizeRoute
   '/': typeof AppMainLayoutIndexRoute
   '/ideas/new': typeof AppMainLayoutIdeasNewRoute
   '/ideas': typeof AppMainLayoutIdeasIndexRoute
@@ -71,9 +95,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_appMainLayout': typeof AppMainLayoutRouteWithChildren
+  '/settings': typeof SettingsRouteWithChildren
   '/_appMainLayout/artifact': typeof AppMainLayoutArtifactRoute
   '/_appMainLayout/memory': typeof AppMainLayoutMemoryRoute
   '/ideas/$id': typeof IdeasIdRoute
+  '/settings/model': typeof SettingsModelRoute
+  '/settings/personalize': typeof SettingsPersonalizeRoute
   '/_appMainLayout/': typeof AppMainLayoutIndexRoute
   '/_appMainLayout/ideas/new': typeof AppMainLayoutIdeasNewRoute
   '/_appMainLayout/ideas/': typeof AppMainLayoutIdeasIndexRoute
@@ -82,19 +109,34 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/settings'
     | '/artifact'
     | '/memory'
     | '/ideas/$id'
+    | '/settings/model'
+    | '/settings/personalize'
     | '/ideas/new'
     | '/ideas/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/artifact' | '/memory' | '/ideas/$id' | '/' | '/ideas/new' | '/ideas'
+  to:
+    | '/settings'
+    | '/artifact'
+    | '/memory'
+    | '/ideas/$id'
+    | '/settings/model'
+    | '/settings/personalize'
+    | '/'
+    | '/ideas/new'
+    | '/ideas'
   id:
     | '__root__'
     | '/_appMainLayout'
+    | '/settings'
     | '/_appMainLayout/artifact'
     | '/_appMainLayout/memory'
     | '/ideas/$id'
+    | '/settings/model'
+    | '/settings/personalize'
     | '/_appMainLayout/'
     | '/_appMainLayout/ideas/new'
     | '/_appMainLayout/ideas/'
@@ -102,11 +144,19 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
+  SettingsRoute: typeof SettingsRouteWithChildren
   IdeasIdRoute: typeof IdeasIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_appMainLayout': {
       id: '/_appMainLayout'
       path: ''
@@ -120,6 +170,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppMainLayoutIndexRouteImport
       parentRoute: typeof AppMainLayoutRoute
+    }
+    '/settings/personalize': {
+      id: '/settings/personalize'
+      path: '/personalize'
+      fullPath: '/settings/personalize'
+      preLoaderRoute: typeof SettingsPersonalizeRouteImport
+      parentRoute: typeof SettingsRoute
+    }
+    '/settings/model': {
+      id: '/settings/model'
+      path: '/model'
+      fullPath: '/settings/model'
+      preLoaderRoute: typeof SettingsModelRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/ideas/$id': {
       id: '/ideas/$id'
@@ -179,8 +243,23 @@ const AppMainLayoutRouteWithChildren = AppMainLayoutRoute._addFileChildren(
   AppMainLayoutRouteChildren,
 )
 
+interface SettingsRouteChildren {
+  SettingsModelRoute: typeof SettingsModelRoute
+  SettingsPersonalizeRoute: typeof SettingsPersonalizeRoute
+}
+
+const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsModelRoute: SettingsModelRoute,
+  SettingsPersonalizeRoute: SettingsPersonalizeRoute,
+}
+
+const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
+  SettingsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
+  SettingsRoute: SettingsRouteWithChildren,
   IdeasIdRoute: IdeasIdRoute,
 }
 export const routeTree = rootRouteImport

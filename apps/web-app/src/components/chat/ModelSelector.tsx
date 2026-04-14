@@ -9,7 +9,7 @@ import {
   ChevronDown,
   Search,
 } from "lucide-react";
-import { useModelStore } from "@/stores";
+import { useStore } from "@/stores/instance";
 import type { ModelConfig } from "@/types";
 import { Input } from "@/components/ui/input";
 import {
@@ -45,7 +45,7 @@ export function ModelSelector() {
     fetchProviders,
     selectedModel,
     setSelectedModel,
-  } = useModelStore();
+  } = useStore("model");
 
   useEffect(() => {
     fetchProviders();

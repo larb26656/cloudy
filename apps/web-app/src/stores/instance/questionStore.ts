@@ -1,16 +1,16 @@
-import { getErrorMessage, oc, type SdkError } from "@/lib/opencode";
-import type { QuestionRequest } from "@opencode-ai/sdk/v2";
+import { getErrorMessage, type SdkError } from "@/lib/opencode";
+import type { OpencodeClient, QuestionRequest } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type QuestionStoreState = {
+export type QuestionStoreState = {
     questions: Record<string, QuestionRequest[]>;
     isLoading: boolean;
     error: string | null;
     dismissed: boolean;
 }
 
-type QuestionStoreActions = {
+export type QuestionStoreActions = {
     loadQuestions: (directory: string) => Promise<void>;
     replyQuestion: (requestID: string, answers: string[][], directory: string) => Promise<void>;
     rejectQuestion: (requestID: string, directory: string) => Promise<void>;
@@ -21,9 +21,9 @@ type QuestionStoreActions = {
     addQuestion: (question: QuestionRequest) => void;
 }
 
-type QuestionStore = QuestionStoreState & QuestionStoreActions
+export type QuestionStore = QuestionStoreState & QuestionStoreActions
 
-export const useQuestionStore = create<QuestionStore>()(
+export const createQuestionStore = (oc: OpencodeClient) => create<QuestionStore>()(
     persist(
         (set, get) => ({
             questions: {},

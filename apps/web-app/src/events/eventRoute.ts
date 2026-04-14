@@ -1,15 +1,12 @@
-import { useMessageStore } from "@/stores/messageStore"
-import { useSessionStore } from "@/stores/sessionStore"
-import { useQuestionStore } from "@/stores/questionStore"
-import { usePermissionStore } from "@/stores/permissionStore"
+import { getStore } from "@/stores/instance"
 import type { Event, QuestionRequest, PermissionRequest, SessionStatus } from "@opencode-ai/sdk/v2";
 
 export function handleEvent(event: Event) {
 
-    const messageStore = useMessageStore.getState()
-    const sessionStore = useSessionStore.getState()
-    const questionStore = useQuestionStore.getState()
-    const permissionStore = usePermissionStore.getState()
+    const messageStore = getStore("message").getState()
+    const sessionStore = getStore("session").getState()
+    const questionStore = getStore("question").getState()
+    const permissionStore = getStore("permission").getState()
 
     console.log(event)
 
