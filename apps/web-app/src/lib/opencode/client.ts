@@ -1,10 +1,3 @@
-import { env } from "@/config/env";
-import { createOpencodeClient } from "@opencode-ai/sdk/v2/client";
-
-export const oc = createOpencodeClient({
-    baseUrl: env.OPENCODE_API_URL
-});
-
 export type SdkError = {
     message?: string;
     data?: unknown;

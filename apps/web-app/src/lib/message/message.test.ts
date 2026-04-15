@@ -54,7 +54,7 @@ const testMessages: Message[] = [
     parts: [
       {
         type: "text",
-        text: "@memory/2026-04-08.md ลองเพิ่ม hello world ด้วย tool edit และ สร้าง memory ของวันนี้ ด้วยคำว่า hello world",
+        text: "@memory/2026-04-08.md Try adding hello world using the edit tool and create today's memory with the word hello world",
         id: "prt_d7f77fd58001mK1qY0wdtZDV3B",
         sessionID: "ses_28088b38bffeA99m5h9EomrL5l",
         messageID: "msg_d7f77fceb001N4iTdBCL4YBPwZ",
@@ -454,7 +454,7 @@ const testMessages: Message[] = [
       },
       {
         type: "text",
-        text: "เสร็จแล้วครับ:\n1. เพิ่ม `hello world` ลงใน `memory/2026-04-08.md` แล้ว\n2. สร้าง `memory/2026-04-12.md` ไว้แล้ว",
+        text: "Done:\n1. Added `hello world` to `memory/2026-04-08.md`\n2. Created `memory/2026-04-12.md`",
         time: { start: 1775960085416, end: 1775960085416 },
         id: "prt_d7f785215001uM09S8Kef0zEle",
         sessionID: "ses_28088b38bffeA99m5h9EomrL5l",

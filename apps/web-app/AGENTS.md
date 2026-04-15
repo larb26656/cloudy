@@ -184,7 +184,7 @@ import { useLoadingStore } from "@/stores/loadingStore"
 const { showLoader, hideLoader } = useLoadingStore()
 
 const handleSubmit = async () => {
-  showLoader("กำลังบันทึก...")
+  showLoader("Saving...")
   try {
     await saveData()
   } finally {

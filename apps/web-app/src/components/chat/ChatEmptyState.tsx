@@ -17,20 +17,20 @@ interface SnippetOption {
 const snippetOptions: SnippetOption[] = [
   {
     id: "idea",
-    label: "สร้างไอเดีย",
-    description: "Brainstorm ไอเดียใหม่ๆ",
+    label: "Generate Ideas",
+    description: "Brainstorm new ideas",
     icon: Lightbulb,
   },
   {
     id: "memory",
-    label: "บันทึก Memory",
-    description: "จดบันทึกความจำสำคัญ",
+    label: "Save Memory",
+    description: "Record important memories",
     icon: Brain,
   },
   {
     id: "artifact",
-    label: "สร้าง Artifact",
-    description: "สร้างงานสร้างสรรค์ใหม่",
+    label: "Create Artifact",
+    description: "Create something new",
     icon: FileCode,
   },
 ];

@@ -19,9 +19,9 @@ import { ModelSelector } from "@/components/chat/ModelSelector";
 type SnippetType = "idea" | "memory" | "artifact";
 
 const snippetPrompts: Record<SnippetType, string> = {
-  idea: "ฉันอยากได้ไอเดียใหม่ๆ ช่วย brainstorm ให้หน่อย",
-  memory: "ฉันอยากบันทึกความจำสำคัญ",
-  artifact: "ช่วยสร้าง artifact ให้หน่อย",
+  idea: "I want new ideas, please help me brainstorm",
+  memory: "I want to save an important memory",
+  artifact: "Please help me create an artifact",
 };
 
 export default function ChatPage() {

@@ -44,10 +44,10 @@ interface SendMessageRequest {
 ```
 
 **UI/UX:**
-- Model selector dropdown ใน input area (ขวาล่าง หรือ บน input)
-- Badge แสดง model ที่เลือกอยู่
-- Hover แสดง model info
-- Shortcut key (Cmd/Ctrl + M) เปลี่ยน model เร็ว
+- Model selector dropdown in input area (bottom right or above input)
+- Badge showing currently selected model
+- Hover to show model info
+- Shortcut key (Cmd/Ctrl + M) to quickly switch models
 
 ---
 
@@ -122,10 +122,10 @@ interface ToolCallCardProps {
 ```
 
 **UX Design:**
-- Thinking block: Collapsible section สีเทาอ่อน มี icon 💭
-- Tool cards: Card แยกแต่ละ tool มี progress bar, status badge
-- Real-time updates: ข้อมูลอัพเดททันทีที่ได้รับ event
-- Cancel button: หยุด tool execution ได้
+- Thinking block: Light gray collapsible section with 💭 icon
+- Tool cards: Separate card for each tool with progress bar and status badge
+- Real-time updates: Data updates immediately upon receiving events
+- Cancel button: Can stop tool execution
 
 ---
 
@@ -206,17 +206,17 @@ interface DirectoryState {
 ```
 
 **UX Design:**
-- Directory badge ใน header: แสดง path ปัจจุบัน (truncate ถ้ายาว)
-- Click to edit: เปลี่ยน path ได้ทันที
+- Directory badge in header: Shows current path (truncated if long)
+- Click to edit: Change path immediately
 - Dropdown: Recent directories + Browse button
-- File tree panel: แสดงไฟล์ใน directory (optional sidebar)
+- File tree panel: Shows files in directory (optional sidebar)
 - **Directory Filter in Sidebar:**
-  - Dropdown selector ใต้ปุ่ม "New Chat"
-  - แสดงชื่อ directory (หรือ "All Directories")
-  - Recent directories list (สูงสุด 5 รายการ)
-  - Custom path input สำหรับพิมพ์ path เอง
-  - Clear filter button (X) กลับไปดูทั้งหมด
-  - Active state highlight สีฟ้า
+  - Dropdown selector below "New Chat" button
+  - Shows directory name (or "All Directories")
+  - Recent directories list (up to 5 items)
+  - Custom path input for typing path manually
+  - Clear filter button (X) to view all
+  - Blue highlight for active state
 
 **UI Mockup - Directory Filter:**
 ```
@@ -323,15 +323,15 @@ POST /session/{sessionID}/message
 ```
 
 **UI/UX:**
-- Trigger: พิมพ์ `@` หรือ `/` ใน input → เปิด search dropdown
-- Search UI: Input + รายการไฟล์ แสดง icon, path, highlight matching text
-- Fuzzy matching: ค้นหาแบบยืดหยุ่น (e.g., "usrctrl" → "UserController")
+- Trigger: Type `@` or `/` in input → Open search dropdown
+- Search UI: Input + file list showing icon, path, highlight matching text
+- Fuzzy matching: Flexible search (e.g., "usrctrl" → "UserController")
 - Keyboard shortcuts:
   - `↑↓` Navigate results
   - `Enter` Select
   - `Esc` Cancel
   - `Tab` Accept first match
-- Visual: File icons ตาม extension, breadcrumb path, size info
+- Visual: File icons by extension, breadcrumb path, size info
 
 ---
 

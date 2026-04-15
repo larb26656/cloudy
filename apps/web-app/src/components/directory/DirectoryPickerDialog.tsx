@@ -12,7 +12,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { useStore, getStore } from "@/stores/instance";
+import { useStore } from "@/stores/instance";
 
 interface DirectoryPickerProps {
   value?: string | null;
@@ -62,8 +62,7 @@ export function DirectoryPicker({
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
-        await searchDirectories(customPath);
-        const results = getStore("directory").getState().directories;
+        const results = await searchDirectories(customPath);
         setSuggestions(results);
       } finally {
         setIsSearching(false);

@@ -44,8 +44,8 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
   })
 }
 
-export function createMentionSuggestion(directory: string) {
-  const { searchFiles } = getStore("findFile").getState();
+export function createMentionSuggestion(directory: string, instanceId: string) {
+  const { searchFiles } = getStore("findFile", instanceId).getState();
   return {
     items: async ({ query }: { query: string }): Promise<string[]> => {
       return searchFiles(directory, query);
@@ -99,8 +99,8 @@ export function createMentionSuggestion(directory: string) {
   }
 }
 
-export function createCommandSuggestion() {
-  const { loadCommands, getFilteredCommands } = getStore("commandSuggestion").getState();
+export function createCommandSuggestion(instanceId: string) {
+  const { loadCommands, getFilteredCommands } = getStore("commandSuggestion", instanceId).getState();
   let commandsLoaded = false;
 
   return {

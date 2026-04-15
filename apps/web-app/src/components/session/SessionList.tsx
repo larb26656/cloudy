@@ -1,5 +1,6 @@
 import { SessionItem } from "./SessionItem";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import { useStore } from "@/stores/instance";
 import { ErrorState } from "@/components/ui/error-state";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
@@ -27,6 +28,7 @@ export function SessionList({ searchQuery }: SessionListProps) {
     updateSession,
     deleteSession,
     selectSession,
+    createTempSession,
   } = useStore("session");
   const { selectedDirectory } = useStore("directory");
 
@@ -50,6 +52,10 @@ export function SessionList({ searchQuery }: SessionListProps) {
 
   const handleFork = async (sessionId: string) => {
     console.log("Fork session:", sessionId);
+  };
+
+  const handleCreateSession = () => {
+    createTempSession();
   };
 
   const sentinelRef = useInfiniteScroll({
@@ -79,8 +85,17 @@ export function SessionList({ searchQuery }: SessionListProps) {
           ))}
         </div>
       ) : filteredSessions.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground">
-          {searchQuery ? "No chats found" : "No chats yet"}
+        <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center p-4">
+          {searchQuery ? (
+            <p className="text-muted-foreground">No chats found</p>
+          ) : (
+            <>
+              <p className="text-muted-foreground mb-3">No sessions yet</p>
+              <Button size="sm" onClick={handleCreateSession}>
+                Create your first session
+              </Button>
+            </>
+          )}
         </div>
       ) : (
         <div className="space-y-1">

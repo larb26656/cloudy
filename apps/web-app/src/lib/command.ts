@@ -1,5 +1,4 @@
-import { getStore } from "@/stores/instance";
-import { oc } from "./opencode";
+import { getStore, getOC } from "@/stores/instance";
 import type { ChatInputContent } from "./opencode";
 import type { ModelConfig } from "@/types";
 
@@ -56,15 +55,15 @@ export interface SendMessageParams {
 export interface SystemCommand {
   name: string;
   description: string;
-  execute: (args: string) => Promise<void> | void;
+  execute: (args: string, instanceId: string) => Promise<void> | void;
 }
 
 export const systemCommands: SystemCommand[] = [
   {
     name: "new",
     description: "Create a new session",
-    execute: async () => {
-      getStore("session").getState().createTempSession();
+    execute: async (_args, instanceId) => {
+      getStore("session", instanceId).getState().createTempSession();
     },
   },
 ];
@@ -80,18 +79,19 @@ export async function executeOCCommand(params: {
   arguments: string;
   model?: ModelConfig | null;
   agent?: string | null;
+  instanceId: string;
 }): Promise<void> {
-  const { directory, sessionId, command, arguments: args, model, agent } = params;
+  const { directory, sessionId, command, arguments: args, model, agent, instanceId } = params;
 
   const systemCommand = findSystemCommand(command);
   if (systemCommand) {
-    await systemCommand.execute(args);
+    await systemCommand.execute(args, instanceId);
     return;
   }
 
   const sendModel = model ? `${model.providerID}/${model.modelID}` : undefined;
 
-  await oc.session.command({
+  await getOC(instanceId).session.command({
     sessionID: sessionId,
     command,
     arguments: args,

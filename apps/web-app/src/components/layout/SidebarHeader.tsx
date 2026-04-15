@@ -1,5 +1,4 @@
 import { Plus, Search } from "lucide-react";
-import { DirectoryFilter } from "../directory/DirectoryFilter";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -22,7 +21,6 @@ export function SidebarHeader({
 
   return (
     <div className="flex flex-col">
-      <DirectoryFilter />
       <SidebarNav />
       <div className="flex gap-2 p-2">
         <InputGroup>

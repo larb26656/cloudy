@@ -2,7 +2,7 @@
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./chat-input";
 import { QuestionSheet } from "./QuestionSheet";
-import { useStore } from "@/stores/instance";
+import { useStore, useCurrentInstanceId } from "@/stores/instance";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import { isCommand, parseCommand, executeOCCommand } from "@/lib/command";
 import { useMemo } from "react";
@@ -29,6 +29,7 @@ export function ChatContainer({
   showModelSelector = true,
 }: ChatContainerProps) {
   const createSession = useStore("session").createSession;
+  const instanceId = useCurrentInstanceId();
   const activeQuestion = useStore("session").activeQuestion;
   const sendMessage = useStore("message").sendMessage;
   const abortGeneration = useStore("message").abortGeneration;
@@ -76,6 +77,7 @@ export function ChatContainer({
           arguments: parsed.arguments,
           model,
           agent,
+          instanceId,
         });
         return;
       }

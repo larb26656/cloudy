@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Palette, Bot } from "lucide-react";
+import { Palette, Bot, Server } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type SettingCategory = "personalize" | "model";
+export type SettingCategory = "personalize" | "model" | "instance";
 
 interface SettingMenuItem {
   id: SettingCategory;
@@ -26,6 +26,13 @@ const menuItems: SettingMenuItem[] = [
     description: "Configure AI model settings",
     icon: Bot,
     to: "/settings/model",
+  },
+  {
+    id: "instance",
+    label: "Instance",
+    description: "Manage connections",
+    icon: Server,
+    to: "/settings/instance",
   },
 ];
 

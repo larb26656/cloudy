@@ -17,6 +17,7 @@ import type { PermissionStore } from "./permissionStore";
 import type { QuestionStore } from "./questionStore";
 import type { FindFileStore } from "./findFileStore";
 import type { CommandSuggestionStore } from "./commandSuggestionStore";
+import { useInstanceStore, type Instance } from "../instanceStore";
 
 type AppStores = {
     agent: ReturnType<typeof createAgentStore>;
@@ -43,6 +44,7 @@ type AppStoreState = {
 };
 
 function createStores(oc: OpencodeClient): AppStores {
+    console.log('Create store');
     return {
         agent: createAgentStore(oc),
         commandSuggestion: createCommandSuggestionStore(oc),
@@ -64,54 +66,91 @@ export type InstanceDetail = {
 
 const instanceRegistry: Record<string, InstanceDetail> = {};
 
-export function register(id: string, name: string, ocEndpoint: string): InstanceDetail {
+export function registerInstance(instance: Instance): InstanceDetail {
+    if (instanceRegistry[instance.id]) {
+        return instanceRegistry[instance.id];
+    }
+
     const oc = createOpencodeClient({
-        baseUrl: ocEndpoint
+        baseUrl: instance.endpoint
     });
 
     const detail = {
-        name,
+        name: instance.name,
         oc,
         stores: createStores(oc)
     };
 
-    instanceRegistry[id] = detail;
+    instanceRegistry[instance.id] = detail;
+
+    console.log(instanceRegistry);
 
     return detail;
 }
 
-export function useCurrentInstanceId() {
-    // TODO use context instead
-    const id = '1';
-    if (!id) throw new Error('Component have declare in instace scope');
-    return id;
+export function getRegisteredInstance(id: string): InstanceDetail | null {
+    return instanceRegistry[id] ?? null;
+}
+
+export function useCurrentInstanceId(): string {
+    const instances = useInstanceStore.getState().instances;
+    if (instances.length === 0) {
+        throw new Error("No instance available");
+    }
+    const registered = instanceRegistry[instances[0].id];
+    if (registered) {
+        return instances[0].id;
+    }
+    const instanceData = instances[0];
+    registerInstance(instanceData);
+    return instanceData.id;
 }
 
 export function useCurrentInstance(): InstanceDetail {
     const id = useCurrentInstanceId();
     const instance = instanceRegistry[id];
 
-    if (!instance) throw new Error(`Instance id: ${id} not registered!`);
+    if (!instance) {
+        const store = useInstanceStore.getState();
+        const instanceData = store.instances.find(i => i.id === id);
+        if (instanceData) {
+            return registerInstance(instanceData);
+        }
+        throw new Error(`Instance id: ${id} not registered!`);
+    }
 
     return instance;
 }
 
-export function useIStore<K extends keyof AppStores>(key: K): AppStoreState[K] & { getState: () => AppStoreState[K] } {
-    const store = useCurrentInstance().stores[key];
+export function useIStore<K extends keyof AppStores>(key: K): AppStoreState[K];
+export function useIStore<K extends keyof AppStores, T>(key: K, selector: (state: AppStoreState[K]) => T): T;
+export function useIStore<K extends keyof AppStores, T>(key: K, selector: (state: AppStoreState[K]) => T, instanceId: string): T;
+export function useIStore<K extends keyof AppStores, T>(
+    key: K,
+    selector?: (state: AppStoreState[K]) => T,
+    instanceId?: string
+): AppStoreState[K] | T {
+    const instance = instanceId
+        ? (instanceRegistry[instanceId] ?? (() => { throw new Error(`Instance ${instanceId} not registered`) })())
+        : useCurrentInstance();
+    const store = instance.stores[key];
     const state = store() as AppStoreState[K];
-    return {
-        ...state,
-        getState: () => state,
-    };
+    if (selector) {
+        return selector(state);
+    }
+    return state;
 }
 
 export const useStore = useIStore;
 
-export function getStore<K extends keyof AppStores>(key: K): AppStores[K] {
-    const id = '1'; // TODO: match useCurrentInstanceId logic without hooks
-    const instance = instanceRegistry[id];
-    if (!instance) throw new Error(`Instance id: ${id} not registered!`);
+export function getStore<K extends keyof AppStores>(key: K, instanceId: string): AppStores[K] {
+    const instance = instanceRegistry[instanceId];
+    if (!instance) throw new Error(`Instance id: ${instanceId} not registered!`);
     return instance.stores[key];
 }
 
-register('1', "fix", "http://localhost:4096");
+export function getOC(instanceId: string): OpencodeClient {
+    const instance = instanceRegistry[instanceId];
+    if (!instance) throw new Error(`Instance id: ${instanceId} not registered!`);
+    return instance.oc;
+}

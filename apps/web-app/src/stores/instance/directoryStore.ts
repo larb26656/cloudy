@@ -14,7 +14,7 @@ export type DirectoryStoreState = {
 export type DirectoryStoreActions = {
     setSelectedDirectory: (directory: string | null) => void;
     addRecentDirectory: (directory: string) => void;
-    searchDirectories: (query: string) => Promise<void>;
+    searchDirectories: (query: string) => Promise<string[]>;
 }
 
 export type DirectoryStore = DirectoryStoreState & DirectoryStoreActions
@@ -48,10 +48,11 @@ export const createDirectoryStore = (oc: OpencodeClient) => create<DirectoryStor
 
                 if (result.error) {
                     set({ error: getErrorMessage(result.error as SdkError), isLoading: false });
-                    return;
+                    return [];
                 }
-                const data = result.data;
+                const data = result.data ?? [];
                 set({ isLoading: false, directories: data });
+                return data;
             },
         }),
         {

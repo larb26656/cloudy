@@ -98,7 +98,7 @@ describe("file-summarize", () => {
             });
         });
 
-        it("Case 2: edit ท่อนๆ applies sequentially", () => {
+        it("Case 2: partial edits apply sequentially", () => {
             const parts: Part[] = [
                 {
                     type: "tool",

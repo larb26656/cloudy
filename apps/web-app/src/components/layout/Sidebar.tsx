@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SessionList } from "@/components/session/SessionList";
+import { WorkspaceStrip } from "../workspace/WorkspaceStrip";
 import { SidebarHeader } from "./SidebarHeader";
 import {
   Sheet,
@@ -10,34 +11,39 @@ import {
 import { cn } from "@/lib/utils";
 
 interface SidebarProps {
+  instanceId: string;
   className?: string;
 }
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ instanceId, className }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
     <div
       className={cn([
-        "flex flex-col h-full lg:border lg:rounded-2xl",
+        "flex h-full lg:border lg:rounded-2xl",
         className,
       ])}
     >
-      <SidebarHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
-      <SessionList searchQuery={searchQuery} />
+      <WorkspaceStrip instanceId={instanceId} />
+      <div className="flex flex-col flex-1 min-w-0">
+        <SidebarHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+        />
+        <SessionList searchQuery={searchQuery} />
+      </div>
     </div>
   );
 }
 
 interface MobileSidebarProps {
+  instanceId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
+export function MobileSidebar({ instanceId, open, onOpenChange }: MobileSidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
 
   return (
@@ -50,12 +56,15 @@ export function MobileSidebar({ open, onOpenChange }: MobileSidebarProps) {
         <SheetHeader className="sr-only">
           <SheetTitle>Sessions</SheetTitle>
         </SheetHeader>
-        <div className="h-full flex flex-col">
-          <SidebarHeader
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-          />
-          <SessionList searchQuery={searchQuery} />
+        <div className="h-full flex">
+          <WorkspaceStrip instanceId={instanceId} />
+          <div className="flex flex-col flex-1 min-w-0">
+            <SidebarHeader
+              searchQuery={searchQuery}
+              onSearchChange={setSearchQuery}
+            />
+            <SessionList searchQuery={searchQuery} />
+          </div>
         </div>
       </SheetContent>
     </Sheet>

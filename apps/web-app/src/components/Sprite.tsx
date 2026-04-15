@@ -9,9 +9,9 @@ type Props = {
   fps?: number;
 
   // optional
-  totalFramesOverride?: number; // จำกัดจำนวน frame เช่น 5
-  frames?: number[]; // sequence เช่น [0,1,2,1]
-  currentFrame?: number; // control จากภายนอก
+  totalFramesOverride?: number; // limit number of frames, e.g., 5
+  frames?: number[]; // sequence e.g. [0,1,2,1]
+  currentFrame?: number; // control from outside
   loop?: boolean; // default true
 };
 
@@ -30,7 +30,7 @@ export function Sprite({
   const defaultTotal = cols * rows;
   const totalFrames = totalFramesOverride ?? defaultTotal;
 
-  // generate default sequence ถ้าไม่ได้ส่ง frames มา
+  // generate default sequence if no frames are provided
   const sequence = useMemo(() => {
     if (frames && frames.length > 0) return frames;
     return Array.from({ length: totalFrames }, (_, i) => i);
@@ -39,7 +39,7 @@ export function Sprite({
   const [frameIndex, setFrameIndex] = useState(0);
 
   useEffect(() => {
-    if (currentFrame !== undefined) return; // ถ้ามี external control ไม่ต้อง auto
+    if (currentFrame !== undefined) return; // if external control exists, don't auto-play
 
     let i = 0;
 
@@ -76,7 +76,7 @@ export function Sprite({
         backgroundImage: `url(${src})`,
         backgroundPosition: `${x}px ${y}px`,
         backgroundRepeat: "no-repeat",
-        imageRendering: "pixelated", // optional: สำหรับ pixel art
+        imageRendering: "pixelated", // optional: for pixel art
       }}
     />
   );

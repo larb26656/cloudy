@@ -8,13 +8,13 @@
 
 ### Vision
 
-สร้าง Chat Interface ที่รวมความสะดวกสบายของ messaging apps อย่าง Telegram, LINE, Messenger เข้ากับความสามารถในการแสดงผล markdown แบบ ChatGPT โดยใช้ OpenCode API เป็น backend
+Create a Chat Interface that combines the convenience of messaging apps like Telegram, LINE, and Messenger with ChatGPT-style markdown rendering capabilities, using the OpenCode API as the backend
 
 ### Target Users
 
-- นักพัฒนาซอฟต์แวร์ที่ใช้ AI assistant
-- ผู้ใช้งานที่ต้องการ chat interface ที่มีประสิทธิภาพ
-- ทีมที่ต้องการจัดการหลาย session การสนทนา
+- Software developers using AI assistants
+- Users who want an efficient chat interface
+- Teams that need to manage multiple conversation sessions
 
 ---
 
@@ -22,16 +22,16 @@
 
 ### Primary Goals
 
-1. **Intuitive Chat Experience** - Interface ที่ใช้งานง่ายเหมือน messaging apps ที่คุ้นเคย
-2. **Rich Content Rendering** - แสดงผล markdown, code blocks, tables ได้สมบูรณ์แบบ
-3. **Session Management** - จัดการหลาย session ได้อย่างมีประสิทธิภาพ
-4. **Real-time Updates** - Streaming response แบบ real-time
+1. **Intuitive Chat Experience** - Easy-to-use interface similar to familiar messaging apps
+2. **Rich Content Rendering** - Fully support markdown, code blocks, and tables
+3. **Session Management** - Efficiently manage multiple sessions
+4. **Real-time Updates** - Real-time streaming responses
 
 ### Success Metrics
 
-- ผู้ใช้สามารถเริ่มต้นใช้งานได้ภายใน 5 นาที
-- รองรับ markdown features ครบถ้วน (headers, lists, code blocks, tables, etc.)
-- Switch ระหว่าง sessions ใช้เวลา < 100ms
+- Users can get started within 5 minutes
+- Support all markdown features (headers, lists, code blocks, tables, etc.)
+- Session switching takes < 100ms
 - Streaming latency < 50ms per chunk
 
 ---

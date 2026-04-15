@@ -1,11 +1,14 @@
-import { useEffect } from "react"
-import { useStore } from "@/stores/instance"
+import { useEffect, useRef } from "react"
+import { useStore, useCurrentInstanceId } from "@/stores/instance"
 import type { Event as OpencodeEvent } from "@opencode-ai/sdk/v2";
 import { getEvent } from "@/lib/opencode"
 import { handleEvent } from "@/events/eventRoute";
 
 export function useEventStream() {
     const selectedDirectory = useStore("directory").selectedDirectory
+    const instanceId = useCurrentInstanceId()
+    const instanceIdRef = useRef(instanceId)
+    instanceIdRef.current = instanceId
 
     // TODO replace with global event
     useEffect(() => {
@@ -19,7 +22,7 @@ export function useEventStream() {
             es.onmessage = (event: MessageEvent<string>) => {
                 try {
                     const opencodeEvent: OpencodeEvent = JSON.parse(event.data);
-                    handleEvent(opencodeEvent);
+                    handleEvent(opencodeEvent, instanceIdRef.current);
                 } catch (e) {
                     console.error("parse error:", e);
                 }
@@ -33,7 +36,7 @@ export function useEventStream() {
 
         connect();
 
-        // 👇 ถ้า user switch tab กลับมา
+        // 👇 If user switches back to the tab
         const handleVisibility = () => {
             if (document.visibilityState === "visible") {
                 // reconnect SSE

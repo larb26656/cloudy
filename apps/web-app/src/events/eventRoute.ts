@@ -1,12 +1,12 @@
 import { getStore } from "@/stores/instance"
 import type { Event, QuestionRequest, PermissionRequest, SessionStatus } from "@opencode-ai/sdk/v2";
 
-export function handleEvent(event: Event) {
+export function handleEvent(event: Event, instanceId: string) {
 
-    const messageStore = getStore("message").getState()
-    const sessionStore = getStore("session").getState()
-    const questionStore = getStore("question").getState()
-    const permissionStore = getStore("permission").getState()
+    const messageStore = getStore("message", instanceId).getState()
+    const sessionStore = getStore("session", instanceId).getState()
+    const questionStore = getStore("question", instanceId).getState()
+    const permissionStore = getStore("permission", instanceId).getState()
 
     console.log(event)
 
