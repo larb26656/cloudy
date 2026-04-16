@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback, memo } from "react";
-import { useForm, useWatch, Controller } from "react-hook-form";
+import { useState, useCallback, memo } from "react";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -11,12 +11,12 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { ColorPicker } from "@/components/ui/color-picker/ColorPicker";
+import { DirectoryCombobox } from "@/components/workspace/DirectoryCombobox";
 import { useInstanceStore, type Instance } from "@/stores/instanceStore";
-import { registerInstance, getOC } from "@/stores/instance/instanceScopeHook";
+import { registerInstance } from "@/stores/instance/instanceScopeHook";
 import { WORKSPACE_COLORS, type WorkspaceColor } from "@/stores/workspaceStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { cn } from "@/lib/utils";
-import { Folder, Loader2 } from "lucide-react";
 
 type OnboardingProps = {
   onComplete?: (instance: Instance) => void;
@@ -182,50 +182,6 @@ const WorkspaceStep = memo(function WorkspaceStep({
   createdInstance: Instance | null;
   onSubmit: (data: WorkspaceFormData) => void;
 }) {
-  const [directorySuggestions, setDirectorySuggestions] = useState<string[]>(
-    [],
-  );
-  const [isSearching, setIsSearching] = useState(false);
-  const directory = useWatch({ control: form.control, name: "directory" });
-  const directoryDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(
-    null,
-  );
-
-  useEffect(() => {
-    if (!directory.trim()) {
-      setDirectorySuggestions([]);
-      return;
-    }
-
-    if (directoryDebounceRef.current) {
-      clearTimeout(directoryDebounceRef.current);
-    }
-
-    directoryDebounceRef.current = setTimeout(async () => {
-      if (!createdInstance) return;
-      setIsSearching(true);
-      try {
-        const oc = getOC(createdInstance.id);
-        const result = await oc.find.files({
-          query: directory,
-          type: "directory",
-          limit: 10,
-        });
-        setDirectorySuggestions(result.data ?? []);
-      } catch {
-        setDirectorySuggestions([]);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 300);
-
-    return () => {
-      if (directoryDebounceRef.current) {
-        clearTimeout(directoryDebounceRef.current);
-      }
-    };
-  }, [directory, createdInstance]);
-
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
@@ -264,47 +220,11 @@ const WorkspaceStep = memo(function WorkspaceStep({
             )}
           />
 
-          <Field data-invalid={!!form.formState.errors.directory}>
-            <FieldLabel htmlFor="workspace-directory" className="required">
-              Directory
-            </FieldLabel>
-            <div className="relative">
-              <div className="relative">
-                <Folder className="absolute left-2.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-                <Input
-                  {...form.register("directory")}
-                  id="workspace-directory"
-                  placeholder="/path/to/project"
-                  className="pl-9"
-                  aria-invalid={!!form.formState.errors.directory}
-                />
-              </div>
-              {isSearching && (
-                <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
-                  <Loader2 className="size-3 animate-spin" />
-                  Searching...
-                </div>
-              )}
-              {!isSearching && directorySuggestions.length > 0 && (
-                <div className="absolute z-10 w-full mt-1 bg-popover border rounded-lg shadow-md max-h-[200px] overflow-auto">
-                  {directorySuggestions.map((dir) => (
-                    <button
-                      key={dir}
-                      type="button"
-                      onClick={() => form.setValue("directory", dir)}
-                      className="w-full px-3 py-2 text-left text-sm hover:bg-muted flex items-center gap-2"
-                    >
-                      <Folder className="size-4 shrink-0" />
-                      <span className="truncate">{dir}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            {form.formState.errors.directory && (
-              <FieldError errors={[form.formState.errors.directory]} />
-            )}
-          </Field>
+          <DirectoryCombobox
+            instanceId={createdInstance?.id}
+            control={form.control}
+            errors={form.formState.errors}
+          />
 
           <Field>
             <FieldLabel className="required">Color</FieldLabel>

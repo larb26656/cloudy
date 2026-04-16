@@ -6,7 +6,7 @@ import { createMessageStore } from "./messageStore";
 import { createPermissionStore } from "./permissionStore";
 import { createQuestionStore } from "./questionStore";
 import { createSessionStore } from "./sessionStore";
-import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk/v2";
+import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk/v2/client";
 import type { AgentStore } from "./agentStore";
 import type { ModelStore } from "./modelStore";
 import type { MessageStore } from "./messageStore";
