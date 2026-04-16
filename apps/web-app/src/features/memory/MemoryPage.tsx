@@ -19,6 +19,7 @@ import {
   MemoryCard,
   MemoryDetailSheet,
 } from "./components";
+import { SidebarToggle } from "@/components/layout/SidebarToggle";
 
 export default function MemoryPage() {
   const { searchQuery, setSearchQuery, selectedMemoryId, selectMemory } =
@@ -31,7 +32,9 @@ export default function MemoryPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: apiError } = await apiClient.api.memory.get({ query: { order: 'updatedAt:desc' } });
+      const { data, error: apiError } = await apiClient.api.memory.get({
+        query: { order: "updatedAt:desc" },
+      });
       if (apiError) {
         const message =
           typeof apiError.value === "string"
@@ -116,7 +119,7 @@ export default function MemoryPage() {
     <>
       <div className="flex h-screen flex-col">
         {/* Header */}
-        <Header title="Memories" />
+        <Header prefixActions={[<SidebarToggle />]} title="Memories" />
 
         {/* Search + Filter */}
         <div className="flex flex-col gap-2 border-b p-4">

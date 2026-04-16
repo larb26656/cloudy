@@ -18,6 +18,12 @@ export function handleEvent(event: Event, instanceId: string) {
         return;
     }
 
+    if ((event.type as string) === "server.connected") {
+        activityStore.setHealthy();
+        setHeartbeatTimer(instanceId, () => activityStore.setUnhealthy());
+        return;
+    }
+
     switch (event.type) {
 
         case 'message.updated':

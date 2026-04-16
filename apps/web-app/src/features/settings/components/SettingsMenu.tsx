@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Palette, Bot, Server } from "lucide-react";
+import { Palette, Server } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type SettingCategory = "personalize" | "model" | "instance";
@@ -13,20 +13,6 @@ interface SettingMenuItem {
 }
 
 const menuItems: SettingMenuItem[] = [
-  {
-    id: "personalize",
-    label: "Personalize",
-    description: "Customize your experience",
-    icon: Palette,
-    to: "/settings/personalize",
-  },
-  {
-    id: "model",
-    label: "Model",
-    description: "Configure AI model settings",
-    icon: Bot,
-    to: "/settings/model",
-  },
   {
     id: "instance",
     label: "Instance",
@@ -54,7 +40,7 @@ export function SettingsMenu({ activeCategory, className }: SettingsMenuProps) {
               className={cn(
                 "flex items-center gap-3 rounded-lg p-3 text-sm transition-colors",
                 "hover:bg-muted",
-                isActive ? "bg-muted" : "bg-transparent"
+                isActive ? "bg-muted" : "bg-transparent",
               )}
             >
               <Icon className="size-5 shrink-0" />

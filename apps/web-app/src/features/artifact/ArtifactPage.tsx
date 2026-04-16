@@ -1,7 +1,10 @@
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { FileCode, Search } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
-import { useArtifactUIStore, filterArtifacts } from "@/features/artifact/store/artifactStore";
+import {
+  useArtifactUIStore,
+  filterArtifacts,
+} from "@/features/artifact/store/artifactStore";
 import {
   ArtifactCard,
   ArtifactDetailSheet,
@@ -19,9 +22,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import type { ArtifactModel } from "@cloudy/contracts";
 import type { Artifact } from "@/features/artifact/types";
+import { SidebarToggle } from "@/components/layout/SidebarToggle";
 
 const filterOptions: Array<{
-  value: ArtifactModel['artifactType'] | "all";
+  value: ArtifactModel["artifactType"] | "all";
   label: string;
 }> = [
   { value: "all", label: "All" },
@@ -93,7 +97,7 @@ export default function ArtifactPage() {
   return (
     <>
       <div className="flex h-screen flex-col">
-        <Header title="Artifacts" />
+        <Header prefixActions={[<SidebarToggle />]} title="Artifacts" />
 
         <div className="flex flex-col gap-2 border-b p-4">
           <InputGroup>

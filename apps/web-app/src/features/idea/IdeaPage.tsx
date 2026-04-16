@@ -23,6 +23,7 @@ import { TabGroupButton } from "@/components/ui/tab-group-button";
 import type { IdeaModel } from "@cloudy/contracts";
 import type { Idea, IdeaDetail } from "@/features/idea/types";
 import { apiResponseToIdeaListItem } from "./types";
+import { SidebarToggle } from "@/components/layout/SidebarToggle";
 
 const filterOptions: Array<{
   value: IdeaModel["ideaStatus"] | "all";
@@ -156,6 +157,7 @@ export default function IdeaPage() {
     <>
       <div className="flex h-screen flex-col">
         <Header
+          prefixActions={[<SidebarToggle />]}
           title="Ideas"
           actions={[
             <Button

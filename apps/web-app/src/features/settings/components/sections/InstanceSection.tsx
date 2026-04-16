@@ -1,18 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useInstanceStore, type Instance } from "@/stores/instanceStore";
 import { registerInstance } from "@/stores/instance/instanceScopeHook";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { Plus, Pencil, Trash2, Check } from "lucide-react";
+import { SettingsChildLayout } from "../SettingsChildLayout";
 
 export function InstanceSection() {
   const { instances, addInstance, removeInstance, updateInstance } =
@@ -42,6 +36,10 @@ export function InstanceSection() {
     setNewName("");
     setNewEndpoint("");
     setIsAdding(false);
+  };
+
+  const handleCreate = () => {
+    setIsAdding(true);
   };
 
   const handleEdit = (instance: Instance) => {
@@ -98,149 +96,135 @@ export function InstanceSection() {
   };
 
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Instances</CardTitle>
-          <CardDescription>Manage your instances</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {instances.length === 0 && !isAdding ? (
-            <div className="text-center py-6 text-muted-foreground">
-              <p>No instances yet</p>
-              <Button
-                variant="link"
-                onClick={() => setIsAdding(true)}
-                className="mt-2"
+    <SettingsChildLayout title="Instance">
+      <div className="space-y-6">
+        {instances.length === 0 && !isAdding ? (
+          <div className="text-center py-6 text-muted-foreground">
+            <p>No instances yet</p>
+            <Button variant="link" onClick={handleCreate} className="mt-2">
+              <Plus className="size-4 mr-1" /> Add your first instance
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {instances.map((instance) => (
+              <div
+                key={instance.id}
+                className="flex items-center justify-between p-3 rounded-lg border"
               >
-                <Plus className="size-4 mr-1" /> Add your first instance
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {instances.map((instance) => (
-                <div
-                  key={instance.id}
-                  className="flex items-center justify-between p-3 rounded-lg border"
-                >
+                {editingId === instance.id ? (
+                  <div className="flex-1 space-y-2 mr-4">
+                    <Input
+                      value={newName}
+                      onChange={(e) => setNewName(e.target.value)}
+                      placeholder="Instance name"
+                      className="h-8"
+                    />
+                    <Input
+                      value={newEndpoint}
+                      onChange={(e) => setNewEndpoint(e.target.value)}
+                      className="h-8"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium truncate">
+                        {instance.name}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground truncate">
+                      {instance.endpoint}
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1">
                   {editingId === instance.id ? (
-                    <div className="flex-1 space-y-2 mr-4">
-                      <Input
-                        value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
-                        placeholder="Instance name"
-                        className="h-8"
-                      />
-                      <Input
-                        value={newEndpoint}
-                        onChange={(e) => setNewEndpoint(e.target.value)}
-                        className="h-8"
-                      />
-                    </div>
+                    <>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={handleSaveEdit}
+                      >
+                        <Check className="size-4" />
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={handleCancel}>
+                        Cancel
+                      </Button>
+                    </>
                   ) : (
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium truncate">
-                          {instance.name}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {instance.endpoint}
-                      </p>
-                    </div>
+                    <>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => handleEdit(instance)}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        onClick={() => setDeleteConfirmId(instance.id)}
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </>
                   )}
-
-                  <div className="flex items-center gap-1">
-                    {editingId === instance.id ? (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleSaveEdit}
-                        >
-                          <Check className="size-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={handleCancel}
-                        >
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => handleEdit(instance)}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          onClick={() => setDeleteConfirmId(instance.id)}
-                        >
-                          <Trash2 className="size-4 text-destructive" />
-                        </Button>
-                      </>
-                    )}
-                  </div>
                 </div>
-              ))}
+              </div>
+            ))}
 
-              {isAdding && (
-                <div className="p-3 rounded-lg border space-y-2">
-                  <Input
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    placeholder="Instance name"
-                    className="h-8"
-                    autoFocus
-                  />
-                  <Input
-                    value={newEndpoint}
-                    onChange={(e) => setNewEndpoint(e.target.value)}
-                    placeholder="http://localhost:4096"
-                    className="h-8"
-                  />
-                  <div className="flex gap-2">
-                    <Button size="sm" onClick={handleAdd}>
-                      <Plus className="size-4 mr-1" /> Add
-                    </Button>
-                    <Button size="sm" variant="ghost" onClick={handleCancel}>
-                      Cancel
-                    </Button>
-                  </div>
+            {isAdding && (
+              <div className="p-3 rounded-lg border space-y-2">
+                <Input
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                  placeholder="Instance name"
+                  className="h-8"
+                  autoFocus
+                />
+                <Input
+                  value={newEndpoint}
+                  onChange={(e) => setNewEndpoint(e.target.value)}
+                  placeholder="http://localhost:4096"
+                  className="h-8"
+                />
+                <div className="flex gap-2">
+                  <Button size="sm" onClick={handleAdd}>
+                    <Plus className="size-4 mr-1" /> Add
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={handleCancel}>
+                    Cancel
+                  </Button>
                 </div>
-              )}
+              </div>
+            )}
 
-              {!isAdding && (
-                <Button
-                  variant="outline"
-                  onClick={() => setIsAdding(true)}
-                  className="w-full"
-                >
-                  <Plus className="size-4 mr-1" /> Add Instance
-                </Button>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            {!isAdding && (
+              <Button
+                variant="outline"
+                onClick={handleCreate}
+                className="w-full"
+              >
+                <Plus className="size-4 mr-1" /> Add Instance
+              </Button>
+            )}
+          </div>
+        )}
 
-      <ConfirmDialog
-        open={!!deleteConfirmId}
-        onOpenChange={(open) => !open && setDeleteConfirmId(null)}
-        title="Delete Instance"
-        description={
-          deleteConfirmId ? getDeleteDescription(deleteConfirmId) : ""
-        }
-        confirmLabel="Delete"
-        onConfirm={() => deleteConfirmId && handleDelete(deleteConfirmId)}
-        destructive
-      />
-    </div>
+        <ConfirmDialog
+          open={!!deleteConfirmId}
+          onOpenChange={(open) => !open && setDeleteConfirmId(null)}
+          title="Delete Instance"
+          description={
+            deleteConfirmId ? getDeleteDescription(deleteConfirmId) : ""
+          }
+          confirmLabel="Delete"
+          onConfirm={() => deleteConfirmId && handleDelete(deleteConfirmId)}
+          destructive
+        />
+      </div>
+    </SettingsChildLayout>
   );
 }
