@@ -17,7 +17,7 @@ import { useStore } from "@/stores/instance";
 import { useInstanceStore } from "@/stores/instanceStore";
 import { registerInstance } from "@/stores/instance/instanceScopeHook";
 import { Onboarding } from "@/features/onboarding/Onboarding";
-import { useWorkspaceStore } from "@/stores/workspaceStore.new";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 
 export const Route = createFileRoute("/_appMainLayout")({
   component: AppMainLayout,
@@ -33,10 +33,23 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
 
-  const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory;
-  const loadSessions = useStore("session", (s) => s.loadSessions, activeInstanceId);
-  const loadQuestions = useStore("question", (s) => s.loadQuestions, activeInstanceId);
-  const loadPermissions = useStore("permission", (s) => s.loadPermissions, activeInstanceId);
+  const selectedDirectory =
+    useWorkspaceStore().getCurrentWorkspace()?.directory;
+  const loadSessions = useStore(
+    "session",
+    (s) => s.loadSessions,
+    activeInstanceId,
+  );
+  const loadQuestions = useStore(
+    "question",
+    (s) => s.loadQuestions,
+    activeInstanceId,
+  );
+  const loadPermissions = useStore(
+    "permission",
+    (s) => s.loadPermissions,
+    activeInstanceId,
+  );
 
   useEffect(() => {
     if (selectedDirectory) {
@@ -51,7 +64,11 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
   if (isMobile || isTablet) {
     return (
       <>
-        <MobileSidebar instanceId={activeInstanceId} open={sidebarOpen} onOpenChange={setSidebarOpen} />
+        <MobileSidebar
+          instanceId={activeInstanceId}
+          open={sidebarOpen}
+          onOpenChange={setSidebarOpen}
+        />
         <div className="flex flex-col h-[100dvh] bg-background overflow-hidden">
           <PermissionBanner
             onOpenDialog={() => setPermissionDialogOpen(true)}
@@ -110,6 +127,8 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
 function AppMainLayout() {
   const { isDarkMode, deviceType, setDeviceType } = useChatUIStore();
   const { instances } = useInstanceStore();
+  const { workspaces } = useWorkspaceStore();
+  const isHaveToOnBoard = instances.length === 0 || workspaces.length === 0;
   const [activeInstanceId, setActiveInstanceId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -135,7 +154,7 @@ function AppMainLayout() {
     }
   }, [isDarkMode]);
 
-  if (instances.length === 0) {
+  if (isHaveToOnBoard) {
     return (
       <div className="h-screen flex items-center justify-center bg-background">
         <Onboarding />

@@ -1,4 +1,4 @@
-import { createStore } from "zustand";
+import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 export const WORKSPACE_COLORS = [
@@ -26,7 +26,8 @@ export interface Workspace {
 export interface WorkspaceStore {
   workspaces: Workspace[];
   currentWorkspaceId: string | null;
-  createWorkspace: (instanceId: string, data: { name: string; color: WorkspaceColor; directory: string }) => Workspace;
+  createWorkspace: (instanceId: string, data: { name: string; color: WorkspaceColor; directory: string }, autoSelected?: boolean) => Workspace;
+  updateWorkspace: (id: string, updates: { name?: string; color?: WorkspaceColor; directory?: string; instanceId?: string }) => void;
   deleteWorkspace: (id: string) => void;
   setCurrentWorkspace: (id: string) => void;
   getCurrentWorkspace: () => Workspace | undefined;
@@ -34,59 +35,64 @@ export interface WorkspaceStore {
 
 const generateId = () => crypto.randomUUID();
 
-export const createWorkspaceStore = (instanceId: string) => {
-  return createStore<WorkspaceStore>()(
-    persist(
-      (set, get) => ({
-        workspaces: [],
-        currentWorkspaceId: null,
+export const useWorkspaceStore = create<WorkspaceStore>()(
+  persist(
+    (set, get) => ({
+      workspaces: [],
+      currentWorkspaceId: null,
 
-        createWorkspace: (instanceId, data) => {
-          const workspace: Workspace = {
-            id: generateId(),
-            instanceId,
-            name: data.name,
-            color: data.color,
-            directory: data.directory,
-            createdAt: Date.now(),
-          };
-          set((state) => ({
-            workspaces: [...state.workspaces, workspace],
-            currentWorkspaceId: state.currentWorkspaceId ?? workspace.id,
-          }));
-          return workspace;
-        },
+      createWorkspace: (instanceId, data, autoSelected = false) => {
+        const workspace: Workspace = {
+          id: generateId(),
+          instanceId,
+          name: data.name,
+          color: data.color,
+          directory: data.directory,
+          createdAt: Date.now(),
+        };
 
-        deleteWorkspace: (id) => {
-          set((state) => {
-            const newWorkspaces = state.workspaces.filter((w) => w.id !== id);
-            let newCurrentId = state.currentWorkspaceId;
-            if (state.currentWorkspaceId === id) {
-              newCurrentId = newWorkspaces[0]?.id ?? null;
-            }
-            return {
-              workspaces: newWorkspaces,
-              currentWorkspaceId: newCurrentId,
-            };
-          });
-        },
+        set((state) => ({
+          workspaces: [...state.workspaces, workspace],
+          currentWorkspaceId: autoSelected ? workspace.id : undefined,
+        }));
 
-        setCurrentWorkspace: (id) => {
-          set({ currentWorkspaceId: id });
-        },
-
-        getCurrentWorkspace: () => {
-          const { workspaces, currentWorkspaceId } = get();
-          return workspaces.find((w) => w.id === currentWorkspaceId);
-        },
-      }),
-      {
-        name: `cloudy-workspaces-${instanceId}`,
-        storage: createJSONStorage(() => localStorage),
+        return workspace;
       },
-    ),
-  );
-};
 
-type WorkspaceStoreApi = ReturnType<typeof createWorkspaceStore>;
-export type UseWorkspaceStore = () => WorkspaceStoreApi extends { getState: () => infer S } ? S : never;
+      updateWorkspace: (id, updates) => {
+        set((state) => ({
+          workspaces: state.workspaces.map((w) =>
+            w.id === id ? { ...w, ...updates } : w,
+          ),
+        }));
+      },
+
+      deleteWorkspace: (id) => {
+        set((state) => {
+          const newWorkspaces = state.workspaces.filter((w) => w.id !== id);
+          let newCurrentId = state.currentWorkspaceId;
+          if (state.currentWorkspaceId === id) {
+            newCurrentId = newWorkspaces[0]?.id ?? null;
+          }
+          return {
+            workspaces: newWorkspaces,
+            currentWorkspaceId: newCurrentId,
+          };
+        });
+      },
+
+      setCurrentWorkspace: (id) => {
+        set({ currentWorkspaceId: id });
+      },
+
+      getCurrentWorkspace: () => {
+        const { workspaces, currentWorkspaceId } = get();
+        return workspaces.find((w) => w.id === currentWorkspaceId);
+      },
+    }),
+    {
+      name: `cloudy-workspaces`,
+      storage: createJSONStorage(() => localStorage),
+    },
+  ),
+);

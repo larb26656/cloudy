@@ -1,20 +1,22 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useInstanceStore, type Instance } from "@/stores/instanceStore";
 import { registerInstance } from "@/stores/instance/instanceScopeHook";
-import { createWorkspaceStore } from "@/stores/workspaceStore";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { Plus, Pencil, Trash2, Check } from "lucide-react";
 
 export function InstanceSection() {
-  const {
-    instances,
-    addInstance,
-    removeInstance,
-    updateInstance,
-  } = useInstanceStore();
+  const { instances, addInstance, removeInstance, updateInstance } =
+    useInstanceStore();
 
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -22,13 +24,10 @@ export function InstanceSection() {
   const [newEndpoint, setNewEndpoint] = useState("");
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  const workspaces = useWorkspaceStore((state) => state.workspaces);
+
   const getWorkspaceCount = (instanceId: string): number => {
-    try {
-      const store = createWorkspaceStore(instanceId);
-      return store.getState().workspaces.length;
-    } catch {
-      return 0;
-    }
+    return workspaces.filter((w) => w.instanceId === instanceId).length;
   };
 
   const handleAdd = () => {
@@ -63,7 +62,8 @@ export function InstanceSection() {
       id: editingId,
       name: newName.trim(),
       endpoint: newEndpoint.trim(),
-      createdAt: instances.find(i => i.id === editingId)?.createdAt ?? Date.now(),
+      createdAt:
+        instances.find((i) => i.id === editingId)?.createdAt ?? Date.now(),
     });
 
     setEditingId(null);
@@ -71,14 +71,12 @@ export function InstanceSection() {
     setNewEndpoint("");
   };
 
+  const deleteWorkspace = useWorkspaceStore((state) => state.deleteWorkspace);
+
   const handleDelete = (id: string) => {
-    const workspaceCount = getWorkspaceCount(id);
-    if (workspaceCount > 0) {
-      const store = createWorkspaceStore(id);
-      const workspaces = store.getState().workspaces;
-      for (const ws of workspaces) {
-        store.getState().deleteWorkspace(ws.id);
-      }
+    const workspacesToDelete = workspaces.filter((w) => w.instanceId === id);
+    for (const ws of workspacesToDelete) {
+      deleteWorkspace(ws.id);
     }
     removeInstance(id);
     setDeleteConfirmId(null);
@@ -136,14 +134,15 @@ export function InstanceSection() {
                       <Input
                         value={newEndpoint}
                         onChange={(e) => setNewEndpoint(e.target.value)}
-                        placeholder="http://localhost:4096"
                         className="h-8"
                       />
                     </div>
                   ) : (
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium truncate">{instance.name}</span>
+                        <span className="font-medium truncate">
+                          {instance.name}
+                        </span>
                       </div>
                       <p className="text-sm text-muted-foreground truncate">
                         {instance.endpoint}
@@ -154,10 +153,18 @@ export function InstanceSection() {
                   <div className="flex items-center gap-1">
                     {editingId === instance.id ? (
                       <>
-                        <Button size="sm" variant="ghost" onClick={handleSaveEdit}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleSaveEdit}
+                        >
                           <Check className="size-4" />
                         </Button>
-                        <Button size="sm" variant="ghost" onClick={handleCancel}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={handleCancel}
+                        >
                           Cancel
                         </Button>
                       </>
@@ -227,7 +234,9 @@ export function InstanceSection() {
         open={!!deleteConfirmId}
         onOpenChange={(open) => !open && setDeleteConfirmId(null)}
         title="Delete Instance"
-        description={deleteConfirmId ? getDeleteDescription(deleteConfirmId) : ""}
+        description={
+          deleteConfirmId ? getDeleteDescription(deleteConfirmId) : ""
+        }
         confirmLabel="Delete"
         onConfirm={() => deleteConfirmId && handleDelete(deleteConfirmId)}
         destructive

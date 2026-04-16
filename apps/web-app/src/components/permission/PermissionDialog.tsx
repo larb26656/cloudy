@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useStore } from "@/stores/instance";
-import { useWorkspaceStore } from "@/stores/workspaceStore.new";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 import {
   Dialog,
   DialogContent,

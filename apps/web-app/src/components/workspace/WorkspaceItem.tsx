@@ -17,6 +17,7 @@ interface WorkspaceItemProps {
   workspace: Workspace;
   isSelected: boolean;
   onSelect: (workspace: Workspace) => void;
+  onEdit: (workspace: Workspace) => void;
   onDelete: (workspaceId: string) => void;
   canDelete: boolean;
 }
@@ -25,6 +26,7 @@ export function WorkspaceItem({
   workspace,
   isSelected,
   onSelect,
+  onEdit,
   onDelete,
   canDelete,
 }: WorkspaceItemProps) {
@@ -33,6 +35,14 @@ export function WorkspaceItem({
   const handleClick = useCallback(() => {
     onSelect(workspace);
   }, [onSelect, workspace]);
+
+  const handleEdit = useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation();
+      onEdit(workspace);
+    },
+    [onEdit, workspace],
+  );
 
   const handleDelete = useCallback(
     (e: React.MouseEvent) => {
@@ -68,6 +78,7 @@ export function WorkspaceItem({
         </TooltipContent>
       </Tooltip>
       <ContextMenuContent alignOffset={4} side="right">
+        <ContextMenuItem onClick={handleEdit}>Edit workspace</ContextMenuItem>
         <ContextMenuItem
           className="text-destructive focus:text-destructive"
           onClick={handleDelete}

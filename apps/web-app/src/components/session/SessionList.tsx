@@ -2,7 +2,7 @@ import { SessionItem } from "./SessionItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/stores/instance";
-import { useWorkspaceStore } from "@/stores/workspaceStore.new";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { ErrorState } from "@/components/ui/error-state";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { InfiniteScrollTrigger } from "../InfiniteScrollTrigger";

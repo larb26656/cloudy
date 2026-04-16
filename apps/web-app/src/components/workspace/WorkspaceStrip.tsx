@@ -1,15 +1,15 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { Plus } from "lucide-react";
 import { CreateWorkspaceDialog } from "./CreateWorkspaceDialog";
+import { EditWorkspaceDialog } from "./EditWorkspaceDialog";
 import { WorkspaceItem } from "./WorkspaceItem";
-import { createWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
+import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
-import { useWorkspaceStore } from "@/stores/workspaceStore.new";
 
 interface WorkspaceStripProps {
   instanceId: string;
@@ -17,24 +17,31 @@ interface WorkspaceStripProps {
 }
 
 export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
 
-  const [store] = useState(() =>
-    instanceId ? createWorkspaceStore(instanceId) : null,
+  const allWorkspaces = useWorkspaceStore((state) => state.workspaces);
+  const currentWorkspaceId = useWorkspaceStore((state) => state.currentWorkspaceId);
+
+  const workspaces = useMemo(
+    () => allWorkspaces.filter((w) => w.instanceId === instanceId),
+    [allWorkspaces, instanceId],
   );
-
-  const {
-    workspaces,
-    currentWorkspaceId,
-    setCurrentWorkspace,
-    deleteWorkspace,
-  } = useWorkspaceStore();
+  const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrentWorkspace);
+  const deleteWorkspace = useWorkspaceStore((state) => state.deleteWorkspace);
 
   const handleSelectWorkspace = useCallback(
     (workspace: Workspace) => {
       setCurrentWorkspace(workspace.id);
     },
-    [store],
+    [setCurrentWorkspace],
+  );
+
+  const handleEditWorkspace = useCallback(
+    (workspace: Workspace) => {
+      setEditingWorkspace(workspace);
+    },
+    [],
   );
 
   const handleDeleteWorkspace = useCallback(
@@ -42,10 +49,8 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
       if (workspaces.length <= 1) return;
       deleteWorkspace(workspaceId);
     },
-    [store, workspaces.length],
+    [deleteWorkspace, workspaces.length],
   );
-
-  if (!store) return null;
 
   return (
     <>
@@ -62,6 +67,7 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
               workspace={workspace}
               isSelected={workspace.id === currentWorkspaceId}
               onSelect={handleSelectWorkspace}
+              onEdit={handleEditWorkspace}
               onDelete={handleDeleteWorkspace}
               canDelete={workspaces.length > 1}
             />
@@ -73,7 +79,7 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
             <TooltipTrigger
               render={
                 <button
-                  onClick={() => setDialogOpen(true)}
+                  onClick={() => setCreateDialogOpen(true)}
                   className="size-12 rounded-xl flex items-center justify-center bg-muted hover:bg-muted/80 transition-all duration-200 hover:rounded-[16px]"
                 >
                   <Plus className="size-5 text-foreground" />
@@ -87,7 +93,19 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
         </div>
       </div>
 
-      <CreateWorkspaceDialog open={dialogOpen} onOpenChange={setDialogOpen} />
+      <CreateWorkspaceDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+      />
+      {editingWorkspace && (
+        <EditWorkspaceDialog
+          workspace={editingWorkspace}
+          open={true}
+          onOpenChange={(open) => {
+            if (!open) setEditingWorkspace(null);
+          }}
+        />
+      )}
     </>
   );
 }

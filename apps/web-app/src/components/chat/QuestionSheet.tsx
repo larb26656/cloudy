@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { HelpCircle, ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useStore } from "@/stores/instance";
-import { useWorkspaceStore } from "@/stores/workspaceStore.new";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 

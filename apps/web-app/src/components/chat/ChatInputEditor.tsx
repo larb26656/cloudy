@@ -8,7 +8,7 @@ import {
 import { shouldShowSlashCommand } from "@/lib/command";
 import { useEffect, useMemo } from "react";
 import { useCurrentInstanceId } from "@/stores/instance";
-import { useWorkspaceStore } from "@/stores/workspaceStore.new";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
 

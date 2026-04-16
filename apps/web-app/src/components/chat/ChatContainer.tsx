@@ -3,7 +3,7 @@ import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./chat-input";
 import { QuestionSheet } from "./QuestionSheet";
 import { useStore, useCurrentInstanceId } from "@/stores/instance";
-import { useWorkspaceStore } from "@/stores/workspaceStore.new";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import { isCommand, parseCommand, executeOCCommand } from "@/lib/command";
 import { useMemo } from "react";

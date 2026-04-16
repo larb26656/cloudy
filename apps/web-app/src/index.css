@@ -209,3 +209,8 @@
     pointer-events: none;
   }
 }
+
+[data-slot="field-label"].required::after {
+  content: " *";
+  color: var(--destructive);
+}

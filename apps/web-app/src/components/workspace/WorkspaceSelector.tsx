@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { ChevronDown, Plus, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
@@ -8,10 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { CreateWorkspaceDialog } from "./CreateWorkspaceDialog";
-import {
-  createWorkspaceStore,
-  type Workspace,
-} from "@/stores/workspaceStore";
+import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
 import { cn } from "@/lib/utils";
 
 interface WorkspaceSelectorProps {
@@ -21,61 +18,33 @@ interface WorkspaceSelectorProps {
 
 export function WorkspaceSelector({ instanceId, className }: WorkspaceSelectorProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogCloseCount, setDialogCloseCount] = useState(0);
 
-  const [store] = useState(() =>
-    instanceId ? createWorkspaceStore(instanceId) : null,
-  );
-
-  const [workspaces, setWorkspaces] = useState<Workspace[]>(
-    () => store?.getState().workspaces ?? [],
-  );
-  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(
-    () => store?.getState().currentWorkspaceId ?? null,
-  );
-
-  useEffect(() => {
-    if (!store) return;
-    const unsub = store.subscribe(() => {
-      const state = store.getState();
-      setWorkspaces(state.workspaces);
-      setCurrentWorkspaceId(state.currentWorkspaceId);
-    });
-    return unsub;
-  }, [store]);
-
-  useEffect(() => {
-    if (!store) return;
-    setWorkspaces(store.getState().workspaces);
-    setCurrentWorkspaceId(store.getState().currentWorkspaceId);
-  }, [dialogCloseCount, store]);
+  const workspaces = useWorkspaceStore((state) => state.workspaces.filter((w) => w.instanceId === instanceId));
+  const currentWorkspaceId = useWorkspaceStore((state) => state.currentWorkspaceId);
+  const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrentWorkspace);
+  const deleteWorkspace = useWorkspaceStore((state) => state.deleteWorkspace);
 
   const currentWorkspace = workspaces.find((w) => w.id === currentWorkspaceId);
 
   const handleDialogOpenChange = (open: boolean) => {
     setDialogOpen(open);
-    if (open === false) {
-      setDialogCloseCount((c) => c + 1);
-    }
   };
 
   const handleSelectWorkspace = useCallback(
     (workspace: Workspace) => {
-      store?.getState().setCurrentWorkspace(workspace.id);
+      setCurrentWorkspace(workspace.id);
     },
-    [store],
+    [setCurrentWorkspace],
   );
 
   const handleDeleteWorkspace = useCallback(
     (e: React.MouseEvent, workspaceId: string) => {
       e.stopPropagation();
       if (workspaces.length <= 1) return;
-      store?.getState().deleteWorkspace(workspaceId);
+      deleteWorkspace(workspaceId);
     },
-    [store, workspaces.length],
+    [deleteWorkspace, workspaces.length],
   );
-
-  if (!store) return null;
 
   return (
     <div className={cn(["p-2", className])}>

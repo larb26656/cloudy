@@ -1,6 +1,6 @@
 import { useEffect, useRef } from "react"
 import { useCurrentInstanceId } from "@/stores/instance"
-import { useWorkspaceStore } from "@/stores/workspaceStore.new"
+import { useWorkspaceStore } from "@/stores/workspaceStore"
 import type { Event as OpencodeEvent } from "@opencode-ai/sdk/v2";
 import { getEvent } from "@/lib/opencode"
 import { handleEvent } from "@/events/eventRoute";

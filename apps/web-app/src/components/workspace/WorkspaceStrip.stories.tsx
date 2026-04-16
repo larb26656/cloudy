@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { WorkspaceStrip } from "./WorkspaceStrip";
-import { createWorkspaceStore, WORKSPACE_COLORS } from "@/stores/workspaceStore";
+import { useWorkspaceStore, WORKSPACE_COLORS } from "@/stores/workspaceStore";
 
 const TEST_INSTANCE_ID = "storybook-test-instance";
 
@@ -16,51 +17,57 @@ const meta: Meta<typeof WorkspaceStrip> = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-function SetupWrapper({ children }: { children: React.ReactNode }) {
+function WorkspaceStoriesWrapper({
+  children,
+  workspaces,
+}: {
+  children: React.ReactNode;
+  workspaces?: Array<{
+    name: string;
+    color: (typeof WORKSPACE_COLORS)[number];
+    directory: string;
+  }>;
+}) {
+  const createWorkspace = useWorkspaceStore((state) => state.createWorkspace);
+  const existingWorkspaces = useWorkspaceStore((state) => state.workspaces);
+
+  useEffect(() => {
+    if (workspaces && existingWorkspaces.length === 0) {
+      for (const ws of workspaces) {
+        createWorkspace(TEST_INSTANCE_ID, ws);
+      }
+    }
+  }, [workspaces, existingWorkspaces.length, createWorkspace]);
+
   return <>{children}</>;
 }
 
 export const Default: Story = {
   decorators: [
     (Story) => (
-      <SetupWrapper>
+      <WorkspaceStoriesWrapper>
         <div className="h-[500px] flex">
           <Story />
         </div>
-      </SetupWrapper>
+      </WorkspaceStoriesWrapper>
     ),
   ],
 };
 
 export const WithThreeWorkspaces: Story = {
   decorators: [
-    (Story) => {
-      const store = createWorkspaceStore(TEST_INSTANCE_ID);
-      if (store.getState().workspaces.length === 0) {
-        store.getState().createWorkspace(TEST_INSTANCE_ID, {
-          name: "Personal",
-          color: WORKSPACE_COLORS[0],
-          directory: "/personal",
-        });
-        store.getState().createWorkspace(TEST_INSTANCE_ID, {
-          name: "Work",
-          color: WORKSPACE_COLORS[1],
-          directory: "/work",
-        });
-        store.getState().createWorkspace(TEST_INSTANCE_ID, {
-          name: "Projects",
-          color: WORKSPACE_COLORS[2],
-          directory: "/projects",
-        });
-      }
-
-      return (
-        <SetupWrapper>
-          <div className="h-[500px] flex">
-            <Story />
-          </div>
-        </SetupWrapper>
-      );
-    },
+    (Story) => (
+      <WorkspaceStoriesWrapper
+        workspaces={[
+          { name: "Personal", color: WORKSPACE_COLORS[0], directory: "/personal" },
+          { name: "Work", color: WORKSPACE_COLORS[1], directory: "/work" },
+          { name: "Projects", color: WORKSPACE_COLORS[2], directory: "/projects" },
+        ]}
+      >
+        <div className="h-[500px] flex">
+          <Story />
+        </div>
+      </WorkspaceStoriesWrapper>
+    ),
   ],
 };
