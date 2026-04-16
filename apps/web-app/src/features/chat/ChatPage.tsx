@@ -7,7 +7,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEventStream } from "@/hooks/useEventSteam";
 import { useDeviceType } from "@/hooks";
 import { useChatUIStore } from "@/stores";
 import { useStore } from "@/stores/instance";
@@ -31,8 +30,6 @@ export default function ChatPage() {
   const { isMobile } = useDeviceType();
   const [initialInput, setInitialInput] = useState<string>("");
   const [showMinimap, setShowMinimap] = useState(false);
-
-  useEventStream();
 
   useEffect(() => {
     if (!selectedSessionId) return;

@@ -1,8 +1,9 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Lightbulb, Brain, MessageCircle, FileCode, Settings } from "lucide-react";
+import { Lightbulb, Brain, MessageCircle, FileCode, Settings, LayoutDashboard } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Chat", icon: MessageCircle },
+  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/ideas", label: "Idea", icon: Lightbulb },
   { to: "/memory", label: "Memory", icon: Brain },
   { to: "/artifact", label: "Artifact", icon: FileCode },

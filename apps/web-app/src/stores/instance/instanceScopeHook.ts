@@ -2,6 +2,7 @@ import { createModelStore } from "./modelStore";
 import { createAgentStore } from "./agentStore";
 import { createCommandSuggestionStore } from "./commandSuggestionStore";
 import { createFindFileStore } from "./findFileStore";
+import { createInstanceActivityStore } from "./instanceActivityStore";
 import { createMessageStore } from "./messageStore";
 import { createPermissionStore } from "./permissionStore";
 import { createQuestionStore } from "./questionStore";
@@ -16,8 +17,10 @@ import type { QuestionStore } from "./questionStore";
 import type { FindFileStore } from "./findFileStore";
 import type { CommandSuggestionStore } from "./commandSuggestionStore";
 import { useInstanceStore, type Instance } from "../instanceStore";
+import type { InstanceActivityStore } from "./instanceActivityStore";
 
 type AppStores = {
+    activity: ReturnType<typeof createInstanceActivityStore>;
     agent: ReturnType<typeof createAgentStore>;
     commandSuggestion: ReturnType<typeof createCommandSuggestionStore>;
     findFile: ReturnType<typeof createFindFileStore>;
@@ -29,6 +32,7 @@ type AppStores = {
 };
 
 type AppStoreState = {
+    activity: InstanceActivityStore;
     agent: AgentStore;
     commandSuggestion: CommandSuggestionStore;
     findFile: FindFileStore;
@@ -42,6 +46,7 @@ type AppStoreState = {
 function createStores(oc: OpencodeClient): AppStores {
     console.log('Create store');
     return {
+        activity: createInstanceActivityStore(oc),
         agent: createAgentStore(oc),
         commandSuggestion: createCommandSuggestionStore(oc),
         findFile: createFindFileStore(oc),

@@ -1,56 +1,72 @@
-import { useEffect, useRef } from "react"
-import { useCurrentInstanceId } from "@/stores/instance"
+import { useEffect } from "react"
 import { useWorkspaceStore } from "@/stores/workspaceStore"
 import type { Event as OpencodeEvent } from "@opencode-ai/sdk/v2";
 import { getEvent } from "@/lib/opencode"
 import { handleEvent } from "@/events/eventRoute";
+import { useInstanceStore, type Instance } from "@/stores/instanceStore";
+
+export function connectEvent(instance: Instance, directory: string) {
+    const es: EventSource = getEvent({ directory });
+
+    es.onmessage = (event: MessageEvent<string>) => {
+        try {
+            const opencodeEvent: OpencodeEvent = JSON.parse(event.data);
+            handleEvent(opencodeEvent, instance.id);
+        } catch (e) {
+            console.error("parse error:", e);
+        }
+    };
+
+    es.onerror = (err) => {
+        console.error("SSE error:", err);
+        es?.close();
+    };
+
+    return es;
+}
+
+export function createConnection(instance: Instance, directory: string) {
+    let es: EventSource | null = null;
+
+    const connect = () => {
+        es = connectEvent(instance, directory);
+    };
+
+    const handleVisibility = () => {
+        if (document.visibilityState === "visible") {
+            es?.close();
+            connect();
+        }
+    };
+
+    const dispose = () => {
+        document.removeEventListener("visibilitychange", handleVisibility);
+        es?.close();
+    };
+
+    connect();
+
+    document.addEventListener("visibilitychange", handleVisibility);
+
+    return {
+        dispose
+    };
+}
 
 export function useEventStream() {
-    const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory
-    const instanceId = useCurrentInstanceId()
-    const instanceIdRef = useRef(instanceId)
-    instanceIdRef.current = instanceId
+    const { workspaces } = useWorkspaceStore();
+    const { getInstance, instances } = useInstanceStore();
 
-    // TODO replace with global event
     useEffect(() => {
-        if (!selectedDirectory) return;
+        const connections = workspaces
+            .map((workspace) => {
+                const instance = getInstance(workspace.instanceId);
+                if (!instance) return null;
 
-        let es: EventSource | null = null;
+                return createConnection(instance, workspace.directory);
+            })
+            .filter((connection) => connection !== null);
 
-        const connect = () => {
-            es = getEvent({ directory: selectedDirectory });
-
-            es.onmessage = (event: MessageEvent<string>) => {
-                try {
-                    const opencodeEvent: OpencodeEvent = JSON.parse(event.data);
-                    handleEvent(opencodeEvent, instanceIdRef.current);
-                } catch (e) {
-                    console.error("parse error:", e);
-                }
-            };
-
-            es.onerror = (err) => {
-                console.error("SSE error:", err);
-                es?.close();
-            };
-        };
-
-        connect();
-
-        // 👇 If user switches back to the tab
-        const handleVisibility = () => {
-            if (document.visibilityState === "visible") {
-                // reconnect SSE
-                es?.close();
-                connect();
-            }
-        };
-
-        document.addEventListener("visibilitychange", handleVisibility);
-
-        return () => {
-            document.removeEventListener("visibilitychange", handleVisibility);
-            es?.close();
-        };
-    }, [selectedDirectory]);
+        return () => { connections.forEach(connection => connection.dispose()) }
+    }, [instances, workspaces]);
 }
