@@ -3,6 +3,7 @@ import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./chat-input";
 import { QuestionSheet } from "./QuestionSheet";
 import { useStore, useCurrentInstanceId } from "@/stores/instance";
+import { useWorkspaceStore } from "@/stores/workspaceStore.new";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import { isCommand, parseCommand, executeOCCommand } from "@/lib/command";
 import { useMemo } from "react";
@@ -33,7 +34,7 @@ export function ChatContainer({
   const activeQuestion = useStore("session").activeQuestion;
   const sendMessage = useStore("message").sendMessage;
   const abortGeneration = useStore("message").abortGeneration;
-  const selectedDirectory = useStore("directory").selectedDirectory;
+  const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory;
   const selectedSessionId = useStore("session").selectedSessionId;
   const sessionStatuses = useStore("session").sessionStatuses;
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);

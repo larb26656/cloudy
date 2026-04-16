@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,12 +13,12 @@ import {
 import {
   WORKSPACE_COLORS,
   type WorkspaceColor,
-  createWorkspaceStore,
 } from "@/stores/workspaceStore";
 import { useInstanceStore } from "@/stores/instanceStore";
-import { getStore } from "@/stores/instance/instanceScopeHook";
+import { getOC } from "@/stores/instance/instanceScopeHook";
 import { cn } from "@/lib/utils";
 import { Folder, Loader2, Server } from "lucide-react";
+import { useWorkspaceStore } from "@/stores/workspaceStore.new";
 
 interface CreateWorkspaceDialogProps {
   open: boolean;
@@ -38,11 +38,7 @@ export function CreateWorkspaceDialog({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState("");
-
-  const workspaceStore = useMemo(
-    () => (selectedInstanceId ? createWorkspaceStore(selectedInstanceId) : null),
-    [selectedInstanceId],
-  );
+  const workspaceStore = useWorkspaceStore();
 
   useEffect(() => {
     if (instances.length > 0 && !selectedInstanceId) {
@@ -63,9 +59,13 @@ export function CreateWorkspaceDialog({
     debounceRef.current = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const directoryStore = getStore("directory", selectedInstanceId);
-        const results = await directoryStore.getState().searchDirectories(directory);
-        setSuggestions(results);
+        const oc = getOC(selectedInstanceId);
+        const result = await oc.find.files({
+          query: directory,
+          type: 'directory',
+          limit: 10,
+        });
+        setSuggestions(result.data ?? []);
       } finally {
         setIsSearching(false);
       }
@@ -98,10 +98,18 @@ export function CreateWorkspaceDialog({
       setError("Invalid instance");
       return;
     }
-    const workspace = workspaceStore.getState().createWorkspace(selectedInstanceId, { name: name.trim(), color, directory: directory.trim() });
-    workspaceStore.getState().setCurrentWorkspace(workspace.id);
-    const directoryStore = getStore("directory", selectedInstanceId);
-    directoryStore.getState().setSelectedDirectory(directory.trim());
+
+    workspaceStore.createWorkspace(
+      selectedInstanceId,
+      {
+        name: name.trim(),
+        color,
+        directory: directory.trim(),
+      },
+      true,
+    );
+
+    // TODO use form instead
     setName("");
     setColor(WORKSPACE_COLORS[0]);
     setDirectory("");
@@ -219,7 +227,11 @@ export function CreateWorkspaceDialog({
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancel
             </Button>
             <Button type="submit">Create</Button>

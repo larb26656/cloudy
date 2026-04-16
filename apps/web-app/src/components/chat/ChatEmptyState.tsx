@@ -1,7 +1,6 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { DirectoryPicker } from "@/components/directory/DirectoryPickerDialog";
 import { generateGreeting } from "@/lib/greeting-generator";
 import { Lightbulb, Brain, FileCode } from "lucide-react";
 
@@ -72,33 +71,22 @@ export function SnippetButtons({ onSelect }: SnippetButtonsProps) {
 
 interface WelcomeStateProps {
   onCreateSession: (directory?: string) => void;
-  selectedDirectory?: string | null;
   onSnippetSelect?: (type: SnippetType) => void;
 }
 
 export function WelcomeState({
   onCreateSession,
-  selectedDirectory,
   onSnippetSelect,
 }: WelcomeStateProps) {
   const greeting = useMemo(() => generateGreeting(), []);
 
-  const [openPicker, setOpenPicker] = useState<boolean>(false);
-  const [pickedDirectory] = useState<string | null>(selectedDirectory || null);
-
   const handleStartChat = () => {
-    setOpenPicker(true);
-  };
-
-  const handleSelectDirectory = (directory: string) => {
-    onCreateSession(directory);
+    onCreateSession();
   };
 
   const handleSnippetClick = (type: SnippetType) => {
     if (onSnippetSelect) {
       onSnippetSelect(type);
-    } else {
-      setOpenPicker(true);
     }
   };
 
@@ -111,14 +99,6 @@ export function WelcomeState({
         <p className="text-gray-500 dark:text-gray-400 mb-8 text-lg">
           {greeting.subtitle}
         </p>
-
-        <DirectoryPicker
-          value={pickedDirectory}
-          onChange={(dir) => dir && handleSelectDirectory(dir)}
-          placeholder="Select directory"
-          open={openPicker}
-          onOpenChange={setOpenPicker}
-        />
 
         <Button
           onClick={handleStartChat}

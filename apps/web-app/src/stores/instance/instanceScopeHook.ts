@@ -1,7 +1,6 @@
 import { createModelStore } from "./modelStore";
 import { createAgentStore } from "./agentStore";
 import { createCommandSuggestionStore } from "./commandSuggestionStore";
-import { createDirectoryStore } from "./directoryStore";
 import { createFindFileStore } from "./findFileStore";
 import { createMessageStore } from "./messageStore";
 import { createPermissionStore } from "./permissionStore";
@@ -12,7 +11,6 @@ import type { AgentStore } from "./agentStore";
 import type { ModelStore } from "./modelStore";
 import type { MessageStore } from "./messageStore";
 import type { SessionStore } from "./sessionStore";
-import type { DirectoryStore } from "./directoryStore";
 import type { PermissionStore } from "./permissionStore";
 import type { QuestionStore } from "./questionStore";
 import type { FindFileStore } from "./findFileStore";
@@ -22,7 +20,6 @@ import { useInstanceStore, type Instance } from "../instanceStore";
 type AppStores = {
     agent: ReturnType<typeof createAgentStore>;
     commandSuggestion: ReturnType<typeof createCommandSuggestionStore>;
-    directory: ReturnType<typeof createDirectoryStore>;
     findFile: ReturnType<typeof createFindFileStore>;
     message: ReturnType<typeof createMessageStore>;
     model: ReturnType<typeof createModelStore>;
@@ -34,7 +31,6 @@ type AppStores = {
 type AppStoreState = {
     agent: AgentStore;
     commandSuggestion: CommandSuggestionStore;
-    directory: DirectoryStore;
     findFile: FindFileStore;
     message: MessageStore;
     model: ModelStore;
@@ -48,7 +44,6 @@ function createStores(oc: OpencodeClient): AppStores {
     return {
         agent: createAgentStore(oc),
         commandSuggestion: createCommandSuggestionStore(oc),
-        directory: createDirectoryStore(oc),
         findFile: createFindFileStore(oc),
         message: createMessageStore(oc),
         model: createModelStore(oc),

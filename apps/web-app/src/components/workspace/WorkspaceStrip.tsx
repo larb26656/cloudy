@@ -1,15 +1,15 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { Plus } from "lucide-react";
 import { CreateWorkspaceDialog } from "./CreateWorkspaceDialog";
 import { WorkspaceItem } from "./WorkspaceItem";
 import { createWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
-import { getStore } from "@/stores/instance/instanceScopeHook";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import { useWorkspaceStore } from "@/stores/workspaceStore.new";
 
 interface WorkspaceStripProps {
   instanceId: string;
@@ -18,47 +18,21 @@ interface WorkspaceStripProps {
 
 export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogCloseCount, setDialogCloseCount] = useState(0);
 
   const [store] = useState(() =>
     instanceId ? createWorkspaceStore(instanceId) : null,
   );
 
-  const [workspaces, setWorkspaces] = useState<Workspace[]>(
-    () => store?.getState().workspaces ?? [],
-  );
-  const [currentWorkspaceId, setCurrentWorkspaceId] = useState<string | null>(
-    () => store?.getState().currentWorkspaceId ?? null,
-  );
-
-  useEffect(() => {
-    if (!store) return;
-    const unsub = store.subscribe(() => {
-      const state = store.getState();
-      setWorkspaces(state.workspaces);
-      setCurrentWorkspaceId(state.currentWorkspaceId);
-    });
-    return unsub;
-  }, [store]);
-
-  useEffect(() => {
-    if (!store) return;
-    setWorkspaces(store.getState().workspaces);
-    setCurrentWorkspaceId(store.getState().currentWorkspaceId);
-  }, [dialogCloseCount, store]);
-
-  const handleDialogOpenChange = (open: boolean) => {
-    setDialogOpen(open);
-    if (open === false) {
-      setDialogCloseCount((c) => c + 1);
-    }
-  };
+  const {
+    workspaces,
+    currentWorkspaceId,
+    setCurrentWorkspace,
+    deleteWorkspace,
+  } = useWorkspaceStore();
 
   const handleSelectWorkspace = useCallback(
     (workspace: Workspace) => {
-      store?.getState().setCurrentWorkspace(workspace.id);
-      const directoryStore = getStore("directory", workspace.instanceId);
-      directoryStore.getState().setSelectedDirectory(workspace.directory);
+      setCurrentWorkspace(workspace.id);
     },
     [store],
   );
@@ -66,7 +40,7 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
   const handleDeleteWorkspace = useCallback(
     (workspaceId: string) => {
       if (workspaces.length <= 1) return;
-      store?.getState().deleteWorkspace(workspaceId);
+      deleteWorkspace(workspaceId);
     },
     [store, workspaces.length],
   );
@@ -113,10 +87,7 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
         </div>
       </div>
 
-      <CreateWorkspaceDialog
-        open={dialogOpen}
-        onOpenChange={handleDialogOpenChange}
-      />
+      <CreateWorkspaceDialog open={dialogOpen} onOpenChange={setDialogOpen} />
     </>
   );
 }

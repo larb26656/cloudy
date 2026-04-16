@@ -1,11 +1,12 @@
 import { useEffect, useRef } from "react"
-import { useStore, useCurrentInstanceId } from "@/stores/instance"
+import { useCurrentInstanceId } from "@/stores/instance"
+import { useWorkspaceStore } from "@/stores/workspaceStore.new"
 import type { Event as OpencodeEvent } from "@opencode-ai/sdk/v2";
 import { getEvent } from "@/lib/opencode"
 import { handleEvent } from "@/events/eventRoute";
 
 export function useEventStream() {
-    const selectedDirectory = useStore("directory").selectedDirectory
+    const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory
     const instanceId = useCurrentInstanceId()
     const instanceIdRef = useRef(instanceId)
     instanceIdRef.current = instanceId

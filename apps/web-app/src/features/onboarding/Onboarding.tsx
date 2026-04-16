@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useInstanceStore, type Instance } from "@/stores/instanceStore";
-import { registerInstance, getStore } from "@/stores/instance/instanceScopeHook";
+import { registerInstance, getOC } from "@/stores/instance/instanceScopeHook";
 import {
   WORKSPACE_COLORS,
   type WorkspaceColor,
@@ -85,9 +85,13 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       if (!createdInstance) return;
       setIsSearching(true);
       try {
-        const directoryStore = getStore("directory", createdInstance.id);
-        const results = await directoryStore.getState().searchDirectories(workspaceDirectory);
-        setDirectorySuggestions(results);
+        const oc = getOC(createdInstance.id);
+        const result = await oc.find.files({
+          query: workspaceDirectory,
+          type: 'directory',
+          limit: 10,
+        });
+        setDirectorySuggestions(result.data ?? []);
       } finally {
         setIsSearching(false);
       }
@@ -125,9 +129,6 @@ export function Onboarding({ onComplete }: OnboardingProps) {
       if (workspace) {
         workspaceStore?.getState().setCurrentWorkspace(workspace.id);
       }
-
-      const directoryStore = getStore("directory", createdInstance.id);
-      directoryStore.getState().setSelectedDirectory(workspaceDirectory.trim());
 
       onComplete?.(createdInstance);
     } catch {

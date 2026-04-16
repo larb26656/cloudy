@@ -7,7 +7,8 @@ import {
 } from "./extensions/suggestion";
 import { shouldShowSlashCommand } from "@/lib/command";
 import { useEffect, useMemo } from "react";
-import { useStore, useCurrentInstanceId } from "@/stores/instance";
+import { useCurrentInstanceId } from "@/stores/instance";
+import { useWorkspaceStore } from "@/stores/workspaceStore.new";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
 
@@ -38,7 +39,7 @@ export function ChatInputEditor({
   placeholder,
   disabled,
 }: ChatInputEditorProps) {
-  const { selectedDirectory } = useStore("directory");
+  const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory;
   const instanceId = useCurrentInstanceId();
 
   const extensions = useMemo(() => {

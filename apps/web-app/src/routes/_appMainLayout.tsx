@@ -17,6 +17,7 @@ import { useStore } from "@/stores/instance";
 import { useInstanceStore } from "@/stores/instanceStore";
 import { registerInstance } from "@/stores/instance/instanceScopeHook";
 import { Onboarding } from "@/features/onboarding/Onboarding";
+import { useWorkspaceStore } from "@/stores/workspaceStore.new";
 
 export const Route = createFileRoute("/_appMainLayout")({
   component: AppMainLayout,
@@ -32,7 +33,7 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
 
-  const selectedDirectory = useStore("directory", (s) => s.selectedDirectory, activeInstanceId);
+  const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory;
   const loadSessions = useStore("session", (s) => s.loadSessions, activeInstanceId);
   const loadQuestions = useStore("question", (s) => s.loadQuestions, activeInstanceId);
   const loadPermissions = useStore("permission", (s) => s.loadPermissions, activeInstanceId);

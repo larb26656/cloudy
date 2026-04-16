@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useStore } from "@/stores/instance";
+import { useWorkspaceStore } from "@/stores/workspaceStore.new";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +21,7 @@ interface QuestionDialogProps {
 export function QuestionDialog({ open, onOpenChange }: QuestionDialogProps) {
   const { questions, rejectQuestion } = useStore("question");
   const { setActiveQuestion, sessions } = useStore("session");
-  const { selectedDirectory } = useStore("directory");
+  const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory;
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 

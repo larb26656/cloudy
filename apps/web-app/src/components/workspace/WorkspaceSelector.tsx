@@ -12,7 +12,6 @@ import {
   createWorkspaceStore,
   type Workspace,
 } from "@/stores/workspaceStore";
-import { getStore } from "@/stores/instance/instanceScopeHook";
 import { cn } from "@/lib/utils";
 
 interface WorkspaceSelectorProps {
@@ -63,8 +62,6 @@ export function WorkspaceSelector({ instanceId, className }: WorkspaceSelectorPr
   const handleSelectWorkspace = useCallback(
     (workspace: Workspace) => {
       store?.getState().setCurrentWorkspace(workspace.id);
-      const directoryStore = getStore("directory", workspace.instanceId);
-      directoryStore.getState().setSelectedDirectory(workspace.directory);
     },
     [store],
   );
