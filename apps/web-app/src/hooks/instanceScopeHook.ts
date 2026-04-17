@@ -1,4 +1,4 @@
-import { resolveInstance, type AppStores, type AppStoreState, type InstanceDetail } from "@/lib/instace-registry";
+import { resolveInstance, type AppStores, type AppStoreState, type InstanceDetail } from "@/lib/instance-registry";
 import type { OCClient } from "@/lib/opencode";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 

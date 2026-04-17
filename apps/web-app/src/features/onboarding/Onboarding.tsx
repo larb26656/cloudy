@@ -17,7 +17,7 @@ import { WORKSPACE_COLORS, type WorkspaceColor } from "@/stores/workspaceStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { createOpencodeClient } from "@opencode-ai/sdk/v2/client";
-import { registerInstance } from "@/lib/instace-registry";
+import { registerInstance } from "@/lib/instance-registry";
 
 type OnboardingProps = {
   onComplete?: () => void;

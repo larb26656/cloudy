@@ -6,7 +6,7 @@ import { useInstanceStore, type Instance } from "@/stores/instanceStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { Plus, Pencil, Trash2, Check } from "lucide-react";
 import { SettingsChildLayout } from "../SettingsChildLayout";
-import { registerInstance } from "@/lib/instace-registry";
+import { registerInstance } from "@/lib/instance-registry";
 
 export function InstanceSection() {
   const { instances, addInstance, removeInstance, updateInstance } =
