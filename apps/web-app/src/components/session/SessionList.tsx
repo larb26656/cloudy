@@ -1,7 +1,7 @@
 import { SessionItem } from "./SessionItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { ErrorState } from "@/components/ui/error-state";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
@@ -31,7 +31,8 @@ export function SessionList({ searchQuery }: SessionListProps) {
     selectSession,
     createTempSession,
   } = useStore("session");
-  const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory;
+  const selectedDirectory =
+    useWorkspaceStore().getCurrentWorkspace()?.directory;
 
   const filteredSessions = sessions
     .filter((session) => !session.parentID)

@@ -9,11 +9,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeviceType } from "@/hooks";
 import { useChatUIStore } from "@/stores";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import { useEffect, useState } from "react";
 import { RefreshCw, Sun, Moon, PanelRight, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModelSelector } from "@/components/chat/ModelSelector";
+import { SidebarToggle } from "@/components/layout/SidebarToggle";
 
 type SnippetType = "idea" | "memory" | "artifact";
 
@@ -55,6 +56,7 @@ export default function ChatPage() {
   return (
     <>
       <Header
+        prefixActions={[<SidebarToggle />]}
         centerSlot={isMobile ? <ModelSelector /> : undefined}
         actions={[
           <TokenUsageIndicator key="token" sessionId={selectedSessionId} />,

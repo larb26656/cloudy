@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import {
   Dialog,
@@ -21,8 +21,11 @@ interface QuestionDialogProps {
 export function QuestionDialog({ open, onOpenChange }: QuestionDialogProps) {
   const { questions, rejectQuestion } = useStore("question");
   const { setActiveQuestion, sessions } = useStore("session");
-  const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory;
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const selectedDirectory =
+    useWorkspaceStore().getCurrentWorkspace()?.directory;
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const questionList = Object.entries(questions);
@@ -56,7 +59,9 @@ export function QuestionDialog({ open, onOpenChange }: QuestionDialogProps) {
     }
   };
 
-  const currentQuestions = selectedSessionId ? questions[selectedSessionId] : null;
+  const currentQuestions = selectedSessionId
+    ? questions[selectedSessionId]
+    : null;
   const session = selectedSessionId
     ? sessions.find((s) => s.id === selectedSessionId)
     : null;
@@ -86,17 +91,19 @@ export function QuestionDialog({ open, onOpenChange }: QuestionDialogProps) {
                     className={cn(
                       "w-full flex items-center justify-between p-3 rounded-lg border transition-colors",
                       "hover:bg-muted hover:border-muted-foreground/20",
-                      "text-left"
+                      "text-left",
                     )}
                   >
                     <div className="flex items-center gap-3">
                       <MessageCircleQuestion className="w-4 h-4 text-amber-500" />
                       <div className="flex flex-col">
                         <span className="text-sm font-medium line-clamp-1">
-                          {sessionQuestions[0].questions[0]?.header || "Question"}
+                          {sessionQuestions[0].questions[0]?.header ||
+                            "Question"}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {sessionQuestions.length} question{sessionQuestions.length !== 1 ? "s" : ""}
+                          {sessionQuestions.length} question
+                          {sessionQuestions.length !== 1 ? "s" : ""}
                         </span>
                       </div>
                     </div>
@@ -124,16 +131,15 @@ export function QuestionDialog({ open, onOpenChange }: QuestionDialogProps) {
             <ScrollArea className="h-[200px] pr-4">
               <div className="space-y-3">
                 {currentQuestions?.map((q) => (
-                  <div
-                    key={q.id}
-                    className="p-3 rounded-lg border bg-muted/30"
-                  >
+                  <div key={q.id} className="p-3 rounded-lg border bg-muted/30">
                     <div className="flex items-start gap-2">
                       <MessageCircleQuestion className="w-4 h-4 text-amber-500 mt-0.5" />
                       <div className="flex-1 min-w-0 space-y-2">
                         {q.questions.map((questionInfo, qIdx) => (
                           <div key={qIdx}>
-                            <p className="text-sm font-medium mb-1">{questionInfo.question}</p>
+                            <p className="text-sm font-medium mb-1">
+                              {questionInfo.question}
+                            </p>
                             {questionInfo.options.length > 0 && (
                               <div className="flex flex-wrap gap-1">
                                 {questionInfo.options.map((option, optIdx) => (

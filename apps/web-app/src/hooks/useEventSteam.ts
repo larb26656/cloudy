@@ -1,12 +1,14 @@
 import { useEffect } from "react"
 import { useWorkspaceStore } from "@/stores/workspaceStore"
 import type { Event as OpencodeEvent } from "@opencode-ai/sdk/v2";
-import { getEvent } from "@/lib/opencode"
 import { handleEvent } from "@/events/eventRoute";
 import { useInstanceStore, type Instance } from "@/stores/instanceStore";
+import { getOC } from "./instanceScopeHook";
 
 export function connectEvent(instance: Instance, directory: string) {
-    const es: EventSource = getEvent({ directory });
+    const oc = getOC(instance.id);
+    const es: EventSource = oc.getEvent({ directory });
+
 
     es.onmessage = (event: MessageEvent<string>) => {
         try {

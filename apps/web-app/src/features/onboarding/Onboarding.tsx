@@ -1,4 +1,4 @@
-import { useState, useCallback, memo } from "react";
+import { useState, useCallback, memo, useMemo } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -12,19 +12,20 @@ import {
 } from "@/components/ui/field";
 import { ColorPicker } from "@/components/ui/color-picker/ColorPicker";
 import { DirectoryCombobox } from "@/components/workspace/DirectoryCombobox";
-import { useInstanceStore, type Instance } from "@/stores/instanceStore";
-import { registerInstance } from "@/stores/instance/instanceScopeHook";
+import { useInstanceStore } from "@/stores/instanceStore";
 import { WORKSPACE_COLORS, type WorkspaceColor } from "@/stores/workspaceStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
-import { cn } from "@/lib/utils";
+import { useOnboardingStore } from "@/stores/onboardingStore";
+import { createOpencodeClient } from "@opencode-ai/sdk/v2/client";
+import { registerInstance } from "@/lib/instace-registry";
 
 type OnboardingProps = {
-  onComplete?: (instance: Instance) => void;
+  onComplete?: () => void;
 };
 
-type Step = "welcome" | "instance" | "workspace";
+type Step = "welcome" | "instance" | "workspace" | "all-set";
 
-const STEPS: Step[] = ["welcome", "instance", "workspace"];
+const STEPS: Step[] = ["welcome", "instance", "workspace", "all-set"];
 
 const instanceSchema = z.object({
   name: z.string().min(1, "Please enter an instance name"),
@@ -52,10 +53,7 @@ const StepIndicator = memo(function StepIndicator({
       {STEPS.map((step, index) => (
         <div
           key={step}
-          className={cn(
-            "w-2 h-2 rounded-full transition-all duration-300",
-            index <= currentIndex ? "bg-foreground" : "bg-muted-foreground/30",
-          )}
+          className={`w-2 h-2 rounded-full transition-all duration-300 ${index <= currentIndex ? "bg-foreground" : "bg-muted-foreground/30"}`}
         />
       ))}
     </div>
@@ -66,15 +64,17 @@ const WelcomeStep = memo(function WelcomeStep() {
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src="/onboard/greeting.png"
+        src="/mascot/greeting.png"
         alt="Welcome"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
-      <h2 className="text-3xl font-semibold text-center">Welcome to Cloudy</h2>
-      <p className="text-base mt-2 text-center text-muted-foreground">
+      <h2 className="text-3xl font-semibold text-center font-content">
+        Welcome to Cloudy
+      </h2>
+      <p className="text-base mt-2 text-center text-muted-foreground font-content">
         Your AI agent sidekick for chat, ideas, memories, and artifacts.
       </p>
-      <div className="flex flex-col items-center gap-4 mt-6 w-full">
+      <div className="flex flex-col items-center gap-4 mt-6 w-full font-content">
         <div className="flex flex-col gap-2 text-sm text-muted-foreground">
           <div className="flex items-center gap-2">
             <span className="text-foreground">✨</span>
@@ -104,14 +104,14 @@ const InstanceStep = memo(function InstanceStep({
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src="onboard/connect-server.png"
+        src="/mascot/connect-server.png"
         alt="Instance"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
-      <h2 className="text-2xl font-semibold text-center">
+      <h2 className="text-2xl font-semibold text-center font-content">
         Connect to OpenCode
       </h2>
-      <p className="text-sm mt-2 text-center text-muted-foreground">
+      <p className="text-sm mt-2 text-center text-muted-foreground font-content">
         First, connect to your OpenCode instance
       </p>
       <form
@@ -175,23 +175,25 @@ const InstanceStep = memo(function InstanceStep({
 
 const WorkspaceStep = memo(function WorkspaceStep({
   form,
-  createdInstance,
+  oc,
   onSubmit,
 }: {
   form: ReturnType<typeof useForm<WorkspaceFormData>>;
-  createdInstance: Instance | null;
+  oc: ReturnType<typeof createOpencodeClient> | null;
   onSubmit: (data: WorkspaceFormData) => void;
 }) {
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src="onboard/create-workspace.png"
+        src="/mascot/create-workspace.png"
         alt="Workspace"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
-      <h2 className="text-2xl font-semibold text-center">Create Workspace</h2>
-      <p className="text-sm mt-2 text-center text-muted-foreground">
-        Workspaces help organize your chats and memories
+      <h2 className="text-2xl font-semibold text-center font-content">
+        Create Workspace
+      </h2>
+      <p className="text-sm mt-2 text-center text-muted-foreground font-content">
+        Workspaces help organize your chats and sessions
       </p>
       <form
         id="workspace-form"
@@ -221,7 +223,7 @@ const WorkspaceStep = memo(function WorkspaceStep({
           />
 
           <DirectoryCombobox
-            instanceId={createdInstance?.id}
+            oc={oc ?? undefined}
             control={form.control}
             errors={form.formState.errors}
           />
@@ -254,14 +256,31 @@ const WorkspaceStep = memo(function WorkspaceStep({
   );
 });
 
+const AllSetStep = memo(function AllSetStep() {
+  return (
+    <div className="w-full max-w-md flex flex-col items-center">
+      <img
+        src="/mascot/happy.png"
+        alt="Welcome"
+        className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
+      />
+      <h2 className="text-3xl font-semibold text-center font-content">
+        You're all set
+      </h2>
+      <p className="text-base mt-2 text-center text-muted-foreground font-content">
+        Your workspace is ready to go. Start chatting, organizing, and
+        building&mdash;your AI sidekick is waiting.
+      </p>
+    </div>
+  );
+});
+
 export function Onboarding({ onComplete }: OnboardingProps) {
   const [step, setStep] = useState<Step>("welcome");
-  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
 
-  const [createdInstance, setCreatedInstance] = useState<Instance | null>(null);
   const workspaceStore = useWorkspaceStore();
-
   const { addInstance } = useInstanceStore();
+  const { setHasCompletedOnboarding } = useOnboardingStore();
 
   const instanceForm = useForm<InstanceFormData>({
     resolver: zodResolver(instanceSchema),
@@ -280,28 +299,36 @@ export function Onboarding({ onComplete }: OnboardingProps) {
     },
   });
 
-  const handleNextFromInstance = useCallback(
-    (data: InstanceFormData) => {
-      const instance = addInstance({
-        name: data.name.trim(),
-        endpoint: data.endpoint.trim(),
-      });
+  const tempOC = useMemo(() => {
+    if (step !== "workspace") return null;
+    const endpoint = instanceForm.getValues("endpoint");
+    return createOpencodeClient({ baseUrl: endpoint });
+  }, [step, instanceForm]);
 
-      registerInstance(instance);
-      setCreatedInstance(instance);
-      setStep("workspace");
-    },
-    [addInstance],
-  );
+  const handleBack = useCallback(() => {
+    const currentIndex = STEPS.indexOf(step);
+    if (currentIndex > 0) {
+      setStep(STEPS[currentIndex - 1]);
+    }
+  }, [step]);
+
+  const handleNextFromInstance = useCallback(() => {
+    setStep("workspace");
+  }, []);
 
   const handleCreateWorkspace = useCallback(
     (data: WorkspaceFormData) => {
-      if (!createdInstance) return;
-
-      setIsCreatingWorkspace(true);
       try {
+        const instanceData = instanceForm.getValues();
+        const instance = addInstance({
+          name: instanceData.name.trim(),
+          endpoint: instanceData.endpoint.trim(),
+        });
+
+        registerInstance(instance);
+
         workspaceStore.createWorkspace(
-          createdInstance.id,
+          instance.id,
           {
             name: data.name.trim(),
             color: data.color as WorkspaceColor,
@@ -310,33 +337,57 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           true,
         );
 
-        onComplete?.(createdInstance);
+        console.log("set step");
+        setStep("all-set");
       } catch {
         workspaceForm.setError("root", {
           message: "Failed to create workspace",
         });
-      } finally {
-        setIsCreatingWorkspace(false);
       }
     },
-    [createdInstance, workspaceStore, onComplete, workspaceForm],
+    [addInstance, instanceForm, workspaceStore, workspaceForm, onComplete],
   );
 
-  const handleFooterButtonClick = useCallback(async () => {
-    if (step === "welcome") {
-      setStep("instance");
-    } else if (step === "instance") {
-      await instanceForm.handleSubmit(handleNextFromInstance)();
-    } else if (step === "workspace") {
-      await workspaceForm.handleSubmit(handleCreateWorkspace)();
+  const handleGoToWorkspace = useCallback(() => {
+    setHasCompletedOnboarding(true);
+    setTimeout(() => {
+      onComplete?.();
+    }, 0);
+  }, [onComplete, setHasCompletedOnboarding]);
+
+  const handleNext = useCallback(() => {
+    setStep("instance");
+  }, []);
+
+  const handleSubmitInstance = useCallback(() => {
+    instanceForm.handleSubmit(handleNextFromInstance)();
+  }, [instanceForm, handleNextFromInstance]);
+
+  const handleSubmitWorkspace = useCallback(() => {
+    workspaceForm.handleSubmit(handleCreateWorkspace)();
+  }, [workspaceForm, handleCreateWorkspace]);
+
+  const STEP_CONFIG: Record<
+    Step,
+    {
+      showBack: boolean;
+      text: string;
+      onClick: () => void;
     }
-  }, [
-    step,
-    instanceForm,
-    workspaceForm,
-    handleNextFromInstance,
-    handleCreateWorkspace,
-  ]);
+  > = {
+    welcome: { showBack: false, text: "Next →", onClick: handleNext },
+    instance: { showBack: true, text: "Next →", onClick: handleSubmitInstance },
+    workspace: {
+      showBack: true,
+      text: "Create Workspace →",
+      onClick: handleSubmitWorkspace,
+    },
+    "all-set": {
+      showBack: false,
+      text: "Go to Workspace →",
+      onClick: handleGoToWorkspace,
+    },
+  };
 
   return (
     <div className="flex flex-col h-full w-[400px]">
@@ -348,25 +399,34 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         {step === "workspace" && (
           <WorkspaceStep
             form={workspaceForm}
-            createdInstance={createdInstance}
+            oc={tempOC}
             onSubmit={handleCreateWorkspace}
           />
         )}
+        {step === "all-set" && <AllSetStep />}
       </div>
 
       <div className="shrink-0 px-6 pt-4 pb-6 flex flex-col items-center gap-4">
         <StepIndicator current={step} />
-        <Button
-          onClick={handleFooterButtonClick}
-          className="w-full"
-          size="lg"
-          disabled={step === "workspace" && isCreatingWorkspace}
-        >
-          {step === "welcome" && "Get Started →"}
-          {step === "instance" && "Next →"}
-          {step === "workspace" &&
-            (isCreatingWorkspace ? "Creating..." : "Create Workspace →")}
-        </Button>
+        <div className="w-full flex items-center gap-3">
+          {STEP_CONFIG[step].showBack && (
+            <Button
+              variant="ghost"
+              onClick={handleBack}
+              className="flex-1"
+              size="lg"
+            >
+              ← Back
+            </Button>
+          )}
+          <Button
+            onClick={STEP_CONFIG[step].onClick}
+            className="flex-1"
+            size="lg"
+          >
+            {STEP_CONFIG[step].text}
+          </Button>
+        </div>
       </div>
     </div>
   );

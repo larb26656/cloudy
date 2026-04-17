@@ -1,5 +1,5 @@
-import { createDefaultTitle, getErrorMessage, type SdkError } from "@/lib/opencode";
-import type { OpencodeClient, QuestionRequest, Session, SessionStatus } from "@opencode-ai/sdk/v2";
+import { createDefaultTitle, getErrorMessage, type SdkError, type OCClient } from "@/lib/opencode";
+import type { QuestionRequest, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 
 const PAGE_SIZE = 20;
@@ -45,7 +45,7 @@ function getNextCursor(sessions: Session[]): number | undefined {
     return last.time.created;
 }
 
-export const createSessionStore = (oc: OpencodeClient) => create<SessionStore>()(
+export const createSessionStore = (oc: OCClient) => create<SessionStore>()(
     (set, get) => ({
         sessions: [],
         selectedSessionId: null,

@@ -210,6 +210,10 @@
   }
 }
 
+.h-dvh {
+  height: 100dvh;
+}
+
 [data-slot="field-label"].required::after {
   content: " *";
   color: var(--destructive);

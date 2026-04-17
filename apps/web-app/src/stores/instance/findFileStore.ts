@@ -1,7 +1,5 @@
 import { create } from "zustand";
-import { getErrorMessage } from "@/lib/opencode";
-import type { SdkError } from "@/lib/opencode";
-import type { OpencodeClient } from "@opencode-ai/sdk/v2";
+import { getErrorMessage, type SdkError, type OCClient } from "@/lib/opencode";
 
 export type FindType = "file" | "directory";
 
@@ -22,7 +20,7 @@ export type FindFileStoreActions = {
 
 export type FindFileStore = FindFileStoreState & FindFileStoreActions
 
-export const createFindFileStore = (oc: OpencodeClient) => create<FindFileStore>()(
+export const createFindFileStore = (oc: OCClient) => create<FindFileStore>()(
   (set) => ({
     results: [],
     isLoading: false,

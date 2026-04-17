@@ -1,6 +1,6 @@
-import { getErrorMessage, type ChatInputContent, type SdkError } from "@/lib/opencode";
+import { getErrorMessage, type ChatInputContent, type SdkError, type OCClient } from "@/lib/opencode";
 import type { ModelConfig } from "@/types";
-import type { AgentPartInput, FilePartInput, Message, OpencodeClient, Part, SessionMessagesResponse, SubtaskPartInput, TextPartInput } from "@opencode-ai/sdk/v2";
+import type { AgentPartInput, FilePartInput, Message, Part, SessionMessagesResponse, SubtaskPartInput, TextPartInput } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 
 export type MessageStoreState = {
@@ -57,7 +57,7 @@ export function buildParts(
     return [textPart, ...mentionParts];
 }
 
-export const createMessageStore = (oc: OpencodeClient) => create<MessageStore>()(
+export const createMessageStore = (oc: OCClient) => create<MessageStore>()(
     (set) => ({
         messages: {},
         streamingMessageIds: {},

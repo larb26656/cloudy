@@ -6,7 +6,7 @@ import MentionCommandList, { type CommandListRef } from './CommandList'
 import MentionList from './MentionList'
 import type { SuggestionKeyDownProps, SuggestionProps } from '@tiptap/suggestion'
 import type { MentionNodeAttrs } from '@tiptap/extension-mention'
-import { getStore } from '@/stores/instance'
+import { getStore } from '@/hooks/instanceScopeHook'
 
 type MentionItem = string
 

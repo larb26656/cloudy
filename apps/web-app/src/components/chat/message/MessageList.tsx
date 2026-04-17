@@ -2,7 +2,7 @@
 import { useEffect, useRef, useMemo, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import type { Message } from "@/types/message";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";

@@ -1,4 +1,4 @@
-import { getStore } from "@/stores/instance"
+import { getStore } from "@/hooks/instanceScopeHook";
 import { setHeartbeatTimer } from "@/stores/instance/instanceActivityStore"
 import type { Event, QuestionRequest, PermissionRequest, SessionStatus, Message } from "@opencode-ai/sdk/v2";
 

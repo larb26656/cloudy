@@ -1,8 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { getErrorMessage } from "@/lib/opencode";
+import { getErrorMessage, type OCClient } from "@/lib/opencode";
 import type { Agent } from "@/types";
-import type { OpencodeClient } from "@opencode-ai/sdk/v2";
 
 export type AgentStoreState = {
   selectedAgent: string | null;
@@ -18,7 +17,7 @@ export type AgentStoreActions = {
 
 export type AgentStore = AgentStoreState & AgentStoreActions
 
-export const createAgentStore = (oc: OpencodeClient) => create<AgentStore>()(
+export const createAgentStore = (oc: OCClient) => create<AgentStore>()(
   persist(
     (set) => ({
       selectedAgent: null,

@@ -1,5 +1,5 @@
-import { getErrorMessage, type SdkError } from "@/lib/opencode";
-import type { OpencodeClient, PermissionRequest } from "@opencode-ai/sdk/v2";
+import { getErrorMessage, type SdkError, type OCClient } from "@/lib/opencode";
+import type { PermissionRequest } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -22,7 +22,7 @@ export type PermissionStoreActions = {
 
 export type PermissionStore = PermissionStoreState & PermissionStoreActions
 
-export const createPermissionStore = (oc: OpencodeClient) => create<PermissionStore>()(
+export const createPermissionStore = (oc: OCClient) => create<PermissionStore>()(
     persist(
         (set, get) => ({
             permissions: {},

@@ -5,7 +5,7 @@ import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
 import type { ModelConfig } from "../../../types";
 import { Button } from "@/components/ui/button";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import type { ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "../ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";

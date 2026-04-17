@@ -9,35 +9,44 @@ import {
   ComboboxList,
 } from "@/components/ui/combobox";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
-import { getOC } from "@/stores/instance/instanceScopeHook";
+import type { OpencodeClient } from "@opencode-ai/sdk/v2/client";
+import { getOC } from "@/hooks/instanceScopeHook";
 
 async function searchDirectories(
-  instanceId: string,
-  query: string
+  oc: OpencodeClient,
+  query: string,
 ): Promise<string[]> {
-  const oc = getOC(instanceId);
   const result = await oc.find.files({
     query,
     type: "directory",
     limit: 10,
   });
+
+  if (result.error) {
+    console.error(result.error);
+    return [];
+  }
+
   return result.data ?? [];
 }
 
 interface DirectoryComboboxProps<T extends FieldValues = FieldValues> {
-  instanceId: string | undefined;
+  instanceId?: string;
+  oc?: OpencodeClient;
   control: Control<T>;
   errors: FieldErrors<T>;
 }
 
 export function DirectoryCombobox<T extends FieldValues>({
   instanceId,
+  oc,
   control,
   errors,
 }: DirectoryComboboxProps<T>) {
   return (
     <DirectoryComboboxInner
       instanceId={instanceId}
+      oc={oc}
       control={control as Control<FieldValues>}
       errors={errors as FieldErrors<FieldValues>}
     />
@@ -46,10 +55,12 @@ export function DirectoryCombobox<T extends FieldValues>({
 
 function DirectoryComboboxInner({
   instanceId,
+  oc: ocProp,
   control,
   errors,
 }: {
-  instanceId: string | undefined;
+  instanceId?: string;
+  oc?: OpencodeClient;
   control: Control<FieldValues>;
   errors: FieldErrors<FieldValues>;
 }) {
@@ -79,7 +90,8 @@ function DirectoryComboboxInner({
             }}
             onInputValueChange={(inputValue) => {
               field.onChange(inputValue);
-              if (!inputValue.trim() || !instanceId) {
+              const oc = ocProp ?? (instanceId ? getOC(instanceId) : undefined);
+              if (!inputValue.trim() || !oc) {
                 setSuggestions([]);
                 return;
               }
@@ -87,7 +99,7 @@ function DirectoryComboboxInner({
                 clearTimeout(debounceRef.current);
               }
               debounceRef.current = setTimeout(async () => {
-                const results = await searchDirectories(instanceId, inputValue);
+                const results = await searchDirectories(oc, inputValue);
                 setSuggestions(results);
               }, 300);
             }}
@@ -114,7 +126,8 @@ function DirectoryComboboxInner({
                   }}
                   className="w-full px-3 py-2 text-left text-sm hover:bg-muted border-t"
                 >
-                  Use: <span className="font-mono">{field.value as string}</span>
+                  Use:{" "}
+                  <span className="font-mono">{field.value as string}</span>
                 </button>
               )}
             </ComboboxContent>

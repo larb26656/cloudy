@@ -1,4 +1,4 @@
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import { Button } from "@/components/ui/button";
 import { Shield, XIcon } from "lucide-react";
 
@@ -7,7 +7,8 @@ interface PermissionBannerProps {
 }
 
 export function PermissionBanner({ onOpenDialog }: PermissionBannerProps) {
-  const { permissions, dismissed, dismissNotification } = useStore("permission");
+  const { permissions, dismissed, dismissNotification } =
+    useStore("permission");
 
   const permissionCount = Object.values(permissions).flat().length;
 
@@ -20,7 +21,8 @@ export function PermissionBanner({ onOpenDialog }: PermissionBannerProps) {
       <div className="flex items-center gap-2 text-blue-800 dark:text-blue-200">
         <Shield className="w-4 h-4" />
         <span className="text-sm font-medium">
-          {permissionCount} pending permission{permissionCount !== 1 ? "s" : ""} waiting for your response
+          {permissionCount} pending permission{permissionCount !== 1 ? "s" : ""}{" "}
+          waiting for your response
         </span>
       </div>
       <div className="flex items-center gap-2">

@@ -1,4 +1,4 @@
-import { getStore, getOC } from "@/stores/instance";
+import { getOC, getStore } from "@/hooks/instanceScopeHook";
 import type { ChatInputContent } from "./opencode";
 import type { ModelConfig } from "@/types";
 

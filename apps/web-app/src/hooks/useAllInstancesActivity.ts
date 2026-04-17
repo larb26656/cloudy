@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useInstanceStore } from "@/stores/instanceStore";
-import { getStore } from "@/stores/instance";
 import type { InstanceActivityStore } from "@/stores/instance/instanceActivityStore";
+import { getStore } from "./instanceScopeHook";
 
 export type InstanceActivityData = {
     instanceId: string;

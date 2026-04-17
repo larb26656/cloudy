@@ -6,7 +6,7 @@ import {
   InputGroupAddon,
 } from "@/components/ui/input-group";
 import { SidebarNav } from "./SidebarNav";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 
 interface SidebarHeaderProps {
   onSearchChange: (query: string) => void;

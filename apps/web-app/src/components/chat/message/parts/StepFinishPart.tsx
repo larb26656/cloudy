@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatTime, formatNumber } from "@/lib/date";
 import { useFileCacheStore } from "@/stores/fileCacheStore";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import { traverseByParentId } from "@/lib/message/message";
 import { extractFromMessages } from "@/lib/message/file-summarize";
 import { FileUpdateViewerDialog } from "@/components/file-update-viewer/FileUpdateViewerDialog";

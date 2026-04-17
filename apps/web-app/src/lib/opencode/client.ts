@@ -1,3 +1,6 @@
+import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk/v2/client";
+import { ensureTrailingSlash } from "../url";
+
 export type SdkError = {
     message?: string;
     data?: unknown;
@@ -16,5 +19,30 @@ export function getErrorMessage(error: SdkError): string {
     return 'Unknown error';
 }
 
+export type OCClient = OpencodeClient & {
+    getEvent: ({ directory }: { directory: string }) => EventSource
+}
+
+export function createOcClient({ baseUrl }: { baseUrl: string }): OCClient {
+    const oc = createOpencodeClient({
+        baseUrl: baseUrl
+    }) as OCClient;
+
+    oc.getEvent = ({ directory }: { directory: string }) => {
+
+        const url = new URL("event", ensureTrailingSlash(baseUrl));
+
+        if (directory) {
+
+            url.searchParams.set("directory", directory);
+
+        }
+
+        return new EventSource(url);
+
+    };
+
+    return oc as OCClient;
+}
 
 

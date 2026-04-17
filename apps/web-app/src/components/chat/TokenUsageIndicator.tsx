@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import { formatNumber } from "@/lib/date";
 import {
   Tooltip,
@@ -16,7 +16,17 @@ export function TokenUsageIndicator({ sessionId }: TokenUsageIndicatorProps) {
   const { messages } = useStore("message");
   const { selectedSessionId } = useStore("session");
 
-  const { totalTokens, totalCost, inputTokens, outputTokens, reasoningTokens, cacheReadTokens, cacheWriteTokens, percent, sessionIdToUse } = useMemo(() => {
+  const {
+    totalTokens,
+    totalCost,
+    inputTokens,
+    outputTokens,
+    reasoningTokens,
+    cacheReadTokens,
+    cacheWriteTokens,
+    percent,
+    sessionIdToUse,
+  } = useMemo(() => {
     const currentSessionId = sessionId ?? selectedSessionId;
     const msgs = currentSessionId ? messages[currentSessionId] : [];
 
@@ -114,9 +124,7 @@ export function TokenUsageIndicator({ sessionId }: TokenUsageIndicatorProps) {
       </TooltipTrigger>
       <TooltipContent className="w-auto">
         <div className="space-y-1.5 text-xs">
-          <div className="font-semibold text-foreground mb-2">
-            Token Usage
-          </div>
+          <div className="font-semibold text-foreground mb-2">Token Usage</div>
           {totalCost > 0 && (
             <div className="flex justify-between gap-8">
               <span className="text-muted-foreground">Total Cost</span>
@@ -142,19 +150,25 @@ export function TokenUsageIndicator({ sessionId }: TokenUsageIndicatorProps) {
           {reasoningTokens > 0 && (
             <div className="flex justify-between gap-8">
               <span className="text-muted-foreground">Reasoning</span>
-              <span className="font-medium">{formatNumber(reasoningTokens)}</span>
+              <span className="font-medium">
+                {formatNumber(reasoningTokens)}
+              </span>
             </div>
           )}
           {cacheReadTokens > 0 && (
             <div className="flex justify-between gap-8">
               <span className="text-muted-foreground">Cache Read</span>
-              <span className="font-medium">{formatNumber(cacheReadTokens)}</span>
+              <span className="font-medium">
+                {formatNumber(cacheReadTokens)}
+              </span>
             </div>
           )}
           {cacheWriteTokens > 0 && (
             <div className="flex justify-between gap-8">
               <span className="text-muted-foreground">Cache Write</span>
-              <span className="font-medium">{formatNumber(cacheWriteTokens)}</span>
+              <span className="font-medium">
+                {formatNumber(cacheWriteTokens)}
+              </span>
             </div>
           )}
           {selectedModel && (
@@ -162,7 +176,9 @@ export function TokenUsageIndicator({ sessionId }: TokenUsageIndicatorProps) {
               <div className="border-t border-border my-1" />
               <div className="flex justify-between gap-8">
                 <span className="text-muted-foreground">Model Limit</span>
-                <span className="font-medium">{formatNumber(selectedModel.maxTokens ?? 0)}</span>
+                <span className="font-medium">
+                  {formatNumber(selectedModel.maxTokens ?? 0)}
+                </span>
               </div>
               <div className="flex justify-between gap-8">
                 <span className="text-muted-foreground">Session Model</span>

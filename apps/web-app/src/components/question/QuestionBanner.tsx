@@ -1,4 +1,4 @@
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import { Button } from "@/components/ui/button";
 import { MessageCircleQuestion, XIcon } from "lucide-react";
 
@@ -20,7 +20,8 @@ export function QuestionBanner({ onOpenDialog }: QuestionBannerProps) {
       <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
         <MessageCircleQuestion className="w-4 h-4" />
         <span className="text-sm font-medium">
-          {questionCount} pending question{questionCount !== 1 ? "s" : ""} waiting for your response
+          {questionCount} pending question{questionCount !== 1 ? "s" : ""}{" "}
+          waiting for your response
         </span>
       </div>
       <div className="flex items-center gap-2">

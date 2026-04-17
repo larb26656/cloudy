@@ -10,10 +10,12 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as OnboardLayoutRouteImport } from './routes/_onboardLayout'
 import { Route as AppMainLayoutRouteImport } from './routes/_appMainLayout'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/_appMainLayout/index'
 import { Route as SettingsInstanceRouteImport } from './routes/settings/instance'
 import { Route as IdeasIdRouteImport } from './routes/ideas.$id'
+import { Route as OnboardLayoutOnboardRouteImport } from './routes/_onboardLayout/onboard'
 import { Route as AppMainLayoutMemoryRouteImport } from './routes/_appMainLayout/memory'
 import { Route as AppMainLayoutDashboardRouteImport } from './routes/_appMainLayout/dashboard'
 import { Route as AppMainLayoutArtifactRouteImport } from './routes/_appMainLayout/artifact'
@@ -23,6 +25,10 @@ import { Route as AppMainLayoutIdeasNewRouteImport } from './routes/_appMainLayo
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardLayoutRoute = OnboardLayoutRouteImport.update({
+  id: '/_onboardLayout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
@@ -43,6 +49,11 @@ const IdeasIdRoute = IdeasIdRouteImport.update({
   id: '/ideas/$id',
   path: '/ideas/$id',
   getParentRoute: () => rootRouteImport,
+} as any)
+const OnboardLayoutOnboardRoute = OnboardLayoutOnboardRouteImport.update({
+  id: '/onboard',
+  path: '/onboard',
+  getParentRoute: () => OnboardLayoutRoute,
 } as any)
 const AppMainLayoutMemoryRoute = AppMainLayoutMemoryRouteImport.update({
   id: '/memory',
@@ -76,29 +87,33 @@ export interface FileRoutesByFullPath {
   '/artifact': typeof AppMainLayoutArtifactRoute
   '/dashboard': typeof AppMainLayoutDashboardRoute
   '/memory': typeof AppMainLayoutMemoryRoute
+  '/onboard': typeof OnboardLayoutOnboardRoute
   '/ideas/$id': typeof IdeasIdRoute
   '/settings/instance': typeof SettingsInstanceRoute
   '/ideas/new': typeof AppMainLayoutIdeasNewRoute
   '/ideas/': typeof AppMainLayoutIdeasIndexRoute
 }
 export interface FileRoutesByTo {
+  '/': typeof AppMainLayoutIndexRoute
   '/settings': typeof SettingsRouteWithChildren
   '/artifact': typeof AppMainLayoutArtifactRoute
   '/dashboard': typeof AppMainLayoutDashboardRoute
   '/memory': typeof AppMainLayoutMemoryRoute
+  '/onboard': typeof OnboardLayoutOnboardRoute
   '/ideas/$id': typeof IdeasIdRoute
   '/settings/instance': typeof SettingsInstanceRoute
-  '/': typeof AppMainLayoutIndexRoute
   '/ideas/new': typeof AppMainLayoutIdeasNewRoute
   '/ideas': typeof AppMainLayoutIdeasIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_appMainLayout': typeof AppMainLayoutRouteWithChildren
+  '/_onboardLayout': typeof OnboardLayoutRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/_appMainLayout/artifact': typeof AppMainLayoutArtifactRoute
   '/_appMainLayout/dashboard': typeof AppMainLayoutDashboardRoute
   '/_appMainLayout/memory': typeof AppMainLayoutMemoryRoute
+  '/_onboardLayout/onboard': typeof OnboardLayoutOnboardRoute
   '/ideas/$id': typeof IdeasIdRoute
   '/settings/instance': typeof SettingsInstanceRoute
   '/_appMainLayout/': typeof AppMainLayoutIndexRoute
@@ -113,28 +128,32 @@ export interface FileRouteTypes {
     | '/artifact'
     | '/dashboard'
     | '/memory'
+    | '/onboard'
     | '/ideas/$id'
     | '/settings/instance'
     | '/ideas/new'
     | '/ideas/'
   fileRoutesByTo: FileRoutesByTo
   to:
+    | '/'
     | '/settings'
     | '/artifact'
     | '/dashboard'
     | '/memory'
+    | '/onboard'
     | '/ideas/$id'
     | '/settings/instance'
-    | '/'
     | '/ideas/new'
     | '/ideas'
   id:
     | '__root__'
     | '/_appMainLayout'
+    | '/_onboardLayout'
     | '/settings'
     | '/_appMainLayout/artifact'
     | '/_appMainLayout/dashboard'
     | '/_appMainLayout/memory'
+    | '/_onboardLayout/onboard'
     | '/ideas/$id'
     | '/settings/instance'
     | '/_appMainLayout/'
@@ -144,6 +163,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
+  OnboardLayoutRoute: typeof OnboardLayoutRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   IdeasIdRoute: typeof IdeasIdRoute
 }
@@ -155,6 +175,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_onboardLayout': {
+      id: '/_onboardLayout'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof OnboardLayoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_appMainLayout': {
@@ -184,6 +211,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/ideas/$id'
       preLoaderRoute: typeof IdeasIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_onboardLayout/onboard': {
+      id: '/_onboardLayout/onboard'
+      path: '/onboard'
+      fullPath: '/onboard'
+      preLoaderRoute: typeof OnboardLayoutOnboardRouteImport
+      parentRoute: typeof OnboardLayoutRoute
     }
     '/_appMainLayout/memory': {
       id: '/_appMainLayout/memory'
@@ -245,6 +279,18 @@ const AppMainLayoutRouteWithChildren = AppMainLayoutRoute._addFileChildren(
   AppMainLayoutRouteChildren,
 )
 
+interface OnboardLayoutRouteChildren {
+  OnboardLayoutOnboardRoute: typeof OnboardLayoutOnboardRoute
+}
+
+const OnboardLayoutRouteChildren: OnboardLayoutRouteChildren = {
+  OnboardLayoutOnboardRoute: OnboardLayoutOnboardRoute,
+}
+
+const OnboardLayoutRouteWithChildren = OnboardLayoutRoute._addFileChildren(
+  OnboardLayoutRouteChildren,
+)
+
 interface SettingsRouteChildren {
   SettingsInstanceRoute: typeof SettingsInstanceRoute
 }
@@ -259,6 +305,7 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
+  OnboardLayoutRoute: OnboardLayoutRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   IdeasIdRoute: IdeasIdRoute,
 }

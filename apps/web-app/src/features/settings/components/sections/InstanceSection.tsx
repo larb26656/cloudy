@@ -3,10 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useInstanceStore, type Instance } from "@/stores/instanceStore";
-import { registerInstance } from "@/stores/instance/instanceScopeHook";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { Plus, Pencil, Trash2, Check } from "lucide-react";
 import { SettingsChildLayout } from "../SettingsChildLayout";
+import { registerInstance } from "@/lib/instace-registry";
 
 export function InstanceSection() {
   const { instances, addInstance, removeInstance, updateInstance } =

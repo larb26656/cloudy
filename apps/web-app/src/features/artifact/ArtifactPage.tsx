@@ -96,7 +96,7 @@ export default function ArtifactPage() {
 
   return (
     <>
-      <div className="flex h-screen flex-col">
+      <div className="flex h-dvh flex-col">
         <Header prefixActions={[<SidebarToggle />]} title="Artifacts" />
 
         <div className="flex flex-col gap-2 border-b p-4">

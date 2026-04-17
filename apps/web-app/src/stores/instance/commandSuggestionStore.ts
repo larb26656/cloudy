@@ -1,8 +1,6 @@
 import { create } from "zustand";
-import { getErrorMessage } from "@/lib/opencode";
-import type { SdkError } from "@/lib/opencode";
+import { getErrorMessage, type SdkError, type OCClient } from "@/lib/opencode";
 import { systemCommands } from "@/lib/command";
-import type { OpencodeClient } from "@opencode-ai/sdk/v2";
 
 export type CommandSource = "command" | "mcp" | "skill" | "system";
 
@@ -30,7 +28,7 @@ export type CommandSuggestionStoreActions = {
 
 export type CommandSuggestionStore = CommandSuggestionStoreState & CommandSuggestionStoreActions;
 
-export const createCommandSuggestionStore = (oc: OpencodeClient) => create<CommandSuggestionStore>()((set, get) => ({
+export const createCommandSuggestionStore = (oc: OCClient) => create<CommandSuggestionStore>()((set, get) => ({
   commands: [],
   isLoading: false,
   error: null,

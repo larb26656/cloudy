@@ -1,5 +1,5 @@
-import { getErrorMessage, type SdkError } from "@/lib/opencode";
-import type { OpencodeClient, QuestionRequest } from "@opencode-ai/sdk/v2";
+import { getErrorMessage, type SdkError, type OCClient } from "@/lib/opencode";
+import type { QuestionRequest } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -23,7 +23,7 @@ export type QuestionStoreActions = {
 
 export type QuestionStore = QuestionStoreState & QuestionStoreActions
 
-export const createQuestionStore = (oc: OpencodeClient) => create<QuestionStore>()(
+export const createQuestionStore = (oc: OCClient) => create<QuestionStore>()(
     persist(
         (set, get) => ({
             questions: {},

@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileSidebar } from "@/components/layout/Sidebar";
 import { QuestionBanner } from "@/components/question/QuestionBanner";
@@ -13,10 +13,8 @@ import {
 import { useDeviceType } from "@/hooks";
 import { useChatUIStore } from "@/stores/chatUIStore";
 import { useEffect, useState } from "react";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import { useInstanceStore } from "@/stores/instanceStore";
-import { registerInstance } from "@/stores/instance/instanceScopeHook";
-import { Onboarding } from "@/features/onboarding/Onboarding";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 
 export const Route = createFileRoute("/_appMainLayout")({
@@ -89,7 +87,7 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
   }
 
   return (
-    <div className="h-screen">
+    <div className="h-dvh">
       <ResizablePanelGroup orientation="horizontal" className="bg-background">
         {sidebarOpen && (
           <>
@@ -128,19 +126,9 @@ function AppMainLayout() {
   const { isDarkMode, deviceType, setDeviceType } = useChatUIStore();
   const { instances } = useInstanceStore();
   const { workspaces } = useWorkspaceStore();
-  const isHaveToOnBoard = instances.length === 0 || workspaces.length === 0;
-  const [activeInstanceId, setActiveInstanceId] = useState<string | null>(null);
-
-  useEffect(() => {
-    console.log("hook");
-    for (const instance of instances) {
-      registerInstance(instance);
-    }
-    if (instances.length > 0 && !activeInstanceId) {
-      setActiveInstanceId(instances[0].id);
-    }
-    console.log("hook2");
-  }, [instances]);
+  const isHaveToOnboard = instances.length === 0 || workspaces.length === 0;
+  console.log(isHaveToOnboard);
+  const activeInstanceId = useInstanceStore((s) => s.instances[0]?.id);
 
   useEffect(() => {
     setDeviceType(deviceType);
@@ -154,19 +142,11 @@ function AppMainLayout() {
     }
   }, [isDarkMode]);
 
-  if (isHaveToOnBoard) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-background">
-        <Onboarding />
-      </div>
-    );
-  }
-
-  if (!activeInstanceId) {
-    return null;
-  }
-
   console.log("Render app layout");
 
-  return <AppMainLayoutContent activeInstanceId={activeInstanceId} />;
+  if (isHaveToOnboard) {
+    return <Navigate to="/onboard" />;
+  }
+
+  return <AppMainLayoutContent activeInstanceId={activeInstanceId!} />;
 }

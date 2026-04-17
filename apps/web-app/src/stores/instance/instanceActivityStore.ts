@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { OpencodeClient } from "@opencode-ai/sdk/v2";
+import type { OCClient } from "@/lib/opencode";
 
 const HEARTBEAT_TIMEOUT_MS = 30_000;
 
@@ -30,8 +30,7 @@ export type InstanceActivityStore = InstanceActivityState & InstanceActivityActi
 
 const heartbeatTimers: Record<string, ReturnType<typeof setTimeout>> = {};
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export const createInstanceActivityStore = (_oc: OpencodeClient) => create<InstanceActivityStore>()(
+export const createInstanceActivityStore = (_oc: OCClient) => create<InstanceActivityStore>()(
     (set) => ({
         isHealthy: false,
         isBusy: false,

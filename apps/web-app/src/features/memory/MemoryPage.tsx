@@ -117,7 +117,7 @@ export default function MemoryPage() {
 
   return (
     <>
-      <div className="flex h-screen flex-col">
+      <div className="flex h-dvh flex-col">
         {/* Header */}
         <Header prefixActions={[<SidebarToggle />]} title="Memories" />
 

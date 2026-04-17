@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useStore } from "@/stores/instance";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import {
   Dialog,
@@ -12,17 +11,24 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Shield, ShieldCheck, ShieldX, ShieldAlert } from "lucide-react";
+import { useStore } from "@/hooks/instanceScopeHook";
 
 interface PermissionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function PermissionDialog({ open, onOpenChange }: PermissionDialogProps) {
+export function PermissionDialog({
+  open,
+  onOpenChange,
+}: PermissionDialogProps) {
   const { permissions, replyPermission } = useStore("permission");
   const { sessions } = useStore("session");
-  const selectedDirectory = useWorkspaceStore().getCurrentWorkspace()?.directory;
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const selectedDirectory =
+    useWorkspaceStore().getCurrentWorkspace()?.directory;
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const permissionList = Object.entries(permissions);
@@ -31,7 +37,10 @@ export function PermissionDialog({ open, onOpenChange }: PermissionDialogProps) 
     setSelectedSessionId(sessionId);
   };
 
-  const handleReply = async (requestId: string, reply: "once" | "always" | "reject") => {
+  const handleReply = async (
+    requestId: string,
+    reply: "once" | "always" | "reject",
+  ) => {
     if (!selectedDirectory) return;
 
     setIsSubmitting(true);
@@ -44,7 +53,9 @@ export function PermissionDialog({ open, onOpenChange }: PermissionDialogProps) 
     }
   };
 
-  const currentPermissions = selectedSessionId ? permissions[selectedSessionId] : null;
+  const currentPermissions = selectedSessionId
+    ? permissions[selectedSessionId]
+    : null;
   const session = selectedSessionId
     ? sessions.find((s) => s.id === selectedSessionId)
     : null;
@@ -74,17 +85,19 @@ export function PermissionDialog({ open, onOpenChange }: PermissionDialogProps) 
                     className={cn(
                       "w-full flex items-center justify-between p-3 rounded-lg border transition-colors",
                       "hover:bg-muted hover:border-muted-foreground/20",
-                      "text-left"
+                      "text-left",
                     )}
                   >
                     <div className="flex items-center gap-3">
                       <Shield className="w-4 h-4 text-blue-500" />
                       <div className="flex flex-col">
                         <span className="text-sm font-medium line-clamp-1">
-                          {sessionPermissions[0].permission || "Permission Request"}
+                          {sessionPermissions[0].permission ||
+                            "Permission Request"}
                         </span>
                         <span className="text-xs text-muted-foreground">
-                          {sessionPermissions.length} permission{sessionPermissions.length !== 1 ? "s" : ""}
+                          {sessionPermissions.length} permission
+                          {sessionPermissions.length !== 1 ? "s" : ""}
                         </span>
                       </div>
                     </div>
@@ -112,10 +125,7 @@ export function PermissionDialog({ open, onOpenChange }: PermissionDialogProps) 
             <ScrollArea className="h-[200px] pr-4">
               <div className="space-y-3">
                 {currentPermissions?.map((p) => (
-                  <div
-                    key={p.id}
-                    className="p-3 rounded-lg border bg-muted/30"
-                  >
+                  <div key={p.id} className="p-3 rounded-lg border bg-muted/30">
                     <div className="flex items-start gap-2">
                       <Shield className="w-4 h-4 text-blue-500 mt-0.5" />
                       <div className="flex-1 min-w-0 space-y-2">

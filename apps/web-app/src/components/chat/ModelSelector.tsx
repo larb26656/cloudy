@@ -9,7 +9,7 @@ import {
   ChevronDown,
   Search,
 } from "lucide-react";
-import { useStore } from "@/stores/instance";
+import { useStore } from "@/hooks/instanceScopeHook";
 import type { ModelConfig } from "@/types";
 import { Input } from "@/components/ui/input";
 import {

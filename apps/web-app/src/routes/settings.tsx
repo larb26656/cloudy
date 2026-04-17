@@ -30,7 +30,7 @@ function SettingsPage() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
+    <div className="flex flex-col h-dvh">
       <Header prefixActions={[<BackButton />]} title="Settings" />
       <div className="flex-1 overflow-hidden">
         <SettingsLayout

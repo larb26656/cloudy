@@ -155,7 +155,7 @@ export default function IdeaPage() {
 
   return (
     <>
-      <div className="flex h-screen flex-col">
+      <div className="flex h-dvh flex-col">
         <Header
           prefixActions={[<SidebarToggle />]}
           title="Ideas"
