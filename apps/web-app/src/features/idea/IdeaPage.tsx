@@ -3,11 +3,8 @@ import { Plus, Lightbulb, Search } from "lucide-react";
 import { ErrorState } from "@/components/ui/error-state";
 import { useIdeaUIStore } from "@/features/idea/store/ideaStore";
 
-import {
-  IdeaCard,
-  IdeaDetailDialog,
-  CREATE_IDEA_ID,
-} from "@/features/idea/components";
+import { IdeaCard } from "@/features/idea/components";
+import { IdeaDetailDialog, CREATE_IDEA_ID } from "@/features/idea/components/IdeaDetailDialog";
 import { Header } from "@/components/layout";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
