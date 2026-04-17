@@ -337,7 +337,6 @@ export function Onboarding({ onComplete }: OnboardingProps) {
           true,
         );
 
-        console.log("set step");
         setStep("all-set");
       } catch {
         workspaceForm.setError("root", {
