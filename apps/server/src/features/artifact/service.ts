@@ -1,6 +1,6 @@
 import { status } from 'elysia'
 import { ArtifactModel } from './model'
-import { resourceConfig } from '../../config'
+import type { CloudyConfig } from '../../config'
 import { readdir } from "node:fs/promises";
 import path from "node:path";
 import matter from 'gray-matter';
@@ -38,11 +38,16 @@ function parseArtifactFrontMatter(markdown: string, fallbackTitle?: string): { m
     }
 }
 
-export abstract class Artifact {
+export class Artifact {
+    private artifactPath: string;
 
-    private static async getIndexFiles(): Promise<string[]> {
+    constructor(private config: CloudyConfig) {
+        this.artifactPath = config.artifact;
+    }
+
+    private async getIndexFiles(): Promise<string[]> {
         const indexFiles: string[] = [];
-        const allPaths = await readdir(resourceConfig.artifact, { recursive: true });
+        const allPaths = await readdir(this.artifactPath, { recursive: true });
 
         const subfolders = new Set<string>();
         for (const filePath of allPaths) {
@@ -54,7 +59,7 @@ export abstract class Artifact {
         }
 
         for (const folder of subfolders) {
-            const folderPath = path.join(resourceConfig.artifact, folder);
+            const folderPath = path.join(this.artifactPath, folder);
             const indexPath = path.join(folderPath, 'index.md');
             const indexFile = Bun.file(indexPath);
             if (await indexFile.exists()) {
@@ -65,7 +70,7 @@ export abstract class Artifact {
         return indexFiles;
     }
 
-    static async getFiles(): Promise<ArtifactModel["fileListDto"]> {
+    async getFiles(): Promise<ArtifactModel["fileListDto"]> {
         const files: { name: string; path: string }[] = [];
 
         try {
@@ -83,8 +88,8 @@ export abstract class Artifact {
         return { source: 'artifact', files };
     }
 
-    static async getFile(filePath: string): Promise<ArtifactModel["fileDto"]> {
-        const fullPath = `${resourceConfig.artifact}/${filePath}`;
+    async getFile(filePath: string): Promise<ArtifactModel["fileDto"]> {
+        const fullPath = `${this.artifactPath}/${filePath}`;
         const file = Bun.file(fullPath);
 
         if (!await file.exists()) {
@@ -97,8 +102,8 @@ export abstract class Artifact {
         return { name, path: filePath, content };
     }
 
-    static async getArtifact(filePath: string): Promise<ArtifactModel["artifactDto"]> {
-        const fullPath = `${resourceConfig.artifact}/${filePath}`;
+    async getArtifact(filePath: string): Promise<ArtifactModel["artifactDto"]> {
+        const fullPath = `${this.artifactPath}/${filePath}`;
         const file = Bun.file(fullPath);
 
         if (!await file.exists()) {
@@ -124,11 +129,11 @@ export abstract class Artifact {
         };
     }
 
-    static async getArtifactFolder(folderName: string): Promise<string> {
-        return path.join(resourceConfig.artifact, folderName);
+    async getArtifactFolder(folderName: string): Promise<string> {
+        return path.join(this.artifactPath, folderName);
     }
 
-    private static matchesFilter(artifact: ArtifactModel["artifactDto"], filters?: ArtifactModel["querySchema"]): boolean {
+    private matchesFilter(artifact: ArtifactModel["artifactDto"], filters?: ArtifactModel["querySchema"]): boolean {
         if (!filters) return true;
 
         if (filters.q) {
@@ -148,7 +153,7 @@ export abstract class Artifact {
         return true;
     }
 
-    static async listArtifacts(filters?: ArtifactModel["querySchema"]): Promise<ArtifactModel["artifactDto"][]> {
+    async listArtifacts(filters?: ArtifactModel["querySchema"]): Promise<ArtifactModel["artifactDto"][]> {
         const artifacts: ArtifactModel["artifactDto"][] = [];
 
         try {
@@ -183,10 +188,10 @@ export abstract class Artifact {
         return artifacts;
     }
 
-    static async getByName(name: string): Promise<ArtifactModel["getFileRes"]> {
-        const artifactData = await Artifact.getArtifact(`${name}/index.md`);
+    async getByName(name: string): Promise<ArtifactModel["getFileRes"]> {
+        const artifactData = await this.getArtifact(`${name}/index.md`);
         const meta = artifactData.meta;
-        const folderPath = await Artifact.getArtifactFolder(name);
+        const folderPath = await this.getArtifactFolder(name);
         const file = await this.serveFile(folderPath, meta.type);
         const contentType = getContentType(meta.type);
 
@@ -201,9 +206,8 @@ export abstract class Artifact {
         }
     }
 
-    static async serveFile(dirPath: string, type: ArtifactModel["artifactType"]): Promise<Blob | null> {
+    async serveFile(dirPath: string, type: ArtifactModel["artifactType"]): Promise<Blob | null> {
         const filePath = `${dirPath}/artifact.${type}`;
-        console.log(filePath);
         const file = Bun.file(filePath);
         const exists = await file.exists();
 
@@ -224,4 +228,3 @@ function getContentType(type?: string): string {
         default: return 'application/octet-stream';
     }
 }
-

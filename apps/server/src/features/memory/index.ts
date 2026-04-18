@@ -1,11 +1,11 @@
 import { Elysia, t } from 'elysia'
 
-import { Memory } from './service'
+import { memoryService } from '../../container'
 import { MemoryModel } from './model'
 
 export const memory = new Elysia({ prefix: '/memory' })
     .get('/', async ({ query }) => {
-        return await Memory.listMemories(query);
+        return await memoryService.listMemories(query);
     }, {
         query: MemoryModel.querySchema,
         response: {
@@ -13,7 +13,7 @@ export const memory = new Elysia({ prefix: '/memory' })
         }
     })
     .get('/:path', async ({ params: { path } }) => {
-        return await Memory.getMemory(path);
+        return await memoryService.getMemory(path);
     }, {
         response: {
             200: MemoryModel.memoryDto,

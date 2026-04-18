@@ -1,16 +1,18 @@
 import { status } from 'elysia'
 import { FileModel } from './model'
-import { resourceConfig } from '../../../config'
 import { IDEA_INDEX_FILE } from '../types';
 import { readdir, stat, rm, mkdir, unlink } from "node:fs/promises";
 import path from "node:path";
 import { IdeaRepository } from '../repository';
+import type { CloudyConfig } from '../../../config';
 
 export class IdeaFile {
     protected ideaRepository: IdeaRepository;
+    protected ideaPath: string;
 
-    constructor(ideaRepository: IdeaRepository) {
+    constructor(ideaRepository: IdeaRepository, config: CloudyConfig) {
         this.ideaRepository = ideaRepository;
+        this.ideaPath = config.idea;
     }
 
     private parseFilePath(filePath: string): { ideaPath: string; filename: string } {
@@ -22,8 +24,7 @@ export class IdeaFile {
     }
 
     async getFile(ideaPath: string, filename: string = IDEA_INDEX_FILE): Promise<FileModel["fileDto"]> {
-        const fullPath = `${resourceConfig.idea}/${ideaPath}/${filename}`;
-        // console.log(fullPath);
+        const fullPath = `${this.ideaPath}/${ideaPath}/${filename}`;
         const file = Bun.file(fullPath);
 
         if (!await file.exists()) {
@@ -45,7 +46,7 @@ export class IdeaFile {
             throw status(404, 'Idea not found' as any);
         }
 
-        const ideaFolder = `${resourceConfig.idea}/${ideaPath}`;
+        const ideaFolder = `${this.ideaPath}/${ideaPath}`;
 
         let ideaFolderExists = false;
         try {
@@ -80,7 +81,7 @@ export class IdeaFile {
             throw status(404, 'Idea not found' as any);
         }
 
-        const fullPath = `${resourceConfig.idea}/${filePath}`;
+        const fullPath = `${this.ideaPath}/${filePath}`;
         const file = Bun.file(fullPath);
 
         if (!await file.exists()) {
@@ -102,7 +103,7 @@ export class IdeaFile {
             throw status(404, 'Idea not found' as any);
         }
 
-        const fullPath = `${resourceConfig.idea}/${filePath}`;
+        const fullPath = `${this.ideaPath}/${filePath}`;
         const file = Bun.file(fullPath);
 
         if (!await file.exists()) {
@@ -120,7 +121,7 @@ export class IdeaFile {
     }
 
     async createIdeaDirectory(ideaPath: string, content: string = ''): Promise<void> {
-        const ideaFolder = `${resourceConfig.idea}/${ideaPath}`;
+        const ideaFolder = `${this.ideaPath}/${ideaPath}`;
 
         try {
             const folderStat = await stat(ideaFolder);
@@ -138,7 +139,7 @@ export class IdeaFile {
     }
 
     async deleteIdeaDirectory(ideaPath: string): Promise<void> {
-        const ideaFolder = `${resourceConfig.idea}/${ideaPath}`;
+        const ideaFolder = `${this.ideaPath}/${ideaPath}`;
         try {
             await rm(ideaFolder, { recursive: true });
         } catch (err) {
@@ -147,7 +148,7 @@ export class IdeaFile {
     }
 
     async listIdeaFiles(ideaPath: string): Promise<FileModel["fileMetaDto"][]> {
-        const folderPath = `${resourceConfig.idea}/${ideaPath}`;
+        const folderPath = `${this.ideaPath}/${ideaPath}`;
         const files: FileModel["fileMetaDto"][] = [];
 
         try {

@@ -1,2 +1,2 @@
-export { env } from './env';
-export { resourceConfig } from './resource.config';
+export { loadConfig, DEFAULT_CONFIG_DIR } from "./loader";
+export type { CloudyConfig } from "./loader";

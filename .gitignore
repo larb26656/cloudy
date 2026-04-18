@@ -11,3 +11,5 @@ Thumbs.db
 
 # CLI test output
 .test-output/
+
+public/

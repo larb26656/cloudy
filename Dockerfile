@@ -4,12 +4,9 @@ WORKDIR /app
 
 COPY . .
 
+RUN chmod +x scripts/build-frontend.sh
 RUN bun install
-
-COPY apps/web-app/.env.production apps/web-app/.env
-RUN bun run --filter @cloudy/web-app build
-
-RUN cp -r apps/web-app/dist public
+RUN ./scripts/build-frontend.sh
 
 EXPOSE 3000
-CMD ["sh", "apps/server/entrypoint.sh"]
+CMD ["cloudy", "serve", "--ui"]

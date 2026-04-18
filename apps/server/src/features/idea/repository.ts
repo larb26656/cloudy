@@ -1,10 +1,10 @@
-import { getDb } from '../../db/client';
+import type { Client } from '@libsql/client';
 import type { IdeaRecord, IdeaQuery, CreateIdeaInput, UpdateIdeaInput } from './types';
 
 export class IdeaRepository {
+    constructor(private db: Client) {}
 
     async findAll(query?: IdeaQuery): Promise<IdeaRecord[]> {
-        const db = getDb();
         const conditions: string[] = [];
         const args: any[] = [];
 
@@ -42,13 +42,12 @@ export class IdeaRepository {
             sql += ' ORDER BY updated_at DESC';
         }
 
-        const result = await db.execute(sql, args);
+        const result = await this.db.execute(sql, args);
         return result.rows as unknown as IdeaRecord[];
     }
 
     async findByPath(path: string): Promise<IdeaRecord | null> {
-        const db = getDb();
-        const result = await db.execute(
+        const result = await this.db.execute(
             'SELECT * FROM ideas WHERE path = ?',
             [path]
         );
@@ -61,8 +60,7 @@ export class IdeaRepository {
     }
 
     async findById(id: string): Promise<IdeaRecord | null> {
-        const db = getDb();
-        const result = await db.execute(
+        const result = await this.db.execute(
             'SELECT * FROM ideas WHERE id = ?',
             [id]
         );
@@ -75,8 +73,7 @@ export class IdeaRepository {
     }
 
     async exists(ideaPath: string): Promise<boolean> {
-        const db = getDb();
-        const result = await db.execute(
+        const result = await this.db.execute(
             'SELECT 1 FROM ideas WHERE path = ?',
             [ideaPath]
         );
@@ -84,18 +81,16 @@ export class IdeaRepository {
     }
 
     async touchUpdatedAt(ideaPath: string): Promise<void> {
-        const db = getDb();
-        await db.execute(
+        await this.db.execute(
             'UPDATE ideas SET updated_at = ? WHERE path = ?',
             [new Date().toISOString(), ideaPath]
         );
     }
 
     async create(input: CreateIdeaInput): Promise<IdeaRecord> {
-        const db = getDb();
         const now = new Date().toISOString();
 
-        await db.execute(
+        await this.db.execute(
             `INSERT INTO ideas (id, title, tags, status, priority, path, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
             [
@@ -118,7 +113,6 @@ export class IdeaRepository {
     }
 
     async update(id: string, input: UpdateIdeaInput): Promise<IdeaRecord> {
-        const db = getDb();
         const existing = await this.findById(id);
         if (!existing) {
             throw new Error('Idea not found');
@@ -155,7 +149,7 @@ export class IdeaRepository {
         args.push(new Date().toISOString());
         args.push(id);
 
-        await db.execute(
+        await this.db.execute(
             `UPDATE ideas SET ${updates.join(', ')} WHERE id = ?`,
             args
         );
@@ -176,8 +170,7 @@ export class IdeaRepository {
     }
 
     async delete(id: string): Promise<void> {
-        const db = getDb();
-        await db.execute('DELETE FROM ideas WHERE id = ?', [id]);
+        await this.db.execute('DELETE FROM ideas WHERE id = ?', [id]);
     }
 
     async deleteByPath(ideaPath: string): Promise<void> {
@@ -188,5 +181,3 @@ export class IdeaRepository {
         await this.delete(existing.id);
     }
 }
-
-export const ideaRepository = new IdeaRepository();

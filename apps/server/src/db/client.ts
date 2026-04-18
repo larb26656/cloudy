@@ -1,28 +1,32 @@
 import { createClient, type Client } from '@libsql/client';
 import { mkdirSync } from 'fs';
 import { dirname } from 'path';
-import { env } from '../config/env';
+import type { CloudyConfig } from '../config';
 
-let db: Client | null = null;
+export class DbClient {
+    private db: Client | null = null;
 
-function ensureDataDir() {
-    const dbPath = env.DB_DATABASE_URL.replace('file:', '');
-    mkdirSync(dirname(dbPath), { recursive: true });
-}
+    constructor(private config: CloudyConfig) {}
 
-export function getDb(): Client {
-    if (!db) {
-        ensureDataDir();
-        db = createClient({
-            url: env.DB_DATABASE_URL,
-        });
+    private ensureDataDir() {
+        const dbPath = this.config.dbDatabaseUrl.replace('file:', '');
+        mkdirSync(dirname(dbPath), { recursive: true });
     }
-    return db;
-}
 
-export async function closeDb(): Promise<void> {
-    if (db) {
-        await db.close();
-        db = null;
+    getClient(): Client {
+        if (!this.db) {
+            this.ensureDataDir();
+            this.db = createClient({
+                url: this.config.dbDatabaseUrl,
+            });
+        }
+        return this.db;
+    }
+
+    async close() {
+        if (this.db) {
+            await this.db.close();
+            this.db = null;
+        }
     }
 }

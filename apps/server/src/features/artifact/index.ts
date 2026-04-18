@@ -1,11 +1,11 @@
 import { Elysia, t } from 'elysia'
 
-import { Artifact } from './service'
 import { ArtifactModel } from './model'
+import { artifactService } from '../../container'
 
 export const artifact = new Elysia({ prefix: '/artifact' })
     .get('/', async ({ query }) => {
-        return await Artifact.listArtifacts(query);
+        return await artifactService.listArtifacts(query);
     }, {
         query: ArtifactModel.querySchema,
         response: {
@@ -13,7 +13,7 @@ export const artifact = new Elysia({ prefix: '/artifact' })
         }
     })
     .get('/:name', async ({ params: { name } }) => {
-        const { file, contentType } = await Artifact.getByName(name);
+        const { file, contentType } = await artifactService.getByName(name);
 
         return new Response(file, {
             headers: {
@@ -26,4 +26,3 @@ export const artifact = new Elysia({ prefix: '/artifact' })
             404: ArtifactModel.fileNotFound,
         }
     })
-

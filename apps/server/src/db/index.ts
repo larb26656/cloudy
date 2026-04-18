@@ -1,1 +1,1 @@
-export { getDb, closeDb } from './client';
+export { DbClient } from './client';

@@ -1,65 +1,71 @@
 import { Elysia } from 'elysia'
-import { resourceConfig } from '../../config'
+import type { CloudyConfig } from '../../config'
 
-const OPENCODE_API_BASE = resourceConfig.ocApiBasePath;
+export class ProxyHandler {
+    constructor(private config: CloudyConfig) {}
 
-async function proxyHandler({ request, set, status }: any) {
-    const incomingUrl = new URL(request.url)
-    const targetPath = incomingUrl.pathname.replace(/^\/oc/, '')
-    const url = new URL(targetPath + incomingUrl.search, OPENCODE_API_BASE)
+    private get opencodeApiBase(): string {
+        return this.config.ocApiBasePath;
+    }
 
-    const headers = new Headers(request.headers)
+    async handler({ request, set, status }: any) {
+        const incomingUrl = new URL(request.url)
+        const targetPath = incomingUrl.pathname.replace(/^\/oc/, '')
+        const url = new URL(targetPath + incomingUrl.search, this.opencodeApiBase)
 
-    try {
-        const response = await fetch(url.toString(), {
-            method: request.method,
-            headers,
-            body: request.body,
-            signal: request.signal,
-        } as RequestInit)
+        const headers = new Headers(request.headers)
 
-        const contentType = response.headers.get('content-type') || ''
-        const isStreaming =
-            contentType.includes('text/event-stream') ||
-            contentType.includes('stream')
+        try {
+            const response = await fetch(url.toString(), {
+                method: request.method,
+                headers,
+                body: request.body,
+                signal: request.signal,
+            } as RequestInit)
 
-        // copy headers จาก upstream
-        for (const [key, value] of response.headers.entries()) {
-            set.headers[key] = value
+            const contentType = response.headers.get('content-type') || ''
+            const isStreaming =
+                contentType.includes('text/event-stream') ||
+                contentType.includes('stream')
+
+            for (const [key, value] of response.headers.entries()) {
+                set.headers[key] = value
+            }
+
+            set.headers['Access-Control-Allow-Origin'] = '*'
+            set.headers['Access-Control-Allow-Methods'] =
+                'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+            set.headers['Access-Control-Allow-Headers'] = '*'
+
+            if (isStreaming) {
+                return status(200, response.body)
+            }
+
+            const data = await response.text()
+
+            set.headers['Content-Type'] = contentType || 'application/json'
+
+            return status(200, data)
+        } catch (error) {
+            console.error('[Proxy] Error:', error)
+            return status(500, { error: 'Proxy error' })
         }
+    }
 
-        // CORS
-        set.headers['Access-Control-Allow-Origin'] = '*'
-        set.headers['Access-Control-Allow-Methods'] =
-            'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-        set.headers['Access-Control-Allow-Headers'] = '*'
+    getPlugin() {
+        const handler = this.handler.bind(this);
+        return new Elysia({ prefix: '/oc' })
+            .get('/*', handler)
+            .post('/*', handler)
+            .put('/*', handler)
+            .patch('/*', handler)
+            .delete('/*', handler)
+            .options('/*', ({ status, set }) => {
+                set.headers['Access-Control-Allow-Origin'] = '*'
+                set.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
+                set.headers['Access-Control-Allow-Headers'] = '*'
 
-        if (isStreaming) {
-            return status(200, response.body)
-        }
-
-        const data = await response.text()
-
-        set.headers['Content-Type'] = contentType || 'application/json'
-        set.headers['x-example'] = 'Elysia-fox'
-
-        return status(200, data)
-    } catch (error) {
-        console.error('[Proxy] Error:', error)
-        return status(500, { error: 'Proxy error' })
+                return status(204, null)
+            })
     }
 }
-
-export const proxy = new Elysia({ prefix: '/oc' })
-    .get('/*', proxyHandler)
-    .post('/*', proxyHandler)
-    .put('/*', proxyHandler)
-    .patch('/*', proxyHandler)
-    .delete('/*', proxyHandler)
-    .options('/*', ({ status, set }) => {
-        set.headers['Access-Control-Allow-Origin'] = '*'
-        set.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-        set.headers['Access-Control-Allow-Headers'] = '*'
-
-        return status(204, null)
-    })

@@ -1,6 +1,6 @@
 import { status } from 'elysia'
 import { MemoryModel } from './model'
-import { resourceConfig } from '../../config'
+import type { CloudyConfig } from '../../config'
 import { readdir } from "node:fs/promises";
 import matter from 'gray-matter';
 
@@ -35,11 +35,16 @@ function parseMemoryFrontMatter(markdown: string, fallbackTitle?: string): { met
     }
 }
 
-export abstract class Memory {
+export class Memory {
+    private memoryPath: string;
 
-    private static async getIndexFiles(): Promise<string[]> {
+    constructor(private config: CloudyConfig) {
+        this.memoryPath = config.memory;
+    }
+
+    private async getIndexFiles(): Promise<string[]> {
         const indexFiles: string[] = [];
-        const allPaths = await readdir(resourceConfig.memory, { recursive: true });
+        const allPaths = await readdir(this.memoryPath, { recursive: true });
 
         for (const filePath of allPaths) {
             if (typeof filePath !== 'string') continue;
@@ -51,7 +56,7 @@ export abstract class Memory {
         return indexFiles;
     }
 
-    static async getFiles(): Promise<MemoryModel["fileListDto"]> {
+    async getFiles(): Promise<MemoryModel["fileListDto"]> {
         const files: { name: string; path: string }[] = [];
 
         try {
@@ -68,8 +73,9 @@ export abstract class Memory {
 
         return { source: 'memory', files };
     }
-    static async getFile(filePath: string): Promise<MemoryModel["fileDto"]> {
-        const fullPath = `${resourceConfig.memory}/${filePath}`;
+
+    async getFile(filePath: string): Promise<MemoryModel["fileDto"]> {
+        const fullPath = `${this.memoryPath}/${filePath}`;
         const file = Bun.file(fullPath);
 
         if (!await file.exists()) {
@@ -82,8 +88,8 @@ export abstract class Memory {
         return { name, path: filePath, content };
     }
 
-    static async getMemory(filePath: string): Promise<MemoryModel["memoryDto"]> {
-        const fullPath = `${resourceConfig.memory}/${filePath}`;
+    async getMemory(filePath: string): Promise<MemoryModel["memoryDto"]> {
+        const fullPath = `${this.memoryPath}/${filePath}`;
         const file = Bun.file(fullPath);
 
         if (!await file.exists()) {
@@ -107,7 +113,7 @@ export abstract class Memory {
         };
     }
 
-    private static matchesFilter(memory: MemoryModel["memoryDto"], filters?: MemoryModel["querySchema"]): boolean {
+    private matchesFilter(memory: MemoryModel["memoryDto"], filters?: MemoryModel["querySchema"]): boolean {
         if (!filters) return true;
 
         if (filters.q) {
@@ -125,7 +131,7 @@ export abstract class Memory {
         return true;
     }
 
-    static async listMemories(filters?: MemoryModel["querySchema"]): Promise<MemoryModel["memoryDto"][]> {
+    async listMemories(filters?: MemoryModel["querySchema"]): Promise<MemoryModel["memoryDto"][]> {
         const memories: MemoryModel["memoryDto"][] = [];
 
         try {
