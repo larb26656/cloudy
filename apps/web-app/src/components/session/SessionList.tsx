@@ -113,11 +113,12 @@ export function SessionList({ searchQuery }: SessionListProps) {
               onFork={() => handleFork(session.id)}
             />
           ))}
-          <InfiniteScrollTrigger
+          {/* TODO hotfix disable enable it's later */}
+          {/* <InfiniteScrollTrigger
             enabled={!searchQuery && !!nextCursor}
             isLoading={isLoadingMore}
             sentinelRef={sentinelRef}
-          />
+          /> */}
         </div>
       )}
     </div>

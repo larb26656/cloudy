@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MoreHorizontal, Edit2, Trash2, GitBranch } from "lucide-react";
+import { Edit2, Trash2, GitBranch, EllipsisVertical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatRelativeFromTimestamp } from "@/lib/date";
 import type { Session, SessionStatus } from "@opencode-ai/sdk/v2";
+import { Button } from "../ui/button";
 
 interface SessionItemProps {
   session: Session;
@@ -59,7 +60,7 @@ export function SessionItem({
   return (
     <div
       onClick={onClick}
-      className={`group relative flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
+      className={`group relative flex items-center gap-2 px-3 py-2.5 rounded-lg cursor-pointer transition-colors ${
         isActive
           ? "bg-primary dark:bg-muted text-primary-foreground dark:text-inherit"
           : "hover:bg-accent"
@@ -101,9 +102,13 @@ export function SessionItem({
 
       {!isEditing && (
         <DropdownMenu open={showMenu} onOpenChange={setShowMenu}>
-          <DropdownMenuTrigger className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground">
-            <MoreHorizontal className="size-4" />
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm">
+                <EllipsisVertical />
+              </Button>
+            }
+          ></DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
               onClick={(e) => {

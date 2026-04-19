@@ -17,7 +17,11 @@ export function Header({
 }: HeaderProps) {
   return (
     <header className="p-2 bg-background flex items-center justify-between gap-3 relative">
-      <div className="flex items-center gap-1">{prefixActions}</div>
+      <div className="flex items-center gap-1">
+        {prefixActions?.map((action, i) => (
+          <div key={i}>{action}</div>
+        ))}
+      </div>
 
       <div className="flex-1 flex flex-col min-w-0">
         {!centerSlot && (
@@ -39,7 +43,9 @@ export function Header({
       )}
 
       <div className="flex items-center gap-1 shrink-0 overflow-visible">
-        {actions}
+        {actions?.map((action, i) => (
+          <div key={i}>{action}</div>
+        ))}
       </div>
     </header>
   );

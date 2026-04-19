@@ -18,16 +18,22 @@ interface WorkspaceStripProps {
 
 export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(null);
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(
+    null,
+  );
 
   const allWorkspaces = useWorkspaceStore((state) => state.workspaces);
-  const currentWorkspaceId = useWorkspaceStore((state) => state.currentWorkspaceId);
+  const currentWorkspaceId = useWorkspaceStore(
+    (state) => state.currentWorkspaceId,
+  );
 
   const workspaces = useMemo(
     () => allWorkspaces.filter((w) => w.instanceId === instanceId),
     [allWorkspaces, instanceId],
   );
-  const setCurrentWorkspace = useWorkspaceStore((state) => state.setCurrentWorkspace);
+  const setCurrentWorkspace = useWorkspaceStore(
+    (state) => state.setCurrentWorkspace,
+  );
   const deleteWorkspace = useWorkspaceStore((state) => state.deleteWorkspace);
 
   const handleSelectWorkspace = useCallback(
@@ -37,12 +43,9 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
     [setCurrentWorkspace],
   );
 
-  const handleEditWorkspace = useCallback(
-    (workspace: Workspace) => {
-      setEditingWorkspace(workspace);
-    },
-    [],
-  );
+  const handleEditWorkspace = useCallback((workspace: Workspace) => {
+    setEditingWorkspace(workspace);
+  }, []);
 
   const handleDeleteWorkspace = useCallback(
     (workspaceId: string) => {
@@ -56,7 +59,7 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
     <>
       <div
         className={cn(
-          "flex flex-col items-center w-[72px] h-full border-r bg-sidebar transition-colors",
+          "flex flex-col items-center w-[72px] h-full border-r bg-sidebar transition-colors rounded-l-0 md:rounded-l-2xl",
           className,
         )}
       >

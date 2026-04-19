@@ -54,29 +54,27 @@ export function WorkspaceItem({
 
   return (
     <ContextMenu>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <ContextMenuTrigger
-              render={
-                <button
-                  onClick={handleClick}
-                  className={cn(
-                    "relative size-12 rounded-xl flex items-center justify-center text-lg font-semibold transition-all duration-200 cursor-pointer",
-                    isSelected ? "border-2 border-primary" : "border-0",
-                  )}
-                  style={{ backgroundColor: workspace.color }}
-                >
-                  <span className="text-white">{initial}</span>
-                </button>
-              }
-            />
-          }
-        />
-        <TooltipContent side="right" sideOffset={8}>
-          {workspace.name}
-        </TooltipContent>
-      </Tooltip>
+      <ContextMenuTrigger>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <button
+                onClick={handleClick}
+                className={cn(
+                  "relative size-12 rounded-xl flex items-center justify-center text-lg font-semibold transition-all duration-200 cursor-pointer",
+                  isSelected ? "border-2 border-primary" : "border-0",
+                )}
+                style={{ backgroundColor: workspace.color }}
+              >
+                <span className="text-white">{initial}</span>
+              </button>
+            }
+          />
+          <TooltipContent side="right" sideOffset={8}>
+            {workspace.name}
+          </TooltipContent>
+        </Tooltip>
+      </ContextMenuTrigger>
       <ContextMenuContent alignOffset={4} side="right">
         <ContextMenuItem onClick={handleEdit}>Edit workspace</ContextMenuItem>
         <ContextMenuItem

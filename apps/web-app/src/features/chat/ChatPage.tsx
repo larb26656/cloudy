@@ -56,7 +56,7 @@ export default function ChatPage() {
   return (
     <>
       <Header
-        prefixActions={[<SidebarToggle />]}
+        prefixActions={[<SidebarToggle key="sidebar-toggle" />]}
         centerSlot={isMobile ? <ModelSelector /> : undefined}
         actions={[
           <TokenUsageIndicator key="token" sessionId={selectedSessionId} />,

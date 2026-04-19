@@ -67,8 +67,6 @@ export const createSessionStore = (oc: OCClient) => create<SessionStore>()(
             const data = result.data ?? [];
             const nextCursor = getNextCursor(data);
 
-            console.log(nextCursor);
-
             set({ isLoading: false, sessions: data, nextCursor });
         },
 

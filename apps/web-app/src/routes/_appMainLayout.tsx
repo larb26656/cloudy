@@ -57,8 +57,6 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
     }
   }, [selectedDirectory, loadSessions, loadQuestions, loadPermissions]);
 
-  console.log("Render main layout content");
-
   if (isMobile || isTablet) {
     return (
       <>
@@ -67,7 +65,7 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
           open={sidebarOpen}
           onOpenChange={setSidebarOpen}
         />
-        <div className="flex flex-col h-[100dvh] bg-background overflow-hidden">
+        <div className="flex flex-col h-dvh bg-background overflow-hidden">
           <PermissionBanner
             onOpenDialog={() => setPermissionDialogOpen(true)}
           />
@@ -127,7 +125,6 @@ function AppMainLayout() {
   const { instances } = useInstanceStore();
   const { workspaces } = useWorkspaceStore();
   const isHaveToOnboard = instances.length === 0 || workspaces.length === 0;
-  console.log(isHaveToOnboard);
   const activeInstanceId = useInstanceStore((s) => s.instances[0]?.id);
 
   useEffect(() => {
@@ -141,8 +138,6 @@ function AppMainLayout() {
       document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
-
-  console.log("Render app layout");
 
   if (isHaveToOnboard) {
     return <Navigate to="/onboard" />;
