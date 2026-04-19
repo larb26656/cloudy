@@ -2,14 +2,15 @@ import { createClient } from '@libsql/client';
 import { readdir, stat, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';
-import { env } from '../src/config';
+import { loadConfig } from '../src/config';
+
+const config = loadConfig();
 
 const client = createClient({
-    url: env.DB_DATABASE_URL,
+    url: config.dbDatabaseUrl,
 });
 
-const BASE_PATH = process.env.ASSISTANT_AI_BASE_PATH || './base-path';
-const IDEA_PATH = path.join(BASE_PATH, 'idea');
+const IDEA_PATH = config.idea;
 
 async function getIndexFiles(): Promise<string[]> {
     const indexFiles: string[] = [];

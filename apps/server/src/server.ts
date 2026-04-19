@@ -7,6 +7,13 @@ import { memory } from "./features/memory";
 import { artifact } from "./features/artifact";
 import { proxyHandler } from "./container";
 import cors from "@elysiajs/cors";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const PUBLIC_DIR = join(__dirname, "../", "public");
 
 export function createServer({ corsOrigins = [], enableUI = false }: {
     corsOrigins?: string[];
@@ -19,17 +26,16 @@ export function createServer({ corsOrigins = [], enableUI = false }: {
         .get("/", ({ status }) => {
             if (!enableUI) return status(404);
 
-            return new Response(Bun.file("public/index.html"), {
+            return new Response(Bun.file(join(PUBLIC_DIR, "index.html")), {
                 headers: { "Content-Type": "text/html" }
             });
         })
         .use(
             enableUI
                 ? staticPlugin({
-                    assets: "public",
+                    assets: PUBLIC_DIR,
                     prefix: "/",
                     alwaysStatic: true,
-
                 })
                 : new Elysia()
         )
@@ -43,22 +49,11 @@ export function createServer({ corsOrigins = [], enableUI = false }: {
                 .use(memory)
                 .use(artifact)
         )
-
-        .use(
-            enableUI
-                ? staticPlugin({
-                    assets: "public",
-                    prefix: "/",
-                    alwaysStatic: true,
-
-                })
-                : new Elysia()
-        )
         .get('/*', ({ status }) => {
 
             if (!enableUI) return status(404);
 
-            return Bun.file('public/index.html');
+            return Bun.file(join(PUBLIC_DIR, "index.html"));
 
         })
 }

@@ -2,9 +2,11 @@ import { describe, test, expect, beforeEach, afterEach } from 'bun:test';
 import { mockFn, type MockProxy } from 'bun-automock';
 import { IdeaFile } from '../../../../src/features/idea/file/service';
 import type { IdeaRepository } from '../../../../src/features/idea/repository';
-import { resourceConfig } from '../../../../src/config';
+import { loadConfig } from '../../../../src/config';
 import { mkdir, writeFile, rm, stat } from 'node:fs/promises';
 import { resolve } from 'node:path';
+
+const config = loadConfig();
 
 async function folderExists(path: string): Promise<boolean> {
     try {
@@ -18,11 +20,11 @@ async function folderExists(path: string): Promise<boolean> {
 describe('IdeaFileService', () => {
     let ideaRepository: MockProxy<IdeaRepository>;
     let service: IdeaFile;
-    const testIdeaPath = resolve(resourceConfig.idea, 'test-getfile-idea');
+    const testIdeaPath = resolve(config.idea, 'test-getfile-idea');
 
     beforeEach(async () => {
         ideaRepository = mockFn<IdeaRepository>();
-        service = new IdeaFile(ideaRepository);
+        service = new IdeaFile(ideaRepository, config);
         await mkdir(testIdeaPath, { recursive: true });
         await writeFile(resolve(testIdeaPath, 'test.md'), 'test content');
         await writeFile(resolve(testIdeaPath, 'index.md'), '# Index');
@@ -30,7 +32,7 @@ describe('IdeaFileService', () => {
 
     afterEach(async () => {
         await rm(testIdeaPath, { recursive: true, force: true });
-        await rm(resolve(resourceConfig.idea, 'test-idea'), { recursive: true, force: true });
+        await rm(resolve(config.idea, 'test-idea'), { recursive: true, force: true });
     });
 
     describe('getFile', () => {
@@ -64,7 +66,7 @@ describe('IdeaFileService', () => {
             expect(result.content).toBe('new content');
 
             // Assert file was actually created
-            const file = Bun.file(resolve(resourceConfig.idea, 'test-getfile-idea', 'new-file.md'));
+            const file = Bun.file(resolve(config.idea, 'test-getfile-idea', 'new-file.md'));
             expect(await file.exists()).toBe(true);
             expect(await file.text()).toBe('new content');
 
@@ -72,7 +74,7 @@ describe('IdeaFileService', () => {
             expect(ideaRepository.touchUpdatedAt.spy()).toHaveBeenCalledWith('test-getfile-idea');
 
             // Cleanup
-            await rm(resolve(resourceConfig.idea, 'test-getfile-idea', 'new-file.md'));
+            await rm(resolve(config.idea, 'test-getfile-idea', 'new-file.md'));
         });
 
         test('should_throw_404_when_idea_not_found', async () => {
@@ -176,7 +178,7 @@ describe('IdeaFileService', () => {
 
     describe('createIdeaDirectory', () => {
         const newIdeaPath = 'create-dir-test-idea';
-        const newIdeaFolder = resolve(resourceConfig.idea, newIdeaPath);
+        const newIdeaFolder = resolve(config.idea, newIdeaPath);
 
         afterEach(async () => {
             await rm(newIdeaFolder, { recursive: true, force: true });
@@ -201,7 +203,7 @@ describe('IdeaFileService', () => {
     });
 
     describe('deleteIdeaDirectory', () => {
-        const deleteTestFolder = resolve(resourceConfig.idea, 'delete-dir-test-idea');
+        const deleteTestFolder = resolve(config.idea, 'delete-dir-test-idea');
 
         beforeEach(async () => {
             await mkdir(deleteTestFolder, { recursive: true });
@@ -241,7 +243,7 @@ describe('IdeaFileService', () => {
 
         test('should_return_empty_array_when_folder_empty', async () => {
             // Arrange
-            const emptyFolder = resolve(resourceConfig.idea, 'empty-idea');
+            const emptyFolder = resolve(config.idea, 'empty-idea');
             await mkdir(emptyFolder, { recursive: true });
 
             // Act

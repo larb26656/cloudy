@@ -44,6 +44,7 @@ package-lock.json
 base-path/
 public/
 
-# db
-data/*
-!data/.gitkeep
+# config
+/config/
+
+dist/

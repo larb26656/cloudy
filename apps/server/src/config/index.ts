@@ -1,2 +1,2 @@
-export { loadConfig, DEFAULT_CONFIG_DIR } from "./loader";
-export type { CloudyConfig } from "./loader";
+export { loadConfig } from "./config";
+export type { CloudyConfig } from "./config";

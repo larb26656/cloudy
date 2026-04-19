@@ -6,27 +6,31 @@ import { loadConfig } from "./config";
 import { migrate } from "./db/migrate";
 
 async function serveCommand(options: {
-  ui: boolean;
-  host: string;
-  port: string;
+  ui?: boolean;
+  host?: string;
+  port?: string;
   cors?: string;
   config?: string;
+  dataDir?: string;
 }) {
-  const config = loadConfig(options.config);
+  const config = loadConfig({
+    configDir: options.config,
+    dataDir: options.dataDir,
+    ui: options.ui,
+    host: options.host,
+    port: options.port,
+    cors: options.cors,
+  });
   initContainer(config);
 
   console.log("Running migrations...");
   await migrate(config.dbDatabaseUrl);
 
-  const port = parseInt(options.port, 10);
-  const corsOrigins = options.cors?.split(",").map((o) => o.trim()) ?? [];
-  const enableUI = options.ui;
-
-  const server = createServer({ corsOrigins, enableUI });
-  server.listen(port);
+  const server = createServer({ corsOrigins: config.cors, enableUI: config.ui });
+  server.listen({ port: config.port, hostname: config.host });
 
   console.log(
-    `Starting server on ${server.server?.hostname}:${server.server?.port}...`
+    `Starting server on ${config.host}:${config.port}...`
   );
   console.log(`📁 Config: ${config.configDir}`);
 }
@@ -46,6 +50,7 @@ program
   .option("-p, --port <number>", "Port number", "3000")
   .option("--cors <origins>", "Allowed CORS origins (comma-separated)")
   .option("--config <path>", "Config directory (default: ~/.config/cloudy)")
+  .option("--dataDir <path>", "Config data directory (default: ~/.config/cloudy/data)")
   .action(serveCommand);
 
 program.parse();

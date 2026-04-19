@@ -1,4 +1,4 @@
-import type { CloudyConfig } from './config/loader';
+import type { CloudyConfig } from './config';
 import { DbClient } from './db/client';
 import { Artifact } from './features/artifact/service';
 import { Memory } from './features/memory/service';
