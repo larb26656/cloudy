@@ -1,9 +1,24 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
+import pc from "picocolors";
 import { createServer } from "./server";
 import { initContainer } from "./container";
 import { loadConfig } from "./config";
 import { migrate } from "./db/migrate";
+
+function makeText(): string {
+	return pc.cyan([
+		"  .oooooo.   oooo                              .o8             ",
+		" d8P'  `Y8b  `888                             \"888             ",
+		"888           888   .ooooo.  oooo  oooo   .oooo888  oooo    ooo",
+		"888           888  d88' `88b `888  `888  d88' `888   `88.  .8' ",
+		"888           888  888   888  888   888  888   888    `88..8'  ",
+		"`88b    ooo   888  888   888  888   888  888   888     `888'   ",
+		" `Y8bood8P'  o888o `Y8bod8P'  `V88V\"V8P' `Y8bod88P\"     .8'    ",
+		"                                                    .o..P'     ",
+		"                                                    `Y8P'      ",
+	].join("\n"))
+}
 
 async function serveCommand(options: {
   ui?: boolean;
@@ -23,6 +38,8 @@ async function serveCommand(options: {
   });
   initContainer(config);
 
+  console.log(makeText());
+  console.log("");
   console.log("Running migrations...");
   await migrate(config.dbDatabaseUrl);
 

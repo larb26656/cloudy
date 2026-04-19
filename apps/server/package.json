@@ -25,6 +25,7 @@
     "dotenv": "^17.3.1",
     "elysia": "catalog:",
     "gray-matter": "^4.0.3",
+    "picocolors": "^1.1.1",
     "zod": "^4.3.6"
   },
   "module": "src/index.ts",

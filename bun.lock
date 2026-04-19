@@ -20,7 +20,7 @@
       "name": "@cloudy/server",
       "version": "1.0.0",
       "bin": {
-        "cloudy": "./src/cli.ts",
+        "cloudy": "./dist/cli.js",
       },
       "dependencies": {
         "@elysiajs/cors": "^1.4.1",
@@ -33,6 +33,7 @@
         "dotenv": "^17.3.1",
         "elysia": "catalog:",
         "gray-matter": "^4.0.3",
+        "picocolors": "^1.1.1",
         "zod": "^4.3.6",
       },
       "devDependencies": {

@@ -20,6 +20,23 @@ bun run cloudy:build              # Build for production
 
 Open http://localhost:3000/ to see the result.
 
+## CLI
+
+### Link for local testing (without publishing)
+
+```bash
+bun run cloudy:link    # Build & link globally
+bun run cloudy:unlink # Remove link
+```
+
+After linking, you can use the `cloudy` command from anywhere:
+
+```bash
+cloudy serve              # Start server
+cloudy serve --ui         # Start server with UI
+cloudy serve -h localhost -p 3001
+```
+
 ## Config
 
 Configuration is merged in priority order (lowest → highest):

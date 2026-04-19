@@ -26,6 +26,8 @@
     "dev:create-cloudy": "rm -rf packages/create-cloudy/.test-output && bun run packages/create-cloudy/src/index.ts --dir=packages/create-cloudy/.test-output",
     "test:create-cloudy": "bun run --filter create-cloudy test:cli",
     "----CLOUDY-CLI----": "",
+    "cloudy:link": "bun run cloudy:build && cd apps/server && bun link",
+    "cloudy:unlink": "bun unlink",
     "cloudy:serve": "bun run apps/server/src/cli.ts serve --config=apps/server/config --dataDir=apps/server/config/data",
     "cloudy:serve:ui": "bun run apps/server/src/cli.ts serve --config=apps/server/config --dataDir=apps/server/config/data --ui",
     "cloudy:build": "bun run scripts/build-cloudy.ts",

@@ -12,6 +12,9 @@ await Bun.$`bun run --filter @cloudy/server build`;
 console.log("==> Copying public assets to dist...");
 await Bun.$`cp -r apps/server/public apps/server/dist/public`;
 
+console.log("==> Copying migrations to dist...");
+await Bun.$`cp -r apps/server/src/db/migrations apps/server/dist/migrations`;
+
 console.log("==> Build complete!");
 console.log("");
 console.log("Output: apps/server/dist/");
