@@ -3,17 +3,16 @@
   "version": "1.0.0",
   "type": "module",
   "bin": {
-    "cloudy": "./src/cli.ts"
+    "cloudy": "./dist/cli.js"
   },
   "scripts": {
-    "build": "bun build src/cli.ts --outdir dist",
-    "test": "bun test",
+    "build": "bun build src/cli.ts --target bun --external '@libsql/*' --outdir dist",
     "dev": "bun run --watch src/index.ts",
+    "start": "bun dist/cli.js",
     "db:migrate": "bun run src/db/migrate.ts",
     "db:migration:create": "bun run scripts/create-migration.ts",
     "db:migrate:ideas": "bun run scripts/migrate-ideas-to-db.ts",
-    "db:migrate:clean-meta": "bun run scripts/migrate-separate-meta.ts",
-    "prepublishOnly": "../../scripts/build-frontend.sh"
+    "db:migrate:clean-meta": "bun run scripts/migrate-separate-meta.ts"
   },
   "dependencies": {
     "@elysiajs/cors": "^1.4.1",

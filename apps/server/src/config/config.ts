@@ -68,16 +68,9 @@ export function loadConfig(cliFlags: Partial<AppConfig> = {}): CloudyConfig {
         port: '3000',
     });
 
-    console.log(cliFlags);
-
     const fileConfig = ConfigurableSchema.partial().parse(JSON.parse(readFileSync(configPath, 'utf8')));
-
     const envConfig = getEnvConfig();
-
     const merged = ConfigurableSchema.parse({ ...defaults, ...fileConfig, ...envConfig, ...cliFlags });
-
-    console.log(merged);
-
     const dataDir = expanduser(merged.dataDir);
 
     return {

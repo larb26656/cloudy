@@ -28,7 +28,7 @@
     "----CLOUDY-CLI----": "",
     "cloudy:serve": "bun run apps/server/src/cli.ts serve --config=apps/server/config --dataDir=apps/server/config/data",
     "cloudy:serve:ui": "bun run apps/server/src/cli.ts serve --config=apps/server/config --dataDir=apps/server/config/data --ui",
-    "cloudy:build": "bun run scripts/build-frontend.sh",
+    "cloudy:build": "bun run scripts/build-cloudy.ts",
     "----CI----": "",
     "publish:opencode-plugin": "npm publish --workspace packages/opencode-plugin",
     "publish:create-cloudy": "npm publish --workspace packages/create-cloudy",
