@@ -7,7 +7,7 @@ ENV NODE_ENV=production
 COPY . .
 
 RUN bun install
-RUN bun run cloudy:link
+RUN bun run cloudy:build
 
 EXPOSE 3000
-CMD ["bun", "run", "cloudy", "serve"]
+CMD ["bun", "run", "apps/server/dist/cli.js", "serve"]
