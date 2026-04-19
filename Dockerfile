@@ -10,4 +10,4 @@ RUN bun install
 RUN bun run cloudy:link
 
 EXPOSE 3000
-CMD ["cloudy", "serve"]
+CMD ["bun", "run", "cloudy", "serve"]
