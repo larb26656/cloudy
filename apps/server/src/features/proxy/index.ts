@@ -1,71 +1,47 @@
 import { Elysia } from 'elysia'
-import type { CloudyConfig } from '../../config'
+import { proxyService } from '../../container'
 
-export class ProxyHandler {
-    constructor(private config: CloudyConfig) {}
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': '*',
+} as const
 
-    private get opencodeApiBase(): string {
-        return this.config.ocApiBasePath;
+const proxyHandler = async ({ request, set, status, query }: { request: Request; set: any; status: any; query: any }) => {
+    const opencodeApiBase = request.headers.get('X-OpenCode-API-Base') || query["X-OpenCode-API-Base"];
+
+    if (!opencodeApiBase) {
+        return status(400, { error: 'Missing X-OpenCode-API-Base header or query parameter' })
     }
 
-    async handler({ request, set, status }: any) {
-        const incomingUrl = new URL(request.url)
-        const targetPath = incomingUrl.pathname.replace(/^\/oc/, '')
-        const url = new URL(targetPath + incomingUrl.search, this.opencodeApiBase)
+    const result = await proxyService.proxy(request, opencodeApiBase)
 
-        const headers = new Headers(request.headers)
-
-        try {
-            const response = await fetch(url.toString(), {
-                method: request.method,
-                headers,
-                body: request.body,
-                signal: request.signal,
-            } as RequestInit)
-
-            const contentType = response.headers.get('content-type') || ''
-            const isStreaming =
-                contentType.includes('text/event-stream') ||
-                contentType.includes('stream')
-
-            for (const [key, value] of response.headers.entries()) {
-                set.headers[key] = value
-            }
-
-            set.headers['Access-Control-Allow-Origin'] = '*'
-            set.headers['Access-Control-Allow-Methods'] =
-                'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-            set.headers['Access-Control-Allow-Headers'] = '*'
-
-            if (isStreaming) {
-                return status(200, response.body)
-            }
-
-            const data = await response.text()
-
-            set.headers['Content-Type'] = contentType || 'application/json'
-
-            return status(200, data)
-        } catch (error) {
-            console.error('[Proxy] Error:', error)
-            return status(500, { error: 'Proxy error' })
+    if (result.isStreaming) {
+        set.headers['Content-Type'] = result.contentType || 'application/octet-stream'
+        for (const [key, value] of Object.entries(CORS_HEADERS)) {
+            set.headers[key] = value
         }
+        return new Response(result.body, {
+            headers: {
+                'Content-Type': result.contentType || 'application/octet-stream',
+                ...CORS_HEADERS,
+            },
+        })
     }
 
-    getPlugin() {
-        const handler = this.handler.bind(this);
-        return new Elysia({ prefix: '/oc' })
-            .get('/*', handler)
-            .post('/*', handler)
-            .put('/*', handler)
-            .patch('/*', handler)
-            .delete('/*', handler)
-            .options('/*', ({ status, set }) => {
-                set.headers['Access-Control-Allow-Origin'] = '*'
-                set.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, PATCH, DELETE, OPTIONS'
-                set.headers['Access-Control-Allow-Headers'] = '*'
-
-                return status(204, null)
-            })
-    }
+    set.headers['Content-Type'] = result.contentType || 'application/json'
+    return result.body
 }
+
+export const proxy = new Elysia({ prefix: '/oc' })
+    .get('/*', proxyHandler)
+    .post('/*', proxyHandler)
+    .put('/*', proxyHandler)
+    .patch('/*', proxyHandler)
+    .delete('/*', proxyHandler)
+    .options('/*', ({ set }) => {
+        for (const [key, value] of Object.entries(CORS_HEADERS)) {
+            set.headers[key] = value
+        }
+        return null
+    })

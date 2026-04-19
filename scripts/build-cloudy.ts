@@ -1,4 +1,4 @@
-export {};
+export { };
 
 console.log("==> Building frontend...");
 await Bun.$`bun run --filter @cloudy/web-app build`;
@@ -10,7 +10,7 @@ console.log("==> Bundling server CLI...");
 await Bun.$`bun run --filter @cloudy/server build`;
 
 console.log("==> Copying public assets to dist...");
-await Bun.$`cp -r apps/server/public apps/server/dist/public`;
+await Bun.$`cp -r apps/web-app/dist apps/server/dist/public`;
 
 console.log("==> Copying migrations to dist...");
 await Bun.$`cp -r apps/server/src/db/migrations apps/server/dist/migrations`;

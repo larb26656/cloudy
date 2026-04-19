@@ -5,7 +5,7 @@ import { serve } from "./features/serve";
 import { idea } from "./features/idea";
 import { memory } from "./features/memory";
 import { artifact } from "./features/artifact";
-import { proxyHandler } from "./container";
+import { proxy } from "./features/proxy";
 import cors from "@elysiajs/cors";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
@@ -42,7 +42,7 @@ export function createServer({ corsOrigins = [], enableUI = false }: {
                 : new Elysia()
         )
         .use(openapi())
-        .use(proxyHandler.getPlugin())
+        .use(proxy)
         .group("/api", (app) =>
             app
                 .use(openapi())

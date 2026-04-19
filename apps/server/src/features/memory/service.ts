@@ -147,7 +147,8 @@ export class Memory {
                     continue;
                 }
             }
-        } catch {
+        } catch (e) {
+            console.error(e)
             return [];
         }
 

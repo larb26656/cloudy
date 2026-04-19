@@ -18,6 +18,7 @@ import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useOnboardingStore } from "@/stores/onboardingStore";
 import { createOpencodeClient } from "@opencode-ai/sdk/v2/client";
 import { registerInstance } from "@/lib/instance-registry";
+import { createOcClient, type OCClient } from "@/lib/opencode";
 
 type OnboardingProps = {
   onComplete?: () => void;
@@ -179,7 +180,7 @@ const WorkspaceStep = memo(function WorkspaceStep({
   onSubmit,
 }: {
   form: ReturnType<typeof useForm<WorkspaceFormData>>;
-  oc: ReturnType<typeof createOpencodeClient> | null;
+  oc: OCClient | null;
   onSubmit: (data: WorkspaceFormData) => void;
 }) {
   return (
@@ -302,7 +303,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const tempOC = useMemo(() => {
     if (step !== "workspace") return null;
     const endpoint = instanceForm.getValues("endpoint");
-    return createOpencodeClient({ baseUrl: endpoint });
+    return createOcClient({ baseUrl: endpoint });
   }, [step, instanceForm]);
 
   const handleBack = useCallback(() => {

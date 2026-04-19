@@ -109,7 +109,6 @@ Copy `.env.example` to `.env`. Key variables:
 | Variable                 | Default                 | Used by |
 | ------------------------ | ----------------------- | ------- |
 | `ASSISTANT_AI_BASE_PATH` | `./base-path`           | server  |
-| `OC_API_BASE_PATH`       | `http://localhost:4096` | server  |
 | `DB_DATA_DIR`            | `./data`                | server  |
 | `DB_DATABASE_URL`        | `file:./data/local.db`  | server  |
 

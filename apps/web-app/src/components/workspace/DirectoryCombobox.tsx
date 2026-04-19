@@ -11,6 +11,7 @@ import {
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import type { OpencodeClient } from "@opencode-ai/sdk/v2/client";
 import { getOC } from "@/hooks/instanceScopeHook";
+import type { OCClient } from "@/lib/opencode";
 
 async function searchDirectories(
   oc: OpencodeClient,
@@ -32,7 +33,7 @@ async function searchDirectories(
 
 interface DirectoryComboboxProps<T extends FieldValues = FieldValues> {
   instanceId?: string;
-  oc?: OpencodeClient;
+  oc?: OCClient;
   control: Control<T>;
   errors: FieldErrors<T>;
 }

@@ -1,5 +1,6 @@
 import { createOpencodeClient, type OpencodeClient } from "@opencode-ai/sdk/v2/client";
 import { ensureTrailingSlash } from "../url";
+import { env } from "@/config/env";
 
 export type SdkError = {
     message?: string;
@@ -25,21 +26,19 @@ export type OCClient = OpencodeClient & {
 
 export function createOcClient({ baseUrl }: { baseUrl: string }): OCClient {
     const oc = createOpencodeClient({
-        baseUrl: baseUrl
+        baseUrl: env.OPENCODE_API_URL,
+        headers: {
+            'X-OpenCode-API-Base': baseUrl,
+        },
     }) as OCClient;
 
     oc.getEvent = ({ directory }: { directory: string }) => {
-
-        const url = new URL("event", ensureTrailingSlash(baseUrl));
-
+        const url = new URL("event", ensureTrailingSlash(env.OPENCODE_API_URL));
+        url.searchParams.set("X-OpenCode-API-Base", baseUrl);
         if (directory) {
-
             url.searchParams.set("directory", directory);
-
         }
-
         return new EventSource(url);
-
     };
 
     return oc as OCClient;

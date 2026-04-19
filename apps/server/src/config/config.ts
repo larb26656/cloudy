@@ -6,11 +6,10 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 const ConfigurableSchema = z.object({
     configDir: z.string().default('~/.config/cloudy'),
     dataDir: z.string().default('~/.config/cloudy/data'),
-    ui: z.boolean().default(false),
+    ui: z.union([z.boolean(), z.string()]).transform((val) => val === true || val === "true").default(false),
     host: z.string().default('localhost'),
     port: z.string().default('3000').transform(Number),
     cors: z.string().default('').transform((val) => val ? val.split(",").map((o) => o.trim()) : []),
-    ocApiBasePath: z.string().default('http://localhost:4096'),
 });
 
 export type CloudyConfig = z.infer<typeof ConfigurableSchema> & {
@@ -30,10 +29,14 @@ function expanduser(path: string): string {
     return path;
 }
 
-function getEnvConfig(): Partial<AppConfig> {
+export function camelToSnake(str: string): string {
+    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).toUpperCase();
+}
+
+export function getEnvConfig(): Partial<AppConfig> {
     return Object.fromEntries(
         Object.entries(ConfigurableSchema.shape).map(([key]) => {
-            const envKey = `CLOUDY_${key.toUpperCase()}`;
+            const envKey = `CLOUDY_${camelToSnake(key)}`;
             return [key, process.env[envKey]];
         })
     ) as Partial<AppConfig>;
@@ -70,7 +73,11 @@ export function loadConfig(cliFlags: Partial<AppConfig> = {}): CloudyConfig {
 
     const fileConfig = ConfigurableSchema.partial().parse(JSON.parse(readFileSync(configPath, 'utf8')));
     const envConfig = getEnvConfig();
-    const merged = ConfigurableSchema.parse({ ...defaults, ...fileConfig, ...envConfig, ...cliFlags });
+    const filteredCliFlags = Object.fromEntries(
+        Object.entries(cliFlags).filter(([, v]) => v !== undefined)
+    );
+    const mergedInput = { ...defaults, ...fileConfig, ...envConfig, ...filteredCliFlags };
+    const merged = ConfigurableSchema.parse(mergedInput);
     const dataDir = expanduser(merged.dataDir);
 
     return {

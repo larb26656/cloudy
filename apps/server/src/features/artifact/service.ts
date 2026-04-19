@@ -169,7 +169,8 @@ export class Artifact {
                     continue;
                 }
             }
-        } catch {
+        } catch (e) {
+            console.error(e)
             return [];
         }
 

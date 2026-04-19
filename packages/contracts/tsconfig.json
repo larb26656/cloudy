@@ -3,9 +3,9 @@
   "compilerOptions": {
     "composite": true,
     "tsBuildInfoFile": ".tsbuildinfo",
-    "exactOptionalPropertyTypes": true
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true
   },
   "include": ["src"],
-  "exclude": ["node_modules"],
-  "references": [{ "path": "../../apps/server" }]
+  "exclude": ["node_modules"]
 }

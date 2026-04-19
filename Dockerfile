@@ -2,11 +2,12 @@ FROM oven/bun:1-debian
 
 WORKDIR /app
 
+ENV NODE_ENV=production
+
 COPY . .
 
-RUN chmod +x scripts/build-frontend.sh
 RUN bun install
-RUN ./scripts/build-frontend.sh
+RUN bun run cloudy:link
 
 EXPOSE 3000
-CMD ["cloudy", "serve", "--ui"]
+CMD ["cloudy", "serve"]

@@ -58,7 +58,6 @@ Configuration is merged in priority order (lowest → highest):
 | `CLOUDY_PORT` | `3000` | Server port |
 | `CLOUDY_UI` | `false` | Enable UI |
 | `CLOUDY_CORS` | _(empty)_ | CORS origins (comma-separated) |
-| `CLOUDY_OC_API_BASE_PATH` | `http://localhost:4096` | OpenCode API endpoint |
 
 ### Derived Paths (under `dataDir`)
 

@@ -4,12 +4,11 @@ services:
     ports:
       - "3000:3000"
     environment:
-      OC_API_BASE_PATH: http://host.docker.internal:4096
-      ASSISTANT_AI_BASE_PATH: /app/base-path
-      DB_DATA_DIR: /app/data
-      DB_DATABASE_URL: file:/app/data/local.db
+      CLOUDY_HOST: 0.0.0.0
+      CLOUDY_PORT: 3000
+      CLOUDY_UI: "true"
 
     volumes:
-      - ./data:/app/apps/server/data
+      - ./apps/server/config:/root/.config/cloudy
     extra_hosts:
       - "host.docker.internal:host-gateway"
