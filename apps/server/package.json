@@ -8,7 +8,7 @@
   "scripts": {
     "build": "bun build src/cli.ts --target bun --external '@libsql/*' --outdir dist",
     "dev": "bun run --watch src/cli.ts serve --config=config --dataDir=config/data --cors=* --host=127.0.0.1",
-    "dev:ui": "bun run --watch src/cli.ts serve --config=config --dataDir=config/data --cors=* --host=127.0.0.1",
+    "dev:ui": "bun run --watch src/cli.ts serve --config=config --dataDir=config/data --cors=* --host=127.0.0.1 --ui",
     "start": "bun dist/cli.js",
     "db:migrate": "bun run src/db/migrate.ts",
     "db:migration:create": "bun run scripts/create-migration.ts",

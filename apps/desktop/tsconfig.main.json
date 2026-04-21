@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "dist-electron",
+    "lib": ["ES2022"],
+    "types": ["node"]
+  },
+  "include": ["electron/main/**/*", "electron/preload/**/*"]
+}

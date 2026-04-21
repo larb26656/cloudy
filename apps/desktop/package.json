@@ -1,0 +1,37 @@
+{
+  "name": "desktop-new",
+  "version": "0.0.0",
+  "author": "luckytime1996",
+  "main": "dist-electron/main/index.js",
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "electron": "^41.2.2",
+    "electron-builder": "^26.8.1",
+    "tsx": "^4.21.0",
+    "typescript": "^5"
+  },
+  "build": {
+    "appId": "com.example.myapp",
+    "productName": "MyElectronApp",
+    "directories": {
+      "output": "release-builds"
+    },
+    "files": [
+      "dist/**/*",
+      "dist-electron/**/*"
+    ],
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    }
+  },
+  "description": "-",
+  "scripts": {
+    "dev": "bun run build && bunx electron .",
+    "build": "tsc -p tsconfig.main.json",
+    "start": "electron ."
+  },
+  "type": "module"
+}

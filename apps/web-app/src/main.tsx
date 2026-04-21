@@ -1,15 +1,31 @@
 import { StrictMode } from "react";
 import "./index.css";
 import ReactDOM from "react-dom/client";
-import { RouterProvider, createRouter } from "@tanstack/react-router";
+import {
+  RouterProvider,
+  createHashHistory,
+  createRouter,
+} from "@tanstack/react-router";
 
 // Import the generated route tree
 import { routeTree } from "./routeTree.gen";
-import { TooltipProvider } from "./components/ui/tooltip"
+import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/sonner";
 
 // Create a new router instance
-const router = createRouter({ routeTree });
+const isElectron = import.meta.env.MODE === "electron";
+// const router = createRouter({ routeTree, hash:  });
+
+const buildCreateRouter = (isElectron: boolean) => {
+  if (isElectron) {
+    const hashHistory = createHashHistory();
+    return createRouter({ routeTree, history: hashHistory });
+  } else {
+    return createRouter({ routeTree });
+  }
+};
+
+const router = buildCreateRouter(isElectron);
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {

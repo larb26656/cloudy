@@ -1,4 +1,9 @@
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import {
+  createRootRoute,
+  Link,
+  Outlet,
+  useRouterState,
+} from "@tanstack/react-router";
 import { useLoadingStore } from "@/stores/loadingStore";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { useEventStream } from "@/hooks/useEventSteam";
@@ -25,6 +30,13 @@ export const Route = createRootRoute({
 });
 
 function NotFoundPage() {
+  const state = useRouterState();
+  console.log(window.location.href);
+  console.log(state.location.pathname);
+
+  console.log(state.location.search);
+
+  console.log(state.matches);
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       <NotFound

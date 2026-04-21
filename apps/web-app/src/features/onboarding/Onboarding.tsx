@@ -16,7 +16,10 @@ import { useInstanceStore } from "@/stores/instanceStore";
 import { WORKSPACE_COLORS, type WorkspaceColor } from "@/stores/workspaceStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useOnboardingStore } from "@/stores/onboardingStore";
-import { createOpencodeClient } from "@opencode-ai/sdk/v2/client";
+import greeting from "@/assets/mascot/greeting.png";
+import connectServce from "@/assets/mascot/connect-server.png";
+import createWorkspace from "@/assets/mascot/create-workspace.png";
+import happy from "@/assets/mascot/happy.png";
 import { registerInstance } from "@/lib/instance-registry";
 import { createOcClient, type OCClient } from "@/lib/opencode";
 
@@ -65,7 +68,7 @@ const WelcomeStep = memo(function WelcomeStep() {
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src="/mascot/greeting.png"
+        src={greeting}
         alt="Welcome"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
@@ -105,7 +108,7 @@ const InstanceStep = memo(function InstanceStep({
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src="/mascot/connect-server.png"
+        src={connectServce}
         alt="Instance"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
@@ -186,7 +189,7 @@ const WorkspaceStep = memo(function WorkspaceStep({
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src="/mascot/create-workspace.png"
+        src={createWorkspace}
         alt="Workspace"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
@@ -261,7 +264,7 @@ const AllSetStep = memo(function AllSetStep() {
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src="/mascot/happy.png"
+        src={happy}
         alt="Welcome"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
