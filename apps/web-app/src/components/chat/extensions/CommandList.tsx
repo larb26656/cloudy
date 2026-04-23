@@ -1,4 +1,4 @@
-import { useEffect, useImperativeHandle, useState, forwardRef } from "react";
+import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { Zap } from "lucide-react";
 
 import {
@@ -7,10 +7,12 @@ import {
   CommandList,
   CommandEmpty,
 } from "@/components/ui/command";
+import { useCmdSuggestionHook } from "./useCmdSuggestionHook";
+import { CommandListPanel } from "./CommandListPanel";
 
 type CommandSource = "command" | "mcp" | "skill" | "system";
 
-type CommandItem = {
+type CommandItemData = {
   id: string;
   label: string;
   name: string;
@@ -21,9 +23,9 @@ type CommandItem = {
 };
 
 type CommandListProps = {
-  items: CommandItem[];
-  command: (item: CommandItem) => void;
-  onImmediateExecute?: (item: CommandItem) => void;
+  items: CommandItemData[];
+  command: (item: CommandItemData) => void;
+  onImmediateExecute?: (item: CommandItemData) => void;
 };
 
 export type CommandListRef = {
@@ -32,57 +34,28 @@ export type CommandListRef = {
 
 const CommandListComponent = forwardRef<CommandListRef, CommandListProps>(
   (props, ref) => {
-    const [selectedIndex, setSelectedIndex] = useState(0);
+    const itemToValue = (item: CommandItemData) => `${item.name}`;
 
-    const selectItem = (index: number) => {
-      const item = props.items[index];
-      if (!item) return;
+    const selectItem = useCallback(
+      (item: CommandItemData) => {
+        if (item.immediate && props.onImmediateExecute) {
+          props.onImmediateExecute(item);
+        } else {
+          props.command(item);
+        }
+      },
+      [props],
+    );
 
-      if (item.immediate && props.onImmediateExecute) {
-        props.onImmediateExecute(item);
-      } else {
-        props.command(item);
-      }
-    };
-
-    const upHandler = () => {
-      setSelectedIndex(
-        (prev) => (prev + props.items.length - 1) % props.items.length,
-      );
-    };
-
-    const downHandler = () => {
-      setSelectedIndex((prev) => (prev + 1) % props.items.length);
-    };
-
-    const enterHandler = () => {
-      selectItem(selectedIndex);
-    };
-
-    useEffect(() => {
-      setSelectedIndex(0);
-    }, [props.items]);
+    const { setCmdRoot, selectedValue, setSelectedValue, onKeyDown } =
+      useCmdSuggestionHook<CommandItemData>({
+        items: props.items,
+        selectItem,
+        itemToValue,
+      });
 
     useImperativeHandle(ref, () => ({
-      onKeyDown: ({ event }) => {
-        if (event.key === "ArrowUp") {
-          upHandler();
-          return true;
-        }
-
-        if (event.key === "ArrowDown") {
-          downHandler();
-          return true;
-        }
-
-        if (event.key === "Tab" || event.key === "Enter") {
-          event.stopPropagation();
-          enterHandler();
-          return true;
-        }
-
-        return false;
-      },
+      onKeyDown,
     }));
 
     const getSourceBadge = (source?: CommandSource) => {
@@ -101,39 +74,36 @@ const CommandListComponent = forwardRef<CommandListRef, CommandListProps>(
     };
 
     return (
-      <div className="z-50 w-80 rounded-md border bg-popover shadow-md">
-        <Command>
-          <CommandList>
-            {props.items.length === 0 && <CommandEmpty>No commands found</CommandEmpty>}
-
-            {props.items.map((item, index) => (
-              <CommandItem
-                key={item.id}
-                onSelect={() => selectItem(index)}
-                className={index === selectedIndex ? "bg-accent" : ""}
-              >
-                <div className="flex flex-col gap-0.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{item.name}</span>
-                    {getSourceBadge(item.source)}
-                    {item.immediate && (
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 flex items-center gap-1">
-                        <Zap className="size-3" />
-                        immediate
-                      </span>
-                    )}
-                  </div>
-                  {item.description && (
-                    <span className="text-xs text-muted-foreground line-clamp-1">
-                      {item.description}
-                    </span>
-                  )}
-                </div>
-              </CommandItem>
-            ))}
-          </CommandList>
-        </Command>
-      </div>
+      <CommandListPanel
+        items={props.items}
+        itemToValue={itemToValue}
+        selectItem={selectItem}
+        setSelectedValue={setSelectedValue}
+        renderItem={(item: CommandItemData) => (
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{item.name}</span>
+              {getSourceBadge(item.source)}
+              {item.immediate && (
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 flex items-center gap-1">
+                  <Zap className="size-3" />
+                  immediate
+                </span>
+              )}
+            </div>
+            {item.description && (
+              <span className="text-xs text-muted-foreground line-clamp-1">
+                {item.description}
+              </span>
+            )}
+          </div>
+        )}
+        renderEmpty={() => {
+          "No commands found";
+        }}
+        selectedValue={selectedValue}
+        cmdRootRef={setCmdRoot}
+      />
     );
   },
 );

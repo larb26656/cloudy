@@ -1,11 +1,7 @@
-import { useEffect, useImperativeHandle, useState, forwardRef } from "react";
+import { useImperativeHandle, forwardRef, useCallback } from "react";
 
-import {
-  Command,
-  CommandItem,
-  CommandList,
-  CommandEmpty,
-} from "@/components/ui/command";
+import { useCmdSuggestionHook } from "./useCmdSuggestionHook";
+import { CommandListPanel } from "./CommandListPanel";
 
 type MentionListProps = {
   items: string[];
@@ -18,73 +14,37 @@ export type MentionListRef = {
 
 const MentionList = forwardRef<MentionListRef, MentionListProps>(
   (props, ref) => {
-    const [selectedIndex, setSelectedIndex] = useState(0);
+    const itemToValue = (item: string) => item;
 
-    const selectItem = (index: number) => {
-      const item = props.items[index];
-      if (item) {
+    const selectItem = useCallback(
+      (item: string) => {
         props.command({ id: item });
-      }
-    };
+      },
+      [props],
+    );
 
-    const upHandler = () => {
-      setSelectedIndex(
-        (prev) => (prev + props.items.length - 1) % props.items.length,
-      );
-    };
-
-    const downHandler = () => {
-      setSelectedIndex((prev) => (prev + 1) % props.items.length);
-    };
-
-    const enterHandler = () => {
-      selectItem(selectedIndex);
-    };
-
-    useEffect(() => {
-      setSelectedIndex(0);
-    }, [props.items]);
+    const { setCmdRoot, selectedValue, setSelectedValue, onKeyDown } =
+      useCmdSuggestionHook<string>({
+        items: props.items,
+        selectItem,
+        itemToValue,
+      });
 
     useImperativeHandle(ref, () => ({
-      onKeyDown: ({ event }) => {
-        if (event.key === "ArrowUp") {
-          upHandler();
-          return true;
-        }
-
-        if (event.key === "ArrowDown") {
-          downHandler();
-          return true;
-        }
-
-        if (event.key === "Tab" || event.key === "Enter") {
-          event.stopPropagation();
-          enterHandler();
-          return true;
-        }
-
-        return false;
-      },
+      onKeyDown,
     }));
 
     return (
-      <div className="z-50 w-100 rounded-md border bg-popover shadow-md">
-        <Command>
-          <CommandList>
-            {props.items.length === 0 && <CommandEmpty>No result</CommandEmpty>}
-
-            {props.items.map((item, index) => (
-              <CommandItem
-                key={index}
-                onSelect={() => selectItem(index)}
-                className={index === selectedIndex ? "bg-accent" : ""}
-              >
-                {item}
-              </CommandItem>
-            ))}
-          </CommandList>
-        </Command>
-      </div>
+      <CommandListPanel
+        items={props.items}
+        itemToValue={itemToValue}
+        selectItem={selectItem}
+        setSelectedValue={setSelectedValue}
+        renderItem={(item) => <span>{item}</span>}
+        renderEmpty={() => "No result"}
+        selectedValue={selectedValue}
+        cmdRootRef={setCmdRoot}
+      />
     );
   },
 );

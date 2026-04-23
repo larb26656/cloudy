@@ -53,7 +53,8 @@ export function TokenUsageIndicator({ sessionId }: TokenUsageIndicatorProps) {
 
     for (const msg of msgs) {
       for (const part of msg.parts) {
-        if (part.type === "step-finish") {
+        if (part.type === "step-finish" && part.reason === "stop") {
+          console.log(part);
           input += part.tokens.input;
           output += part.tokens.output;
           reasoning += part.tokens.reasoning;
