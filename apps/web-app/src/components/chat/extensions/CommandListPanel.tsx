@@ -4,7 +4,7 @@ import {
   CommandList,
   CommandEmpty,
 } from "@/components/ui/command";
-import type { Ref } from "react";
+import { useEffect, useRef, type Ref } from "react";
 
 type CommandListPanelProps<T> = {
   items: T[];
@@ -27,6 +27,21 @@ function CommandListPanel<T>({
   setSelectedValue,
   cmdRootRef,
 }: CommandListPanelProps<T>) {
+  const prevItemsRef = useRef(items);
+
+  useEffect(() => {
+    // Detect items reference changed
+    if (items !== prevItemsRef.current) {
+      prevItemsRef.current = items;
+
+      if (items.length > 0) {
+        setSelectedValue(itemToValue(items[0]));
+      } else {
+        setSelectedValue("");
+      }
+    }
+  }, [items, selectedValue, setSelectedValue, itemToValue]);
+
   return (
     <div className="z-50 w-80 rounded-md border bg-popover shadow-md">
       <Command

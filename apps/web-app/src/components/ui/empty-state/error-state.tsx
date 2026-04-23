@@ -1,5 +1,5 @@
 import { EmptyState } from "./base.tsx";
-import errorUrl from "/mascot/happy.png?url";
+import errorUrl from "/mascot/error.png?url";
 
 export function ErrorState({
   description = "Failed to load data. Please try again",

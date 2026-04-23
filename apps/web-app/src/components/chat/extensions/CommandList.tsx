@@ -1,12 +1,6 @@
 import { useImperativeHandle, forwardRef, useCallback } from "react";
 import { Zap } from "lucide-react";
 
-import {
-  Command,
-  CommandItem,
-  CommandList,
-  CommandEmpty,
-} from "@/components/ui/command";
 import { useCmdSuggestionHook } from "./useCmdSuggestionHook";
 import { CommandListPanel } from "./CommandListPanel";
 
@@ -98,9 +92,7 @@ const CommandListComponent = forwardRef<CommandListRef, CommandListProps>(
             )}
           </div>
         )}
-        renderEmpty={() => {
-          "No commands found";
-        }}
+        renderEmpty={() => "No result"}
         selectedValue={selectedValue}
         cmdRootRef={setCmdRoot}
       />

@@ -9,19 +9,11 @@ export function useCmdSuggestionHook<T>({ items, selectItem, itemToValue }: UseC
     const [cmdRoot, setCmdRoot] = useState<HTMLDivElement | null>(null);
     const [selectedValue, setSelectedValue] = useState("");
 
-    useEffect(() => {
-        if (items.length > 0 && !selectedValue) {
-            setSelectedValue(itemToValue(items[0]));
-        } else if (items.length === 0) {
-            setSelectedValue("");
-        }
-    }, [items, selectedValue, setSelectedValue, itemToValue]);
-
     const getItemByValue = useCallback(
         (value: string): T | undefined => {
             return items.find((item) => itemToValue(item) === value);
         },
-        [items],
+        [items, itemToValue],
     );
 
     const enterHandler = () => {
