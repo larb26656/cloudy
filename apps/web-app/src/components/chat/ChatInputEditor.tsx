@@ -16,6 +16,7 @@ interface ChatInputEditorProps {
   content: ChatInputContent;
   onChange: (content: ChatInputContent) => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
+  onImmediateExecute?: (commandName: string) => void;
   placeholder?: string;
   disabled?: boolean;
 }
@@ -36,6 +37,7 @@ export function ChatInputEditor({
   content,
   onChange,
   onKeyDown,
+  onImmediateExecute,
   placeholder,
   disabled,
 }: ChatInputEditorProps) {
@@ -67,7 +69,11 @@ export function ChatInputEditor({
           {
             char: "/",
             allow: shouldShowSlashCommand,
-            ...createCommandSuggestion(instanceId),
+            ...createCommandSuggestion(instanceId, {
+              onImmediateExecute: (cmd) => {
+                onImmediateExecute?.(cmd.name);
+              },
+            }),
           },
         ],
       }),
@@ -75,7 +81,7 @@ export function ChatInputEditor({
         placeholder: placeholder,
       }),
     ];
-  }, [selectedDirectory, placeholder]);
+  }, [selectedDirectory, instanceId, placeholder, onImmediateExecute]);
 
   const editor = useEditor({
     extensions,

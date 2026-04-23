@@ -1,4 +1,5 @@
 import { useEffect, useImperativeHandle, useState, forwardRef } from "react";
+import { Zap } from "lucide-react";
 
 import {
   Command,
@@ -16,11 +17,13 @@ type CommandItem = {
   description?: string;
   source?: CommandSource;
   hints: Array<string>;
+  immediate?: boolean;
 };
 
 type CommandListProps = {
   items: CommandItem[];
   command: (item: CommandItem) => void;
+  onImmediateExecute?: (item: CommandItem) => void;
 };
 
 export type CommandListRef = {
@@ -33,7 +36,11 @@ const CommandListComponent = forwardRef<CommandListRef, CommandListProps>(
 
     const selectItem = (index: number) => {
       const item = props.items[index];
-      if (item) {
+      if (!item) return;
+
+      if (item.immediate && props.onImmediateExecute) {
+        props.onImmediateExecute(item);
+      } else {
         props.command(item);
       }
     };
@@ -109,6 +116,12 @@ const CommandListComponent = forwardRef<CommandListRef, CommandListProps>(
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{item.name}</span>
                     {getSourceBadge(item.source)}
+                    {item.immediate && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500 flex items-center gap-1">
+                        <Zap className="size-3" />
+                        immediate
+                      </span>
+                    )}
                   </div>
                   {item.description && (
                     <span className="text-xs text-muted-foreground line-clamp-1">

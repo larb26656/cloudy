@@ -16,6 +16,7 @@ interface ChatInputProps {
     model?: ModelConfig | null,
     agent?: string | null,
   ) => void;
+  onImmediateCommand?: (commandName: string) => void;
   onAbort?: () => void;
   isLoading?: boolean;
   placeholder?: string;
@@ -26,6 +27,7 @@ interface ChatInputProps {
 
 export function ChatInput({
   onSend,
+  onImmediateCommand,
   onAbort,
   isLoading,
   placeholder = "Type a message...",
@@ -82,6 +84,11 @@ export function ChatInput({
     ? `${speechBaseRef.current} ${speechDraft}`.trim()
     : chatInputContent.text;
 
+  const handleImmediateExecute = (commandName: string) => {
+    onImmediateCommand?.(commandName);
+    setChatInputContent({ text: "", mentions: [] });
+  };
+
   const handleSubmit = () => {
     const finalText = displayText.trim();
 
@@ -135,6 +142,7 @@ export function ChatInput({
                   }
                 }}
                 onKeyDown={handleKeyDown}
+                onImmediateExecute={handleImmediateExecute}
                 placeholder={placeholder}
                 disabled={isLoading}
               />

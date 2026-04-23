@@ -5,7 +5,12 @@ import { QuestionSheet } from "./QuestionSheet";
 import { useStore } from "@/hooks/instanceScopeHook";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { generatePlaceholder } from "@/lib/greeting-generator";
-import { isCommand, parseCommand, executeOCCommand } from "@/lib/command";
+import {
+  isCommand,
+  parseCommand,
+  executeOCCommand,
+  executeSystemCommand,
+} from "@/lib/command";
 import { useMemo } from "react";
 import type { ChatInputContent } from "@/lib/opencode";
 import type { ModelConfig } from "@/types";
@@ -102,6 +107,14 @@ export function ChatContainer({
     await abortGeneration(selectedDirectory, currentSessionId);
   };
 
+  const handleImmediateCommand = async (commandName: string) => {
+    await executeSystemCommand({
+      command: commandName,
+      arguments: "",
+      instanceId,
+    });
+  };
+
   return (
     <div className="flex-1 flex flex-col bg-background overflow-hidden">
       {/* Messages */}
@@ -115,6 +128,7 @@ export function ChatContainer({
       {/* Input */}
       <ChatInput
         onSend={handleSend}
+        onImmediateCommand={handleImmediateCommand}
         onAbort={handleAbort}
         isLoading={isBusy}
         placeholder={chatplaceholder}

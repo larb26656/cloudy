@@ -68,7 +68,7 @@ const MentionList = forwardRef<MentionListRef, MentionListProps>(
     }));
 
     return (
-      <div className="z-50 w-64 rounded-md border bg-popover shadow-md">
+      <div className="z-50 w-100 rounded-md border bg-popover shadow-md">
         <Command>
           <CommandList>
             {props.items.length === 0 && <CommandEmpty>No result</CommandEmpty>}

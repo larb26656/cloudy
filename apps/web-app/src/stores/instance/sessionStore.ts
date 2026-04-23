@@ -90,6 +90,7 @@ export const createSessionStore = (oc: OCClient) => create<SessionStore>()(
         },
 
         createSession: async (directory: string, title?: string) => {
+            console.log("create session");
             const result = await oc.session.create({
                 title: title || createDefaultTitle(),
                 directory,
@@ -106,6 +107,7 @@ export const createSessionStore = (oc: OCClient) => create<SessionStore>()(
         },
 
         createTempSession: () => {
+            console.log("create session temp");
             set({
                 selectedSessionId: null,
             });

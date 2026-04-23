@@ -89,7 +89,7 @@ export function deleteInstance(id: string) {
     delete instanceRegistry[id];
 }
 
-export function resolveInstance(id: string,): InstanceDetail {
+export function resolveInstance(id: string): InstanceDetail {
     const cached = instanceRegistry[id];
     if (cached) return cached;
     const instanceData = useInstanceStore.getState().getInstance(id);

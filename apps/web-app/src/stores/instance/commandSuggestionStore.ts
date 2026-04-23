@@ -13,6 +13,7 @@ export type Command = {
   template: string;
   subtask?: boolean;
   hints: Array<string>;
+  immediate?: boolean;
 };
 
 export type CommandSuggestionStoreState = {
@@ -49,6 +50,7 @@ export const createCommandSuggestionStore = (oc: OCClient) => create<CommandSugg
         source: "system" as CommandSource,
         template: "",
         hints: [],
+        immediate: cmd.immediate
       }));
 
       const commands = [...systemCommandItems, ...openCodeCommands];

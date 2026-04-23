@@ -55,6 +55,7 @@ export interface SendMessageParams {
 export interface SystemCommand {
   name: string;
   description: string;
+  immediate?: boolean;
   execute: (args: string, instanceId: string) => Promise<void> | void;
 }
 
@@ -62,6 +63,7 @@ export const systemCommands: SystemCommand[] = [
   {
     name: "new",
     description: "Create a new session",
+    immediate: true,
     execute: async (_args, instanceId) => {
       getStore("session", instanceId).getState().createTempSession();
     },
@@ -70,6 +72,22 @@ export const systemCommands: SystemCommand[] = [
 
 export function findSystemCommand(name: string): SystemCommand | undefined {
   return systemCommands.find((cmd) => cmd.name === name);
+}
+
+export async function executeSystemCommand(params: {
+  arguments: string;
+  command: string;
+  instanceId: string;
+}): Promise<boolean> {
+  const { command, arguments: args, instanceId } = params;
+
+  const systemCommand = findSystemCommand(command);
+  if (systemCommand) {
+    await systemCommand.execute(args, instanceId);
+    return true;
+  }
+
+  return false;
 }
 
 export async function executeOCCommand(params: {
@@ -83,9 +101,13 @@ export async function executeOCCommand(params: {
 }): Promise<void> {
   const { directory, sessionId, command, arguments: args, model, agent, instanceId } = params;
 
-  const systemCommand = findSystemCommand(command);
-  if (systemCommand) {
-    await systemCommand.execute(args, instanceId);
+  const isExceSystemCommand = await executeSystemCommand({
+    command,
+    arguments: args,
+    instanceId
+  });
+
+  if (isExceSystemCommand) {
     return;
   }
 

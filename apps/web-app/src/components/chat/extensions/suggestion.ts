@@ -17,6 +17,7 @@ type CommandItem = {
   description?: string
   source?: 'command' | 'mcp' | 'skill' | 'system'
   hints: Array<string>
+  immediate?: boolean
 }
 
 type MentionSuggestionProps = SuggestionProps<MentionItem, MentionNodeAttrs>
@@ -99,7 +100,14 @@ export function createMentionSuggestion(directory: string, instanceId: string) {
   }
 }
 
-export function createCommandSuggestion(instanceId: string) {
+type CommandSuggestionOptions = {
+  onImmediateExecute?: (item: CommandItem) => void;
+};
+
+export function createCommandSuggestion(
+  instanceId: string,
+  options?: CommandSuggestionOptions,
+) {
   const { loadCommands, getFilteredCommands } = getStore("commandSuggestion", instanceId).getState();
   let commandsLoaded = false;
 
@@ -114,6 +122,7 @@ export function createCommandSuggestion(instanceId: string) {
         id: cmd.name,
         label: cmd.name,
         ...cmd,
+        immediate: cmd.immediate,
       }));
     },
 
@@ -123,7 +132,10 @@ export function createCommandSuggestion(instanceId: string) {
       return {
         onStart: (props: CommandSuggestionProps) => {
           component = new ReactRenderer(MentionCommandList, {
-            props,
+            props: {
+              ...props,
+              onImmediateExecute: options?.onImmediateExecute,
+            },
             editor: props.editor,
           })
 
@@ -136,7 +148,10 @@ export function createCommandSuggestion(instanceId: string) {
         },
 
         onUpdate: (props: CommandSuggestionProps) => {
-          component?.updateProps(props)
+          component?.updateProps({
+            ...props,
+            onImmediateExecute: options?.onImmediateExecute,
+          })
 
           if (!props.clientRect) return
 
