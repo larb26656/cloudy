@@ -16,10 +16,10 @@ import { useInstanceStore } from "@/stores/instanceStore";
 import { WORKSPACE_COLORS, type WorkspaceColor } from "@/stores/workspaceStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useOnboardingStore } from "@/stores/onboardingStore";
-import greeting from "@/assets/mascot/greeting.png";
-import connectServce from "@/assets/mascot/connect-server.png";
-import createWorkspace from "@/assets/mascot/create-workspace.png";
-import happy from "@/assets/mascot/happy.png";
+import greetingUrl from "/mascot/greeting.png?url";
+import connectServceUrl from "/mascot/connect-server.png?url";
+import createWorkspaceUrl from "/mascot/create-workspace.png?url";
+import happyUrl from "/mascot/happy.png?url";
 import { registerInstance } from "@/lib/instance-registry";
 import { createOcClient, type OCClient } from "@/lib/opencode";
 
@@ -68,7 +68,7 @@ const WelcomeStep = memo(function WelcomeStep() {
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src={greeting}
+        src={greetingUrl}
         alt="Welcome"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
@@ -108,7 +108,7 @@ const InstanceStep = memo(function InstanceStep({
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src={connectServce}
+        src={connectServceUrl}
         alt="Instance"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
@@ -189,7 +189,7 @@ const WorkspaceStep = memo(function WorkspaceStep({
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src={createWorkspace}
+        src={createWorkspaceUrl}
         alt="Workspace"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />
@@ -264,7 +264,7 @@ const AllSetStep = memo(function AllSetStep() {
   return (
     <div className="w-full max-w-md flex flex-col items-center">
       <img
-        src={happy}
+        src={happyUrl}
         alt="Welcome"
         className="w-[150px] h-[150px] mb-6 rounded-2xl bg-muted object-cover"
       />

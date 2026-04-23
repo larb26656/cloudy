@@ -1,5 +1,5 @@
 import { EmptyState } from "./base.tsx";
-import notFound from "@/assets/mascot/404.png";
+import noDataUrl from "/mascot/404.png?url";
 
 export function NoData({
   description = "No items found",
@@ -8,7 +8,7 @@ export function NoData({
 }: Omit<Parameters<typeof EmptyState>[0], "icon" | "title">) {
   return (
     <EmptyState
-      image={notFound}
+      image={noDataUrl}
       title="No data"
       description={description}
       action={action}

@@ -1,5 +1,5 @@
 {
-  "name": "desktop-new",
+  "name": "@cloudy/desktop",
   "version": "0.0.0",
   "author": "luckytime1996",
   "main": "dist-electron/main/index.js",
@@ -11,8 +11,8 @@
     "typescript": "^5"
   },
   "build": {
-    "appId": "com.example.myapp",
-    "productName": "MyElectronApp",
+    "appId": "com.cloudy.desktop",
+    "productName": "Cloudy",
     "directories": {
       "output": "release-builds"
     },
@@ -21,7 +21,8 @@
       "dist-electron/**/*"
     ],
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "assets/icon.png"
     },
     "win": {
       "target": "nsis"
@@ -29,9 +30,13 @@
   },
   "description": "-",
   "scripts": {
-    "dev": "bun run build && bunx electron .",
-    "build": "tsc -p tsconfig.main.json",
+    "dev": "tsc -p tsconfig.main.json && bunx electron .",
+    "build": "rm -rf release-builds && tsc -p tsconfig.main.json && electron-builder",
     "start": "electron ."
   },
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "fix-path": "^5.0.0",
+    "tree-kill": "^1.2.2"
+  }
 }

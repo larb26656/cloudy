@@ -32,7 +32,7 @@
     "cloudy:serve:ui": "NODE_ENV=development bun run --filter @cloudy/server dev:ui",
     "cloudy:build": "bun run scripts/build-cloudy.ts",
     "----CLOUDY-DESKTOP---": "",
-    "cloudy:build:desktop": "bun run scripts/build-cloudy-desktop.ts",
+    "cloudy:build:desktop": "bun run scripts/build-cloudy-desktop.ts && bun run --filter @cloudy/desktop build",
     "----CI----": "",
     "publish:opencode-plugin": "npm publish --workspace packages/opencode-plugin",
     "publish:create-cloudy": "npm publish --workspace packages/create-cloudy",
