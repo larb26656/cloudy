@@ -2,6 +2,12 @@ import { createDefaultTitle, getErrorMessage, type SdkError, type OCClient } fro
 import type { QuestionRequest, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 
+export interface ForkSessionResult {
+    success: boolean;
+    error?: string;
+    session?: Session;
+}
+
 const PAGE_SIZE = 20;
 
 export type SessionStoreState = {
@@ -24,7 +30,7 @@ export type SessionsStoreSessionActions = {
     selectSession: (sessionId: string) => void;
     updateSession: (sessionId: string, title: string) => Promise<void>;
     deleteSession: (sessionId: string) => Promise<void>;
-    forkSession: (sessionId: string, messageId: string) => Promise<Session | null>;
+    forkSession: (sessionId: string, messageId: string) => Promise<ForkSessionResult>;
     updateSessionStatus: (sessionId: string, status: SessionStatus) => void;
     updateSessionFromEvent: (session: Session) => void;
     addSession: (session: Session) => void;
@@ -168,15 +174,15 @@ export const createSessionStore = (oc: OCClient) => create<SessionStore>()(
             });
         },
 
-        forkSession: async (sessionId: string, messageId: string) => {
+        forkSession: async (sessionId: string, messageId: string): Promise<ForkSessionResult> => {
             set({ error: null });
             const result = await oc.session.fork({
                 sessionID: sessionId,
                 messageID: messageId
             });
             if (result.error) {
-                set({ error: getErrorMessage(result.error as SdkError) });
-                return null;
+                const message = getErrorMessage(result.error as SdkError);
+                return { success: false, error: message };
             }
             const session = result.data;
             if (session) {
@@ -184,8 +190,9 @@ export const createSessionStore = (oc: OCClient) => create<SessionStore>()(
                     sessions: [session, ...state.sessions],
                     selectedSessionId: session.id,
                 }));
+                return { success: true, session };
             }
-            return null;
+            return { success: false, error: "No session returned" };
         },
 
         updateSessionStatus: (sessionId: string, status: SessionStatus) => {

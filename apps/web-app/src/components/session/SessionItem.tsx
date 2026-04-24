@@ -19,7 +19,7 @@ interface SessionItemProps {
   onClick: () => void;
   onRename: (newTitle: string) => void;
   onDelete: () => void;
-  onFork: () => void;
+  onFork: (sessionId: string) => void;
 }
 
 export function SessionItem({
@@ -123,7 +123,7 @@ export function SessionItem({
             <DropdownMenuItem
               onClick={(e) => {
                 e.stopPropagation();
-                onFork();
+                onFork(session.id);
                 setShowMenu(false);
               }}
               className="gap-2"

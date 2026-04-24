@@ -1,12 +1,15 @@
 import { SessionItem } from "./SessionItem";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
-import { useStore } from "@/hooks/instanceScopeHook";
+import {
+  getOC,
+  useStore,
+  useCurrentInstanceId,
+} from "@/hooks/instanceScopeHook";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { ErrorState } from "@/components/ui/error-state";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { InfiniteScrollTrigger } from "../InfiniteScrollTrigger";
-import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
+import { toast } from "@/components/ui/sonner";
 
 type SessionListProps = {
   searchQuery: string;
@@ -15,21 +18,20 @@ type SessionListProps = {
 export function SessionList({ searchQuery }: SessionListProps) {
   const navigate = useNavigate();
   const { location } = useRouterState();
+  const instanceId = useCurrentInstanceId();
 
   const {
     selectedSessionId,
     sessions,
     sessionStatuses,
     isLoading,
-    isLoadingMore,
-    nextCursor,
     error,
     loadSessions,
-    loadMoreSessions,
     updateSession,
     deleteSession,
     selectSession,
     createTempSession,
+    forkSession,
   } = useStore("session");
   const selectedDirectory =
     useWorkspaceStore().getCurrentWorkspace()?.directory;
@@ -53,17 +55,30 @@ export function SessionList({ searchQuery }: SessionListProps) {
   };
 
   const handleFork = async (sessionId: string) => {
-    console.log("Fork session:", sessionId);
+    const oc = getOC(instanceId);
+    const result = await oc.session.messages({ sessionID: sessionId });
+
+    if (result.error) {
+      toast.error("Failed to load messages for fork");
+      return;
+    }
+
+    if (!result.data?.length) {
+      toast.error("No messages found to fork");
+      return;
+    }
+
+    const lastMessage = result.data[result.data.length - 1];
+    const forkResult = await forkSession(sessionId, lastMessage.info.id);
+
+    if (!forkResult.success) {
+      toast.error(forkResult.error ?? "Failed to fork session");
+    }
   };
 
   const handleCreateSession = () => {
     createTempSession();
   };
-
-  const sentinelRef = useInfiniteScroll({
-    enabled: !!nextCursor && !searchQuery,
-    onLoadMore: () => loadMoreSessions(selectedDirectory!),
-  });
 
   return (
     <div className="flex-1 p-2 min-h-0 overflow-y-auto">

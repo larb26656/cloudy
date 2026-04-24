@@ -1,6 +1,7 @@
 import { getOC, getStore } from "@/hooks/instanceScopeHook";
 import type { ChatInputContent } from "./opencode";
 import type { ModelConfig } from "@/types";
+import { toast } from "sonner";
 
 export interface SlashCommandState {
   state: {
@@ -66,6 +67,33 @@ export const systemCommands: SystemCommand[] = [
     immediate: true,
     execute: async (_args, instanceId) => {
       getStore("session", instanceId).getState().createTempSession();
+    },
+  },
+  {
+    name: "fork",
+    description: "Fork current session",
+    execute: async (_args, instanceId) => {
+      const sessionStore = getStore("session", instanceId).getState();
+      const selectedSessionId = sessionStore.selectedSessionId;
+      if (!selectedSessionId) return;
+
+      const oc = getOC(instanceId);
+      const result = await oc.session.messages({ sessionID: selectedSessionId });
+      if (result.error) {
+        toast.error("Failed to load messages for fork");
+        return;
+      }
+      if (!result.data?.length) {
+        toast.error("No messages found to fork");
+        return;
+      }
+
+      const lastMessage = result.data[result.data.length - 1];
+      const forkResult = await sessionStore.forkSession(selectedSessionId, lastMessage.info.id);
+
+      if (!forkResult.success) {
+        toast.error(forkResult.error ?? "Failed to fork session");
+      }
     },
   },
 ];
