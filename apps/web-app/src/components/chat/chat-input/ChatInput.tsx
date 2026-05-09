@@ -9,6 +9,7 @@ import { useStore } from "@/hooks/instanceScopeHook";
 import type { ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "../ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
+import { useTextHistory } from "@/hooks/useTextHistory";
 
 interface ChatInputProps {
   onSend: (
@@ -35,7 +36,14 @@ export function ChatInput({
   initialValue,
   showModelSelector = true,
 }: ChatInputProps) {
-  const textStack = useRef<string[]>([]);
+  const {
+    cursorIndex,
+    scrollUp: scrollHistoryUp,
+    scrollDown: scrollHistoryDown,
+    push: pushHistory,
+    currentValue: currentHistorySelectValue,
+  } = useTextHistory();
+
   const [chatInputContent, setChatInputContent] = useState<ChatInputContent>({
     text: "",
     mentions: [],
@@ -57,6 +65,15 @@ export function ChatInput({
       speechBaseRef.current = initialValue;
     }
   }, [initialValue]);
+
+  useEffect(() => {
+    const newText = currentHistorySelectValue;
+
+    setChatInputContent({
+      text: newText,
+      mentions: [],
+    });
+  }, [cursorIndex]);
 
   useEffect(() => {
     if (isListening && !prevListeningRef.current) {
@@ -93,9 +110,7 @@ export function ChatInput({
   const handleSubmit = () => {
     const finalText = displayText.trim();
 
-    textStack.current.push(finalText);
-
-    console.log(textStack.current);
+    pushHistory(finalText);
 
     if (finalText && !isLoading) {
       onSend(
@@ -115,6 +130,21 @@ export function ChatInput({
     }
   };
 
+  const handleHistoryCursor = (e: React.KeyboardEvent) => {
+    const isSameHistoryValue =
+      chatInputContent.text === currentHistorySelectValue;
+
+    if (!isSameHistoryValue) {
+      return;
+    }
+
+    if (e.key === "ArrowUp") {
+      scrollHistoryUp();
+    } else if (e.key === "ArrowDown") {
+      scrollHistoryDown();
+    }
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "@" || e.key === "/") {
       if (directory) {
@@ -122,9 +152,7 @@ export function ChatInput({
       }
     }
 
-    if (e.key === "Escape") {
-      alert("exit");
-    }
+    handleHistoryCursor(e);
 
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
