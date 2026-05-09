@@ -53,6 +53,8 @@ export function ChatInputEditor({
         strike: false,
         code: false,
         codeBlock: false,
+        orderedList: false,
+        heading: false,
       }),
       Mention.configure({
         HTMLAttributes: {
