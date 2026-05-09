@@ -44,7 +44,7 @@ export function MessageParts({ parts, info }: MessagePartsProps) {
             return null;
 
           case "step-finish":
-            return <StepFinishPart key={partKey} part={part} info={info} />;
+            return <StepFinishPart key={partKey} part={part} info={info} parts={parts} />;
 
           case "snapshot":
             return <SnapshotPart key={partKey} part={part} />;

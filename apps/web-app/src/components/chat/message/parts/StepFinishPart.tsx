@@ -2,6 +2,7 @@ import { useState } from "react";
 import type {
   StepFinishPart as StepFinishPartType,
   AssistantMessage,
+  Part,
 } from "@opencode-ai/sdk/v2";
 import { Info, Eye } from "lucide-react";
 import {
@@ -10,9 +11,12 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { CopyButton } from "@/components/ui/CopyButton";
 import { formatTime, formatNumber } from "@/lib/date";
 import { useFileCacheStore } from "@/stores/fileCacheStore";
 import { useStore } from "@/hooks/instanceScopeHook";
+import { useCopyMessage } from "@/hooks/useCopyMessage";
+import { getTextFromParts } from "@/lib/message/text";
 import { traverseByParentId } from "@/lib/message/message";
 import { extractFromMessages } from "@/lib/message/file-summarize";
 import { FileUpdateViewerDialog } from "@/components/file-update-viewer/FileUpdateViewerDialog";
@@ -20,15 +24,18 @@ import { FileUpdateViewerDialog } from "@/components/file-update-viewer/FileUpda
 interface StepFinishPartProps {
   part: StepFinishPartType;
   info?: AssistantMessage;
+  parts?: Part[];
 }
 
-export function StepFinishPart({ part, info }: StepFinishPartProps) {
+export function StepFinishPart({ part, info, parts }: StepFinishPartProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   const totalTokens =
     part.tokens.input + part.tokens.output + part.tokens.reasoning;
 
   const isLastMessage = part.reason === "stop";
+
+  const { copied, handleCopy } = useCopyMessage(() => getTextFromParts(parts ?? []));
 
   const messageId = info?.id;
   const parentId = info?.parentID;
@@ -144,6 +151,8 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
               </div>
             </TooltipContent>
           </Tooltip>
+
+          <CopyButton onClick={handleCopy} copied={copied} />
         </div>
       )}
 
