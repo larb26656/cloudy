@@ -35,6 +35,7 @@ export function ChatInput({
   initialValue,
   showModelSelector = true,
 }: ChatInputProps) {
+  const textStack = useRef<string[]>([]);
   const [chatInputContent, setChatInputContent] = useState<ChatInputContent>({
     text: "",
     mentions: [],
@@ -92,6 +93,10 @@ export function ChatInput({
   const handleSubmit = () => {
     const finalText = displayText.trim();
 
+    textStack.current.push(finalText);
+
+    console.log(textStack.current);
+
     if (finalText && !isLoading) {
       onSend(
         {
@@ -115,6 +120,10 @@ export function ChatInput({
       if (directory) {
         return;
       }
+    }
+
+    if (e.key === "Escape") {
+      alert("exit");
     }
 
     if (e.key === "Enter" && !e.shiftKey) {
