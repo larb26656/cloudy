@@ -9,7 +9,7 @@ import { useStore } from "@/hooks/instanceScopeHook";
 import type { ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "../ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
-import { useTextHistory } from "@/hooks/useTextHistory";
+import { useTextHistory } from "@/stores/textHistoryStore";
 
 interface ChatInputProps {
   onSend: (
