@@ -62,6 +62,7 @@ export const useTextHistoryStore = create<TextHistoryStore>()(
     }),
     {
       name: "text-history",
+      partialize: (state) => ({ histories: state.histories }),
     }
   )
 );
