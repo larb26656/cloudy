@@ -1,7 +1,6 @@
-import { status } from 'elysia'
-import { ArtifactModel } from './model'
+import { z } from 'zod'
 import type { CloudyConfig } from '../../config'
-import { readdir } from "node:fs/promises";
+import { readdir, access } from "node:fs/promises";
 import path from "node:path";
 import matter from 'gray-matter';
 
@@ -9,7 +8,7 @@ function isDateString(str: string): boolean {
     return /^\d{4}-\d{2}-\d{2}/.test(str);
 }
 
-function parseArtifactFrontMatter(markdown: string, fallbackTitle?: string): { meta: ArtifactModel['metaDto']; content: string } {
+function parseArtifactFrontMatter(markdown: string, fallbackTitle?: string): { meta: { title?: string; tags: string[]; type: string; createdAt?: Date; updatedAt?: Date }; content: string } {
     try {
         const { data, content } = matter(markdown);
         const title = data.title && typeof data.title === 'string' && !isDateString(data.title)
@@ -38,6 +37,15 @@ function parseArtifactFrontMatter(markdown: string, fallbackTitle?: string): { m
     }
 }
 
+async function fileExists(filePath: string): Promise<boolean> {
+    try {
+        await access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export class Artifact {
     private artifactPath: string;
 
@@ -61,8 +69,7 @@ export class Artifact {
         for (const folder of subfolders) {
             const folderPath = path.join(this.artifactPath, folder);
             const indexPath = path.join(folderPath, 'index.md');
-            const indexFile = Bun.file(indexPath);
-            if (await indexFile.exists()) {
+            if (await fileExists(indexPath)) {
                 indexFiles.push(`${folder}/index.md`);
             }
         }
@@ -70,7 +77,7 @@ export class Artifact {
         return indexFiles;
     }
 
-    async getFiles(): Promise<ArtifactModel["fileListDto"]> {
+    async getFiles(): Promise<{ source: 'artifact'; files: { name: string; path: string }[] }> {
         const files: { name: string; path: string }[] = [];
 
         try {
@@ -81,36 +88,36 @@ export class Artifact {
                 files.push({ name, path: filePath });
             }
 
-        } catch (e) {
-            throw status(404, 'Artifact directory not found');
+        } catch {
+            throw new Response('Artifact directory not found', { status: 404 });
         }
 
         return { source: 'artifact', files };
     }
 
-    async getFile(filePath: string): Promise<ArtifactModel["fileDto"]> {
+    async getFile(filePath: string): Promise<{ name: string; path: string; content: string }> {
         const fullPath = `${this.artifactPath}/${filePath}`;
-        const file = Bun.file(fullPath);
 
-        if (!await file.exists()) {
-            throw status(404, 'File not found' satisfies ArtifactModel["fileNotFound"]);
+        if (!await fileExists(fullPath)) {
+            throw new Response('File not found', { status: 404 });
         }
 
-        const content = await file.text();
+        const { readFile } = await import('node:fs/promises');
+        const content = await readFile(fullPath, 'utf-8');
         const name = filePath.split('/').pop() || '';
 
         return { name, path: filePath, content };
     }
 
-    async getArtifact(filePath: string): Promise<ArtifactModel["artifactDto"]> {
+    async getArtifact(filePath: string): Promise<{ name: string; path: string; content: string; meta: { title?: string; tags: string[]; type: string; createdAt?: Date; updatedAt?: Date } }> {
         const fullPath = `${this.artifactPath}/${filePath}`;
-        const file = Bun.file(fullPath);
 
-        if (!await file.exists()) {
-            throw status(404, 'File not found' satisfies ArtifactModel["fileNotFound"]);
+        if (!await fileExists(fullPath)) {
+            throw new Response('File not found', { status: 404 });
         }
 
-        const content = await file.text();
+        const { readFile } = await import('node:fs/promises');
+        const content = await readFile(fullPath, 'utf-8');
         const parts = filePath.split('/');
         const name = parts[0];
         const parsed = parseArtifactFrontMatter(content, name);
@@ -133,7 +140,7 @@ export class Artifact {
         return path.join(this.artifactPath, folderName);
     }
 
-    private matchesFilter(artifact: ArtifactModel["artifactDto"], filters?: ArtifactModel["querySchema"]): boolean {
+    private matchesFilter(artifact: { content: string; meta: { title?: string; tags: string[]; type: string } }, filters?: { q?: string; tags?: string[]; type?: string; order?: string }): boolean {
         if (!filters) return true;
 
         if (filters.q) {
@@ -153,8 +160,8 @@ export class Artifact {
         return true;
     }
 
-    async listArtifacts(filters?: ArtifactModel["querySchema"]): Promise<ArtifactModel["artifactDto"][]> {
-        const artifacts: ArtifactModel["artifactDto"][] = [];
+    async listArtifacts(filters?: { q?: string; tags?: string[]; type?: string; order?: string }): Promise<{ name: string; path: string; content: string; meta: { title?: string; tags: string[]; type: string; createdAt?: Date; updatedAt?: Date } }[]> {
+        const artifacts: { name: string; path: string; content: string; meta: { title?: string; tags: string[]; type: string; createdAt?: Date; updatedAt?: Date } }[] = [];
 
         try {
             const indexFiles = await this.getIndexFiles();
@@ -169,8 +176,8 @@ export class Artifact {
                     continue;
                 }
             }
-        } catch (e) {
-            console.error(e)
+        } catch {
+            console.error('Error listing artifacts')
             return [];
         }
 
@@ -189,34 +196,31 @@ export class Artifact {
         return artifacts;
     }
 
-    async getByName(name: string): Promise<ArtifactModel["getFileRes"]> {
+    async getByName(name: string): Promise<Response> {
         const artifactData = await this.getArtifact(`${name}/index.md`);
         const meta = artifactData.meta;
         const folderPath = await this.getArtifactFolder(name);
-        const file = await this.serveFile(folderPath, meta.type);
-        const contentType = getContentType(meta.type);
-
-        if (!file) {
-            throw status(404, 'File not found' satisfies ArtifactModel["fileNotFound"]);
-        }
-
-        return {
-            name,
-            contentType,
-            file
-        }
+        const response = await this.serveFile(folderPath, meta.type);
+        return response;
     }
 
-    async serveFile(dirPath: string, type: ArtifactModel["artifactType"]): Promise<Blob | null> {
+    async serveFile(dirPath: string, type: string): Promise<Response> {
         const filePath = `${dirPath}/artifact.${type}`;
-        const file = Bun.file(filePath);
-        const exists = await file.exists();
+        const exists = await fileExists(filePath);
 
         if (!exists) {
-            return null;
+            return new Response('File not found', { status: 404 });
         }
 
-        return file;
+        const { createReadStream } = await import('node:fs');
+        const { Readable } = await import('node:stream');
+        const stream = Readable.toWeb(createReadStream(filePath)) as unknown as ReadableStream;
+        
+        return new Response(stream, {
+            headers: {
+                'Content-Type': getContentType(type),
+            },
+        });
     }
 }
 

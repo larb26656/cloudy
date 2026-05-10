@@ -1,14 +1,14 @@
-import { status } from 'elysia'
-import { MemoryModel } from './model'
+import { z } from 'zod'
 import type { CloudyConfig } from '../../config'
-import { readdir } from "node:fs/promises";
+import { readdir, stat, access } from "node:fs/promises";
+import path from "node:path";
 import matter from 'gray-matter';
 
 function isDateString(str: string): boolean {
     return /^\d{4}-\d{2}-\d{2}/.test(str);
 }
 
-function parseMemoryFrontMatter(markdown: string, fallbackTitle?: string): { meta: MemoryModel['metaDto']; content: string } {
+function parseMemoryFrontMatter(markdown: string, fallbackTitle?: string): { meta: { title?: string; tags: string[]; createdAt?: Date; updatedAt?: Date }; content: string } {
     try {
         const { data, content } = matter(markdown);
         const title = data.title && typeof data.title === 'string' && !isDateString(data.title)
@@ -35,6 +35,15 @@ function parseMemoryFrontMatter(markdown: string, fallbackTitle?: string): { met
     }
 }
 
+async function fileExists(filePath: string): Promise<boolean> {
+    try {
+        await access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export class Memory {
     private memoryPath: string;
 
@@ -56,7 +65,7 @@ export class Memory {
         return indexFiles;
     }
 
-    async getFiles(): Promise<MemoryModel["fileListDto"]> {
+    async getFiles(): Promise<{ source: 'memory'; files: { name: string; path: string }[] }> {
         const files: { name: string; path: string }[] = [];
 
         try {
@@ -67,36 +76,36 @@ export class Memory {
                 files.push({ name, path: filePath });
             }
 
-        } catch (e) {
-            throw status(404, 'Memory directory not found');
+        } catch {
+            throw new Response('Memory directory not found', { status: 404 });
         }
 
         return { source: 'memory', files };
     }
 
-    async getFile(filePath: string): Promise<MemoryModel["fileDto"]> {
+    async getFile(filePath: string): Promise<{ name: string; path: string; content: string }> {
         const fullPath = `${this.memoryPath}/${filePath}`;
-        const file = Bun.file(fullPath);
 
-        if (!await file.exists()) {
-            throw status(404, 'File not found' satisfies MemoryModel["fileNotFound"]);
+        if (!await fileExists(fullPath)) {
+            throw new Response('File not found', { status: 404 });
         }
 
-        const content = await file.text();
+        const { readFile } = await import('node:fs/promises');
+        const content = await readFile(fullPath, 'utf-8');
         const name = filePath.split('/').pop() || '';
 
         return { name, path: filePath, content };
     }
 
-    async getMemory(filePath: string): Promise<MemoryModel["memoryDto"]> {
+    async getMemory(filePath: string): Promise<{ name: string; path: string; content: string; meta: { title?: string; tags: string[]; createdAt?: Date; updatedAt?: Date } }> {
         const fullPath = `${this.memoryPath}/${filePath}`;
-        const file = Bun.file(fullPath);
 
-        if (!await file.exists()) {
-            throw status(404, 'File not found' satisfies MemoryModel["fileNotFound"]);
+        if (!await fileExists(fullPath)) {
+            throw new Response('File not found', { status: 404 });
         }
 
-        const content = await file.text();
+        const { readFile } = await import('node:fs/promises');
+        const content = await readFile(fullPath, 'utf-8');
         const name = filePath.split('/').pop()?.replace(/\.md$/, '') || '';
         const parsed = parseMemoryFrontMatter(content, name);
 
@@ -113,7 +122,7 @@ export class Memory {
         };
     }
 
-    private matchesFilter(memory: MemoryModel["memoryDto"], filters?: MemoryModel["querySchema"]): boolean {
+    private matchesFilter(memory: { content: string; meta: { title?: string; tags: string[] } }, filters?: { q?: string; tags?: string[]; order?: string }): boolean {
         if (!filters) return true;
 
         if (filters.q) {
@@ -131,8 +140,8 @@ export class Memory {
         return true;
     }
 
-    async listMemories(filters?: MemoryModel["querySchema"]): Promise<MemoryModel["memoryDto"][]> {
-        const memories: MemoryModel["memoryDto"][] = [];
+    async listMemories(filters?: { q?: string; tags?: string[]; order?: string }): Promise<{ name: string; path: string; content: string; meta: { title?: string; tags: string[]; createdAt?: Date; updatedAt?: Date } }[]> {
+        const memories: { name: string; path: string; content: string; meta: { title?: string; tags: string[]; createdAt?: Date; updatedAt?: Date } }[] = [];
 
         try {
             const indexFiles = await this.getIndexFiles();
@@ -147,8 +156,8 @@ export class Memory {
                     continue;
                 }
             }
-        } catch (e) {
-            console.error(e)
+        } catch {
+            console.error('Error listing memories')
             return [];
         }
 

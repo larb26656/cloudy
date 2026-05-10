@@ -1,60 +1,34 @@
-import { Elysia, t } from 'elysia'
-
-import { ideaModelSchema } from './model'
+import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
+import { IdeaModel } from './model'
 import { ideaService } from '../../container'
 import { ideaFile } from './file/index'
 
-export const idea = new Elysia({ prefix: '/idea' })
-    .get('/', async ({ query }) => {
-        return await ideaService.listIdeas(query);
-    }, {
-        query: ideaModelSchema.querySchema,
-        response: {
-            200: t.Array(ideaModelSchema.ideaDto),
-        }
+export const idea = new Hono()
+    .get('/', zValidator('query', IdeaModel.querySchema), async (c) => {
+        const query = c.req.valid('query')
+        return c.json(await ideaService.listIdeas(query))
     })
-    .get('/:path', async ({ params: { path } }) => {
-        return await ideaService.getIdea(path);
-    }, {
-        response: {
-            200: ideaModelSchema.ideaDetailDto,
-            404: ideaModelSchema.fileNotFound,
-        }
+    .get('/:path', async (c) => {
+        const { path } = c.req.param()
+        return c.json(await ideaService.getIdea(path))
     })
-    .post('/', async ({ body }) => {
-        return await ideaService.createIdea(body);
-    }, {
-        body: ideaModelSchema.ideaCreateDto,
-        response: {
-            200: ideaModelSchema.ideaDetailDto,
-            400: t.String(),
-        }
+    .post('/', zValidator('json', IdeaModel.ideaCreateDto), async (c) => {
+        const body = c.req.valid('json')
+        return c.json(await ideaService.createIdea(body), 201)
     })
-    .delete('/:path', async ({ params: { path } }) => {
-        return await ideaService.deleteIdea(path);
-    }, {
-        response: {
-            200: t.Object({ success: t.Boolean() }),
-            400: t.String(),
-            404: ideaModelSchema.fileNotFound,
-        }
+    .delete('/:path', async (c) => {
+        const { path } = c.req.param()
+        return c.json(await ideaService.deleteIdea(path))
     })
-    .patch('/:path', async ({ params: { path }, body }) => {
-        return await ideaService.patchMeta(path, body);
-    }, {
-        body: ideaModelSchema.ideaMetaUpdateDto,
-        response: {
-            200: ideaModelSchema.ideaDto,
-            404: ideaModelSchema.fileNotFound,
-        }
+    .patch('/:path', zValidator('json', IdeaModel.ideaMetaUpdateDto), async (c) => {
+        const { path } = c.req.param()
+        const body = c.req.valid('json')
+        return c.json(await ideaService.patchMeta(path, body))
     })
-    .patch('/:path/touch', async ({ params: { path } }) => {
-        await ideaService.touchUpdatedAt(path);
-        return { success: true };
-    }, {
-        response: {
-            200: t.Object({ success: t.Boolean() }),
-            404: t.String(),
-        }
+    .patch('/:path/touch', async (c) => {
+        const { path } = c.req.param()
+        await ideaService.touchUpdatedAt(path)
+        return c.json({ success: true })
     })
-    .use(ideaFile)
+    .route('/', ideaFile)

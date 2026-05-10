@@ -1,10 +1,12 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
 import pc from "picocolors";
-import { createServer } from "./server";
+import { createApp } from "./server";
 import { initContainer } from "./container";
 import { loadConfig } from "./config";
 import { migrate } from "./db/migrate";
+import { serve } from "@hono/node-server";
+import { startCleanupCron } from "./features/serve";
 
 function makeText(): string {
   return pc.cyan([
@@ -43,8 +45,15 @@ async function serveCommand(options: {
   console.log("Running migrations...");
   await migrate(config.dbDatabaseUrl);
 
-  const server = createServer({ corsOrigins: config.cors, enableUI: config.ui });
-  server.listen({ port: config.port, hostname: config.host });
+  const app = createApp({ corsOrigins: config.cors, enableUI: config.ui });
+
+  startCleanupCron();
+
+  serve({
+    fetch: app.fetch,
+    port: config.port,
+    hostname: config.host,
+  });
 
   console.log(
     `Starting server on ${config.host}:${config.port}...`

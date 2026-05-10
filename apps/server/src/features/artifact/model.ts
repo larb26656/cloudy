@@ -1,57 +1,54 @@
-import { t, type UnwrapSchema } from 'elysia'
+import { z } from 'zod'
 
-const artifactType = t.Union([
-    t.Literal('html'),
-    t.Literal('pdf'),
-    t.Literal('image'),
-    t.Literal('video'),
-    t.Literal('document'),
+const artifactType = z.union([
+    z.literal('html'),
+    z.literal('pdf'),
+    z.literal('image'),
+    z.literal('video'),
+    z.literal('document'),
 ])
 
-const artifactMetaDto = t.Object({
-    title: t.Optional(t.String()),
-    tags: t.Array(t.String()),
+const artifactMetaDto = z.object({
+    title: z.string().optional(),
+    tags: z.array(z.string()),
     type: artifactType,
-    createdAt: t.Optional(t.Date()),
-    updatedAt: t.Optional(t.Date()),
+    createdAt: z.date().optional(),
+    updatedAt: z.date().optional(),
 })
 
 export const ArtifactModel = {
     artifactType,
     metaDto: artifactMetaDto,
-    artifactDto: t.Object({
-        name: t.String(),
-        path: t.String(),
-        content: t.String(),
+    artifactDto: z.object({
+        name: z.string(),
+        path: z.string(),
+        content: z.string(),
         meta: artifactMetaDto,
     }),
-    getFileRes: t.Object({
-        name: t.String(),
-        contentType: t.String(),
-        // TODO find better solution
-        file: t.Any(),
+    getFileRes: z.object({
+        name: z.string(),
+        contentType: z.string(),
+        file: z.any(),
     }),
-    fileDto: t.Object({
-        name: t.String(),
-        path: t.String(),
-        content: t.String(),
+    fileDto: z.object({
+        name: z.string(),
+        path: z.string(),
+        content: z.string(),
     }),
-    fileListDto: t.Object({
-        source: t.Literal('artifact'),
-        files: t.Array(t.Object({
-            name: t.String(),
-            path: t.String(),
+    fileListDto: z.object({
+        source: z.literal('artifact'),
+        files: z.array(z.object({
+            name: z.string(),
+            path: z.string(),
         })),
     }),
-    fileNotFound: t.Literal('File not found'),
-    querySchema: t.Object({
-        q: t.Optional(t.String()),
-        tags: t.Optional(t.Array(t.String())),
-        type: t.Optional(artifactType),
-        order: t.Optional(t.String()),
+    fileNotFound: z.literal('File not found'),
+    querySchema: z.object({
+        q: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        type: artifactType.optional(),
+        order: z.string().optional(),
     }),
-} as const
-
-export type ArtifactModel = {
-    [k in keyof typeof ArtifactModel]: UnwrapSchema<typeof ArtifactModel[k]>
 }
+
+export type ArtifactModel = z.infer<typeof ArtifactModel> & Record<string, unknown>

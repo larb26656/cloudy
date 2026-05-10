@@ -1,40 +1,38 @@
-import { t, type UnwrapSchema } from 'elysia'
+import { z } from 'zod'
 
-const memoryMetaDto = t.Object({
-    title: t.Optional(t.String()),
-    tags: t.Array(t.String()),
-    createdAt: t.Optional(t.Date()),
-    updatedAt: t.Optional(t.Date()),
+const memoryMetaDto = z.object({
+    title: z.string().optional(),
+    tags: z.array(z.string()),
+    createdAt: z.date().optional(),
+    updatedAt: z.date().optional(),
 })
 
 export const MemoryModel = {
     metaDto: memoryMetaDto,
-    memoryDto: t.Object({
-        name: t.String(),
-        path: t.String(),
-        content: t.String(),
+    memoryDto: z.object({
+        name: z.string(),
+        path: z.string(),
+        content: z.string(),
         meta: memoryMetaDto,
     }),
-    fileDto: t.Object({
-        name: t.String(),
-        path: t.String(),
-        content: t.String(),
+    fileDto: z.object({
+        name: z.string(),
+        path: z.string(),
+        content: z.string(),
     }),
-    fileListDto: t.Object({
-        source: t.Literal('memory'),
-        files: t.Array(t.Object({
-            name: t.String(),
-            path: t.String(),
+    fileListDto: z.object({
+        source: z.literal('memory'),
+        files: z.array(z.object({
+            name: z.string(),
+            path: z.string(),
         })),
     }),
-    fileNotFound: t.Literal('File not found'),
-    querySchema: t.Object({
-        q: t.Optional(t.String()),
-        tags: t.Optional(t.Array(t.String())),
-        order: t.Optional(t.String()),
+    fileNotFound: z.literal('File not found'),
+    querySchema: z.object({
+        q: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        order: z.string().optional(),
     }),
-} as const
-
-export type MemoryModel = {
-    [k in keyof typeof MemoryModel]: UnwrapSchema<typeof MemoryModel[k]>
 }
+
+export type MemoryModel = z.infer<typeof MemoryModel> & Record<string, unknown>

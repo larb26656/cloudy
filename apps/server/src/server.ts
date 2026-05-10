@@ -1,63 +1,59 @@
-import { Elysia } from "elysia";
-import openapi from "@elysiajs/openapi";
-import { staticPlugin } from "@elysiajs/static";
-import { serve } from "./features/serve";
-import { idea } from "./features/idea";
-import { memory } from "./features/memory";
-import { artifact } from "./features/artifact";
-import { proxy } from "./features/proxy";
-import cors from "@elysiajs/cors";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { Hono } from 'hono'
+import { cors } from 'hono/cors'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { fileURLToPath } from 'url'
+import { dirname } from 'node:path'
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import { serve as serveFeature } from './features/serve'
+import { idea } from './features/idea'
+import { memory } from './features/memory'
+import { artifact } from './features/artifact'
+import { proxy } from './features/proxy'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 
 const PUBLIC_DIR = __dirname.endsWith("/dist")
     ? join(__dirname, "public")
-    : join(__dirname, "../", "public");
+    : join(__dirname, "../", "public")
 
-export function createServer({ corsOrigins = [], enableUI = false }: {
-    corsOrigins?: string[];
-    enableUI?: boolean;
+export function createApp({ corsOrigins = [], enableUI = false }: {
+    corsOrigins?: string[]
+    enableUI?: boolean
 }) {
-    return new Elysia()
-        .use(cors({
-            origin: corsOrigins
-        }))
-        .get("/", ({ status }) => {
-            if (!enableUI) return status(404);
+    const app = new Hono()
 
-            return new Response(Bun.file(join(PUBLIC_DIR, "index.html")), {
-                headers: { "Content-Type": "text/html" }
-            });
+    app.use(cors({
+        origin: corsOrigins,
+        allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+        allowHeaders: ['*'],
+    }))
+
+    app.get('/', (c) => {
+        if (!enableUI) return c.notFound()
+        const indexPath = join(PUBLIC_DIR, "index.html")
+        if (!existsSync(indexPath)) return c.notFound()
+        const content = readFileSync(indexPath, 'utf-8')
+        return c.html(content)
+    })
+
+    app.route('/oc', proxy)
+    app.route('/api/idea', idea)
+    app.route('/api/memory', memory)
+    app.route('/api/artifact', artifact)
+    app.route('/api/serve', serveFeature)
+
+    if (enableUI) {
+        app.get('/*', (c) => {
+            const indexPath = join(PUBLIC_DIR, "index.html")
+            if (!existsSync(indexPath)) return c.notFound()
+            const content = readFileSync(indexPath, 'utf-8')
+            return c.html(content)
         })
-        .use(
-            enableUI
-                ? staticPlugin({
-                    assets: PUBLIC_DIR,
-                    prefix: "/",
-                    alwaysStatic: true,
-                })
-                : new Elysia()
-        )
-        .use(openapi())
-        .use(proxy)
-        .group("/api", (app) =>
-            app
-                .use(openapi())
-                .use(serve)
-                .use(idea)
-                .use(memory)
-                .use(artifact)
-        )
-        .get('/*', ({ status }) => {
+    }
 
-            if (!enableUI) return status(404);
-
-            return Bun.file(join(PUBLIC_DIR, "index.html"));
-
-        })
+    return app
 }
 
-export type App = ReturnType<typeof createServer>;
+export type App = ReturnType<typeof createApp>

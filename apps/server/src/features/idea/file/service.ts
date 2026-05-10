@@ -1,10 +1,18 @@
-import { status } from 'elysia'
-import { FileModel } from './model'
+import { z } from 'zod'
 import { IDEA_INDEX_FILE } from '../types';
-import { readdir, stat, rm, mkdir, unlink } from "node:fs/promises";
+import { readdir, stat, rm, mkdir, unlink, access } from "node:fs/promises";
 import path from "node:path";
 import { IdeaRepository } from '../repository';
 import type { CloudyConfig } from '../../../config';
+
+async function fileExists(filePath: string): Promise<boolean> {
+    try {
+        await access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
 
 export class IdeaFile {
     protected ideaRepository: IdeaRepository;
@@ -23,15 +31,15 @@ export class IdeaFile {
         };
     }
 
-    async getFile(ideaPath: string, filename: string = IDEA_INDEX_FILE): Promise<FileModel["fileDto"]> {
+    async getFile(ideaPath: string, filename: string = IDEA_INDEX_FILE): Promise<{ name: string; path: string; content: string }> {
         const fullPath = `${this.ideaPath}/${ideaPath}/${filename}`;
-        const file = Bun.file(fullPath);
 
-        if (!await file.exists()) {
-            throw status(404, 'File not found' satisfies FileModel["fileNotFound"]);
+        if (!await fileExists(fullPath)) {
+            throw new Response('File not found', { status: 404 });
         }
 
-        const rawContent = await file.text();
+        const { readFile } = await import('node:fs/promises');
+        const rawContent = await readFile(fullPath, 'utf-8');
 
         return {
             name: filename,
@@ -40,10 +48,10 @@ export class IdeaFile {
         };
     }
 
-    async createFile(ideaPath: string, filename: string, content: string = ''): Promise<FileModel["fileDto"]> {
+    async createFile(ideaPath: string, filename: string, content: string = ''): Promise<{ name: string; path: string; content: string }> {
         const exists = await this.ideaRepository.exists(ideaPath);
         if (!exists) {
-            throw status(404, 'Idea not found' as any);
+            throw new Response('Idea not found', { status: 404 });
         }
 
         const ideaFolder = `${this.ideaPath}/${ideaPath}`;
@@ -57,38 +65,38 @@ export class IdeaFile {
         }
 
         if (!ideaFolderExists) {
-            throw status(404, 'File not found' satisfies FileModel["fileNotFound"]);
+            throw new Response('File not found', { status: 404 });
         }
 
         const fullPath = `${ideaFolder}/${filename}`;
-        const file = Bun.file(fullPath);
 
-        if (await file.exists()) {
-            throw status(400, 'File already exists');
+        if (await fileExists(fullPath)) {
+            throw new Response('File already exists', { status: 400 });
         }
 
-        await Bun.write(fullPath, content);
+        const { writeFile } = await import('node:fs/promises');
+        await writeFile(fullPath, content, 'utf-8');
         await this.ideaRepository.touchUpdatedAt(ideaPath);
 
         return { name: filename, path: `${ideaPath}/${filename}`, content };
     }
 
-    async updateFile(filePath: string, content: string): Promise<FileModel["fileDto"]> {
+    async updateFile(filePath: string, content: string): Promise<{ name: string; path: string; content: string }> {
         const { ideaPath, filename } = this.parseFilePath(filePath);
 
         const exists = await this.ideaRepository.exists(ideaPath);
         if (!exists) {
-            throw status(404, 'Idea not found' as any);
+            throw new Response('Idea not found', { status: 404 });
         }
 
         const fullPath = `${this.ideaPath}/${filePath}`;
-        const file = Bun.file(fullPath);
 
-        if (!await file.exists()) {
-            throw status(404, 'File not found' satisfies FileModel["fileNotFound"]);
+        if (!await fileExists(fullPath)) {
+            throw new Response('File not found', { status: 404 });
         }
 
-        await Bun.write(fullPath, content);
+        const { writeFile } = await import('node:fs/promises');
+        await writeFile(fullPath, content, 'utf-8');
         await this.ideaRepository.touchUpdatedAt(ideaPath);
 
         return { name: filename, path: filePath, content };
@@ -100,18 +108,17 @@ export class IdeaFile {
 
         const exists = await this.ideaRepository.exists(ideaPath);
         if (!exists) {
-            throw status(404, 'Idea not found' as any);
+            throw new Response('Idea not found', { status: 404 });
         }
 
         const fullPath = `${this.ideaPath}/${filePath}`;
-        const file = Bun.file(fullPath);
 
-        if (!await file.exists()) {
-            throw status(404, 'File not found' satisfies FileModel["fileNotFound"]);
+        if (!await fileExists(fullPath)) {
+            throw new Response('File not found', { status: 404 });
         }
 
         if (parts.length === 2 && filename === 'index.md') {
-            throw status(400, 'Cannot delete index.md');
+            throw new Response('Cannot delete index.md', { status: 400 });
         }
 
         await unlink(fullPath);
@@ -126,30 +133,31 @@ export class IdeaFile {
         try {
             const folderStat = await stat(ideaFolder);
             if (folderStat.isDirectory()) {
-                throw status(400, 'Folder already exists');
+                throw new Response('Folder already exists', { status: 400 });
             }
-        } catch (err) {
+        } catch (err: unknown) {
             if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
         }
 
         await mkdir(ideaFolder, { recursive: true });
 
         const indexPath = `${ideaFolder}/index.md`;
-        await Bun.write(indexPath, content);
+        const { writeFile } = await import('node:fs/promises');
+        await writeFile(indexPath, content, 'utf-8');
     }
 
     async deleteIdeaDirectory(ideaPath: string): Promise<void> {
         const ideaFolder = `${this.ideaPath}/${ideaPath}`;
         try {
             await rm(ideaFolder, { recursive: true });
-        } catch (err) {
+        } catch (err: unknown) {
             if ((err as NodeJS.ErrnoException).code !== 'ENOENT') throw err;
         }
     }
 
-    async listIdeaFiles(ideaPath: string): Promise<FileModel["fileMetaDto"][]> {
+    async listIdeaFiles(ideaPath: string): Promise<{ name: string; path: string; size: number; updatedAt?: Date }[]> {
         const folderPath = `${this.ideaPath}/${ideaPath}`;
-        const files: FileModel["fileMetaDto"][] = [];
+        const files: { name: string; path: string; size: number; updatedAt?: Date }[] = [];
 
         try {
             const entries = await readdir(folderPath);

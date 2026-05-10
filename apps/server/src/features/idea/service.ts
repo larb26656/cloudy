@@ -1,4 +1,3 @@
-import { status } from 'elysia'
 import { IdeaModel } from './model'
 import { IdeaRepository } from './repository';
 import { IdeaFile } from './file/service';
@@ -23,8 +22,8 @@ export class Idea {
     }
 
     async createIdea(
-        input: IdeaModel["ideaCreateDto"],
-    ): Promise<IdeaModel["ideaDetailDto"]> {
+        input: z.infer<typeof IdeaModel.ideaCreateDto>,
+    ): Promise<z.infer<typeof IdeaModel.ideaDetailDto>> {
         const ideaPath = generateIdeaPath(input.title);
         const title = input.title ?? ideaPath;
 
@@ -45,7 +44,7 @@ export class Idea {
     async deleteIdea(ideaPath: string): Promise<{ success: boolean }> {
         const exists = await this.repository.exists(ideaPath);
         if (!exists) {
-            throw status(404, 'Idea not found');
+            throw new Response('Idea not found', { status: 404 });
         }
 
         await this.ideaFile.deleteIdeaDirectory(ideaPath);
@@ -55,11 +54,11 @@ export class Idea {
         return { success: true };
     }
 
-    async patchMeta(ideaPath: string, updates: IdeaModel["ideaMetaUpdateDto"]): Promise<IdeaModel["ideaDetailDto"]> {
+    async patchMeta(ideaPath: string, updates: z.infer<typeof IdeaModel.ideaMetaUpdateDto>): Promise<z.infer<typeof IdeaModel.ideaDetailDto>> {
         const existing = await this.repository.findByPath(ideaPath);
 
         if (!existing) {
-            throw status(404, 'File not found' satisfies IdeaModel["fileNotFound"]);
+            throw new Response('File not found', { status: 404 });
         }
 
         await this.repository.updateByPath(ideaPath, {
@@ -72,11 +71,11 @@ export class Idea {
         return await this.getIdea(ideaPath);
     }
 
-    async getIdea(ideaPath: string): Promise<IdeaModel["ideaDetailDto"]> {
+    async getIdea(ideaPath: string): Promise<z.infer<typeof IdeaModel.ideaDetailDto>> {
         const record = await this.repository.findByPath(ideaPath);
 
         if (!record) {
-            throw status(404, 'File not found' satisfies IdeaModel["fileNotFound"]);
+            throw new Response('File not found', { status: 404 });
         }
 
         const file = await this.ideaFile.getFile(ideaPath, IDEA_INDEX_FILE);
@@ -101,13 +100,13 @@ export class Idea {
     async touchUpdatedAt(ideaPath: string): Promise<void> {
         const exists = await this.repository.exists(ideaPath);
         if (!exists) {
-            throw status(404, 'Idea not found');
+            throw new Response('Idea not found', { status: 404 });
         }
 
         await this.repository.touchUpdatedAt(ideaPath);
     }
 
-    async listIdeas(filters?: IdeaModel["querySchema"]): Promise<IdeaModel["ideaDto"][]> {
+    async listIdeas(filters?: z.infer<typeof IdeaModel.querySchema>): Promise<z.infer<typeof IdeaModel.ideaDto>[]> {
         const query: IdeaQuery = {
             q: filters?.q,
             tags: filters?.tags,
@@ -118,7 +117,7 @@ export class Idea {
 
         const ideas = await this.repository.findAll(query);
 
-        const result: IdeaModel["ideaDto"][] = [];
+        const result: z.infer<typeof IdeaModel.ideaDto>[] = [];
 
         for (const record of ideas) {
             try {
@@ -147,3 +146,5 @@ export class Idea {
         return result;
     }
 }
+
+import { z } from 'zod'

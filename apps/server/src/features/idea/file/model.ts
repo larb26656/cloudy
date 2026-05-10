@@ -1,28 +1,24 @@
-import { t, type UnwrapSchema } from 'elysia'
+import { z } from 'zod'
 
-const fileDto = t.Object({
-    name: t.String(),
-    path: t.String(),
-    content: t.String(),
+const fileDto = z.object({
+    name: z.string(),
+    path: z.string(),
+    content: z.string(),
 })
 
-const fileMetaDto = t.Object({
-    name: t.String(),
-    path: t.String(),
-    size: t.Number(),
-    updatedAt: t.Optional(t.Date()),
+const fileMetaDto = z.object({
+    name: z.string(),
+    path: z.string(),
+    size: z.number(),
+    updatedAt: z.date().optional(),
 })
 
-const fileNotFound = t.Literal('File not found')
+const fileNotFound = z.literal('File not found')
 
-export const fileModelSchema = {
+export const FileModel = {
     fileDto,
     fileMetaDto,
     fileNotFound,
-} as const
-
-export const FileModel = fileModelSchema
-
-export type FileModel = {
-    [k in keyof typeof fileModelSchema]: UnwrapSchema<typeof fileModelSchema[k]>
 }
+
+export type FileModel = z.infer<typeof FileModel> & Record<string, unknown>

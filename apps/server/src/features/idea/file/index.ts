@@ -1,49 +1,30 @@
-import { Elysia, t } from 'elysia'
-
-import { fileModelSchema } from './model'
+import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
+import { FileModel } from './model'
 import { ideaFileService } from '../../../container'
 
-export const ideaFile = new Elysia({ prefix: '/idea/:ideaPath/files' })
-    .get('/:filename', async ({ params: { ideaPath, filename } }) => {
-        return await ideaFileService.getFile(ideaPath, filename);
-    }, {
-        response: {
-            200: fileModelSchema.fileDto,
-            404: fileModelSchema.fileNotFound,
-        }
+const createFileBodySchema = FileModel.fileDto.pick({ name: true }).extend({
+    content: FileModel.fileDto.shape.content.optional()
+})
+
+const updateFileBodySchema = FileModel.fileDto.pick({ content: true })
+
+export const ideaFile = new Hono()
+    .get('/:ideaPath/files/:filename', async (c) => {
+        const { ideaPath, filename } = c.req.param()
+        return c.json(await ideaFileService.getFile(ideaPath, filename))
     })
-    .post('/', async ({ params: { ideaPath }, body }) => {
-        const { filename, content } = body as { filename: string; content?: string };
-        return await ideaFileService.createFile(ideaPath, filename, content);
-    }, {
-        body: t.Object({
-            filename: t.String(),
-            content: t.Optional(t.String()),
-        }),
-        response: {
-            200: fileModelSchema.fileDto,
-            400: t.String(),
-            404: fileModelSchema.fileNotFound,
-        }
+    .post('/:ideaPath/files/', zValidator('json', createFileBodySchema), async (c) => {
+        const { ideaPath } = c.req.param()
+        const body = c.req.valid('json') as { name: string; content?: string }
+        return c.json(await ideaFileService.createFile(ideaPath, body.name, body.content), 201)
     })
-    .put('/:filename', async ({ params: { ideaPath, filename }, body }) => {
-        const { content } = body as { content: string };
-        return await ideaFileService.updateFile(`${ideaPath}/${filename}`, content);
-    }, {
-        body: t.Object({
-            content: t.String(),
-        }),
-        response: {
-            200: fileModelSchema.fileDto,
-            404: fileModelSchema.fileNotFound,
-        }
+    .put('/:ideaPath/files/:filename', zValidator('json', updateFileBodySchema), async (c) => {
+        const { ideaPath, filename } = c.req.param()
+        const body = c.req.valid('json') as { content: string }
+        return c.json(await ideaFileService.updateFile(`${ideaPath}/${filename}`, body.content))
     })
-    .delete('/:filename', async ({ params: { ideaPath, filename } }) => {
-        return await ideaFileService.deleteFile(`${ideaPath}/${filename}`);
-    }, {
-        response: {
-            200: t.Object({ success: t.Boolean() }),
-            400: t.String(),
-            404: fileModelSchema.fileNotFound,
-        }
+    .delete('/:ideaPath/files/:filename', async (c) => {
+        const { ideaPath, filename } = c.req.param()
+        return c.json(await ideaFileService.deleteFile(`${ideaPath}/${filename}`))
     })

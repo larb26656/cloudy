@@ -1,40 +1,30 @@
-import { t, type UnwrapSchema } from 'elysia'
-
+import { z } from 'zod'
 
 export const ServeModel = {
-    sessionDto: t.Object({
-        key: t.String(),
-        dirPath: t.String(),
-        expireIn: t.String(),
-        lastAccessed: t.Number(),
+    sessionDto: z.object({
+        key: z.string(),
+        dirPath: z.string(),
+        expireIn: z.string(),
+        lastAccessed: z.number(),
     }),
-    createBody: t.Object({
-        dirPath: t.String(),
-        expireIn: t.String(),
+    createBody: z.object({
+        dirPath: z.string(),
+        expireIn: z.string(),
     }),
-    createRes: t.Object({
-        key: t.String(),
-        expireIn: t.String(),
+    createRes: z.object({
+        key: z.string(),
+        expireIn: z.string(),
     }),
-    editBody: t.Object({
-        dirPath: t.String(),
-        expireIn: t.String(),
+    editBody: z.object({
+        dirPath: z.string(),
+        expireIn: z.string(),
     }),
-    signInResponse: t.Object({
-        username: t.String(),
-        token: t.String(),
+    signInResponse: z.object({
+        username: z.string(),
+        token: z.string(),
     }),
-    sessionNotFound
-        : t
-            .Literal
-            ('Session not found'),
-    indexNotFound
-        : t
-            .Literal
-            ('Index file not found'),
-} as const
-
-
-export type ServeModel = {
-    [k in keyof typeof ServeModel]: UnwrapSchema<typeof ServeModel[k]>
+    sessionNotFound: z.literal('Session not found'),
+    indexNotFound: z.literal('Index file not found'),
 }
+
+export type ServeModel = z.infer<typeof ServeModel> & Record<string, unknown>

@@ -1,5 +1,5 @@
-import { ServeModel } from './model'
-import { status } from 'elysia'
+import { z } from 'zod'
+import { access } from "node:fs/promises";
 
 type SessionData = {
     key: string
@@ -25,7 +25,7 @@ export function generateKey(): string {
 export function parseExpireIn(expireIn: string): number {
     const match = expireIn.match(/^(\d+)(s|m|h|d)$/);
     if (!match) {
-        throw status(400, 'Invalid expireIn format. Use format like 30m, 1h, 7d');
+        throw new Response('Invalid expireIn format. Use format like 30m, 1h, 7d', { status: 400 });
     }
 
     const value = parseInt(match[1], 10);
@@ -36,7 +36,7 @@ export function parseExpireIn(expireIn: string): number {
         case 'm': return value * 60 * 1000;
         case 'h': return value * 60 * 60 * 1000;
         case 'd': return value * 24 * 60 * 60 * 1000;
-        default: throw status(400, 'Invalid expireIn unit');
+        default: throw new Response('Invalid expireIn unit', { status: 400 });
     }
 }
 
@@ -44,7 +44,7 @@ export function isExpired(session: SessionData): boolean {
     return Date.now() > session.expireAt;
 }
 
-export function toSessionDto(session: SessionData): ServeModel["sessionDto"] {
+export function toSessionDto(session: SessionData): { key: string; dirPath: string; expireIn: string; lastAccessed: number } {
     return {
         key: session.key,
         dirPath: session.dirPath,
@@ -76,9 +76,18 @@ export function resetSessions(): void {
     }
 }
 
+async function fileExists(filePath: string): Promise<boolean> {
+    try {
+        await access(filePath);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export abstract class Serve {
 
-    static async create({ dirPath, expireIn }: ServeModel["createBody"]) {
+    static async create({ dirPath, expireIn }: { dirPath: string; expireIn: string }) {
         const key = generateKey();
         const now = Date.now();
 
@@ -98,7 +107,7 @@ export abstract class Serve {
 
     static async get() {
         const now = Date.now();
-        const result: ServeModel["sessionDto"][] = [];
+        const result: { key: string; dirPath: string; expireIn: string; lastAccessed: number }[] = [];
 
         for (const session of Object.values(sessions)) {
             if (isExpired(session)) continue;
@@ -114,17 +123,11 @@ export abstract class Serve {
         const session = sessions[key];
 
         if (!session) {
-            throw status(
-                404,
-                'Session not found' satisfies ServeModel["sessionNotFound"]
-            )
+            throw new Response('Session not found', { status: 404 });
         }
 
         if (isExpired(session)) {
-            throw status(
-                404,
-                'Session not found' satisfies ServeModel["sessionNotFound"]
-            )
+            throw new Response('Session not found', { status: 404 });
         }
 
         const now = Date.now();
@@ -133,21 +136,15 @@ export abstract class Serve {
         return toSessionDto(session);
     }
 
-    static async edit(key: string, { dirPath, expireIn }: ServeModel["editBody"]) {
+    static async edit(key: string, { dirPath, expireIn }: { dirPath: string; expireIn: string }) {
         const session = sessions[key];
 
         if (!session) {
-            throw status(
-                404,
-                'Session not found' satisfies ServeModel["sessionNotFound"]
-            )
+            throw new Response('Session not found', { status: 404 });
         }
 
         if (isExpired(session)) {
-            throw status(
-                404,
-                'Session not found' satisfies ServeModel["sessionNotFound"]
-            )
+            throw new Response('Session not found', { status: 404 });
         }
 
         const now = Date.now();
@@ -170,31 +167,31 @@ export abstract class Serve {
         const session = sessions[key];
 
         if (!session) {
-            throw status(
-                404,
-                'Session not found' satisfies ServeModel["sessionNotFound"]
-            )
+            throw new Response('Session not found', { status: 404 });
         }
 
         if (isExpired(session)) {
-            throw status(
-                404,
-                'Session not found' satisfies ServeModel["sessionNotFound"]
-            )
+            throw new Response('Session not found', { status: 404 });
         }
 
         delete sessions[key];
     }
 
-    static async serveIndex(dirPath: string): Promise<Blob | null> {
+    static async serveIndex(dirPath: string): Promise<Response> {
         const filePath = `${dirPath}/index.html`;
-        const file = Bun.file(filePath);
-        const exists = await file.exists();
 
-        if (!exists) {
-            return null;
+        if (!await fileExists(filePath)) {
+            return new Response('Index file not found', { status: 404 });
         }
 
-        return file;
+        const { createReadStream } = await import('node:fs');
+        const { Readable } = await import('node:stream');
+        const stream = Readable.toWeb(createReadStream(filePath)) as unknown as ReadableStream;
+        
+        return new Response(stream, {
+            headers: {
+                'Content-Type': 'text/html',
+            },
+        });
     }
 }

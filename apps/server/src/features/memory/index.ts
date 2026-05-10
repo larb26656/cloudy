@@ -1,22 +1,14 @@
-import { Elysia, t } from 'elysia'
-
-import { memoryService } from '../../container'
+import { Hono } from 'hono'
+import { zValidator } from '@hono/zod-validator'
 import { MemoryModel } from './model'
+import { memoryService } from '../../container'
 
-export const memory = new Elysia({ prefix: '/memory' })
-    .get('/', async ({ query }) => {
-        return await memoryService.listMemories(query);
-    }, {
-        query: MemoryModel.querySchema,
-        response: {
-            200: t.Array(MemoryModel.memoryDto),
-        }
+export const memory = new Hono()
+    .get('/', zValidator('query', MemoryModel.querySchema), async (c) => {
+        const query = c.req.valid('query')
+        return c.json(await memoryService.listMemories(query))
     })
-    .get('/:path', async ({ params: { path } }) => {
-        return await memoryService.getMemory(path);
-    }, {
-        response: {
-            200: MemoryModel.memoryDto,
-            404: MemoryModel.fileNotFound,
-        }
+    .get('/:path', async (c) => {
+        const { path } = c.req.param()
+        return c.json(await memoryService.getMemory(path))
     })

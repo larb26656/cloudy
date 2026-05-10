@@ -1,92 +1,88 @@
-import { t, type UnwrapSchema } from 'elysia'
+import { z } from 'zod'
 
-const ideaStatus = t.Union([
-    t.Literal('draft'),
-    t.Literal('in-progress'),
-    t.Literal('completed'),
-    t.Literal('archived'),
+const ideaStatus = z.union([
+    z.literal('draft'),
+    z.literal('in-progress'),
+    z.literal('completed'),
+    z.literal('archived'),
 ])
 
-const ideaPriority = t.Union([
-    t.Literal('low'),
-    t.Literal('medium'),
-    t.Literal('high'),
+const ideaPriority = z.union([
+    z.literal('low'),
+    z.literal('medium'),
+    z.literal('high'),
 ])
 
-const ideaMetaDto = t.Object({
-    title: t.Optional(t.String()),
-    tags: t.Array(t.String()),
+const ideaMetaDto = z.object({
+    title: z.string().optional(),
+    tags: z.array(z.string()),
     status: ideaStatus,
     priority: ideaPriority,
-    createdAt: t.Optional(t.Date()),
-    updatedAt: t.Optional(t.Date()),
+    createdAt: z.date().optional(),
+    updatedAt: z.date().optional(),
 })
 
-export const ideaModelSchema = {
+export const IdeaModel = {
     ideaStatus,
     ideaPriority,
     metaDto: ideaMetaDto,
-    ideaDto: t.Object({
-        title: t.String(),
-        path: t.String(),
-        content: t.String(),
+    ideaDto: z.object({
+        title: z.string(),
+        path: z.string(),
+        content: z.string(),
         meta: ideaMetaDto,
     }),
-    ideaDetailDto: t.Object({
-        title: t.String(),
-        path: t.String(),
-        content: t.String(),
-        files: t.Array(t.Object({
-            name: t.String(),
-            path: t.String(),
-            size: t.Number(),
-            updatedAt: t.Optional(t.Date()),
+    ideaDetailDto: z.object({
+        title: z.string(),
+        path: z.string(),
+        content: z.string(),
+        files: z.array(z.object({
+            name: z.string(),
+            path: z.string(),
+            size: z.number(),
+            updatedAt: z.date().optional(),
         })),
         meta: ideaMetaDto,
     }),
-    fileDto: t.Object({
-        name: t.String(),
-        path: t.String(),
-        content: t.String(),
+    fileDto: z.object({
+        name: z.string(),
+        path: z.string(),
+        content: z.string(),
     }),
-    fileListDto: t.Object({
-        source: t.Literal('idea'),
-        files: t.Array(t.Object({
-            name: t.String(),
-            path: t.String(),
+    fileListDto: z.object({
+        source: z.literal('idea'),
+        files: z.array(z.object({
+            name: z.string(),
+            path: z.string(),
         })),
     }),
-    fileMetaDto: t.Object({
-        name: t.String(),
-        path: t.String(),
-        size: t.Number(),
-        updatedAt: t.Optional(t.Date()),
+    fileMetaDto: z.object({
+        name: z.string(),
+        path: z.string(),
+        size: z.number(),
+        updatedAt: z.date().optional(),
     }),
-    fileNotFound: t.Literal('File not found'),
-    querySchema: t.Object({
-        q: t.Optional(t.String()),
-        tags: t.Optional(t.Array(t.String())),
-        status: t.Optional(ideaStatus),
-        priority: t.Optional(ideaPriority),
-        order: t.Optional(t.String()),
+    fileNotFound: z.literal('File not found'),
+    querySchema: z.object({
+        q: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        status: ideaStatus.optional(),
+        priority: ideaPriority.optional(),
+        order: z.string().optional(),
     }),
-    ideaMetaUpdateDto: t.Object({
-        title: t.Optional(t.String()),
-        tags: t.Optional(t.Array(t.String())),
-        status: t.Optional(ideaStatus),
-        priority: t.Optional(ideaPriority),
+    ideaMetaUpdateDto: z.object({
+        title: z.string().optional(),
+        tags: z.array(z.string()).optional(),
+        status: ideaStatus.optional(),
+        priority: ideaPriority.optional(),
     }),
-    ideaCreateDto: t.Object({
-        title: t.String(),
-        tags: t.Optional(t.Array(t.String())),
-        status: t.Optional(ideaStatus),
-        priority: t.Optional(ideaPriority),
-        content: t.Optional(t.String()),
+    ideaCreateDto: z.object({
+        title: z.string(),
+        tags: z.array(z.string()).optional(),
+        status: ideaStatus.optional(),
+        priority: ideaPriority.optional(),
+        content: z.string().optional(),
     }),
-} as const
-
-export const IdeaModel = ideaModelSchema
-
-export type IdeaModel = {
-    [k in keyof typeof ideaModelSchema]: UnwrapSchema<typeof ideaModelSchema[k]>
 }
+
+export type IdeaModel = z.infer<typeof IdeaModel> & Record<string, unknown>
