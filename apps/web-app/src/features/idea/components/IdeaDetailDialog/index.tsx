@@ -24,7 +24,7 @@ import {
   type IdeaDetail,
   apiResponseToIdeaDetail,
 } from "@/features/idea/types";
-import { apiClient } from "@/lib/api";
+import { api } from "@/lib/api";
 import { MarkdownEditor } from "@/components/markdown/editor";
 import {
   ResizablePanelGroup,
@@ -43,8 +43,6 @@ import { TagList } from "./TagList";
 import { Timestamps } from "./Timestamps";
 
 export const CREATE_IDEA_ID = "__create__";
-
-const ideaApi = apiClient.api.idea as any;
 
 const MOCK_IDEA_DETAIL: IdeaDetail = {
   id: CREATE_IDEA_ID,
@@ -181,20 +179,21 @@ function Header({
     }
 
     try {
-      const { data, error } = await ideaApi({ path: idea.path }).patch({
-        status: updates.status,
-        priority: updates.priority,
-        title: updates.title,
-        tags: updates.tags,
+      const res = await api.idea[':path'].$patch({
+        param: { path: idea.path },
+        json: {
+          status: updates.status,
+          priority: updates.priority,
+          title: updates.title,
+          tags: updates.tags,
+        },
       });
-      if (error) {
-        throw new Error(
-          typeof error.value === "string"
-            ? error.value
-            : error.value?.message || "Failed to update",
-        );
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || data.error || "Failed to update");
       }
-      const { createdAt, updatedAt, ...rest } = data!.meta;
+      const data = await res.json();
+      const { createdAt, updatedAt, ...rest } = data.meta;
       onUpdate({
         ...rest,
         createdAt: createdAt ? new Date(createdAt).toISOString() : undefined,
@@ -340,14 +339,12 @@ export function IdeaDetailView({
 
     setIsLoadingIdea(true);
     try {
-      const { data, error } = await ideaApi[ideaId].get();
-      if (error) {
-        throw new Error(
-          typeof error.value === "string"
-            ? error.value
-            : error.value?.message || "Failed to load idea",
-        );
+      const res = await api.idea[':path'].$get({ param: { path: ideaId } });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || data.error || "Failed to load idea");
       }
+      const data = await res.json();
       setIdea(apiResponseToIdeaDetail(data));
     } catch (err) {
       console.error("Failed to load idea:", err);
@@ -367,16 +364,14 @@ export function IdeaDetailView({
   const loadFileContent = useCallback(async () => {
     if (!idea || !selectedFile || !idea.path) return;
     try {
-      const { data, error } =
-        await ideaApi.idea[idea.path].files[selectedFile.name].get();
-      if (error) {
-        throw new Error(
-          typeof error.value === "string"
-            ? error.value
-            : error.value?.message || "Failed to load file",
-        );
+      const res = await api.idea[':ideaPath'].files[':filename'].$get({
+        param: { ideaPath: idea.path, filename: selectedFile.name },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || data.error || "Failed to load file");
       }
-
+      const data = await res.json();
       setMarkdownBody(data.content);
       setHasChanges(false);
     } catch (err) {
@@ -430,20 +425,20 @@ export function IdeaDetailView({
     setIsSaving(true);
     try {
       if (!idea.path) {
-        const { data, error } = await ideaApi.post({
-          title: idea.name,
-          status: idea.meta.status,
-          priority: idea.meta.priority,
-          tags: idea.meta.tags,
-          content,
+        const res = await api.idea.$post({
+          json: {
+            title: idea.name,
+            status: idea.meta.status,
+            priority: idea.meta.priority,
+            tags: idea.meta.tags,
+            content,
+          },
         });
-        if (error) {
-          throw new Error(
-            typeof error.value === "string"
-              ? error.value
-              : error.value?.message || "Failed to create idea",
-          );
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.message || data.error || "Failed to create idea");
         }
+        const data = await res.json();
         const created = apiResponseToIdeaDetail(data);
         setIdea(created);
         setMarkdownBody(content);
@@ -454,15 +449,13 @@ export function IdeaDetailView({
 
       if (!selectedFile) return;
 
-      const { error } = await ideaApi.idea[idea.path].files[
-        selectedFile.name
-      ].put({ content });
-      if (error) {
-        throw new Error(
-          typeof error.value === "string"
-            ? error.value
-            : error.value?.message || "Failed to save file",
-        );
+      const res2 = await api.idea[':ideaPath'].files[':filename'].$put({
+        param: { ideaPath: idea.path, filename: selectedFile.name },
+        json: { content },
+      });
+      if (!res2.ok) {
+        const data = await res2.json();
+        throw new Error(data.message || data.error || "Failed to save file");
       }
 
       setMarkdownBody(content);
@@ -486,16 +479,16 @@ export function IdeaDetailView({
     setIdea({ ...idea, files: [...idea.files, newFile] });
     setSelectedFile(newFile);
     try {
-      const { error } = await ideaApi.idea[idea.path].files.post({
-        filename,
-        content: `# ${filename.replace(".md", "")}\n\n`,
+      const res = await api.idea[':ideaPath'].files.$post({
+        param: { ideaPath: idea.path },
+        json: {
+          name: filename,
+          content: `# ${filename.replace(".md", "")}\n\n`,
+        },
       });
-      if (error) {
-        throw new Error(
-          typeof error.value === "string"
-            ? error.value
-            : error.value?.message || "Failed to create file",
-        );
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || data.error || "Failed to create file");
       }
       if (onIdeaUpdated) {
         onIdeaUpdated({ ...idea, files: [...prevFiles, newFile] });
@@ -527,13 +520,12 @@ export function IdeaDetailView({
     }
     showLoader();
     try {
-      const { error } = await ideaApi.idea[idea.path].files[filename].delete();
-      if (error) {
-        throw new Error(
-          typeof error.value === "string"
-            ? error.value
-            : error.value?.message || "Failed to delete file",
-        );
+      const res = await api.idea[':ideaPath'].files[':filename'].$delete({
+        param: { ideaPath: idea.path, filename },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || data.error || "Failed to delete file");
       }
       if (onIdeaUpdated) {
         onIdeaUpdated({ ...idea, files: updatedFiles });

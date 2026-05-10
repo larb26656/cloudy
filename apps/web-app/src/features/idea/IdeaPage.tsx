@@ -6,7 +6,7 @@ import { useIdeaUIStore } from "@/features/idea/store/ideaStore";
 import { IdeaCard } from "@/features/idea/components";
 import { IdeaDetailDialog, CREATE_IDEA_ID } from "@/features/idea/components/IdeaDetailDialog";
 import { Header } from "@/components/layout";
-import { apiClient } from "@/lib/api";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -76,19 +76,16 @@ export default function IdeaPage() {
       if (filterStatus !== "all") {
         query.status = filterStatus;
       }
-      const { data, error: apiError } = await apiClient.api.idea.get({
-        query,
-      });
-      if (apiError) {
-        const message =
-          typeof apiError.value === "string"
-            ? apiError.value
-            : apiError.value?.message || "Failed to load ideas";
+      const res = await api.idea.$get({ query });
+      if (!res.ok) {
+        const data = await res.json();
+        const message = data.message || data.error || "Failed to load ideas";
         setError(message);
         setIdeas([]);
         toast.error(message);
         return;
       }
+      const data = await res.json();
       setIdeas((data || []).map(apiResponseToIdeaListItem));
     } catch (err) {
       const message =
@@ -112,14 +109,12 @@ export default function IdeaPage() {
   const confirmDelete = useCallback(async () => {
     if (!deleteConfirmDialog) return;
     try {
-      const { error: apiError } = await (apiClient.api.idea as any)[
-        deleteConfirmDialog.id
-      ].delete();
-      if (apiError) {
-        const message =
-          typeof apiError === "string"
-            ? apiError
-            : apiError?.message || "Failed to delete idea";
+      const res = await api.idea[':path'].$delete({
+        param: { path: deleteConfirmDialog.id },
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        const message = data.message || data.error || "Failed to delete idea";
         toast.error(message);
         return;
       }

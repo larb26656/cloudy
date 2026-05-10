@@ -5,7 +5,7 @@
  * Only types are exported - NO runtime code should ever be exported from this file.
  *
  * @exports
- * - `App`: The Elysia application type for Eden type-safe API client
+ * - `AppType`: The Hono application type for RPC client
  * - Model types: IdeaModel, MemoryModel, ArtifactModel, ServeModel
  *
  * @security
@@ -14,9 +14,9 @@
  * @usage
  * External packages should import via @cloudy/contracts, which re-exports these types:
  * ```ts
- * import type { App, IdeaModel } from "@cloudy/contracts";
+ * import type { AppType, IdeaModel } from "@cloudy/contracts";
  * ```
  */
 
-export type { App } from "./index";
+export type { AppType } from "./server";
 export type * from "./features";

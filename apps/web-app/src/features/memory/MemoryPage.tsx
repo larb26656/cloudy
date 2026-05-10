@@ -5,7 +5,7 @@ import { useMemoryUIStore } from "@/features/memory/store/memoryStore";
 import { Header } from "@/components/layout";
 import { apiResponseToMemory } from "@/features/memory/api";
 import { stringifyFrontMatter } from "@/lib/front-matter";
-import { apiClient } from "@/lib/api";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -32,18 +32,17 @@ export default function MemoryPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: apiError } = await apiClient.api.memory.get({
+      const res = await api.memory.$get({
         query: { order: "updatedAt:desc" },
       });
-      if (apiError) {
-        const message =
-          typeof apiError.value === "string"
-            ? apiError.value
-            : apiError.value?.message || "Failed to load memories";
+      if (!res.ok) {
+        const data = await res.json();
+        const message = data.message || data.error || "Failed to load memories";
         setError(message);
         setMemories([]);
         return;
       }
+      const data = await res.json();
       setMemories((data || []).map(apiResponseToMemory));
     } catch (err) {
       const message =

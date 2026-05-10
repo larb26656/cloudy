@@ -11,7 +11,7 @@ import {
 } from "@/features/artifact/components";
 import { Header } from "@/components/layout";
 import { apiResponseToArtifact } from "@/features/artifact/api";
-import { apiClient } from "@/lib/api";
+import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { TabGroupButton } from "@/components/ui/tab-group-button";
 import {
@@ -53,18 +53,18 @@ export default function ArtifactPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const { data, error: apiError } = await apiClient.api.artifact.get({
+      const res = await api.artifact.$get({
         query: { order: "updatedAt:desc" },
       });
-      if (apiError) {
+      if (!res.ok) {
+        const data = await res.json();
         const message =
-          typeof apiError.value === "string"
-            ? apiError.value
-            : apiError.value?.message || "Failed to load artifacts";
+          data.message || data.error || "Failed to load artifacts";
         setError(message);
         setArtifacts([]);
         return;
       }
+      const data = await res.json();
       setArtifacts((data || []).map(apiResponseToArtifact));
     } catch (err) {
       const message =

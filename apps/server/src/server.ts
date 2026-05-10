@@ -18,7 +18,7 @@ const PUBLIC_DIR = __dirname.endsWith("/dist")
     ? join(__dirname, "public")
     : join(__dirname, "../", "public")
 
-export function createApp({ corsOrigins = [], enableUI = false }: {
+function createApp({ corsOrigins = [], enableUI = false }: {
     corsOrigins?: string[]
     enableUI?: boolean
 }) {
@@ -56,4 +56,8 @@ export function createApp({ corsOrigins = [], enableUI = false }: {
     return app
 }
 
-export type App = ReturnType<typeof createApp>
+const app = createApp({ enableUI: true })
+
+export { app }
+
+export type AppType = typeof app
