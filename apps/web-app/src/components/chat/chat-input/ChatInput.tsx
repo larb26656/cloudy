@@ -1,4 +1,3 @@
-// components/chat/ChatInput.tsx
 import { useState, useEffect, useRef } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { ModelSelector } from "../ModelSelector";
@@ -6,10 +5,11 @@ import { AgentSelector } from "../AgentSelector";
 import type { ModelConfig } from "../../../types";
 import { Button } from "@/components/ui/button";
 import { useStore } from "@/hooks/instanceScopeHook";
-import type { ChatInputContent } from "@/lib/opencode";
+import { type ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "../ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
 import { useTextHistory } from "@/stores/textHistoryStore";
+import { isElectron } from "@/main";
 
 interface ChatInputProps {
   onSend: (
@@ -186,7 +186,7 @@ export function ChatInput({
             </div>
 
             <div className="flex justify-between gap-2">
-              <div className="flex gap-2 min-w-0 overflow-x-auto">
+              <div className="flex gap-2 min-w-0 overflow-x-auto items-center">
                 <AgentSelector />
                 {showModelSelector && <ModelSelector />}
               </div>
@@ -223,6 +223,7 @@ export function ChatInput({
             </div>
           </div>
 
+          {isElectron && <div>Electron 2222</div>}
           <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden md:block">
             Press Enter to send, Shift + Enter for new line
             {directory && " • @ or / to mention files"}

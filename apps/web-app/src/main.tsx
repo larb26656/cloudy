@@ -13,11 +13,12 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/sonner";
 
 // Create a new router instance
-const isElectron = import.meta.env.MODE === "electron";
+export const isModeElectron = import.meta.env.MODE === "electron";
+export const isElectron = import.meta.env.VITE_IS_ELECTRON;
 // const router = createRouter({ routeTree, hash:  });
 
-const buildCreateRouter = (isElectron: boolean) => {
-  if (isElectron) {
+const buildCreateRouter = (isModeElectron: boolean) => {
+  if (isModeElectron) {
     const hashHistory = createHashHistory();
     return createRouter({ routeTree, history: hashHistory });
   } else {
@@ -25,7 +26,7 @@ const buildCreateRouter = (isElectron: boolean) => {
   }
 };
 
-const router = buildCreateRouter(isElectron);
+const router = buildCreateRouter(isModeElectron);
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {

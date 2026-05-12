@@ -1,42 +1,45 @@
 {
   "name": "@cloudy/desktop",
+  "productName": "Cloudy",
   "version": "0.0.1",
-  "author": "luckytime1996",
-  "main": "dist-electron/main/index.js",
-  "devDependencies": {
-    "@types/node": "^25.6.0",
-    "electron": "^41.2.2",
-    "electron-builder": "^26.8.1",
-    "tsx": "^4.21.0",
-    "typescript": "^5"
-  },
-  "build": {
-    "appId": "com.cloudy.desktop",
-    "productName": "Cloudy",
-    "directories": {
-      "output": "release-builds"
-    },
-    "files": [
-      "dist/**/*",
-      "dist-electron/**/*"
-    ],
-    "mac": {
-      "target": "dmg",
-      "icon": "assets/icon.png"
-    },
-    "win": {
-      "target": "nsis"
-    }
-  },
-  "description": "-",
+  "description": "",
+  "main": ".vite/build/main.js",
+  "private": true,
   "scripts": {
-    "dev": "tsc -p tsconfig.main.json && npx electron .",
-    "build": "rm -rf release-builds && tsc -p tsconfig.main.json && electron-builder",
-    "start": "electron ."
+    "dev": "cross-env DEV_CLIENT_SERVER_URL=http://localhost:3001 electron-forge start",
+    "dev:prod": "electron-forge start",
+    "package": "electron-forge package",
+    "make": "electron-forge make",
+    "publish": "electron-forge publish",
+    "lint": "eslint --ext .ts,.tsx ."
   },
-  "type": "module",
+  "keywords": [],
+  "author": {
+    "name": "Luckytime1996",
+    "email": "larb26656@gmail.com"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@electron-forge/cli": "^7.11.1",
+    "@electron-forge/maker-deb": "^7.11.1",
+    "@electron-forge/maker-rpm": "^7.11.1",
+    "@electron-forge/maker-squirrel": "^7.11.1",
+    "@electron-forge/maker-zip": "^7.11.1",
+    "@electron-forge/plugin-auto-unpack-natives": "^7.11.1",
+    "@electron-forge/plugin-fuses": "^7.11.1",
+    "@electron-forge/plugin-vite": "^7.11.1",
+    "@electron/fuses": "^1.8.0",
+    "@types/electron-squirrel-startup": "^1.0.2",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "cross-env": "^10.1.0",
+    "electron": "42.0.1",
+    "eslint": "^8.57.1",
+    "eslint-plugin-import": "^2.32.0",
+    "typescript": "~4.5.4",
+    "vite": "^5.4.21"
+  },
   "dependencies": {
-    "fix-path": "^5.0.0",
-    "tree-kill": "^1.2.2"
+    "electron-squirrel-startup": "^1.0.1"
   }
 }
