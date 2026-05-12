@@ -36,6 +36,7 @@
       "name": "@cloudy/desktop",
       "version": "0.0.1",
       "dependencies": {
+        "@cloudy/server": "workspace:*",
         "electron-squirrel-startup": "^1.0.1",
         "hono": "^4.12.18",
       },
@@ -64,7 +65,7 @@
       "name": "@cloudy/server",
       "version": "1.0.0",
       "bin": {
-        "cloudy": "dist/cli.js",
+        "cloudy": "./dist/cli.js",
       },
       "dependencies": {
         "@hono/node-server": "^1.15.0",

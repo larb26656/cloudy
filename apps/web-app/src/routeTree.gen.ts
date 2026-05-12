@@ -13,6 +13,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as OnboardLayoutRouteImport } from './routes/_onboardLayout'
 import { Route as AppMainLayoutRouteImport } from './routes/_appMainLayout'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/_appMainLayout/index'
+import { Route as SettingsServerRouteImport } from './routes/settings/server'
 import { Route as SettingsInstanceRouteImport } from './routes/settings/instance'
 import { Route as IdeasIdRouteImport } from './routes/ideas.$id'
 import { Route as OnboardLayoutOnboardRouteImport } from './routes/_onboardLayout/onboard'
@@ -39,6 +40,11 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AppMainLayoutRoute,
+} as any)
+const SettingsServerRoute = SettingsServerRouteImport.update({
+  id: '/server',
+  path: '/server',
+  getParentRoute: () => SettingsRoute,
 } as any)
 const SettingsInstanceRoute = SettingsInstanceRouteImport.update({
   id: '/instance',
@@ -90,6 +96,7 @@ export interface FileRoutesByFullPath {
   '/onboard': typeof OnboardLayoutOnboardRoute
   '/ideas/$id': typeof IdeasIdRoute
   '/settings/instance': typeof SettingsInstanceRoute
+  '/settings/server': typeof SettingsServerRoute
   '/ideas/new': typeof AppMainLayoutIdeasNewRoute
   '/ideas/': typeof AppMainLayoutIdeasIndexRoute
 }
@@ -102,6 +109,7 @@ export interface FileRoutesByTo {
   '/onboard': typeof OnboardLayoutOnboardRoute
   '/ideas/$id': typeof IdeasIdRoute
   '/settings/instance': typeof SettingsInstanceRoute
+  '/settings/server': typeof SettingsServerRoute
   '/ideas/new': typeof AppMainLayoutIdeasNewRoute
   '/ideas': typeof AppMainLayoutIdeasIndexRoute
 }
@@ -116,6 +124,7 @@ export interface FileRoutesById {
   '/_onboardLayout/onboard': typeof OnboardLayoutOnboardRoute
   '/ideas/$id': typeof IdeasIdRoute
   '/settings/instance': typeof SettingsInstanceRoute
+  '/settings/server': typeof SettingsServerRoute
   '/_appMainLayout/': typeof AppMainLayoutIndexRoute
   '/_appMainLayout/ideas/new': typeof AppMainLayoutIdeasNewRoute
   '/_appMainLayout/ideas/': typeof AppMainLayoutIdeasIndexRoute
@@ -131,6 +140,7 @@ export interface FileRouteTypes {
     | '/onboard'
     | '/ideas/$id'
     | '/settings/instance'
+    | '/settings/server'
     | '/ideas/new'
     | '/ideas/'
   fileRoutesByTo: FileRoutesByTo
@@ -143,6 +153,7 @@ export interface FileRouteTypes {
     | '/onboard'
     | '/ideas/$id'
     | '/settings/instance'
+    | '/settings/server'
     | '/ideas/new'
     | '/ideas'
   id:
@@ -156,6 +167,7 @@ export interface FileRouteTypes {
     | '/_onboardLayout/onboard'
     | '/ideas/$id'
     | '/settings/instance'
+    | '/settings/server'
     | '/_appMainLayout/'
     | '/_appMainLayout/ideas/new'
     | '/_appMainLayout/ideas/'
@@ -197,6 +209,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppMainLayoutIndexRouteImport
       parentRoute: typeof AppMainLayoutRoute
+    }
+    '/settings/server': {
+      id: '/settings/server'
+      path: '/server'
+      fullPath: '/settings/server'
+      preLoaderRoute: typeof SettingsServerRouteImport
+      parentRoute: typeof SettingsRoute
     }
     '/settings/instance': {
       id: '/settings/instance'
@@ -293,10 +312,12 @@ const OnboardLayoutRouteWithChildren = OnboardLayoutRoute._addFileChildren(
 
 interface SettingsRouteChildren {
   SettingsInstanceRoute: typeof SettingsInstanceRoute
+  SettingsServerRoute: typeof SettingsServerRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsInstanceRoute: SettingsInstanceRoute,
+  SettingsServerRoute: SettingsServerRoute,
 }
 
 const SettingsRouteWithChildren = SettingsRoute._addFileChildren(

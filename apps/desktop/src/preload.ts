@@ -1,5 +1,23 @@
 import { contextBridge, ipcRenderer } from "electron";
 
+export interface ElectronServerAPI {
+  start: (config: {
+    host?: string;
+    port?: number;
+    dataDir?: string;
+  }) => Promise<{
+    status?: { running: boolean; url?: string };
+    error?: string;
+  }>;
+  stop: () => Promise<{
+    status?: { running: boolean; url?: string };
+    error?: string;
+  }>;
+  status: () => Promise<{
+    status: { running: boolean; url?: string };
+  }>;
+}
+
 export interface ElectronContextAPI {
   addContext: (options: {
     type: string;
@@ -54,4 +72,10 @@ const contextAPI: ElectronContextAPI = {
   },
 };
 
-contextBridge.exposeInMainWorld("electronAPI", { context: contextAPI });
+const serverAPI: ElectronServerAPI = {
+  start: (config) => ipcRenderer.invoke("server:start", config),
+  stop: () => ipcRenderer.invoke("server:stop"),
+  status: () => ipcRenderer.invoke("server:status"),
+};
+
+contextBridge.exposeInMainWorld("electronAPI", { context: contextAPI, server: serverAPI });

@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Palette, Server } from "lucide-react";
+import { Palette, Server, HardDrive } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type SettingCategory = "personalize" | "model" | "instance";
+export type SettingCategory = "personalize" | "model" | "instance" | "server";
 
 interface SettingMenuItem {
   id: SettingCategory;
@@ -19,6 +19,13 @@ const menuItems: SettingMenuItem[] = [
     description: "Manage connections",
     icon: Server,
     to: "/settings/instance",
+  },
+  {
+    id: "server",
+    label: "Server",
+    description: "Local or remote server",
+    icon: HardDrive,
+    to: "/settings/server",
   },
 ];
 

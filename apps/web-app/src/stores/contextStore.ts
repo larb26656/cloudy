@@ -37,7 +37,7 @@ export const useContextStore = create<ContextStore>()((set) => ({
   },
 }));
 
-declare global {
+  declare global {
   interface Window {
     electronAPI?: {
       context: {
@@ -52,6 +52,23 @@ declare global {
         onContextUpdate: (
           callback: (event: ContextUpdateEvent) => void,
         ) => () => void;
+      };
+      server: {
+        start: (config: {
+          host?: string;
+          port?: number;
+          dataDir?: string;
+        }) => Promise<{
+          status?: { running: boolean; url?: string };
+          error?: string;
+        }>;
+        stop: () => Promise<{
+          status?: { running: boolean; url?: string };
+          error?: string;
+        }>;
+        status: () => Promise<{
+          status: { running: boolean; url?: string };
+        }>;
       };
     };
   }

@@ -1,6 +1,6 @@
 # Cloudy Monorepo
 
-Bun workspace monorepo for Cloudy — AI agent sidekick with chat, ideas, memories, and artifacts.
+npm workspace monorepo for Cloudy — AI agent sidekick with chat, ideas, memories, and artifacts.
 
 ## Workspace Overview
 
@@ -19,25 +19,25 @@ cloudy/
 
 ## Package Manager
 
-- **Bun** >= 1.3.5 (required)
-- Workspace protocol: `workspace:*` for internal deps
+- **npm** >= 10.x (required)
+- Workspace protocol: `workspace:*` for internal deps (Bun-specific; npm uses `*` or `file:`)
 - Catalog: `elysia` version pinned via `workspaces.catalog`
 
 ## Commands
 
 ```bash
-bun install                          # Install all workspace deps
+npm install                          # Install all workspace deps
 
-bun run dev                          # Dev all apps concurrently
-bun run dev:server                   # Dev server only
-bun run dev:web-app                  # Dev web-app only
-bun run dev:cli                      # Dev/test CLI scaffold tool
+npm run dev                          # Dev all apps concurrently
+npm run dev:server                   # Dev server only
+npm run dev:web-app                  # Dev web-app only
+npm run dev:cli                      # Dev/test CLI scaffold tool
 
-bun run lint                         # Lint check (Biome)
-bun run lint:write                   # Lint fix (Biome)
-bun run format                       # Format (Biome)
+npm run lint                         # Lint check (Biome)
+npm run lint:write                   # Lint fix (Biome)
+npm run format                       # Format (Biome)
 
-bun run clean:modules                # Remove all node_modules + bun.lock
+npm run clean:modules                # Remove all node_modules + package-lock.json
 ```
 
 ## Workspace Dependencies
@@ -61,19 +61,19 @@ Each app/package has its own `AGENTS.md` with specific conventions:
 
 | Package         | Path                        | Runtime         | Key deps                                        |
 | --------------- | --------------------------- | --------------- | ----------------------------------------------- |
-| server          | `apps/server/`              | Bun + Elysia    | elysia, @libsql/client, prisma                  |
+| server          | `apps/server/`              | Node.js + Elysia | elysia, @libsql/client, prisma                  |
 | web-app         | `apps/web-app/`             | Vite + React 19 | react, zustand, tanstack/router, tiptap, shadcn |
-| opencode-plugin | `packages/opencode-plugin/` | Bun             | @opencode-ai/plugin                             |
+| opencode-plugin | `packages/opencode-plugin/` | Node.js         | @opencode-ai/plugin                             |
 | contracts       | `packages/contracts/`       | TypeScript only | @cloudy/server (dev)                            |
-| create-cloudy   | `packages/create-cloudy/`   | Bun CLI         | @clack/prompts, picocolors                      |
+| create-cloudy   | `packages/create-cloudy/`   | Node.js CLI     | @clack/prompts, picocolors                      |
 
 ## Adding a New Workspace Package
 
 1. Create directory under `apps/` or `packages/`
 2. Add `package.json` with `"name": "@cloudy/<name>"`
-3. If it needs shared types, add `"@cloudy/contracts": "workspace:*"` to dependencies
+3. If it needs shared types, add `"@cloudy/contracts": "workspace:*"` to dependencies (or use `"*"` for npm)
 4. Add TypeScript project reference in root `tsconfig.json` if applicable
-5. Run `bun install` to link the workspace
+5. Run `npm install` to link the workspace
 
 ## TypeScript
 
@@ -84,17 +84,17 @@ Each app/package has its own `AGENTS.md` with specific conventions:
 ## Linting & Formatting
 
 - **Biome** at root level — NOT ESLint (web-app has its own ESLint config)
-- Always run `bun run lint:write` before committing server/contracts changes
-- For web-app, run `bun run lint --fix` inside `apps/web-app/`
+- Always run `npm run lint:write` before committing server/contracts changes
+- For web-app, run `npm run lint --fix` inside `apps/web-app/`
 
 ## Testing
 
-| Package         | Runner     | Command                                      |
-| --------------- | ---------- | -------------------------------------------- |
-| server          | `bun:test` | `bun test` (inside apps/server)              |
-| web-app         | `vitest`   | `bun test` (inside apps/web-app)             |
-| opencode-plugin | `bun:test` | `bun test` (inside packages/opencode-plugin) |
-| create-cloudy   | manual     | `bun run test:cli` (from root or package)    |
+| Package         | Runner   | Command                                  |
+| --------------- | -------- | ---------------------------------------- |
+| server          | `vitest` | `npm test` (inside apps/server)          |
+| web-app         | `vitest` | `npm test` (inside apps/web-app)         |
+| opencode-plugin | `vitest` | `npm test` (inside packages/opencode-plugin) |
+| create-cloudy   | manual   | `npm run test:cli` (from root or package)    |
 
 ## Docker
 
