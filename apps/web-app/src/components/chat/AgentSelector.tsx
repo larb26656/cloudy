@@ -35,18 +35,6 @@ export function AgentSelector() {
     fetchAgents();
   }, [fetchAgents]);
 
-  // useEffect(() => {
-  //   const handleKeyDown = (e: KeyboardEvent) => {
-  //     if ((e.metaKey || e.ctrlKey) && e.key === "a") {
-  //       e.preventDefault();
-  //       setIsOpen((prev) => !prev);
-  //     }
-  //   };
-
-  //   document.addEventListener("keydown", handleKeyDown);
-  //   return () => document.removeEventListener("keydown", handleKeyDown);
-  // }, []);
-
   useEffect(() => {
     if (isOpen && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 0);

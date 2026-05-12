@@ -1,5 +1,5 @@
 import { getErrorMessage, type ChatInputContent, type SdkError, type OCClient } from "@/lib/opencode";
-import type { ModelConfig } from "@/types";
+import type { ContextItem, ModelConfig } from "@/types";
 import type { AgentPartInput, FilePartInput, Message, Part, SessionMessagesResponse, SubtaskPartInput, TextPartInput } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
 
@@ -15,7 +15,7 @@ export type MessageStoreState = {
 
 export type MessageStoreSessionActions = {
     loadMessages: (sessionId: string) => Promise<void>;
-    sendMessage: (directory: string, sessionId: string, content: ChatInputContent, model?: ModelConfig | null, agent?: string | null) => Promise<void>;
+    sendMessage: (directory: string, sessionId: string, content: ChatInputContent, contexts: ContextItem[], model?: ModelConfig | null, agent?: string | null) => Promise<void>;
     abortGeneration: (directory: string, sessionId: string) => Promise<void>;
     appendStreamChunk: (sessionId: string, messageId: string, delta: string) => void;
     updateMessage: (message: Message) => void;
@@ -27,16 +27,26 @@ export type MessageStore = MessageStoreState & MessageStoreSessionActions
 
 export function buildParts(
     directory: string,
-    content: ChatInputContent
+    content: ChatInputContent,
+    contexts: ContextItem[]
 ): (TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput)[] {
-    const textPart: TextPartInput = { type: 'text', text: content.text };
+    const textParts: (TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput)[] = [{ type: 'text', text: content.text }];
 
-    const mentionParts: FilePartInput[] = content.mentions.map((mention) => {
+    contexts.forEach((context) => {
+        const contextJson = JSON.stringify(context.data)
+
+        textParts.push({
+            type: 'text',
+            text: `conext: ${contextJson}`
+        })
+    });
+
+    content.mentions.forEach((mention) => {
         const filename = mention.id;
         const path = `${directory}/${filename}`;
         const url = `file://${path}`
 
-        return {
+        textParts.push({
             type: 'file',
             mime: 'text/plain',
             url,
@@ -50,11 +60,12 @@ export function buildParts(
                 },
                 path
             }
-        };
-    }
-    );
+        })
+    });
 
-    return [textPart, ...mentionParts];
+    console.log(textParts);
+
+    return textParts;
 }
 
 export const createMessageStore = (oc: OCClient) => create<MessageStore>()(
@@ -94,10 +105,10 @@ export const createMessageStore = (oc: OCClient) => create<MessageStore>()(
             }));
         },
 
-        sendMessage: async (directory, sessionId, content, model, agent) => {
+        sendMessage: async (directory, sessionId, content, contexts, model, agent) => {
             set({ error: null, isThinking: true });
 
-            const parts = buildParts(directory, content);
+            const parts = buildParts(directory, content, contexts);
 
             await oc.session.promptAsync({
                 sessionID: sessionId,

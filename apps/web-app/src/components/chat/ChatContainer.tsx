@@ -15,6 +15,7 @@ import { useMemo } from "react";
 import type { ChatInputContent } from "@/lib/opencode";
 import type { ModelConfig } from "@/types";
 import { useCurrentInstanceId } from "@/hooks/instanceScopeHook";
+import { useContextStore } from "@/stores";
 
 type SnippetType = "idea" | "memory" | "artifact";
 
@@ -44,6 +45,7 @@ export function ChatContainer({
     useWorkspaceStore().getCurrentWorkspace()?.directory;
   const selectedSessionId = useStore("session").selectedSessionId;
   const sessionStatuses = useStore("session").sessionStatuses;
+  const { contexts, clearContexts } = useContextStore();
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
   const isBusy = Boolean(
     sessionId && sessionStatuses[sessionId]?.type === "busy",
@@ -95,9 +97,12 @@ export function ChatContainer({
       selectedDirectory,
       currentSessionId,
       normalizedContent,
+      contexts,
       model,
       agent,
     );
+
+    clearContexts();
   };
 
   const handleAbort = async () => {

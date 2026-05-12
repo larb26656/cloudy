@@ -10,6 +10,8 @@ import { ChatInputEditor } from "../ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
 import { useTextHistory } from "@/stores/textHistoryStore";
 import { isElectron } from "@/main";
+import { ContextBadge, ContextSelector } from "../context";
+import { useContextStore } from "@/stores/contextStore";
 
 interface ChatInputProps {
   onSend: (
@@ -97,6 +99,22 @@ export function ChatInput({
 
   const { selectedModel } = useStore("model");
   const { selectedAgent } = useStore("agent");
+  const contexts = useContextStore((s) => s.contexts);
+  const setContexts = useContextStore((s) => s.setContexts);
+
+  useEffect(() => {
+    if (!isElectron || !window.electronAPI) return;
+
+    window.electronAPI.context.listContexts().then((list) => {
+      if (list) setContexts(list);
+    });
+
+    const unsub = window.electronAPI.context.onContextUpdate((event) => {
+      setContexts(event.contexts);
+    });
+
+    return unsub;
+  }, []);
 
   const displayText = isListening
     ? `${speechBaseRef.current} ${speechDraft}`.trim()
@@ -165,6 +183,13 @@ export function ChatInput({
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full">
+            {isElectron && (
+              <div className="flex items-center gap-1.5 flex-wrap min-h-0">
+                {contexts.map((ctx) => (
+                  <ContextBadge key={ctx.id} item={ctx} />
+                ))}
+              </div>
+            )}
             <div className="flex gap-2 w-full pt-2">
               <ChatInputEditor
                 content={{
@@ -187,6 +212,7 @@ export function ChatInput({
 
             <div className="flex justify-between gap-2">
               <div className="flex gap-2 min-w-0 overflow-x-auto items-center">
+                {isElectron && <ContextSelector />}
                 <AgentSelector />
                 {showModelSelector && <ModelSelector />}
               </div>
@@ -223,7 +249,6 @@ export function ChatInput({
             </div>
           </div>
 
-          {isElectron && <div>Electron 2222</div>}
           <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden md:block">
             Press Enter to send, Shift + Enter for new line
             {directory && " • @ or / to mention files"}
