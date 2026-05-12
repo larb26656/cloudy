@@ -7,10 +7,10 @@ import {
   createRouter,
 } from "@tanstack/react-router";
 
-// Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/sonner";
+import { ContextSyncProvider } from "./providers/ContextSyncProvider";
 
 // Create a new router instance
 export const isModeElectron = import.meta.env.MODE === "electron";
@@ -42,7 +42,9 @@ if (!rootElement.innerHTML) {
   root.render(
     <StrictMode>
       <TooltipProvider>
-        <RouterProvider router={router} />
+        <ContextSyncProvider>
+          <RouterProvider router={router} />
+        </ContextSyncProvider>
         <Toaster />
       </TooltipProvider>
     </StrictMode>,

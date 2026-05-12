@@ -19,25 +19,22 @@ export const useContextStore = create<ContextStore>()((set) => ({
 
   setContexts: (contexts) => set({ contexts }),
 
-  addContext: (context) =>
-    set((state) => {
-      const existing = state.contexts.findIndex(
-        (c) => c.type === context.type && !context.replace,
-      );
-      if (existing >= 0) {
-        const updated = [...state.contexts];
-        updated[existing] = context;
-        return { contexts: updated };
-      }
-      return { contexts: [...state.contexts, context] };
-    }),
+  addContext: (context) => {
+    window.electronAPI?.context.addContext({
+      type: context.type,
+      data: context.data,
+      replace: context.replace,
 
-  removeContext: (id) =>
-    set((state) => ({
-      contexts: state.contexts.filter((c) => c.id !== id),
-    })),
+    });
+  },
 
-  clearContexts: () => set({ contexts: [] }),
+  removeContext: (id) => {
+    window.electronAPI?.context.removeContext(id);
+  },
+
+  clearContexts: () => {
+    window.electronAPI?.context.clearContexts();
+  },
 }));
 
 declare global {

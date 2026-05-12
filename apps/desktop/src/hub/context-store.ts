@@ -6,13 +6,16 @@ import type {
 } from "./types";
 
 type BroadcastFn = (event: string, data: unknown) => void;
+type FocusWindowFn = () => void;
 
 export class HubContextStore {
   private items: Map<string, ContextItem> = new Map();
   private broadcast: BroadcastFn;
+  private focusWindow: FocusWindowFn;
 
-  constructor(broadcast: BroadcastFn) {
+  constructor(broadcast: BroadcastFn, focusWindow: FocusWindowFn) {
     this.broadcast = broadcast;
+    this.focusWindow = focusWindow;
   }
 
   add(options: AddContextOptions): AddContextResult {
@@ -28,6 +31,7 @@ export class HubContextStore {
           };
           this.items.set(existingId, updated);
           this.emit("replaced", updated);
+          this.focusWindow();
           return { status: "replaced", id: existingId };
         }
       }
@@ -43,6 +47,7 @@ export class HubContextStore {
     };
     this.items.set(id, item);
     this.emit("added", item);
+    this.focusWindow();
     return { status: "added", id };
   }
 

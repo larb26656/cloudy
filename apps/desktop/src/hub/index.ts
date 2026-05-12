@@ -8,7 +8,13 @@ export function startHub(mainWindow: BrowserWindow) {
     mainWindow.webContents.send(event, data);
   };
 
-  const store = new HubContextStore(broadcast);
+  const focusWindow = () => {
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  };
+
+  const store = new HubContextStore(broadcast, focusWindow);
   const app = createHubRouter(store);
 
   const port = 4242;

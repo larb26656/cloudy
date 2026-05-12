@@ -100,21 +100,6 @@ export function ChatInput({
   const { selectedModel } = useStore("model");
   const { selectedAgent } = useStore("agent");
   const contexts = useContextStore((s) => s.contexts);
-  const setContexts = useContextStore((s) => s.setContexts);
-
-  useEffect(() => {
-    if (!isElectron || !window.electronAPI) return;
-
-    window.electronAPI.context.listContexts().then((list) => {
-      if (list) setContexts(list);
-    });
-
-    const unsub = window.electronAPI.context.onContextUpdate((event) => {
-      setContexts(event.contexts);
-    });
-
-    return unsub;
-  }, []);
 
   const displayText = isListening
     ? `${speechBaseRef.current} ${speechDraft}`.trim()
