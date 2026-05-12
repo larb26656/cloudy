@@ -2,6 +2,15 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { startHub } from './hub';
+import { createServer } from '@cloudy/server';
+
+type ServerStatus = {
+  running: boolean;
+  url?: string;
+};
+
+let serverStatus: ServerStatus = { running: false };
+let serverInstance: ReturnType<typeof createServer> | null = null;
 
 const devClientServer = process.env.DEV_CLIENT_SERVER_URL;
 
@@ -45,6 +54,56 @@ const createWindow = () => {
   ipcMain.handle('context:clear', () => {
     store.clear();
     return true;
+  });
+
+  ipcMain.handle('server:start', async (_event, config: {
+    host?: string;
+    port?: number;
+    dataDir?: string;
+  }) => {
+    if (serverStatus.running) {
+      return { error: 'Server already running', status: serverStatus };
+    }
+
+    try {
+      serverInstance = createServer({
+        host: config.host,
+        port: config.port,
+        dataDir: config.dataDir,
+        corsOrigins: ['*'],
+        enableUI: true,
+      });
+
+      const { url } = await serverInstance.start();
+      serverStatus = { running: true, url };
+
+      console.log(`Cloudy server started on ${url}`);
+      return { status: serverStatus };
+    } catch (error) {
+      console.error('Failed to start server:', error);
+      return { error: String(error), status: serverStatus };
+    }
+  });
+
+  ipcMain.handle('server:stop', async () => {
+    if (!serverStatus.running || !serverInstance) {
+      return { error: 'Server not running', status: serverStatus };
+    }
+
+    try {
+      await serverInstance.stop();
+      serverStatus = { running: false };
+      serverInstance = null;
+      console.log('Cloudy server stopped');
+      return { status: serverStatus };
+    } catch (error) {
+      console.error('Failed to stop server:', error);
+      return { error: String(error), status: serverStatus };
+    }
+  });
+
+  ipcMain.handle('server:status', () => {
+    return { status: serverStatus };
   });
 };
 

@@ -1,12 +1,7 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
 import pc from "picocolors";
-import { createApp } from "./server";
-import { initContainer } from "./container";
-import { loadConfig } from "./config";
-import { migrate } from "./db/migrate";
-import { serve } from "@hono/node-server";
-import { startCleanupCron } from "./features/serve";
+import { createServer } from ".";
 
 function makeText(): string {
   return pc.cyan([
@@ -30,35 +25,21 @@ async function serveCommand(options: {
   config?: string;
   dataDir?: string;
 }) {
-  const config = loadConfig({
+  const server = createServer({
     configDir: options.config,
     dataDir: options.dataDir,
-    ui: options.ui,
+    enableUI: options.ui,
     host: options.host,
-    port: options.port,
-    cors: options.cors,
+    port: options.port ? parseInt(options.port) : undefined,
+    corsOrigins: options.cors ? options.cors.split(',').map((o) => o.trim()) : undefined,
   });
-  initContainer(config);
 
   console.log(makeText());
   console.log("");
   console.log("Running migrations...");
-  await migrate(config.dbDatabaseUrl);
 
-  const app = createApp({ corsOrigins: config.cors, enableUI: config.ui });
-
-  startCleanupCron();
-
-  serve({
-    fetch: app.fetch,
-    port: config.port,
-    hostname: config.host,
-  });
-
-  console.log(
-    `Starting server on ${config.host}:${config.port}...`
-  );
-  console.log(`📁 Config: ${config.configDir}`);
+  const { url } = await server.start();
+  console.log(`Starting server on ${url}...`);
 }
 
 const program = new Command();
