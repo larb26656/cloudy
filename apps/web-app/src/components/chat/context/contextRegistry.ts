@@ -24,6 +24,7 @@ export const contextProviders: ContextProvider[] = [
         id: crypto.randomUUID(),
         type: "clipboard",
         data: {
+          // TODO replace with utils lib
           label: `Clipboard: ${text.slice(0, 50)}${text.length > 50 ? "..." : ""}`,
           content: text,
         },

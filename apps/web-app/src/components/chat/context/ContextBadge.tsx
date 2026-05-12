@@ -22,7 +22,7 @@ export function ContextBadge({ item }: ContextBadgeProps) {
 
   return (
     <Badge variant="info" className="gap-1 pr-1 px-2 py-3">
-      <span className="truncate max-w-[150px]">{label}</span>
+      <span className="truncate">{label}</span>
       <button
         type="button"
         onClick={handleRemove}
