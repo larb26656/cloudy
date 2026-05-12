@@ -1,4 +1,4 @@
-import { createFileRoute, Navigate, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileSidebar } from "@/components/layout/Sidebar";
 import { QuestionBanner } from "@/components/question/QuestionBanner";
@@ -122,9 +122,6 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
 
 function AppMainLayout() {
   const { isDarkMode, deviceType, setDeviceType } = useChatUIStore();
-  const { instances } = useInstanceStore();
-  const { workspaces } = useWorkspaceStore();
-  const isHaveToOnboard = instances.length === 0 || workspaces.length === 0;
   const activeInstanceId = useInstanceStore((s) => s.instances[0]?.id);
 
   useEffect(() => {
@@ -138,10 +135,6 @@ function AppMainLayout() {
       document.documentElement.classList.remove("dark");
     }
   }, [isDarkMode]);
-
-  if (isHaveToOnboard) {
-    return <Navigate to="/onboard" />;
-  }
 
   return <AppMainLayoutContent activeInstanceId={activeInstanceId!} />;
 }

@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { Context } from 'hono'
-import { proxyService } from '../../container'
+import { proxy as proxyFetch } from 'hono/proxy'
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -9,27 +9,39 @@ const CORS_HEADERS = {
 } as const
 
 const proxyHandler = async (c: Context) => {
-    const request = c.req.raw
-    const opencodeApiBase = request.headers.get('X-OpenCode-API-Base') || c.req.query('X-OpenCode-API-Base')
+    const opencodeApiBase = c.req.header('X-OpenCode-API-Base') 
+        || c.req.query('X-OpenCode-API-Base')
 
     if (!opencodeApiBase) {
         return c.json({ error: 'Missing X-OpenCode-API-Base header or query parameter' }, 400)
     }
 
-    const result = await proxyService.proxy(request, opencodeApiBase)
+    const incomingUrl = new URL(c.req.url)
+    const targetPath = incomingUrl.pathname.replace(/^\/oc/, '')
+    const targetUrl = new URL(targetPath + incomingUrl.search, opencodeApiBase)
 
-    if (result.isStreaming) {
-        return new Response(result.body as ReadableStream, {
-            headers: {
-                'Content-Type': result.contentType || 'application/octet-stream',
-                ...Object.fromEntries(Object.entries(CORS_HEADERS)),
-            },
-        })
-    }
-
-    return new Response(result.body as string, {
+    const req = c.req.raw
+    const res = await proxyFetch(targetUrl.toString(), {
+        method: req.method,
         headers: {
-            'Content-Type': result.contentType || 'application/json',
+            ...c.req.header(),
+            'X-Forwarded-For': c.req.header('host') || '127.0.0.1',
+            'X-Forwarded-Host': c.req.header('host'),
+            Authorization: undefined,
+        },
+        body: req.body,
+        signal: req.signal,
+    })
+
+    res.headers.delete('Set-Cookie')
+
+    const contentType = res.headers.get('content-type') || ''
+    const isStreaming = contentType.includes('text/event-stream') || contentType.includes('stream')
+
+    return new Response(res.body, {
+        status: res.status,
+        headers: {
+            'Content-Type': contentType || 'application/octet-stream',
             ...Object.fromEntries(Object.entries(CORS_HEADERS)),
         },
     })

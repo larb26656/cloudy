@@ -11,6 +11,6 @@
     }
   },
   "devDependencies": {
-    "@cloudy/server": "workspace:*"
+    "@types/node": "^25.5.2"
   }
 }

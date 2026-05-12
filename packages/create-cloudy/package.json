@@ -14,14 +14,10 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "bun run ./src/index.ts",
-    "prepublishOnly": "bun run build",
-    "test": "bun test",
-    "test:cli": "bun run build && node ./dist/index.js --dir=.test-output",
-    "test:cli:y": "bun run build && node ./dist/index.js --yes --dir=.test-output",
-    "test:local": "bun run build && bun link",
-    "test:unlink": "bun unlink",
-    "test:pack": "bun run build && bun pm pack",
+    "dev": "node ./src/index.ts",
+    "test": "node --test",
+    "test:cli": "npm run build && node ./dist/index.js --dir=.test-output",
+    "test:cli:y": "npm run build && node ./dist/index.js --yes --dir=.test-output",
     "lint": "biome check",
     "lint:write": "biome check --write"
   },

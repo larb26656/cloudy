@@ -6,34 +6,32 @@
     "cloudy": "./dist/cli.js"
   },
   "scripts": {
-    "build": "bun build src/cli.ts --target bun --external '@libsql/*' --outdir dist",
-    "dev": "bun run --watch src/cli.ts serve --config=config --dataDir=config/data --cors=* --host=127.0.0.1",
-    "dev:ui": "bun run --watch src/cli.ts serve --config=config --dataDir=config/data --cors=* --host=127.0.0.1 --ui",
-    "start": "bun dist/cli.js",
-    "db:migrate": "bun run src/db/migrate.ts",
-    "db:migration:create": "bun run scripts/create-migration.ts",
-    "db:migrate:ideas": "bun run scripts/migrate-ideas-to-db.ts",
-    "db:migrate:clean-meta": "bun run scripts/migrate-separate-meta.ts"
+    "build": "esbuild src/cli.ts --bundle --platform=node --target=node20 --format=esm --external:@libsql/* --external:picocolors --external:gray-matter --outdir=dist",
+    "dev": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --cors=* --host=127.0.0.1",
+    "dev:ui": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --cors=* --host=127.0.0.1 --ui",
+    "start": "node dist/cli.js",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:migration:create": "tsx scripts/create-migration.ts",
+    "db:migrate:ideas": "tsx scripts/migrate-ideas-to-db.ts",
+    "db:migrate:clean-meta": "tsx scripts/migrate-separate-meta.ts"
   },
   "dependencies": {
     "@hono/node-server": "^1.15.0",
     "@hono/zod-validator": "^0.8.0",
     "@libsql/client": "^0.17.2",
     "commander": "^14.0.0",
+    "gray-matter": "^4.0.3",
     "hono": "^4.7.0",
     "hono-openapi": "^1.3.0",
     "node-cron": "^3.0.3",
+    "picocolors": "^1.1.1",
     "zod": "^4.3.6"
   },
-  "module": "src/index.ts",
-  "types": "src/exports.ts",
-  "exports": {
-    ".": {
-      "types": "./src/exports.ts",
-      "default": "./src/index.ts"
-    }
-  },
   "devDependencies": {
-    "@types/node-cron": "^3.0.11"
+    "@types/node": "^22.10.0",
+    "@types/node-cron": "^3.0.11",
+    "esbuild": "^0.24.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

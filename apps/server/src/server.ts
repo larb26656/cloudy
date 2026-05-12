@@ -18,7 +18,7 @@ const PUBLIC_DIR = __dirname.endsWith("/dist")
     ? join(__dirname, "public")
     : join(__dirname, "../", "public")
 
-function createApp({ corsOrigins = [], enableUI = false }: {
+export function createApp({ corsOrigins = [], enableUI = false }: {
     corsOrigins?: string[]
     enableUI?: boolean
 }) {

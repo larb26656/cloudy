@@ -1,81 +1,75 @@
-# OpenCode Chat
+# React + TypeScript + Vite
 
-A modern chat interface for OpenCode API, inspired by Telegram, LINE, Messenger, and ChatGPT.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Features
+Currently, two official plugins are available:
 
-- **Real-time Chat**: Stream messages with Server-Sent Events
-- **Markdown Rendering**: Full support for code blocks, tables, lists, and more
-- **Session Management**: Create, rename, delete, and fork chat sessions
-- **Responsive Design**: Works on desktop and mobile
-- **Dark Mode**: Toggle between light and dark themes
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
 
-## Tech Stack
+## React Compiler
 
-- **React 18** + **TypeScript**
-- **Tailwind CSS** for styling
-- **Zustand** for state management
-- **react-markdown** for markdown rendering
-- **Lucide React** for icons
+The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
 
-## Getting Started
+Note: This will impact Vite dev & build performances.
 
-### Prerequisites
+## Expanding the ESLint configuration
 
-- Node.js 18+
-- OpenCode API running at `http://127.0.0.1:4096`
+If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
 
-### Installation
+```js
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
 
-```bash
-npm install
+      // Remove tseslint.configs.recommended and replace with this
+      tseslint.configs.recommendedTypeChecked,
+      // Alternatively, use this for stricter rules
+      tseslint.configs.strictTypeChecked,
+      // Optionally, add this for stylistic rules
+      tseslint.configs.stylisticTypeChecked,
+
+      // Other configs...
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
 
-### Development
+You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```bash
-npm run dev
+```js
+// eslint.config.js
+import reactX from 'eslint-plugin-react-x'
+import reactDom from 'eslint-plugin-react-dom'
+
+export default defineConfig([
+  globalIgnores(['dist']),
+  {
+    files: ['**/*.{ts,tsx}'],
+    extends: [
+      // Other configs...
+      // Enable lint rules for React
+      reactX.configs['recommended-typescript'],
+      // Enable lint rules for React DOM
+      reactDom.configs.recommended,
+    ],
+    languageOptions: {
+      parserOptions: {
+        project: ['./tsconfig.node.json', './tsconfig.app.json'],
+        tsconfigRootDir: import.meta.dirname,
+      },
+      // other options...
+    },
+  },
+])
 ```
-
-The app will be available at `http://localhost:3000`
-
-### Build
-
-```bash
-npm run build
-```
-
-## Project Structure
-
-```
-src/
-├── api/           # API client and endpoints
-├── components/    # React components
-│   ├── chat/      # Chat-related components
-│   ├── session/   # Session sidebar components
-│   └── markdown/  # Markdown rendering components
-├── hooks/         # Custom React hooks
-├── stores/        # Zustand stores
-├── types/         # TypeScript types
-└── utils/         # Utility functions
-```
-
-## API Integration
-
-The app integrates with OpenCode API:
-
-- **Sessions**: `GET/POST/PATCH/DELETE /session/{id}`
-- **Messages**: `GET/POST /session/{id}/message`
-- **Streaming**: `GET /event` (Server-Sent Events)
-
-## Environment Variables
-
-Create a `.env` file:
-
-```env
-VITE_API_BASE_URL=http://127.0.0.1:4096
-```
-
-## License
-
-MIT

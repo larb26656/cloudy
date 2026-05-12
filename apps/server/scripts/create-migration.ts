@@ -1,7 +1,10 @@
 import { readdirSync, writeFileSync } from 'fs';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
 
-const MIGRATIONS_DIR = join(import.meta.dir, '..', 'src', 'db', 'migrations');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const MIGRATIONS_DIR = join(__dirname, '..', 'src', 'db', 'migrations');
 
 const name = process.argv[2];
 

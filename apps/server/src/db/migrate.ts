@@ -1,8 +1,11 @@
 import { createClient, type Client } from '@libsql/client';
 import { readdirSync, readFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-const MIGRATIONS_DIR = join(import.meta.dir, 'migrations');
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const MIGRATIONS_DIR = join(__dirname, 'migrations');
 
 export interface MigrationFile {
     version: number;

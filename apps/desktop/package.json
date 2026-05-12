@@ -1,6 +1,6 @@
 {
   "name": "@cloudy/desktop",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "author": "luckytime1996",
   "main": "dist-electron/main/index.js",
   "devDependencies": {
@@ -30,7 +30,7 @@
   },
   "description": "-",
   "scripts": {
-    "dev": "tsc -p tsconfig.main.json && bunx electron .",
+    "dev": "tsc -p tsconfig.main.json && npx electron .",
     "build": "rm -rf release-builds && tsc -p tsconfig.main.json && electron-builder",
     "start": "electron ."
   },
