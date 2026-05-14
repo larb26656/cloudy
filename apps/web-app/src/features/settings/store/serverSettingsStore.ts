@@ -8,7 +8,6 @@ export type ServerSettings = {
   local: {
     host: string;
     port: number;
-    dataDir: string;
   };
   remote: {
     endpoint: string;
@@ -24,7 +23,6 @@ type ServerSettingsStore = ServerSettings & {
 const defaultLocalConfig = {
   host: "localhost",
   port: 3000,
-  dataDir: "~/.config/cloudy/data",
 };
 
 export const useServerSettingsStore = create<ServerSettingsStore>()(

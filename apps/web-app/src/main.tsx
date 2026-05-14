@@ -14,11 +14,11 @@ import { ContextSyncProvider } from "./providers/ContextSyncProvider";
 
 // Create a new router instance
 export const isModeElectron = import.meta.env.MODE === "electron";
-export const isElectron = import.meta.env.VITE_IS_ELECTRON;
+export const isElectronProd = import.meta.env.VITE_IS_ELECTRON_PROD;
 // const router = createRouter({ routeTree, hash:  });
 
-const buildCreateRouter = (isModeElectron: boolean) => {
-  if (isModeElectron) {
+const buildCreateRouter = (isElectronProd: boolean) => {
+  if (isElectronProd) {
     const hashHistory = createHashHistory();
     return createRouter({ routeTree, history: hashHistory });
   } else {
@@ -26,7 +26,7 @@ const buildCreateRouter = (isModeElectron: boolean) => {
   }
 };
 
-const router = buildCreateRouter(isModeElectron);
+const router = buildCreateRouter(isElectronProd);
 
 // Register the router instance for type safety
 declare module "@tanstack/react-router" {

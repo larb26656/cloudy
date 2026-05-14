@@ -5,8 +5,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { isElectron } from "@/main";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { isModeElectron } from "@/main";
 
 export function ServerSection() {
   const { mode, local, remote, setMode, setLocalConfig, setRemoteEndpoint } =
@@ -18,23 +24,49 @@ export function ServerSection() {
   }>({ running: false });
 
   const [isLoading, setIsLoading] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    if (!isElectron) return;
+    if (!isModeElectron) {
+      setIsHydrated(true);
+      return;
+    }
 
-    const checkStatus = async () => {
+    const hydrate = async () => {
       try {
-        const result = await window.electronAPI?.server.status();
-        if (result?.status) {
-          setServerStatus(result.status);
+        const config = await window.electronAPI?.config.load();
+        if (config) {
+          setMode(config.server.mode);
+          setLocalConfig(config.server.local);
+          setRemoteEndpoint(config.server.remote.endpoint);
+        }
+        const status = await window.electronAPI?.server.status();
+        if (status?.status) {
+          setServerStatus(status.status);
         }
       } catch (error) {
-        console.error("Failed to get server status:", error);
+        console.error("Failed to hydrate config:", error);
       }
+      setIsHydrated(true);
     };
 
-    checkStatus();
-  }, []);
+    hydrate();
+  }, [setMode, setLocalConfig, setRemoteEndpoint]);
+
+  const saveConfig = async () => {
+    if (!isModeElectron || !isHydrated) return;
+    try {
+      await window.electronAPI?.config.save({
+        server: {
+          mode,
+          local,
+          remote,
+        },
+      });
+    } catch (error) {
+      console.error("Failed to save config:", error);
+    }
+  };
 
   const handleModeChange = async (newMode: "local" | "remote") => {
     if (newMode === "remote" && serverStatus.running) {
@@ -42,17 +74,27 @@ export function ServerSection() {
       setServerStatus({ running: false });
     }
     setMode(newMode);
+    await saveConfig();
+  };
+
+  const handleLocalConfigChange = async (changes: Partial<typeof local>) => {
+    setLocalConfig(changes);
+    await saveConfig();
+  };
+
+  const handleRemoteEndpointChange = async (endpoint: string) => {
+    setRemoteEndpoint(endpoint);
+    await saveConfig();
   };
 
   const handleStartServer = async () => {
-    if (!isElectron) return;
+    if (!isModeElectron) return;
 
     setIsLoading(true);
     try {
       const result = await window.electronAPI?.server.start({
         host: local.host,
         port: local.port,
-        dataDir: local.dataDir,
       });
 
       if (result?.status) {
@@ -68,7 +110,7 @@ export function ServerSection() {
   };
 
   const handleStopServer = async () => {
-    if (!isElectron) return;
+    if (!isModeElectron) return;
 
     setIsLoading(true);
     try {
@@ -83,10 +125,20 @@ export function ServerSection() {
     }
   };
 
+  if (!isHydrated) {
+    return (
+      <SettingsChildLayout title="Server">
+        <div className="flex items-center justify-center p-8">
+          <span className="text-muted-foreground">Loading...</span>
+        </div>
+      </SettingsChildLayout>
+    );
+  }
+
   return (
     <SettingsChildLayout title="Server">
       <div className="space-y-6">
-        {isElectron && (
+        {isModeElectron && (
           <Card>
             <CardHeader>
               <CardTitle>Server Mode</CardTitle>
@@ -129,7 +181,7 @@ export function ServerSection() {
                     id="host"
                     value={local.host}
                     onChange={(e) =>
-                      setLocalConfig({ host: e.target.value })
+                      handleLocalConfigChange({ host: e.target.value })
                     }
                     placeholder="localhost"
                   />
@@ -141,23 +193,13 @@ export function ServerSection() {
                     type="number"
                     value={local.port}
                     onChange={(e) =>
-                      setLocalConfig({ port: parseInt(e.target.value) || 0 })
+                      handleLocalConfigChange({
+                        port: parseInt(e.target.value) || 0,
+                      })
                     }
                     placeholder="3000"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="dataDir">Data Directory</Label>
-                <Input
-                  id="dataDir"
-                  value={local.dataDir}
-                  onChange={(e) =>
-                    setLocalConfig({ dataDir: e.target.value })
-                  }
-                  placeholder="~/.config/cloudy/data"
-                />
               </div>
 
               <div className="flex items-center gap-4">
@@ -175,10 +217,7 @@ export function ServerSection() {
                     </span>
                   </>
                 ) : (
-                  <Button
-                    onClick={handleStartServer}
-                    disabled={isLoading}
-                  >
+                  <Button onClick={handleStartServer} disabled={isLoading}>
                     {isLoading ? "Starting..." : "Start Server"}
                   </Button>
                 )}
@@ -199,7 +238,7 @@ export function ServerSection() {
                 <Input
                   id="endpoint"
                   value={remote.endpoint}
-                  onChange={(e) => setRemoteEndpoint(e.target.value)}
+                  onChange={(e) => handleRemoteEndpointChange(e.target.value)}
                   placeholder="https://your-cloudy-server.com"
                 />
               </div>

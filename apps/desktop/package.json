@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "@cloudy/server": "*",
+    "@hono/node-server": "^2.0.2",
     "electron-squirrel-startup": "^1.0.1",
     "hono": "^4.12.18"
   }

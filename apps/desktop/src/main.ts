@@ -3,6 +3,12 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import { startHub } from './hub';
 import { createServer } from '@cloudy/server';
+import {
+  loadDesktopConfig,
+  saveDesktopConfig,
+  getServerUrl,
+  type DesktopConfig,
+} from './config';
 
 type ServerStatus = {
   running: boolean;
@@ -11,6 +17,7 @@ type ServerStatus = {
 
 let serverStatus: ServerStatus = { running: false };
 let serverInstance: ReturnType<typeof createServer> | null = null;
+let desktopConfig: DesktopConfig;
 
 const devClientServer = process.env.DEV_CLIENT_SERVER_URL;
 
@@ -19,6 +26,25 @@ if (started) {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+const startServerIfNeeded = async () => {
+  if (desktopConfig.server.mode === "local") {
+    const { host, port } = desktopConfig.server.local;
+    try {
+      serverInstance = createServer({
+        host,
+        port,
+        corsOrigins: ['*'],
+        enableUI: true,
+      });
+      const { url } = await serverInstance.start();
+      serverStatus = { running: true, url };
+      console.log(`Cloudy server started on ${url}`);
+    } catch (error) {
+      console.error('Failed to auto-start server:', error);
+    }
+  }
+};
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -37,7 +63,7 @@ const createWindow = () => {
     );
   }
 
-  const { store } = startHub(mainWindow);
+  const { store } = startHub(mainWindow, () => desktopConfig);
 
   ipcMain.handle('context:list', () => {
     return store.list();
@@ -59,7 +85,6 @@ const createWindow = () => {
   ipcMain.handle('server:start', async (_event, config: {
     host?: string;
     port?: number;
-    dataDir?: string;
   }) => {
     if (serverStatus.running) {
       return { error: 'Server already running', status: serverStatus };
@@ -69,7 +94,6 @@ const createWindow = () => {
       serverInstance = createServer({
         host: config.host,
         port: config.port,
-        dataDir: config.dataDir,
         corsOrigins: ['*'],
         enableUI: true,
       });
@@ -105,9 +129,23 @@ const createWindow = () => {
   ipcMain.handle('server:status', () => {
     return { status: serverStatus };
   });
+
+  ipcMain.handle('config:load', () => {
+    return desktopConfig;
+  });
+
+  ipcMain.handle('config:save', (_event, newConfig: DesktopConfig) => {
+    desktopConfig = newConfig;
+    saveDesktopConfig(desktopConfig);
+    return desktopConfig;
+  });
 };
 
-app.on('ready', createWindow);
+app.on('ready', async () => {
+  desktopConfig = loadDesktopConfig();
+  await startServerIfNeeded();
+  createWindow();
+});
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {

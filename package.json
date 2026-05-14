@@ -19,7 +19,7 @@
     "dev:web-app:electron": "cd apps/web-app && npm run dev:electron",
     "dev:desktop": "cd apps/desktop && npm run dev",
     "dev": "concurrently -n \"server,web-app\" -c \"blue,magenta\" \"npm run dev:server\" \"npm run dev:web-app\"",
-    "dev:app": "concurrently -n \"server,web-app,desktop\" -c \"blue,magenta,green\" \"npm run dev:server\" \"npm run dev:web-app:electron\" \"npm run dev:desktop\"",
+    "dev:app": "concurrently -n \"server,web-app,desktop\" -c \"magenta,green\" \"npm run dev:web-app:electron\" \"npm run dev:desktop\"",
     "----LINT----": "",
     "lint": "biome check",
     "lint:write": "biome check --write",

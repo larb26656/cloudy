@@ -2,8 +2,9 @@ import { serve, type ServerType } from '@hono/node-server';
 import { createApp } from '../server';
 import { initContainer } from '../container';
 import { loadConfig } from '../config/config';
-import { migrate } from '../db/migrate';
+import { migrate, getMigrationFiles } from '../db/migrate';
 import { startCleanupCron } from '../features/serve';
+import { join } from 'path';
 
 export interface ServerOptions {
   host?: string;
@@ -13,6 +14,15 @@ export interface ServerOptions {
   corsOrigins?: string[];
   enableUI?: boolean;
 }
+
+const getServerMigrationsDir = () => {
+  const serverSrcDir = join(process.cwd(), 'apps', 'server', 'src', 'db', 'migrations');
+  const localMigrationsDir = join(process.cwd(), 'src', 'db', 'migrations');
+  if (require('fs').existsSync(serverSrcDir)) {
+    return serverSrcDir;
+  }
+  return localMigrationsDir;
+};
 
 export function createServer(options: ServerOptions) {
   let server: ServerType | null = null;
@@ -27,7 +37,8 @@ export function createServer(options: ServerOptions) {
       cors: options.corsOrigins?.join(','),
     });
 
-    await migrate(config.dbDatabaseUrl);
+    const migrationsDir = getServerMigrationsDir();
+    // await migrate(config.dbDatabaseUrl);
     initContainer(config);
 
     const app = createApp({ corsOrigins: config.cors, enableUI: config.ui });

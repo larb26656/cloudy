@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "dev:electron": "cross-env VITE_IS_ELECTRON=true vite --host 0.0.0.0",
+    "dev:electron": "vite --host 0.0.0.0 --mode electron",
     "build": "tsc -b && vite build",
-    "build:electron": "cross-env VITE_IS_ELECTRON=true vite build --mode electron",
+    "build:electron": "cross-env VITE_IS_ELECTRON_PROD=true vite build --mode electron",
     "lint": "eslint .",
     "preview": "vite preview"
   },

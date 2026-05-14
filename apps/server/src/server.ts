@@ -11,12 +11,17 @@ import { memory } from './features/memory'
 import { artifact } from './features/artifact'
 import { proxy } from './features/proxy'
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
+const getDirname = () => {
+  try {
+    return dirname(fileURLToPath(import.meta.url))
+  } catch {
+    return process.cwd()
+  }
+}
 
-const PUBLIC_DIR = __dirname.endsWith("/dist")
-    ? join(__dirname, "public")
-    : join(__dirname, "../", "public")
+const __dirname = getDirname()
+
+const PUBLIC_DIR = join(__dirname, 'public')
 
 export function createApp({ corsOrigins = [], enableUI = false }: {
     corsOrigins?: string[]

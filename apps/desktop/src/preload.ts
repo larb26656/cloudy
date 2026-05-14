@@ -4,7 +4,6 @@ export interface ElectronServerAPI {
   start: (config: {
     host?: string;
     port?: number;
-    dataDir?: string;
   }) => Promise<{
     status?: { running: boolean; url?: string };
     error?: string;
@@ -56,6 +55,24 @@ export interface ElectronContextAPI {
   ) => () => void;
 }
 
+export interface ElectronConfigAPI {
+  load: () => Promise<DesktopConfig>;
+  save: (config: DesktopConfig) => Promise<DesktopConfig>;
+}
+
+export interface DesktopConfig {
+  server: {
+    mode: "local" | "remote";
+    local: {
+      host: string;
+      port: number;
+    };
+    remote: {
+      endpoint: string;
+    };
+  };
+}
+
 const contextAPI: ElectronContextAPI = {
   addContext: (options) => ipcRenderer.invoke("context:add", options),
   removeContext: (id) => ipcRenderer.invoke("context:remove", id),
@@ -78,4 +95,9 @@ const serverAPI: ElectronServerAPI = {
   status: () => ipcRenderer.invoke("server:status"),
 };
 
-contextBridge.exposeInMainWorld("electronAPI", { context: contextAPI, server: serverAPI });
+const configAPI: ElectronConfigAPI = {
+  load: () => ipcRenderer.invoke("config:load"),
+  save: (config) => ipcRenderer.invoke("config:save", config),
+};
+
+contextBridge.exposeInMainWorld("electronAPI", { context: contextAPI, server: serverAPI, config: configAPI });

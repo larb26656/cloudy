@@ -70,6 +70,43 @@ export const useContextStore = create<ContextStore>()((set) => ({
           status: { running: boolean; url?: string };
         }>;
       };
+      config: {
+        load: () => Promise<{
+          server: {
+            mode: "local" | "remote";
+            local: {
+              host: string;
+              port: number;
+            };
+            remote: {
+              endpoint: string;
+            };
+          };
+        }>;
+        save: (config: {
+          server: {
+            mode: "local" | "remote";
+            local: {
+              host: string;
+              port: number;
+            };
+            remote: {
+              endpoint: string;
+            };
+          };
+        }) => Promise<{
+          server: {
+            mode: "local" | "remote";
+            local: {
+              host: string;
+              port: number;
+            };
+            remote: {
+              endpoint: string;
+            };
+          };
+        }>;
+      };
     };
   }
 }

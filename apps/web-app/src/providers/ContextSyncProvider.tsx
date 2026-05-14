@@ -1,12 +1,16 @@
 import { useEffect } from "react";
 import { useContextStore } from "@/stores/contextStore";
-import { isElectron } from "@/main";
+import { isModeElectron } from "@/main";
 
-export function ContextSyncProvider({ children }: { children: React.ReactNode }) {
+export function ContextSyncProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const setContexts = useContextStore((s) => s.setContexts);
 
   useEffect(() => {
-    if (!isElectron || !window.electronAPI) return;
+    if (!isModeElectron || !window.electronAPI) return;
 
     window.electronAPI.context.listContexts().then((list) => {
       if (list) setContexts(list);

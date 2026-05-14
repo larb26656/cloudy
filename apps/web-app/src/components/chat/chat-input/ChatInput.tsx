@@ -9,7 +9,7 @@ import { type ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "../ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
 import { useTextHistory } from "@/stores/textHistoryStore";
-import { isElectron } from "@/main";
+import { isModeElectron } from "@/main";
 import { ContextBadge, ContextSelector } from "../context";
 import { useContextStore } from "@/stores/contextStore";
 
@@ -168,7 +168,7 @@ export function ChatInput({
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full">
-            {isElectron && (
+            {isModeElectron && (
               <div className="flex items-center gap-1.5 flex-wrap min-h-0">
                 {contexts.map((ctx) => (
                   <ContextBadge key={ctx.id} item={ctx} />
@@ -197,7 +197,7 @@ export function ChatInput({
 
             <div className="flex justify-between gap-2">
               <div className="flex gap-2 min-w-0 overflow-x-auto items-center">
-                {isElectron && <ContextSelector />}
+                {isModeElectron && <ContextSelector />}
                 <AgentSelector />
                 {showModelSelector && <ModelSelector />}
               </div>
