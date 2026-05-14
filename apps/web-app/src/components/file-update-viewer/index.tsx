@@ -130,7 +130,7 @@ export function FileUpdateViewer({
       {!isSmallScreen && (
         <ResizablePanelGroup orientation="horizontal" className="flex-1">
           {isSidebarOpen && (
-            <ResizablePanel defaultSize="30%">
+            <ResizablePanel defaultSize={200}>
               <FileListSidebar
                 files={files}
                 selectedFile={selectedFile}
@@ -139,7 +139,7 @@ export function FileUpdateViewer({
             </ResizablePanel>
           )}
           {isSidebarOpen && <ResizableHandle withHandle />}
-          <ResizablePanel defaultSize={isSidebarOpen ? "70%" : "100%"}>
+          <ResizablePanel>
             <div className="h-full flex flex-col overflow-auto bg-[#1e1e1e]">
               {currentFile && (
                 <div className="px-3 py-1.5 text-xs text-muted-foreground border-b border-border/50 bg-[#1e1e1e]">

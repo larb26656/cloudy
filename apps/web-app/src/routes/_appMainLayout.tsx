@@ -89,7 +89,7 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
       <ResizablePanelGroup orientation="horizontal" className="bg-background">
         {sidebarOpen && (
           <>
-            <ResizablePanel defaultSize={25} className="p-2">
+            <ResizablePanel defaultSize={350} className="p-2">
               <Sidebar instanceId={activeInstanceId} />
             </ResizablePanel>
             <ResizableHandle
@@ -98,7 +98,7 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
             />
           </>
         )}
-        <ResizablePanel defaultSize={sidebarOpen ? 75 : 100}>
+        <ResizablePanel>
           <div className="flex flex-col h-full overflow-hidden">
             <PermissionBanner
               onOpenDialog={() => setPermissionDialogOpen(true)}

@@ -179,7 +179,7 @@ function Header({
     }
 
     try {
-      const res = await api.idea[':path'].$patch({
+      const res = await api.idea[":path"].$patch({
         param: { path: idea.path },
         json: {
           status: updates.status,
@@ -339,7 +339,7 @@ export function IdeaDetailView({
 
     setIsLoadingIdea(true);
     try {
-      const res = await api.idea[':path'].$get({ param: { path: ideaId } });
+      const res = await api.idea[":path"].$get({ param: { path: ideaId } });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.message || data.error || "Failed to load idea");
@@ -364,7 +364,7 @@ export function IdeaDetailView({
   const loadFileContent = useCallback(async () => {
     if (!idea || !selectedFile || !idea.path) return;
     try {
-      const res = await api.idea[':ideaPath'].files[':filename'].$get({
+      const res = await api.idea[":ideaPath"].files[":filename"].$get({
         param: { ideaPath: idea.path, filename: selectedFile.name },
       });
       if (!res.ok) {
@@ -436,7 +436,9 @@ export function IdeaDetailView({
         });
         if (!res.ok) {
           const data = await res.json();
-          throw new Error(data.message || data.error || "Failed to create idea");
+          throw new Error(
+            data.message || data.error || "Failed to create idea",
+          );
         }
         const data = await res.json();
         const created = apiResponseToIdeaDetail(data);
@@ -449,7 +451,7 @@ export function IdeaDetailView({
 
       if (!selectedFile) return;
 
-      const res2 = await api.idea[':ideaPath'].files[':filename'].$put({
+      const res2 = await api.idea[":ideaPath"].files[":filename"].$put({
         param: { ideaPath: idea.path, filename: selectedFile.name },
         json: { content },
       });
@@ -479,7 +481,7 @@ export function IdeaDetailView({
     setIdea({ ...idea, files: [...idea.files, newFile] });
     setSelectedFile(newFile);
     try {
-      const res = await api.idea[':ideaPath'].files.$post({
+      const res = await api.idea[":ideaPath"].files.$post({
         param: { ideaPath: idea.path },
         json: {
           name: filename,
@@ -520,7 +522,7 @@ export function IdeaDetailView({
     }
     showLoader();
     try {
-      const res = await api.idea[':ideaPath'].files[':filename'].$delete({
+      const res = await api.idea[":ideaPath"].files[":filename"].$delete({
         param: { ideaPath: idea.path, filename },
       });
       if (!res.ok) {
@@ -638,7 +640,7 @@ export function IdeaDetailView({
       {!isSmallScreen && (
         <ResizablePanelGroup orientation="horizontal" className="flex-1">
           {isSidebarOpen && (
-            <ResizablePanel defaultSize="30%">
+            <ResizablePanel defaultSize={200}>
               <FileTreeSidebar
                 files={idea.files}
                 selectedFile={selectedFile?.name ?? ""}
