@@ -2,19 +2,17 @@ import { hc } from "hono/client";
 import type { AppType } from "@cloudy/contracts";
 import { env } from "@/config/env";
 
-let client = hc<AppType>(env.API_URL, {
-  init: {
-    credentials: "include",
-  },
-});
+let cachedClient: ReturnType<typeof hc<AppType>> | null = null;
 
-export const api = client.api;
-export const apiClient = client;
-
-export function getApiClient() {
-  return hc<AppType>(env.getApiUrl(), {
+function getClient(): ReturnType<typeof hc<AppType>> {
+  if (cachedClient) return cachedClient;
+  cachedClient = hc<AppType>(env.getApiUrl(), {
     init: {
       credentials: "include",
     },
   });
+  return cachedClient;
 }
+
+// TODO resolve this later
+export const api = () => getClient().api;

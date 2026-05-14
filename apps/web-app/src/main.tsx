@@ -11,6 +11,7 @@ import { routeTree } from "./routeTree.gen";
 import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/sonner";
 import { ContextSyncProvider } from "./providers/ContextSyncProvider";
+import { ServerSettingsSyncProvider } from "./providers/ServerSettingsSyncProvider";
 
 // Create a new router instance
 export const isModeElectron = import.meta.env.MODE === "electron";
@@ -43,7 +44,9 @@ if (!rootElement.innerHTML) {
     <StrictMode>
       <TooltipProvider>
         <ContextSyncProvider>
-          <RouterProvider router={router} />
+          <ServerSettingsSyncProvider>
+            <RouterProvider router={router} />
+          </ServerSettingsSyncProvider>
         </ContextSyncProvider>
         <Toaster />
       </TooltipProvider>

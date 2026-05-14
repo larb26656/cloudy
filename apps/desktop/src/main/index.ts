@@ -40,7 +40,7 @@ const startServerIfNeeded = async (): Promise<void> => {
       serverInstance = createServer({
         host,
         port,
-        corsOrigins: ['*'],
+        corsOrigins: ['*', 'http://localhost:3001'],
         enableUI: true,
         dbMigrationsDir: '../server/src/db/migrations',
       })

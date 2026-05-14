@@ -22,9 +22,8 @@ export function startHub(
 
   const store = new HubContextStore(broadcast, focusWindow);
   const hubApp = createHubRouter(store);
-  const proxyApp = createProxyRoutes(getConfig);
 
-  const app = new Hono().route("/", hubApp).route("/", proxyApp);
+  const app = new Hono().route("/", hubApp);
 
   const port = 4242;
 

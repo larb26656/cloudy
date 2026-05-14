@@ -26,14 +26,14 @@ export type OCClient = OpencodeClient & {
 
 export function createOcClient({ baseUrl }: { baseUrl: string }): OCClient {
     const oc = createOpencodeClient({
-        baseUrl: env.OPENCODE_API_URL,
+        baseUrl: env.getOpencodeApiUrl(),
         headers: {
             'X-OpenCode-API-Base': baseUrl,
         },
     }) as OCClient;
 
     oc.getEvent = ({ directory }: { directory: string }) => {
-        const url = new URL("event", ensureTrailingSlash(env.OPENCODE_API_URL));
+        const url = new URL("event", ensureTrailingSlash(env.getOpencodeApiUrl()));
         url.searchParams.set("X-OpenCode-API-Base", baseUrl);
         if (directory) {
             url.searchParams.set("directory", directory);
