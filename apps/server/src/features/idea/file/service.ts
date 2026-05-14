@@ -1,4 +1,3 @@
-import { z } from 'zod'
 import { IDEA_INDEX_FILE } from '../types';
 import { readdir, stat, rm, mkdir, unlink, access } from "node:fs/promises";
 import path from "node:path";

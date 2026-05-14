@@ -1,4 +1,3 @@
-import { z } from 'zod'
 import { access } from "node:fs/promises";
 
 type SessionData = {
@@ -187,7 +186,7 @@ export abstract class Serve {
         const { createReadStream } = await import('node:fs');
         const { Readable } = await import('node:stream');
         const stream = Readable.toWeb(createReadStream(filePath)) as unknown as ReadableStream;
-        
+
         return new Response(stream, {
             headers: {
                 'Content-Type': 'text/html',

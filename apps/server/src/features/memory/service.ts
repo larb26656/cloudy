@@ -1,7 +1,5 @@
-import { z } from 'zod'
 import type { CloudyConfig } from '../../config'
-import { readdir, stat, access } from "node:fs/promises";
-import path from "node:path";
+import { readdir, access } from "node:fs/promises";
 import matter from 'gray-matter';
 
 function isDateString(str: string): boolean {
@@ -47,7 +45,7 @@ async function fileExists(filePath: string): Promise<boolean> {
 export class Memory {
     private memoryPath: string;
 
-    constructor(private config: CloudyConfig) {
+    constructor(config: CloudyConfig) {
         this.memoryPath = config.memory;
     }
 

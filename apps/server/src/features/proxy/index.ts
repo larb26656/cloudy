@@ -9,7 +9,7 @@ const CORS_HEADERS = {
 } as const
 
 const proxyHandler = async (c: Context) => {
-    const opencodeApiBase = c.req.header('X-OpenCode-API-Base') 
+    const opencodeApiBase = c.req.header('X-OpenCode-API-Base')
         || c.req.query('X-OpenCode-API-Base')
 
     if (!opencodeApiBase) {
@@ -36,7 +36,6 @@ const proxyHandler = async (c: Context) => {
     res.headers.delete('Set-Cookie')
 
     const contentType = res.headers.get('content-type') || ''
-    const isStreaming = contentType.includes('text/event-stream') || contentType.includes('stream')
 
     return new Response(res.body, {
         status: res.status,

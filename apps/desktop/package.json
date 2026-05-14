@@ -1,5 +1,5 @@
 {
-  "name": "@cloudy/desktop",
+  "name": "cloudy-desktop",
   "version": "1.0.0",
   "description": "A minimal Electron application with TypeScript",
   "main": "./out/main/index.js",
@@ -35,6 +35,16 @@
     "eslint": "^9.39.1",
     "prettier": "^3.7.4",
     "typescript": "^5.9.3",
-    "vite": "^7.2.6"
+    "vite": "^7.2.6",
+    "vite-plugin-static-copy": "^4.1.0"
+  },
+  "build": {
+    "mac": {
+      "identity": null
+    },
+    "asar": true,
+    "asarUnpack": [
+      "**/node_modules/@libsql/darwin-arm64/**/*"
+    ]
   }
 }

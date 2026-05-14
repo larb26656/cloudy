@@ -1,8 +1,24 @@
-import { app, BrowserWindow, ipcMain } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain } from 'electron'
 import path from 'node:path'
 import { loadDesktopConfig, saveDesktopConfig, type DesktopConfig } from './config'
 import { startHub } from './hub'
 import { createServer } from '@cloudy/server'
+
+process.on('uncaughtException', (error) => {
+  console.error('Uncaught Exception:', error)
+  dialog.showErrorBox(
+    'Application Error (Uncaught Exception)',
+    error.stack || error.message || String(error)
+  )
+})
+
+process.on('unhandledRejection', (reason) => {
+  console.error('Unhandled Rejection:', reason)
+  dialog.showErrorBox(
+    'Application Error (Unhandled Rejection)',
+    String(reason)
+  )
+})
 
 type ServerStatus = {
   running: boolean
@@ -129,15 +145,23 @@ const createWindow = (): void => {
 }
 
 app.whenReady().then(async () => {
-  desktopConfig = loadDesktopConfig()
-  await startServerIfNeeded()
-  createWindow()
+  try {
+    desktopConfig = loadDesktopConfig()
+    await startServerIfNeeded()
+    createWindow()
 
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-      createWindow()
-    }
-  })
+    app.on('activate', () => {
+      if (BrowserWindow.getAllWindows().length === 0) {
+        createWindow()
+      }
+    })
+  } catch (err: any) {
+    dialog.showErrorBox(
+      'Application Error (Uncaught Exception)',
+      err.stack || err.message || String(err)
+    )
+  }
+
 })
 
 app.on('window-all-closed', () => {

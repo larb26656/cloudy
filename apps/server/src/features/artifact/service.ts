@@ -1,4 +1,3 @@
-import { z } from 'zod'
 import type { CloudyConfig } from '../../config'
 import { readdir, access } from "node:fs/promises";
 import path from "node:path";
@@ -49,7 +48,7 @@ async function fileExists(filePath: string): Promise<boolean> {
 export class Artifact {
     private artifactPath: string;
 
-    constructor(private config: CloudyConfig) {
+    constructor(config: CloudyConfig) {
         this.artifactPath = config.artifact;
     }
 
@@ -215,7 +214,7 @@ export class Artifact {
         const { createReadStream } = await import('node:fs');
         const { Readable } = await import('node:stream');
         const stream = Readable.toWeb(createReadStream(filePath)) as unknown as ReadableStream;
-        
+
         return new Response(stream, {
             headers: {
                 'Content-Type': getContentType(type),
