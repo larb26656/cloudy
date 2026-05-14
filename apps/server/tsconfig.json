@@ -13,7 +13,7 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "paths": {
-      "@/*": ["./src/*"]
+      "@server/*": ["./src/*"]
     },
     "types": ["node"]
   },

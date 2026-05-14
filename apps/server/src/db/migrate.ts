@@ -1,6 +1,11 @@
 import { createClient, type Client } from '@libsql/client';
 import { readdirSync, readFileSync, mkdirSync } from 'fs';
 import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const DEFAULT_MIGRATIONS_DIR = join(__dirname, 'migrations');
 
 export interface MigrationFile {
     version: number;
@@ -8,9 +13,8 @@ export interface MigrationFile {
     filepath: string;
 }
 
-export const getMigrationFiles = (migrationsDir?: string): MigrationFile[] => {
-    const dir = migrationsDir ?? join(process.cwd(), 'apps', 'server', 'src', 'db', 'migrations');
-    const files = readdirSync(dir);
+export function getMigrationFiles(migrationsDir: string): MigrationFile[] {
+    const files = readdirSync(migrationsDir);
     const migrations: MigrationFile[] = [];
 
     for (const file of files) {
@@ -19,7 +23,7 @@ export const getMigrationFiles = (migrationsDir?: string): MigrationFile[] => {
             migrations.push({
                 version: parseInt(match[1]!, 10),
                 filename: file,
-                filepath: join(dir, file),
+                filepath: join(migrationsDir, file),
             });
         }
     }
@@ -67,7 +71,7 @@ async function runMigration(db: Client, migration: MigrationFile): Promise<void>
     console.log(`  ✓ Done (v${migration.version})`);
 }
 
-export async function runMigrations(db: Client, migrationsDir?: string): Promise<void> {
+export async function runMigrations(db: Client, migrationsDir: string): Promise<void> {
     const currentVersion = await getCurrentVersion(db);
     const migrations = getMigrationFiles(migrationsDir);
 
@@ -94,11 +98,11 @@ export async function runMigrations(db: Client, migrationsDir?: string): Promise
     console.log(`\nMigration complete. Current version: v${latestVersion}`);
 }
 
-export async function migrate(dbUrl: string, migrationsDir?: string): Promise<void> {
+export async function migrate(dbUrl: string, migrateDir: string = DEFAULT_MIGRATIONS_DIR): Promise<void> {
     const dbPath = dbUrl.replace('file:', '');
     mkdirSync(dirname(dbPath), { recursive: true });
 
     const db = createClient({ url: dbUrl });
-    await runMigrations(db, migrationsDir);
+    await runMigrations(db, migrateDir);
     await db.close();
 }

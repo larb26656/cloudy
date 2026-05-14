@@ -10,7 +10,9 @@
   },
   "private": true,
   "workspaces": [
-    "apps/*",
+    "apps/desktop",
+    "apps/server",
+    "apps/web-app",
     "packages/*"
   ],
   "scripts": {
@@ -19,7 +21,7 @@
     "dev:web-app:electron": "cd apps/web-app && npm run dev:electron",
     "dev:desktop": "cd apps/desktop && npm run dev",
     "dev": "concurrently -n \"server,web-app\" -c \"blue,magenta\" \"npm run dev:server\" \"npm run dev:web-app\"",
-    "dev:app": "concurrently -n \"server,web-app,desktop\" -c \"magenta,green\" \"npm run dev:web-app:electron\" \"npm run dev:desktop\"",
+    "dev:app": "concurrently -n \"server,desktop\" -c \"magenta,green\" \"npm run dev:web-app:electron\" \"npm run dev:desktop\"",
     "----LINT----": "",
     "lint": "biome check",
     "lint:write": "biome check --write",
@@ -43,6 +45,7 @@
     "----CLEAN----": ""
   },
   "dependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "cross-env": "^10.1.0"
   }
 }

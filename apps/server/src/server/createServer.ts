@@ -3,7 +3,7 @@ import { createApp } from '../server';
 import { initContainer } from '../container';
 import { loadConfig } from '../config/config';
 import { startCleanupCron } from '../features/serve';
-import { join } from 'path';
+import { migrate } from '@server/db/migrate';
 
 export interface ServerOptions {
   host?: string;
@@ -12,16 +12,8 @@ export interface ServerOptions {
   configDir?: string;
   corsOrigins?: string[];
   enableUI?: boolean;
+  dbMigrationsDir?: string;
 }
-
-const getServerMigrationsDir = () => {
-  const serverSrcDir = join(process.cwd(), 'apps', 'server', 'src', 'db', 'migrations');
-  const localMigrationsDir = join(process.cwd(), 'src', 'db', 'migrations');
-  if (require('fs').existsSync(serverSrcDir)) {
-    return serverSrcDir;
-  }
-  return localMigrationsDir;
-};
 
 export function createServer(options: ServerOptions) {
   let server: ServerType | null = null;
@@ -36,8 +28,7 @@ export function createServer(options: ServerOptions) {
       cors: options.corsOrigins?.join(','),
     });
 
-    const migrationsDir = getServerMigrationsDir();
-    // await migrate(config.dbDatabaseUrl);
+    await migrate(config.dbDatabaseUrl, options.dbMigrationsDir);
     initContainer(config);
 
     const app = createApp({ corsOrigins: config.cors, enableUI: config.ui });
