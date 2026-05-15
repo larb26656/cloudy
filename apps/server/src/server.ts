@@ -43,6 +43,8 @@ export function createApp({ corsOrigins = [], enableUI = false }: {
         return c.html(content)
     })
 
+    app.get('/api/health', (c) => c.json({ status: 'ok' }))
+
     app.route('/oc', proxy)
     app.route('/api/idea', idea)
     app.route('/api/memory', memory)

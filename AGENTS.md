@@ -1,6 +1,6 @@
 # Cloudy Monorepo
 
-npm workspace monorepo for Cloudy — AI agent sidekick with chat, ideas, memories, and artifacts.
+pnpm workspace monorepo for Cloudy — AI agent sidekick with chat, ideas, memories, and artifacts.
 
 ## Workspace Overview
 
@@ -19,25 +19,25 @@ cloudy/
 
 ## Package Manager
 
-- **npm** >= 10.x (required)
-- Workspace protocol: `workspace:*` for internal deps (Bun-specific; npm uses `*` or `file:`)
+- **pnpm** >= 10.x (required)
+- Workspace protocol: `workspace:*` for internal deps
 - Catalog: `elysia` version pinned via `workspaces.catalog`
 
 ## Commands
 
 ```bash
-npm install                          # Install all workspace deps
+pnpm install                          # Install all workspace deps
 
-npm run dev                          # Dev all apps concurrently
-npm run dev:server                   # Dev server only
-npm run dev:web-app                  # Dev web-app only
-npm run dev:cli                      # Dev/test CLI scaffold tool
+pnpm run dev                          # Dev all apps concurrently
+pnpm run dev:server                   # Dev server only
+pnpm run dev:web-app                  # Dev web-app only
+pnpm run dev:cli                      # Dev/test CLI scaffold tool
 
-npm run lint                         # Lint check (Biome)
-npm run lint:write                   # Lint fix (Biome)
-npm run format                       # Format (Biome)
+pnpm run lint                         # Lint check (Biome)
+pnpm run lint:write                   # Lint fix (Biome)
+pnpm run format                       # Format (Biome)
 
-npm run clean:modules                # Remove all node_modules + package-lock.json
+pnpm run clean:modules                # Remove all node_modules + pnpm-lock.yaml
 ```
 
 ## Workspace Dependencies
@@ -71,9 +71,9 @@ Each app/package has its own `AGENTS.md` with specific conventions:
 
 1. Create directory under `apps/` or `packages/`
 2. Add `package.json` with `"name": "@cloudy/<name>"`
-3. If it needs shared types, add `"@cloudy/contracts": "workspace:*"` to dependencies (or use `"*"` for npm)
+3. If it needs shared types, add `"@cloudy/contracts": "workspace:*"` to dependencies
 4. Add TypeScript project reference in root `tsconfig.json` if applicable
-5. Run `npm install` to link the workspace
+5. Run `pnpm install` to link the workspace
 
 ## TypeScript
 
@@ -84,17 +84,17 @@ Each app/package has its own `AGENTS.md` with specific conventions:
 ## Linting & Formatting
 
 - **Biome** at root level — NOT ESLint (web-app has its own ESLint config)
-- Always run `npm run lint:write` before committing server/contracts changes
-- For web-app, run `npm run lint --fix` inside `apps/web-app/`
+- Always run `pnpm run lint:write` before committing server/contracts changes
+- For web-app, run `pnpm run lint --fix` inside `apps/web-app/`
 
 ## Testing
 
-| Package         | Runner   | Command                                  |
-| --------------- | -------- | ---------------------------------------- |
-| server          | `vitest` | `npm test` (inside apps/server)          |
-| web-app         | `vitest` | `npm test` (inside apps/web-app)         |
-| opencode-plugin | `vitest` | `npm test` (inside packages/opencode-plugin) |
-| create-cloudy   | manual   | `npm run test:cli` (from root or package)    |
+| Package         | Runner   | Command                                      |
+| --------------- | -------- | -------------------------------------------- |
+| server          | `vitest` | `pnpm test` (inside apps/server)             |
+| web-app         | `vitest` | `pnpm test` (inside apps/web-app)            |
+| opencode-plugin | `vitest` | `pnpm test` (inside packages/opencode-plugin) |
+| create-cloudy   | manual   | `pnpm run test:cli` (from root or package)   |
 
 ## Docker
 
