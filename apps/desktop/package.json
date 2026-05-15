@@ -21,14 +21,19 @@
     "build:linux": "npm run build && electron-builder --linux"
   },
   "dependencies": {
+    "@cloudy/server": "workspace:*",
     "@electron-toolkit/preload": "^3.0.2",
-    "@electron-toolkit/utils": "^4.0.0"
+    "@electron-toolkit/utils": "^4.0.0",
+    "@hono/node-server": "^1.19.14",
+    "@libsql/client": "^0.17.2",
+    "hono": "^4.12.18"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@types/node": "^22.19.1",
+    "cross-env": "^10.1.0",
     "electron": "39.2.6",
     "electron-builder": "^26.0.12",
     "electron-vite": "^5.0.0",

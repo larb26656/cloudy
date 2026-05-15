@@ -1,0 +1,16 @@
+import type { CloudyConfig } from './config';
+import { DbClient } from './db/client';
+import { Artifact } from './features/artifact/service';
+import { Memory } from './features/memory/service';
+import { Proxy } from './features/proxy/service';
+import { IdeaRepository } from './features/idea/repository';
+import { IdeaFile } from './features/idea/file/service';
+import { Idea } from './features/idea/service';
+export declare let dbClient: DbClient;
+export declare let artifactService: Artifact;
+export declare let memoryService: Memory;
+export declare let proxyService: Proxy;
+export declare let ideaRepository: IdeaRepository;
+export declare let ideaFileService: IdeaFile;
+export declare let ideaService: Idea;
+export declare function initContainer(config: CloudyConfig): void;

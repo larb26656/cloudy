@@ -39,9 +39,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
 ));
 var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-// node_modules/commander/lib/error.js
+// ../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/error.js
 var require_error = __commonJS({
-  "node_modules/commander/lib/error.js"(exports) {
+  "../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/error.js"(exports) {
     var CommanderError2 = class extends Error {
       /**
        * Constructs the CommanderError class
@@ -74,9 +74,9 @@ var require_error = __commonJS({
   }
 });
 
-// node_modules/commander/lib/argument.js
+// ../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/argument.js
 var require_argument = __commonJS({
-  "node_modules/commander/lib/argument.js"(exports) {
+  "../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/argument.js"(exports) {
     var { InvalidArgumentError: InvalidArgumentError2 } = require_error();
     var Argument2 = class {
       /**
@@ -202,9 +202,9 @@ var require_argument = __commonJS({
   }
 });
 
-// node_modules/commander/lib/help.js
+// ../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/help.js
 var require_help = __commonJS({
-  "node_modules/commander/lib/help.js"(exports) {
+  "../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/help.js"(exports) {
     var { humanReadableArgName } = require_argument();
     var Help2 = class {
       constructor() {
@@ -804,9 +804,9 @@ ${itemIndentStr}`);
   }
 });
 
-// node_modules/commander/lib/option.js
+// ../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/option.js
 var require_option = __commonJS({
-  "node_modules/commander/lib/option.js"(exports) {
+  "../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/option.js"(exports) {
     var { InvalidArgumentError: InvalidArgumentError2 } = require_error();
     var Option2 = class {
       /**
@@ -1117,9 +1117,9 @@ var require_option = __commonJS({
   }
 });
 
-// node_modules/commander/lib/suggestSimilar.js
+// ../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/suggestSimilar.js
 var require_suggestSimilar = __commonJS({
-  "node_modules/commander/lib/suggestSimilar.js"(exports) {
+  "../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/suggestSimilar.js"(exports) {
     var maxDistance = 3;
     function editDistance(a, b) {
       if (Math.abs(a.length - b.length) > maxDistance)
@@ -1197,9 +1197,9 @@ var require_suggestSimilar = __commonJS({
   }
 });
 
-// node_modules/commander/lib/command.js
+// ../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/command.js
 var require_command = __commonJS({
-  "node_modules/commander/lib/command.js"(exports) {
+  "../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/lib/command.js"(exports) {
     var EventEmitter = __require("node:events").EventEmitter;
     var childProcess = __require("node:child_process");
     var path3 = __require("node:path");
@@ -3443,9 +3443,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
   }
 });
 
-// node_modules/commander/index.js
+// ../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/index.js
 var require_commander = __commonJS({
-  "node_modules/commander/index.js"(exports) {
+  "../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/index.js"(exports) {
     var { Argument: Argument2 } = require_argument();
     var { Command: Command2 } = require_command();
     var { CommanderError: CommanderError2, InvalidArgumentError: InvalidArgumentError2 } = require_error();
@@ -3465,9 +3465,9 @@ var require_commander = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/task.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/task.js
 var require_task = __commonJS({
-  "node_modules/node-cron/src/task.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/task.js"(exports, module) {
     "use strict";
     var EventEmitter = __require("events");
     var Task = class extends EventEmitter {
@@ -3497,9 +3497,9 @@ var require_task = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/convert-expression/month-names-conversion.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/month-names-conversion.js
 var require_month_names_conversion = __commonJS({
-  "node_modules/node-cron/src/convert-expression/month-names-conversion.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/month-names-conversion.js"(exports, module) {
     "use strict";
     module.exports = /* @__PURE__ */ (() => {
       const months = [
@@ -3546,9 +3546,9 @@ var require_month_names_conversion = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/convert-expression/week-day-names-conversion.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/week-day-names-conversion.js
 var require_week_day_names_conversion = __commonJS({
-  "node_modules/node-cron/src/convert-expression/week-day-names-conversion.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/week-day-names-conversion.js"(exports, module) {
     "use strict";
     module.exports = /* @__PURE__ */ (() => {
       const weekDays = [
@@ -3577,9 +3577,9 @@ var require_week_day_names_conversion = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/convert-expression/asterisk-to-range-conversion.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/asterisk-to-range-conversion.js
 var require_asterisk_to_range_conversion = __commonJS({
-  "node_modules/node-cron/src/convert-expression/asterisk-to-range-conversion.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/asterisk-to-range-conversion.js"(exports, module) {
     "use strict";
     module.exports = /* @__PURE__ */ (() => {
       function convertAsterisk(expression, replecement) {
@@ -3602,9 +3602,9 @@ var require_asterisk_to_range_conversion = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/convert-expression/range-conversion.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/range-conversion.js
 var require_range_conversion = __commonJS({
-  "node_modules/node-cron/src/convert-expression/range-conversion.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/range-conversion.js"(exports, module) {
     "use strict";
     module.exports = /* @__PURE__ */ (() => {
       function replaceWithRange(expression, text, init, end) {
@@ -3640,9 +3640,9 @@ var require_range_conversion = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/convert-expression/step-values-conversion.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/step-values-conversion.js
 var require_step_values_conversion = __commonJS({
-  "node_modules/node-cron/src/convert-expression/step-values-conversion.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/step-values-conversion.js"(exports, module) {
     "use strict";
     module.exports = /* @__PURE__ */ (() => {
       function convertSteps(expressions) {
@@ -3674,9 +3674,9 @@ var require_step_values_conversion = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/convert-expression/index.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/index.js
 var require_convert_expression = __commonJS({
-  "node_modules/node-cron/src/convert-expression/index.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/convert-expression/index.js"(exports, module) {
     "use strict";
     var monthNamesConversion = require_month_names_conversion();
     var weekDayNamesConversion = require_week_day_names_conversion();
@@ -3719,9 +3719,9 @@ var require_convert_expression = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/pattern-validation.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/pattern-validation.js
 var require_pattern_validation = __commonJS({
-  "node_modules/node-cron/src/pattern-validation.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/pattern-validation.js"(exports, module) {
     "use strict";
     var convertExpression = require_convert_expression();
     var validationRegex = /^(?:\d+|\*|\*\/\d+)$/;
@@ -3780,9 +3780,9 @@ var require_pattern_validation = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/time-matcher.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/time-matcher.js
 var require_time_matcher = __commonJS({
-  "node_modules/node-cron/src/time-matcher.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/time-matcher.js"(exports, module) {
     var validatePattern = require_pattern_validation();
     var convertExpression = require_convert_expression();
     function matchPattern(pattern, value) {
@@ -3831,9 +3831,9 @@ var require_time_matcher = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/scheduler.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/scheduler.js
 var require_scheduler = __commonJS({
-  "node_modules/node-cron/src/scheduler.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/scheduler.js"(exports, module) {
     "use strict";
     var EventEmitter = __require("events");
     var TimeMatcher = require_time_matcher();
@@ -3877,7 +3877,7 @@ var require_scheduler = __commonJS({
   }
 });
 
-// node_modules/uuid/dist/esm-node/rng.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/rng.js
 import crypto2 from "crypto";
 function rng() {
   if (poolPtr > rnds8Pool.length - 16) {
@@ -3888,33 +3888,33 @@ function rng() {
 }
 var rnds8Pool, poolPtr;
 var init_rng = __esm({
-  "node_modules/uuid/dist/esm-node/rng.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/rng.js"() {
     rnds8Pool = new Uint8Array(256);
     poolPtr = rnds8Pool.length;
   }
 });
 
-// node_modules/uuid/dist/esm-node/regex.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/regex.js
 var regex_default;
 var init_regex = __esm({
-  "node_modules/uuid/dist/esm-node/regex.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/regex.js"() {
     regex_default = /^(?:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}|00000000-0000-0000-0000-000000000000)$/i;
   }
 });
 
-// node_modules/uuid/dist/esm-node/validate.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/validate.js
 function validate(uuid3) {
   return typeof uuid3 === "string" && regex_default.test(uuid3);
 }
 var validate_default;
 var init_validate = __esm({
-  "node_modules/uuid/dist/esm-node/validate.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/validate.js"() {
     init_regex();
     validate_default = validate;
   }
 });
 
-// node_modules/uuid/dist/esm-node/stringify.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/stringify.js
 function stringify(arr, offset = 0) {
   const uuid3 = (byteToHex[arr[offset + 0]] + byteToHex[arr[offset + 1]] + byteToHex[arr[offset + 2]] + byteToHex[arr[offset + 3]] + "-" + byteToHex[arr[offset + 4]] + byteToHex[arr[offset + 5]] + "-" + byteToHex[arr[offset + 6]] + byteToHex[arr[offset + 7]] + "-" + byteToHex[arr[offset + 8]] + byteToHex[arr[offset + 9]] + "-" + byteToHex[arr[offset + 10]] + byteToHex[arr[offset + 11]] + byteToHex[arr[offset + 12]] + byteToHex[arr[offset + 13]] + byteToHex[arr[offset + 14]] + byteToHex[arr[offset + 15]]).toLowerCase();
   if (!validate_default(uuid3)) {
@@ -3924,7 +3924,7 @@ function stringify(arr, offset = 0) {
 }
 var byteToHex, stringify_default;
 var init_stringify = __esm({
-  "node_modules/uuid/dist/esm-node/stringify.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/stringify.js"() {
     init_validate();
     byteToHex = [];
     for (let i = 0; i < 256; ++i) {
@@ -3934,7 +3934,7 @@ var init_stringify = __esm({
   }
 });
 
-// node_modules/uuid/dist/esm-node/v1.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v1.js
 function v1(options, buf, offset) {
   let i = buf && offset || 0;
   const b = buf || new Array(16);
@@ -3985,7 +3985,7 @@ function v1(options, buf, offset) {
 }
 var _nodeId, _clockseq, _lastMSecs, _lastNSecs, v1_default;
 var init_v1 = __esm({
-  "node_modules/uuid/dist/esm-node/v1.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v1.js"() {
     init_rng();
     init_stringify();
     _lastMSecs = 0;
@@ -3994,7 +3994,7 @@ var init_v1 = __esm({
   }
 });
 
-// node_modules/uuid/dist/esm-node/parse.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/parse.js
 function parse4(uuid3) {
   if (!validate_default(uuid3)) {
     throw TypeError("Invalid UUID");
@@ -4021,13 +4021,13 @@ function parse4(uuid3) {
 }
 var parse_default;
 var init_parse = __esm({
-  "node_modules/uuid/dist/esm-node/parse.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/parse.js"() {
     init_validate();
     parse_default = parse4;
   }
 });
 
-// node_modules/uuid/dist/esm-node/v35.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v35.js
 function stringToBytes(str) {
   str = unescape(encodeURIComponent(str));
   const bytes = [];
@@ -4072,7 +4072,7 @@ function v35_default(name, version3, hashfunc) {
 }
 var DNS, URL2;
 var init_v35 = __esm({
-  "node_modules/uuid/dist/esm-node/v35.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v35.js"() {
     init_stringify();
     init_parse();
     DNS = "6ba7b810-9dad-11d1-80b4-00c04fd430c8";
@@ -4080,7 +4080,7 @@ var init_v35 = __esm({
   }
 });
 
-// node_modules/uuid/dist/esm-node/md5.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/md5.js
 import crypto3 from "crypto";
 function md5(bytes) {
   if (Array.isArray(bytes)) {
@@ -4092,15 +4092,15 @@ function md5(bytes) {
 }
 var md5_default;
 var init_md5 = __esm({
-  "node_modules/uuid/dist/esm-node/md5.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/md5.js"() {
     md5_default = md5;
   }
 });
 
-// node_modules/uuid/dist/esm-node/v3.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v3.js
 var v3, v3_default;
 var init_v3 = __esm({
-  "node_modules/uuid/dist/esm-node/v3.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v3.js"() {
     init_v35();
     init_md5();
     v3 = v35_default("v3", 48, md5_default);
@@ -4108,7 +4108,7 @@ var init_v3 = __esm({
   }
 });
 
-// node_modules/uuid/dist/esm-node/v4.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v4.js
 function v4(options, buf, offset) {
   options = options || {};
   const rnds = options.random || (options.rng || rng)();
@@ -4125,14 +4125,14 @@ function v4(options, buf, offset) {
 }
 var v4_default;
 var init_v4 = __esm({
-  "node_modules/uuid/dist/esm-node/v4.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v4.js"() {
     init_rng();
     init_stringify();
     v4_default = v4;
   }
 });
 
-// node_modules/uuid/dist/esm-node/sha1.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/sha1.js
 import crypto4 from "crypto";
 function sha1(bytes) {
   if (Array.isArray(bytes)) {
@@ -4144,15 +4144,15 @@ function sha1(bytes) {
 }
 var sha1_default;
 var init_sha1 = __esm({
-  "node_modules/uuid/dist/esm-node/sha1.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/sha1.js"() {
     sha1_default = sha1;
   }
 });
 
-// node_modules/uuid/dist/esm-node/v5.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v5.js
 var v5, v5_default;
 var init_v5 = __esm({
-  "node_modules/uuid/dist/esm-node/v5.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/v5.js"() {
     init_v35();
     init_sha1();
     v5 = v35_default("v5", 80, sha1_default);
@@ -4160,15 +4160,15 @@ var init_v5 = __esm({
   }
 });
 
-// node_modules/uuid/dist/esm-node/nil.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/nil.js
 var nil_default;
 var init_nil = __esm({
-  "node_modules/uuid/dist/esm-node/nil.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/nil.js"() {
     nil_default = "00000000-0000-0000-0000-000000000000";
   }
 });
 
-// node_modules/uuid/dist/esm-node/version.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/version.js
 function version2(uuid3) {
   if (!validate_default(uuid3)) {
     throw TypeError("Invalid UUID");
@@ -4177,13 +4177,13 @@ function version2(uuid3) {
 }
 var version_default;
 var init_version = __esm({
-  "node_modules/uuid/dist/esm-node/version.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/version.js"() {
     init_validate();
     version_default = version2;
   }
 });
 
-// node_modules/uuid/dist/esm-node/index.js
+// ../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/index.js
 var esm_node_exports = {};
 __export(esm_node_exports, {
   NIL: () => nil_default,
@@ -4197,7 +4197,7 @@ __export(esm_node_exports, {
   version: () => version_default
 });
 var init_esm_node = __esm({
-  "node_modules/uuid/dist/esm-node/index.js"() {
+  "../../node_modules/.pnpm/uuid@8.3.2/node_modules/uuid/dist/esm-node/index.js"() {
     init_v1();
     init_v3();
     init_v4();
@@ -4210,9 +4210,9 @@ var init_esm_node = __esm({
   }
 });
 
-// node_modules/node-cron/src/scheduled-task.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/scheduled-task.js
 var require_scheduled_task = __commonJS({
-  "node_modules/node-cron/src/scheduled-task.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/scheduled-task.js"(exports, module) {
     "use strict";
     var EventEmitter = __require("events");
     var Task = require_task();
@@ -4256,9 +4256,9 @@ var require_scheduled_task = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/background-scheduled-task/index.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/background-scheduled-task/index.js
 var require_background_scheduled_task = __commonJS({
-  "node_modules/node-cron/src/background-scheduled-task/index.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/background-scheduled-task/index.js"(exports, module) {
     var EventEmitter = __require("events");
     var path3 = __require("path");
     var { fork } = __require("child_process");
@@ -4318,9 +4318,9 @@ var require_background_scheduled_task = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/storage.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/storage.js
 var require_storage = __commonJS({
-  "node_modules/node-cron/src/storage.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/storage.js"(exports, module) {
     module.exports = (() => {
       if (!global.scheduledTasks) {
         global.scheduledTasks = /* @__PURE__ */ new Map();
@@ -4342,9 +4342,9 @@ var require_storage = __commonJS({
   }
 });
 
-// node_modules/node-cron/src/node-cron.js
+// ../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/node-cron.js
 var require_node_cron = __commonJS({
-  "node_modules/node-cron/src/node-cron.js"(exports, module) {
+  "../../node_modules/.pnpm/node-cron@3.0.3/node_modules/node-cron/src/node-cron.js"(exports, module) {
     "use strict";
     var ScheduledTask = require_scheduled_task();
     var BackgroundScheduledTask = require_background_scheduled_task();
@@ -4375,7 +4375,7 @@ var require_node_cron = __commonJS({
   }
 });
 
-// node_modules/commander/esm.mjs
+// ../../node_modules/.pnpm/commander@14.0.3/node_modules/commander/esm.mjs
 var import_index = __toESM(require_commander(), 1);
 var {
   program,
@@ -4395,7 +4395,7 @@ var {
 // src/cli.ts
 import pc from "picocolors";
 
-// ../../node_modules/hono/dist/compose.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/compose.js
 var compose = (middleware, onError, onNotFound) => {
   return (context, next) => {
     let index = -1;
@@ -4439,7 +4439,7 @@ var compose = (middleware, onError, onNotFound) => {
   };
 };
 
-// ../../node_modules/hono/dist/http-exception.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/http-exception.js
 var HTTPException = class extends Error {
   res;
   status;
@@ -4472,10 +4472,10 @@ var HTTPException = class extends Error {
   }
 };
 
-// ../../node_modules/hono/dist/request/constants.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/request/constants.js
 var GET_MATCH_RESULT = /* @__PURE__ */ Symbol();
 
-// ../../node_modules/hono/dist/utils/body.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/utils/body.js
 var parseBody = async (request, options = /* @__PURE__ */ Object.create(null)) => {
   const { all = false, dot = false } = options;
   const headers = request instanceof HonoRequest ? request.raw.headers : request.headers;
@@ -4547,7 +4547,7 @@ var handleParsingNestedValues = (form, key, value) => {
   });
 };
 
-// ../../node_modules/hono/dist/utils/url.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/utils/url.js
 var splitPath = (path3) => {
   const paths = path3.split("/");
   if (paths[0] === "") {
@@ -4751,7 +4751,7 @@ var getQueryParams = (url2, key) => {
 };
 var decodeURIComponent_ = decodeURIComponent;
 
-// ../../node_modules/hono/dist/request.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/request.js
 var tryDecodeURIComponent = (str) => tryDecode(str, decodeURIComponent_);
 var HonoRequest = class {
   /**
@@ -5019,7 +5019,7 @@ var HonoRequest = class {
   }
 };
 
-// ../../node_modules/hono/dist/utils/html.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/utils/html.js
 var HtmlEscapedCallbackPhase = {
   Stringify: 1,
   BeforeStream: 2,
@@ -5061,7 +5061,7 @@ var resolveCallback = async (str, phase, preserveCallbacks, context, buffer) => 
   }
 };
 
-// ../../node_modules/hono/dist/context.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/context.js
 var TEXT_PLAIN = "text/plain; charset=UTF-8";
 var setDefaultContentType = (contentType, headers) => {
   return {
@@ -5468,7 +5468,7 @@ var Context = class {
   };
 };
 
-// ../../node_modules/hono/dist/router.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/router.js
 var METHOD_NAME_ALL = "ALL";
 var METHOD_NAME_ALL_LOWERCASE = "all";
 var METHODS = ["get", "post", "put", "delete", "options", "patch"];
@@ -5476,10 +5476,10 @@ var MESSAGE_MATCHER_IS_ALREADY_BUILT = "Can not add a route since the matcher is
 var UnsupportedPathError = class extends Error {
 };
 
-// ../../node_modules/hono/dist/utils/constants.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/utils/constants.js
 var COMPOSED_HANDLER = "__COMPOSED_HANDLER";
 
-// ../../node_modules/hono/dist/hono-base.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/hono-base.js
 var notFoundHandler = (c) => {
   return c.text("404 Not Found", 404);
 };
@@ -5850,7 +5850,7 @@ var Hono = class _Hono {
   };
 };
 
-// ../../node_modules/hono/dist/router/reg-exp-router/matcher.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/router/reg-exp-router/matcher.js
 var emptyParam = [];
 function match(method, path3) {
   const matchers = this.buildAllMatchers();
@@ -5871,7 +5871,7 @@ function match(method, path3) {
   return match2(method, path3);
 }
 
-// ../../node_modules/hono/dist/router/reg-exp-router/node.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/router/reg-exp-router/node.js
 var LABEL_REG_EXP_STR = "[^/]+";
 var ONLY_WILDCARD_REG_EXP_STR = ".*";
 var TAIL_WILDCARD_REG_EXP_STR = "(?:|/.*)";
@@ -5979,7 +5979,7 @@ var Node = class _Node {
   }
 };
 
-// ../../node_modules/hono/dist/router/reg-exp-router/trie.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/router/reg-exp-router/trie.js
 var Trie = class {
   #context = { varIndex: 0 };
   #root = new Node();
@@ -6035,7 +6035,7 @@ var Trie = class {
   }
 };
 
-// ../../node_modules/hono/dist/router/reg-exp-router/router.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/router/reg-exp-router/router.js
 var nullMatcher = [/^$/, [], /* @__PURE__ */ Object.create(null)];
 var wildcardRegExpCache = /* @__PURE__ */ Object.create(null);
 function buildWildcardRegExp(path3) {
@@ -6214,7 +6214,7 @@ var RegExpRouter = class {
   }
 };
 
-// ../../node_modules/hono/dist/router/smart-router/router.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/router/smart-router/router.js
 var SmartRouter = class {
   name = "SmartRouter";
   #routers = [];
@@ -6269,7 +6269,7 @@ var SmartRouter = class {
   }
 };
 
-// ../../node_modules/hono/dist/router/trie-router/node.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/router/trie-router/node.js
 var emptyParams = /* @__PURE__ */ Object.create(null);
 var hasChildren = (children) => {
   for (const _ in children) {
@@ -6444,7 +6444,7 @@ var Node2 = class _Node2 {
   }
 };
 
-// ../../node_modules/hono/dist/router/trie-router/router.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/router/trie-router/router.js
 var TrieRouter = class {
   name = "TrieRouter";
   #node;
@@ -6466,7 +6466,7 @@ var TrieRouter = class {
   }
 };
 
-// ../../node_modules/hono/dist/hono.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/hono.js
 var Hono2 = class extends Hono {
   /**
    * Creates an instance of the Hono class.
@@ -6481,7 +6481,7 @@ var Hono2 = class extends Hono {
   }
 };
 
-// ../../node_modules/hono/dist/middleware/cors/index.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/middleware/cors/index.js
 var cors = (options) => {
   const opts = {
     origin: "*",
@@ -6572,7 +6572,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "url";
 import { dirname as dirname2 } from "node:path";
 
-// ../../node_modules/hono/dist/utils/cookie.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/utils/cookie.js
 var validCookieNameRegEx = /^[\w!#$%&'*.^`|~+-]+$/;
 var validCookieValueRegEx = /^[ !#-:<-[\]-~]*$/;
 var trimCookieWhitespace = (value) => {
@@ -6623,7 +6623,7 @@ var parse = (cookie, name) => {
   return parsedCookie;
 };
 
-// ../../node_modules/hono/dist/helper/cookie/index.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/helper/cookie/index.js
 var getCookie = (c, key, prefix) => {
   const cookie = c.req.raw.headers.get("Cookie");
   if (typeof key === "string") {
@@ -6646,7 +6646,7 @@ var getCookie = (c, key, prefix) => {
   return obj;
 };
 
-// ../../node_modules/hono/dist/utils/buffer.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/utils/buffer.js
 var bufferToFormData = (arrayBuffer, contentType) => {
   const response = new Response(arrayBuffer, {
     headers: {
@@ -6656,7 +6656,7 @@ var bufferToFormData = (arrayBuffer, contentType) => {
   return response.formData();
 };
 
-// ../../node_modules/hono/dist/validator/validator.js
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/validator/validator.js
 var jsonRegex = /^application\/([a-z-\.]+\+)?json(;\s*[a-zA-Z0-9\-]+\=([^;]+))*$/;
 var multipartRegex = /^multipart\/form-data(;\s?boundary=[a-zA-Z0-9'"()+_,\-./:=?]+)?$/;
 var urlencodedRegex = /^application\/x-www-form-urlencoded(;\s*[a-zA-Z0-9\-]+\=([^;]+))*$/;
@@ -6737,7 +6737,7 @@ var validator = (target, validationFunc) => {
   };
 };
 
-// node_modules/@hono/zod-validator/dist/index.js
+// ../../node_modules/.pnpm/@hono+zod-validator@0.8.0_hono@4.12.18_zod@4.4.3/node_modules/@hono/zod-validator/dist/index.js
 function zValidatorFunction(target, schema, hook, options) {
   return validator(target, async (value, c) => {
     let validatorValue = value;
@@ -6907,7 +6907,7 @@ var Serve = class {
   }
 };
 
-// ../../node_modules/zod/v4/classic/external.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 var external_exports = {};
 __export(external_exports, {
   $brand: () => $brand,
@@ -7150,7 +7150,7 @@ __export(external_exports, {
   xor: () => xor
 });
 
-// ../../node_modules/zod/v4/core/index.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/index.js
 var core_exports2 = {};
 __export(core_exports2, {
   $ZodAny: () => $ZodAny,
@@ -7429,7 +7429,7 @@ __export(core_exports2, {
   version: () => version
 });
 
-// ../../node_modules/zod/v4/core/core.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/core.js
 var _a;
 var NEVER = /* @__PURE__ */ Object.freeze({
   status: "aborted"
@@ -7506,7 +7506,7 @@ function config(newConfig) {
   return globalConfig;
 }
 
-// ../../node_modules/zod/v4/core/util.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/util.js
 var util_exports = {};
 __export(util_exports, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -8202,7 +8202,7 @@ var Class = class {
   }
 };
 
-// ../../node_modules/zod/v4/core/errors.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/errors.js
 var initializer = (inst, def) => {
   inst.name = "$ZodError";
   Object.defineProperty(inst, "_zod", {
@@ -8341,7 +8341,7 @@ function prettifyError(error51) {
   return lines.join("\n");
 }
 
-// ../../node_modules/zod/v4/core/parse.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/parse.js
 var _parse = (_Err) => (schema, value, _ctx, _params) => {
   const ctx = _ctx ? { ..._ctx, async: false } : { async: false };
   const result = schema._zod.run({ value, issues: [] }, ctx);
@@ -8429,7 +8429,7 @@ var _safeDecodeAsync = (_Err) => async (schema, value, _ctx) => {
 };
 var safeDecodeAsync = /* @__PURE__ */ _safeDecodeAsync($ZodRealError);
 
-// ../../node_modules/zod/v4/core/regexes.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/regexes.js
 var regexes_exports = {};
 __export(regexes_exports, {
   base64: () => base64,
@@ -8588,7 +8588,7 @@ var sha512_hex = /^[0-9a-fA-F]{128}$/;
 var sha512_base64 = /* @__PURE__ */ fixedBase64(86, "==");
 var sha512_base64url = /* @__PURE__ */ fixedBase64url(86);
 
-// ../../node_modules/zod/v4/core/checks.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a3;
   inst._zod ?? (inst._zod = {});
@@ -9136,7 +9136,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// ../../node_modules/zod/v4/core/doc.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/doc.js
 var Doc = class {
   constructor(args = []) {
     this.content = [];
@@ -9172,14 +9172,14 @@ var Doc = class {
   }
 };
 
-// ../../node_modules/zod/v4/core/versions.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 4,
   patch: 3
 };
 
-// ../../node_modules/zod/v4/core/schemas.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a3;
   inst ?? (inst = {});
@@ -11272,7 +11272,7 @@ function handleRefineResult(result, payload, input, inst) {
   }
 }
 
-// ../../node_modules/zod/v4/locales/index.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/index.js
 var locales_exports = {};
 __export(locales_exports, {
   ar: () => ar_default,
@@ -11329,7 +11329,7 @@ __export(locales_exports, {
   zhTW: () => zh_TW_default
 });
 
-// ../../node_modules/zod/v4/locales/ar.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ar.js
 var error = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0641", verb: "\u0623\u0646 \u064A\u062D\u0648\u064A" },
@@ -11436,7 +11436,7 @@ function ar_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/az.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/az.js
 var error2 = () => {
   const Sizable = {
     string: { unit: "simvol", verb: "olmal\u0131d\u0131r" },
@@ -11542,7 +11542,7 @@ function az_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/be.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/be.js
 function getBelarusianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -11699,7 +11699,7 @@ function be_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/bg.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/bg.js
 var error4 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0430", verb: "\u0434\u0430 \u0441\u044A\u0434\u044A\u0440\u0436\u0430" },
@@ -11820,7 +11820,7 @@ function bg_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ca.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ca.js
 var error5 = () => {
   const Sizable = {
     string: { unit: "car\xE0cters", verb: "contenir" },
@@ -11929,7 +11929,7 @@ function ca_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/cs.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/cs.js
 var error6 = () => {
   const Sizable = {
     string: { unit: "znak\u016F", verb: "m\xEDt" },
@@ -12041,7 +12041,7 @@ function cs_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/da.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/da.js
 var error7 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "havde" },
@@ -12157,7 +12157,7 @@ function da_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/de.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/de.js
 var error8 = () => {
   const Sizable = {
     string: { unit: "Zeichen", verb: "zu haben" },
@@ -12266,7 +12266,7 @@ function de_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/el.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/el.js
 var error9 = () => {
   const Sizable = {
     string: { unit: "\u03C7\u03B1\u03C1\u03B1\u03BA\u03C4\u03AE\u03C1\u03B5\u03C2", verb: "\u03BD\u03B1 \u03AD\u03C7\u03B5\u03B9" },
@@ -12376,7 +12376,7 @@ function el_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/en.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/en.js
 var error10 = () => {
   const Sizable = {
     string: { unit: "characters", verb: "to have" },
@@ -12489,7 +12489,7 @@ function en_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/eo.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/eo.js
 var error11 = () => {
   const Sizable = {
     string: { unit: "karaktrojn", verb: "havi" },
@@ -12599,7 +12599,7 @@ function eo_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/es.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/es.js
 var error12 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "tener" },
@@ -12732,7 +12732,7 @@ function es_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/fa.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fa.js
 var error13 = () => {
   const Sizable = {
     string: { unit: "\u06A9\u0627\u0631\u0627\u06A9\u062A\u0631", verb: "\u062F\u0627\u0634\u062A\u0647 \u0628\u0627\u0634\u062F" },
@@ -12847,7 +12847,7 @@ function fa_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/fi.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fi.js
 var error14 = () => {
   const Sizable = {
     string: { unit: "merkki\xE4", subject: "merkkijonon" },
@@ -12960,7 +12960,7 @@ function fi_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/fr.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fr.js
 var error15 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -13086,7 +13086,7 @@ function fr_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/fr-CA.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/fr-CA.js
 var error16 = () => {
   const Sizable = {
     string: { unit: "caract\xE8res", verb: "avoir" },
@@ -13194,7 +13194,7 @@ function fr_CA_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/he.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/he.js
 var error17 = () => {
   const TypeNames = {
     string: { label: "\u05DE\u05D7\u05E8\u05D5\u05D6\u05EA", gender: "f" },
@@ -13389,7 +13389,7 @@ function he_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/hr.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/hr.js
 var error18 = () => {
   const Sizable = {
     string: { unit: "znakova", verb: "imati" },
@@ -13512,7 +13512,7 @@ function hr_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/hu.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/hu.js
 var error19 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "legyen" },
@@ -13621,7 +13621,7 @@ function hu_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/hy.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/hy.js
 function getArmenianPlural(count, one, many) {
   return Math.abs(count) === 1 ? one : many;
 }
@@ -13769,7 +13769,7 @@ function hy_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/id.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/id.js
 var error21 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "memiliki" },
@@ -13876,7 +13876,7 @@ function id_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/is.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/is.js
 var error22 = () => {
   const Sizable = {
     string: { unit: "stafi", verb: "a\xF0 hafa" },
@@ -13986,7 +13986,7 @@ function is_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/it.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/it.js
 var error23 = () => {
   const Sizable = {
     string: { unit: "caratteri", verb: "avere" },
@@ -14095,7 +14095,7 @@ function it_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ja.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ja.js
 var error24 = () => {
   const Sizable = {
     string: { unit: "\u6587\u5B57", verb: "\u3067\u3042\u308B" },
@@ -14203,7 +14203,7 @@ function ja_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ka.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ka.js
 var error25 = () => {
   const Sizable = {
     string: { unit: "\u10E1\u10D8\u10DB\u10D1\u10DD\u10DA\u10DD", verb: "\u10E3\u10DC\u10D3\u10D0 \u10E8\u10D4\u10D8\u10EA\u10D0\u10D5\u10D3\u10D4\u10E1" },
@@ -14316,7 +14316,7 @@ function ka_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/km.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/km.js
 var error26 = () => {
   const Sizable = {
     string: { unit: "\u178F\u17BD\u17A2\u1780\u17D2\u179F\u179A", verb: "\u1782\u17BD\u179A\u1798\u17B6\u1793" },
@@ -14427,12 +14427,12 @@ function km_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/kh.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/kh.js
 function kh_default() {
   return km_default();
 }
 
-// ../../node_modules/zod/v4/locales/ko.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ko.js
 var error27 = () => {
   const Sizable = {
     string: { unit: "\uBB38\uC790", verb: "to have" },
@@ -14544,7 +14544,7 @@ function ko_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/lt.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/lt.js
 var capitalizeFirstCharacter = (text) => {
   return text.charAt(0).toUpperCase() + text.slice(1);
 };
@@ -14748,7 +14748,7 @@ function lt_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/mk.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/mk.js
 var error29 = () => {
   const Sizable = {
     string: { unit: "\u0437\u043D\u0430\u0446\u0438", verb: "\u0434\u0430 \u0438\u043C\u0430\u0430\u0442" },
@@ -14858,7 +14858,7 @@ function mk_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ms.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ms.js
 var error30 = () => {
   const Sizable = {
     string: { unit: "aksara", verb: "mempunyai" },
@@ -14966,7 +14966,7 @@ function ms_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/nl.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/nl.js
 var error31 = () => {
   const Sizable = {
     string: { unit: "tekens", verb: "heeft" },
@@ -15077,7 +15077,7 @@ function nl_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/no.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/no.js
 var error32 = () => {
   const Sizable = {
     string: { unit: "tegn", verb: "\xE5 ha" },
@@ -15186,7 +15186,7 @@ function no_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ota.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ota.js
 var error33 = () => {
   const Sizable = {
     string: { unit: "harf", verb: "olmal\u0131d\u0131r" },
@@ -15296,7 +15296,7 @@ function ota_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ps.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ps.js
 var error34 = () => {
   const Sizable = {
     string: { unit: "\u062A\u0648\u06A9\u064A", verb: "\u0648\u0644\u0631\u064A" },
@@ -15411,7 +15411,7 @@ function ps_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/pl.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/pl.js
 var error35 = () => {
   const Sizable = {
     string: { unit: "znak\xF3w", verb: "mie\u0107" },
@@ -15521,7 +15521,7 @@ function pl_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/pt.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/pt.js
 var error36 = () => {
   const Sizable = {
     string: { unit: "caracteres", verb: "ter" },
@@ -15630,7 +15630,7 @@ function pt_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ro.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ro.js
 var error37 = () => {
   const Sizable = {
     string: { unit: "caractere", verb: "s\u0103 aib\u0103" },
@@ -15750,7 +15750,7 @@ function ro_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ru.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ru.js
 function getRussianPlural(count, one, few, many) {
   const absCount = Math.abs(count);
   const lastDigit = absCount % 10;
@@ -15907,7 +15907,7 @@ function ru_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/sl.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/sl.js
 var error39 = () => {
   const Sizable = {
     string: { unit: "znakov", verb: "imeti" },
@@ -16017,7 +16017,7 @@ function sl_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/sv.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/sv.js
 var error40 = () => {
   const Sizable = {
     string: { unit: "tecken", verb: "att ha" },
@@ -16128,7 +16128,7 @@ function sv_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ta.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ta.js
 var error41 = () => {
   const Sizable = {
     string: { unit: "\u0B8E\u0BB4\u0BC1\u0BA4\u0BCD\u0BA4\u0BC1\u0B95\u0BCD\u0B95\u0BB3\u0BCD", verb: "\u0B95\u0BCA\u0BA3\u0BCD\u0B9F\u0BBF\u0BB0\u0BC1\u0B95\u0BCD\u0B95 \u0BB5\u0BC7\u0BA3\u0BCD\u0B9F\u0BC1\u0BAE\u0BCD" },
@@ -16239,7 +16239,7 @@ function ta_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/th.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/th.js
 var error42 = () => {
   const Sizable = {
     string: { unit: "\u0E15\u0E31\u0E27\u0E2D\u0E31\u0E01\u0E29\u0E23", verb: "\u0E04\u0E27\u0E23\u0E21\u0E35" },
@@ -16350,7 +16350,7 @@ function th_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/tr.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/tr.js
 var error43 = () => {
   const Sizable = {
     string: { unit: "karakter", verb: "olmal\u0131" },
@@ -16456,7 +16456,7 @@ function tr_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/uk.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/uk.js
 var error44 = () => {
   const Sizable = {
     string: { unit: "\u0441\u0438\u043C\u0432\u043E\u043B\u0456\u0432", verb: "\u043C\u0430\u0442\u0438\u043C\u0435" },
@@ -16565,12 +16565,12 @@ function uk_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/ua.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ua.js
 function ua_default() {
   return uk_default();
 }
 
-// ../../node_modules/zod/v4/locales/ur.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/ur.js
 var error45 = () => {
   const Sizable = {
     string: { unit: "\u062D\u0631\u0648\u0641", verb: "\u06C1\u0648\u0646\u0627" },
@@ -16681,7 +16681,7 @@ function ur_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/uz.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/uz.js
 var error46 = () => {
   const Sizable = {
     string: { unit: "belgi", verb: "bo\u2018lishi kerak" },
@@ -16792,7 +16792,7 @@ function uz_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/vi.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/vi.js
 var error47 = () => {
   const Sizable = {
     string: { unit: "k\xFD t\u1EF1", verb: "c\xF3" },
@@ -16901,7 +16901,7 @@ function vi_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/zh-CN.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/zh-CN.js
 var error48 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u7B26", verb: "\u5305\u542B" },
@@ -17011,7 +17011,7 @@ function zh_CN_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/zh-TW.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/zh-TW.js
 var error49 = () => {
   const Sizable = {
     string: { unit: "\u5B57\u5143", verb: "\u64C1\u6709" },
@@ -17119,7 +17119,7 @@ function zh_TW_default() {
   };
 }
 
-// ../../node_modules/zod/v4/locales/yo.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/locales/yo.js
 var error50 = () => {
   const Sizable = {
     string: { unit: "\xE0mi", verb: "n\xED" },
@@ -17227,7 +17227,7 @@ function yo_default() {
   };
 }
 
-// ../../node_modules/zod/v4/core/registries.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/registries.js
 var _a2;
 var $output = Symbol("ZodOutput");
 var $input = Symbol("ZodInput");
@@ -17277,7 +17277,7 @@ function registry() {
 (_a2 = globalThis).__zod_globalRegistry ?? (_a2.__zod_globalRegistry = registry());
 var globalRegistry = globalThis.__zod_globalRegistry;
 
-// ../../node_modules/zod/v4/core/api.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/api.js
 // @__NO_SIDE_EFFECTS__
 function _string(Class2, params) {
   return new Class2({
@@ -18316,7 +18316,7 @@ function _stringFormat(Class2, format, fnOrRegex, _params = {}) {
   return inst;
 }
 
-// ../../node_modules/zod/v4/core/to-json-schema.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/to-json-schema.js
 function initializeContext(params) {
   let target = params?.target ?? "draft-2020-12";
   if (target === "draft-4")
@@ -18675,7 +18675,7 @@ var createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params) =
   return finalize(ctx, schema);
 };
 
-// ../../node_modules/zod/v4/core/json-schema-processors.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/json-schema-processors.js
 var formatMap = {
   guid: "uuid",
   url: "uri",
@@ -19219,7 +19219,7 @@ function toJSONSchema(input, params) {
   return finalize(ctx, input);
 }
 
-// ../../node_modules/zod/v4/core/json-schema-generator.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/json-schema-generator.js
 var JSONSchemaGenerator = class {
   /** @deprecated Access via ctx instead */
   get metadataRegistry() {
@@ -19294,10 +19294,10 @@ var JSONSchemaGenerator = class {
   }
 };
 
-// ../../node_modules/zod/v4/core/json-schema.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/core/json-schema.js
 var json_schema_exports = {};
 
-// ../../node_modules/zod/v4/classic/schemas.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/schemas.js
 var schemas_exports2 = {};
 __export(schemas_exports2, {
   ZodAny: () => ZodAny,
@@ -19468,7 +19468,7 @@ __export(schemas_exports2, {
   xor: () => xor
 });
 
-// ../../node_modules/zod/v4/classic/checks.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/checks.js
 var checks_exports2 = {};
 __export(checks_exports2, {
   endsWith: () => _endsWith,
@@ -19502,7 +19502,7 @@ __export(checks_exports2, {
   uppercase: () => _uppercase
 });
 
-// ../../node_modules/zod/v4/classic/iso.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/iso.js
 var iso_exports = {};
 __export(iso_exports, {
   ZodISODate: () => ZodISODate,
@@ -19543,7 +19543,7 @@ function duration2(params) {
   return _isoDuration(ZodISODuration, params);
 }
 
-// ../../node_modules/zod/v4/classic/errors.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/errors.js
 var initializer2 = (inst, issues) => {
   $ZodError.init(inst, issues);
   inst.name = "ZodError";
@@ -19583,7 +19583,7 @@ var ZodRealError = /* @__PURE__ */ $constructor("ZodError", initializer2, {
   Parent: Error
 });
 
-// ../../node_modules/zod/v4/classic/parse.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/parse.js
 var parse3 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse2 = /* @__PURE__ */ _safeParse(ZodRealError);
@@ -19597,7 +19597,7 @@ var safeDecode2 = /* @__PURE__ */ _safeDecode(ZodRealError);
 var safeEncodeAsync2 = /* @__PURE__ */ _safeEncodeAsync(ZodRealError);
 var safeDecodeAsync2 = /* @__PURE__ */ _safeDecodeAsync(ZodRealError);
 
-// ../../node_modules/zod/v4/classic/schemas.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/schemas.js
 var _installedGroups = /* @__PURE__ */ new WeakMap();
 function _installLazyMethods(inst, group, methods) {
   const proto = Object.getPrototypeOf(inst);
@@ -20887,7 +20887,7 @@ function preprocess(fn, schema) {
   });
 }
 
-// ../../node_modules/zod/v4/classic/compat.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/compat.js
 var ZodIssueCode = {
   invalid_type: "invalid_type",
   too_big: "too_big",
@@ -20913,7 +20913,7 @@ var ZodFirstPartyTypeKind;
 /* @__PURE__ */ (function(ZodFirstPartyTypeKind2) {
 })(ZodFirstPartyTypeKind || (ZodFirstPartyTypeKind = {}));
 
-// ../../node_modules/zod/v4/classic/from-json-schema.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/from-json-schema.js
 var z = {
   ...schemas_exports2,
   ...checks_exports2,
@@ -21393,7 +21393,7 @@ function fromJSONSchema(schema, params) {
   return convertSchema(normalized, ctx);
 }
 
-// ../../node_modules/zod/v4/classic/coerce.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/coerce.js
 var coerce_exports = {};
 __export(coerce_exports, {
   bigint: () => bigint3,
@@ -21418,10 +21418,10 @@ function date4(params) {
   return _coercedDate(ZodDate, params);
 }
 
-// ../../node_modules/zod/v4/classic/external.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/v4/classic/external.js
 config(en_default());
 
-// ../../node_modules/zod/index.js
+// ../../node_modules/.pnpm/zod@4.4.3/node_modules/zod/index.js
 var zod_default = external_exports;
 
 // src/features/serve/model.ts
@@ -21639,11 +21639,10 @@ async function fileExists2(filePath) {
   }
 }
 var Artifact = class {
+  artifactPath;
   constructor(config2) {
-    this.config = config2;
     this.artifactPath = config2.artifact;
   }
-  artifactPath;
   async getIndexFiles() {
     const indexFiles = [];
     const allPaths = await readdir(this.artifactPath, { recursive: true });
@@ -21835,11 +21834,10 @@ async function fileExists3(filePath) {
   }
 }
 var Memory = class {
+  memoryPath;
   constructor(config2) {
-    this.config = config2;
     this.memoryPath = config2.memory;
   }
-  memoryPath;
   async getIndexFiles() {
     const indexFiles = [];
     const allPaths = await readdir2(this.memoryPath, { recursive: true });
@@ -22121,7 +22119,7 @@ var IdeaRepository = class {
 var IDEA_INDEX_FILE = "index.md";
 
 // src/features/idea/file/service.ts
-import { readdir as readdir3, stat as stat2, rm, mkdir, unlink, access as access4 } from "node:fs/promises";
+import { readdir as readdir3, stat, rm, mkdir, unlink, access as access4 } from "node:fs/promises";
 import path2 from "node:path";
 async function fileExists4(filePath) {
   try {
@@ -22166,7 +22164,7 @@ var IdeaFile = class {
     const ideaFolder = `${this.ideaPath}/${ideaPath}`;
     let ideaFolderExists = false;
     try {
-      const folderStat = await stat2(ideaFolder);
+      const folderStat = await stat(ideaFolder);
       ideaFolderExists = folderStat.isDirectory();
     } catch {
       ideaFolderExists = false;
@@ -22219,7 +22217,7 @@ var IdeaFile = class {
   async createIdeaDirectory(ideaPath, content = "") {
     const ideaFolder = `${this.ideaPath}/${ideaPath}`;
     try {
-      const folderStat = await stat2(ideaFolder);
+      const folderStat = await stat(ideaFolder);
       if (folderStat.isDirectory()) {
         throw new Response("Folder already exists", { status: 400 });
       }
@@ -22248,7 +22246,7 @@ var IdeaFile = class {
         if (entry.endsWith(".md")) {
           const filePath = path2.join(folderPath, entry);
           try {
-            const fileStat = await stat2(filePath);
+            const fileStat = await stat(filePath);
             files.push({
               name: entry,
               path: ideaPath + "/" + entry,
@@ -22564,6 +22562,92 @@ var artifact = new Hono2().get("/", zValidator("query", ArtifactModel.querySchem
   return await artifactService.getByName(name);
 });
 
+// ../../node_modules/.pnpm/hono@4.12.18/node_modules/hono/dist/helper/proxy/index.js
+var hopByHopHeaders = [
+  "connection",
+  "keep-alive",
+  "proxy-authenticate",
+  "proxy-authorization",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade"
+];
+var ALLOWED_TOKEN_PATTERN = /^[!#$%&'*+\-.0-9A-Z^_`a-z|~]+$/;
+var buildRequestInitFromRequest = (request, strictConnectionProcessing) => {
+  if (!request) {
+    return {};
+  }
+  const headers = new Headers(request.headers);
+  if (strictConnectionProcessing) {
+    const connectionValue = headers.get("connection");
+    if (connectionValue) {
+      const headerNames = connectionValue.split(",").map((h) => h.trim());
+      const invalidHeaders = headerNames.filter((h) => !ALLOWED_TOKEN_PATTERN.test(h));
+      if (invalidHeaders.length > 0) {
+        throw new HTTPException(400, {
+          message: `Invalid Connection header value: ${invalidHeaders.join(", ")}`
+        });
+      }
+      headerNames.forEach((headerName) => {
+        headers.delete(headerName);
+      });
+    }
+  }
+  hopByHopHeaders.forEach((header) => {
+    headers.delete(header);
+  });
+  return {
+    method: request.method,
+    body: request.body,
+    duplex: request.body ? "half" : void 0,
+    headers,
+    signal: request.signal
+  };
+};
+var preprocessRequestInit = (requestInit) => {
+  if (!requestInit.headers || Array.isArray(requestInit.headers) || requestInit.headers instanceof Headers) {
+    return requestInit;
+  }
+  const headers = new Headers();
+  for (const [key, value] of Object.entries(requestInit.headers)) {
+    if (value == null) {
+      headers.delete(key);
+    } else {
+      headers.set(key, value);
+    }
+  }
+  requestInit.headers = headers;
+  return requestInit;
+};
+var proxy = async (input, proxyInit) => {
+  const {
+    raw: raw2,
+    customFetch,
+    strictConnectionProcessing = false,
+    ...requestInit
+  } = proxyInit instanceof Request ? { raw: proxyInit } : proxyInit ?? {};
+  const req = new Request(input, {
+    ...buildRequestInitFromRequest(raw2, strictConnectionProcessing),
+    ...preprocessRequestInit(requestInit)
+  });
+  req.headers.delete("accept-encoding");
+  const res = await (customFetch || fetch)(req);
+  const resHeaders = new Headers(res.headers);
+  hopByHopHeaders.forEach((header) => {
+    resHeaders.delete(header);
+  });
+  if (resHeaders.has("content-encoding")) {
+    resHeaders.delete("content-encoding");
+    resHeaders.delete("content-length");
+  }
+  return new Response(res.body, {
+    status: res.status,
+    statusText: res.statusText,
+    headers: resHeaders
+  });
+};
+
 // src/features/proxy/index.ts
 var CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -22571,36 +22655,50 @@ var CORS_HEADERS = {
   "Access-Control-Allow-Headers": "*"
 };
 var proxyHandler = async (c) => {
-  const request = c.req.raw;
-  const opencodeApiBase = request.headers.get("X-OpenCode-API-Base") || c.req.query("X-OpenCode-API-Base");
+  const opencodeApiBase = c.req.header("X-OpenCode-API-Base") || c.req.query("X-OpenCode-API-Base");
   if (!opencodeApiBase) {
     return c.json({ error: "Missing X-OpenCode-API-Base header or query parameter" }, 400);
   }
-  const result = await proxyService.proxy(request, opencodeApiBase);
-  if (result.isStreaming) {
-    return new Response(result.body, {
-      headers: {
-        "Content-Type": result.contentType || "application/octet-stream",
-        ...Object.fromEntries(Object.entries(CORS_HEADERS))
-      }
-    });
-  }
-  return new Response(result.body, {
+  const incomingUrl = new URL(c.req.url);
+  const targetPath = incomingUrl.pathname.replace(/^\/oc/, "");
+  const targetUrl = new URL(targetPath + incomingUrl.search, opencodeApiBase);
+  const req = c.req.raw;
+  const res = await proxy(targetUrl.toString(), {
+    method: req.method,
     headers: {
-      "Content-Type": result.contentType || "application/json",
+      ...c.req.header(),
+      "X-Forwarded-For": c.req.header("host") || "127.0.0.1",
+      "X-Forwarded-Host": c.req.header("host"),
+      Authorization: void 0
+    },
+    body: req.body,
+    signal: req.signal
+  });
+  res.headers.delete("Set-Cookie");
+  const contentType = res.headers.get("content-type") || "";
+  return new Response(res.body, {
+    status: res.status,
+    headers: {
+      "Content-Type": contentType || "application/octet-stream",
       ...Object.fromEntries(Object.entries(CORS_HEADERS))
     }
   });
 };
-var proxy = new Hono2().get("/*", proxyHandler).post("/*", proxyHandler).put("/*", proxyHandler).patch("/*", proxyHandler).delete("/*", proxyHandler).options("/*", (c) => {
+var proxy2 = new Hono2().get("/*", proxyHandler).post("/*", proxyHandler).put("/*", proxyHandler).patch("/*", proxyHandler).delete("/*", proxyHandler).options("/*", (c) => {
   const headers = Object.fromEntries(Object.entries(CORS_HEADERS));
   return c.body(null, 204, headers);
 });
 
 // src/server.ts
-var __filename = fileURLToPath(import.meta.url);
-var __dirname2 = dirname2(__filename);
-var PUBLIC_DIR = __dirname2.endsWith("/dist") ? join(__dirname2, "public") : join(__dirname2, "../", "public");
+var getDirname = () => {
+  try {
+    return dirname2(fileURLToPath(import.meta.url));
+  } catch {
+    return process.cwd();
+  }
+};
+var __dirname2 = getDirname();
+var PUBLIC_DIR = join(__dirname2, "public");
 function createApp({ corsOrigins = [], enableUI = false }) {
   const app2 = new Hono2();
   app2.use(cors({
@@ -22615,7 +22713,7 @@ function createApp({ corsOrigins = [], enableUI = false }) {
     const content = readFileSync(indexPath, "utf-8");
     return c.html(content);
   });
-  app2.route("/oc", proxy);
+  app2.route("/oc", proxy2);
   app2.route("/api/idea", idea);
   app2.route("/api/memory", memory);
   app2.route("/api/artifact", artifact);
@@ -22632,160 +22730,7 @@ function createApp({ corsOrigins = [], enableUI = false }) {
 }
 var app = createApp({ enableUI: true });
 
-// src/config/config.ts
-import { homedir } from "node:os";
-import { resolve } from "node:path";
-import { readFileSync as readFileSync2, writeFileSync, existsSync as existsSync2, mkdirSync as mkdirSync2 } from "node:fs";
-var ConfigurableSchema = zod_default.object({
-  configDir: zod_default.string().default("~/.config/cloudy"),
-  dataDir: zod_default.string().default("~/.config/cloudy/data"),
-  ui: zod_default.union([zod_default.boolean(), zod_default.string()]).transform((val) => val === true || val === "true").default(false),
-  host: zod_default.string().default("localhost"),
-  port: zod_default.string().default("3000").transform(Number),
-  cors: zod_default.string().default("").transform((val) => val ? val.split(",").map((o) => o.trim()) : [])
-});
-function expanduser(path3) {
-  if (path3.startsWith("~/") || path3 === "~") {
-    return path3.replace("~", homedir());
-  }
-  return path3;
-}
-function camelToSnake(str) {
-  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).toUpperCase();
-}
-function getEnvConfig() {
-  return Object.fromEntries(
-    Object.entries(ConfigurableSchema.shape).map(([key]) => {
-      const envKey = `CLOUDY_${camelToSnake(key)}`;
-      return [key, process.env[envKey]];
-    })
-  );
-}
-function resolveConfigDir(overrideConfigDir) {
-  if (overrideConfigDir) {
-    return expanduser(overrideConfigDir);
-  }
-  return expanduser("~/.config/cloudy");
-}
-function createInitConfig(configDir, defaults) {
-  const configPath = resolve(configDir, "config.json");
-  if (!existsSync2(configPath)) {
-    mkdirSync2(configDir, { recursive: true });
-    writeFileSync(configPath, JSON.stringify(defaults, null, 2));
-  }
-  return {
-    configPath
-  };
-}
-function loadConfig(cliFlags = {}) {
-  const defaults = ConfigurableSchema.parse({});
-  const configDir = resolveConfigDir(cliFlags.configDir);
-  const { configPath } = createInitConfig(configDir, {
-    host: "localhost",
-    port: "3000"
-  });
-  const fileConfig = ConfigurableSchema.partial().parse(JSON.parse(readFileSync2(configPath, "utf8")));
-  const envConfig = getEnvConfig();
-  const filteredCliFlags = Object.fromEntries(
-    Object.entries(cliFlags).filter(([, v]) => v !== void 0)
-  );
-  const mergedInput = { ...defaults, ...fileConfig, ...envConfig, ...filteredCliFlags };
-  const merged = ConfigurableSchema.parse(mergedInput);
-  const dataDir = expanduser(merged.dataDir);
-  return {
-    ...merged,
-    dataDir,
-    dbDatabaseUrl: `file:${dataDir}/local.db`,
-    idea: `${dataDir}/idea`,
-    memory: `${dataDir}/memory`,
-    artifact: `${dataDir}/artifact`
-  };
-}
-
-// src/db/migrate.ts
-import { createClient as createClient2 } from "@libsql/client";
-import { readdirSync, readFileSync as readFileSync3, mkdirSync as mkdirSync3 } from "fs";
-import { join as join2, dirname as dirname3 } from "path";
-import { fileURLToPath as fileURLToPath2 } from "url";
-var __filename2 = fileURLToPath2(import.meta.url);
-var __dirname3 = dirname3(__filename2);
-var MIGRATIONS_DIR = join2(__dirname3, "migrations");
-function getMigrationFiles(migrationsDir = MIGRATIONS_DIR) {
-  const files = readdirSync(migrationsDir);
-  const migrations = [];
-  for (const file2 of files) {
-    const match2 = file2.match(/^v(\d+)_.+\.sql$/);
-    if (match2) {
-      migrations.push({
-        version: parseInt(match2[1], 10),
-        filename: file2,
-        filepath: join2(migrationsDir, file2)
-      });
-    }
-  }
-  return migrations.sort((a, b) => a.version - b.version);
-}
-async function getCurrentVersion(db) {
-  await db.execute(`
-        CREATE TABLE IF NOT EXISTS _migration_version (
-            id INTEGER PRIMARY KEY CHECK (id = 1),
-            version INTEGER NOT NULL DEFAULT 0
-        )
-    `);
-  const result = await db.execute("SELECT version FROM _migration_version WHERE id = 1");
-  if (result.rows.length === 0) {
-    await db.execute("INSERT INTO _migration_version (id, version) VALUES (1, 0)");
-    return 0;
-  }
-  return result.rows[0].version;
-}
-async function setVersion(db, version3) {
-  await db.execute({
-    sql: "UPDATE _migration_version SET version = ? WHERE id = 1",
-    args: [version3]
-  });
-}
-async function runMigration(db, migration) {
-  const sql = readFileSync3(migration.filepath, "utf-8");
-  console.log(`\u2192 Running ${migration.filename}...`);
-  const statements = sql.split(";").map((s) => s.trim()).filter((s) => s.length > 0 && !s.startsWith("--"));
-  for (const statement of statements) {
-    await db.execute(statement);
-  }
-  await setVersion(db, migration.version);
-  console.log(`  \u2713 Done (v${migration.version})`);
-}
-async function runMigrations(db, migrationsDir = MIGRATIONS_DIR) {
-  const currentVersion = await getCurrentVersion(db);
-  const migrations = getMigrationFiles(migrationsDir);
-  if (migrations.length === 0) {
-    console.log("No migration files found.");
-    return;
-  }
-  const pending = migrations.filter((m) => m.version > currentVersion);
-  if (pending.length === 0) {
-    console.log(`Already at latest version (v${currentVersion})`);
-    return;
-  }
-  console.log(`Current version: v${currentVersion}`);
-  console.log(`Pending migrations: ${pending.length}
-`);
-  for (const migration of pending) {
-    await runMigration(db, migration);
-  }
-  const latestVersion = pending[pending.length - 1].version;
-  console.log(`
-Migration complete. Current version: v${latestVersion}`);
-}
-async function migrate(dbUrl) {
-  const dbPath = dbUrl.replace("file:", "");
-  mkdirSync3(dirname3(dbPath), { recursive: true });
-  const db = createClient2({ url: dbUrl });
-  await runMigrations(db);
-  await db.close();
-}
-
-// ../../node_modules/@hono/node-server/dist/index.mjs
+// ../../node_modules/.pnpm/@hono+node-server@1.19.14_hono@4.12.18/node_modules/@hono/node-server/dist/index.mjs
 import { createServer as createServerHTTP } from "http";
 import { Http2ServerRequest as Http2ServerRequest2, constants as h2constants } from "http2";
 import { Http2ServerRequest } from "http2";
@@ -23413,8 +23358,8 @@ var createAdaptorServer = (options) => {
     overrideGlobalObjects: options.overrideGlobalObjects,
     autoCleanupIncoming: options.autoCleanupIncoming
   });
-  const createServer = options.createServer || createServerHTTP;
-  const server = createServer(options.serverOptions || {}, requestListener);
+  const createServer2 = options.createServer || createServerHTTP;
+  const server = createServer2(options.serverOptions || {}, requestListener);
   return server;
 };
 var serve2 = (options, listeningListener) => {
@@ -23425,6 +23370,190 @@ var serve2 = (options, listeningListener) => {
   });
   return server;
 };
+
+// src/config/config.ts
+import { homedir } from "node:os";
+import { resolve } from "node:path";
+import { readFileSync as readFileSync2, writeFileSync, existsSync as existsSync2, mkdirSync as mkdirSync2 } from "node:fs";
+var ConfigurableSchema = zod_default.object({
+  configDir: zod_default.string().default("~/.config/cloudy"),
+  dataDir: zod_default.string().default("~/.config/cloudy/data"),
+  ui: zod_default.union([zod_default.boolean(), zod_default.string()]).transform((val) => val === true || val === "true").default(false),
+  host: zod_default.string().default("localhost"),
+  port: zod_default.string().default("3000").transform(Number),
+  cors: zod_default.string().default("").transform((val) => val ? val.split(",").map((o) => o.trim()) : [])
+});
+function expanduser(path3) {
+  if (path3.startsWith("~/") || path3 === "~") {
+    return path3.replace("~", homedir());
+  }
+  return path3;
+}
+function camelToSnake(str) {
+  return str.replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`).toUpperCase();
+}
+function getEnvConfig() {
+  return Object.fromEntries(
+    Object.entries(ConfigurableSchema.shape).map(([key]) => {
+      const envKey = `CLOUDY_${camelToSnake(key)}`;
+      return [key, process.env[envKey]];
+    })
+  );
+}
+function resolveConfigDir(overrideConfigDir) {
+  if (overrideConfigDir) {
+    return expanduser(overrideConfigDir);
+  }
+  return expanduser("~/.config/cloudy");
+}
+function createInitConfig(configDir, defaults) {
+  const configPath = resolve(configDir, "config.json");
+  if (!existsSync2(configPath)) {
+    mkdirSync2(configDir, { recursive: true });
+    writeFileSync(configPath, JSON.stringify(defaults, null, 2));
+  }
+  return {
+    configPath
+  };
+}
+function loadConfig(cliFlags = {}) {
+  const defaults = ConfigurableSchema.parse({});
+  const configDir = resolveConfigDir(cliFlags.configDir);
+  const { configPath } = createInitConfig(configDir, {
+    host: "localhost",
+    port: "3000"
+  });
+  const fileConfig = ConfigurableSchema.partial().parse(JSON.parse(readFileSync2(configPath, "utf8")));
+  const envConfig = getEnvConfig();
+  const filteredCliFlags = Object.fromEntries(
+    Object.entries(cliFlags).filter(([, v]) => v !== void 0)
+  );
+  const mergedInput = { ...defaults, ...fileConfig, ...envConfig, ...filteredCliFlags };
+  const merged = ConfigurableSchema.parse(mergedInput);
+  const dataDir = expanduser(merged.dataDir);
+  return {
+    ...merged,
+    dataDir,
+    dbDatabaseUrl: `file:${dataDir}/local.db`,
+    idea: `${dataDir}/idea`,
+    memory: `${dataDir}/memory`,
+    artifact: `${dataDir}/artifact`
+  };
+}
+
+// src/db/migrate.ts
+import { createClient as createClient2 } from "@libsql/client";
+import { readdirSync, readFileSync as readFileSync3, mkdirSync as mkdirSync3 } from "fs";
+import { join as join2, dirname as dirname3 } from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
+var __filename = fileURLToPath2(import.meta.url);
+var __dirname3 = dirname3(__filename);
+var DEFAULT_MIGRATIONS_DIR = join2(__dirname3, "migrations");
+function getMigrationFiles(migrationsDir) {
+  const files = readdirSync(migrationsDir);
+  const migrations = [];
+  for (const file2 of files) {
+    const match2 = file2.match(/^v(\d+)_.+\.sql$/);
+    if (match2) {
+      migrations.push({
+        version: parseInt(match2[1], 10),
+        filename: file2,
+        filepath: join2(migrationsDir, file2)
+      });
+    }
+  }
+  return migrations.sort((a, b) => a.version - b.version);
+}
+async function getCurrentVersion(db) {
+  await db.execute(`
+        CREATE TABLE IF NOT EXISTS _migration_version (
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            version INTEGER NOT NULL DEFAULT 0
+        )
+    `);
+  const result = await db.execute("SELECT version FROM _migration_version WHERE id = 1");
+  if (result.rows.length === 0) {
+    await db.execute("INSERT INTO _migration_version (id, version) VALUES (1, 0)");
+    return 0;
+  }
+  return result.rows[0].version;
+}
+async function setVersion(db, version3) {
+  await db.execute({
+    sql: "UPDATE _migration_version SET version = ? WHERE id = 1",
+    args: [version3]
+  });
+}
+async function runMigration(db, migration) {
+  const sql = readFileSync3(migration.filepath, "utf-8");
+  console.log(`\u2192 Running ${migration.filename}...`);
+  const statements = sql.split(";").map((s) => s.trim()).filter((s) => s.length > 0 && !s.startsWith("--"));
+  for (const statement of statements) {
+    await db.execute(statement);
+  }
+  await setVersion(db, migration.version);
+  console.log(`  \u2713 Done (v${migration.version})`);
+}
+async function runMigrations(db, migrationsDir) {
+  const currentVersion = await getCurrentVersion(db);
+  const migrations = getMigrationFiles(migrationsDir);
+  if (migrations.length === 0) {
+    console.log("No migration files found.");
+    return;
+  }
+  const pending = migrations.filter((m) => m.version > currentVersion);
+  if (pending.length === 0) {
+    console.log(`Already at latest version (v${currentVersion})`);
+    return;
+  }
+  console.log(`Current version: v${currentVersion}`);
+  console.log(`Pending migrations: ${pending.length}
+`);
+  for (const migration of pending) {
+    await runMigration(db, migration);
+  }
+  const latestVersion = pending[pending.length - 1].version;
+  console.log(`
+Migration complete. Current version: v${latestVersion}`);
+}
+async function migrate(dbUrl, migrateDir = DEFAULT_MIGRATIONS_DIR) {
+  const dbPath = dbUrl.replace("file:", "");
+  mkdirSync3(dirname3(dbPath), { recursive: true });
+  const db = createClient2({ url: dbUrl });
+  await runMigrations(db, migrateDir);
+  await db.close();
+}
+
+// src/server/createServer.ts
+function createServer(options) {
+  let server = null;
+  const start = async () => {
+    const config2 = loadConfig({
+      configDir: options.configDir,
+      dataDir: options.dataDir,
+      ui: options.enableUI,
+      host: options.host?.toString(),
+      port: options.port?.toString(),
+      cors: options.corsOrigins?.join(",")
+    });
+    await migrate(config2.dbDatabaseUrl, options.dbMigrationsDir);
+    initContainer(config2);
+    const app2 = createApp({ corsOrigins: config2.cors, enableUI: config2.ui });
+    startCleanupCron();
+    server = serve2({
+      fetch: app2.fetch,
+      port: config2.port,
+      hostname: config2.host
+    });
+    const url2 = `http://${config2.host}:${config2.port}`;
+    return { url: url2 };
+  };
+  const stop = async () => {
+    server?.close();
+    server = null;
+  };
+  return { start, stop };
+}
 
 // src/cli.ts
 function makeText() {
@@ -23441,30 +23570,19 @@ function makeText() {
   ].join("\n"));
 }
 async function serveCommand(options) {
-  const config2 = loadConfig({
+  const server = createServer({
     configDir: options.config,
     dataDir: options.dataDir,
-    ui: options.ui,
+    enableUI: options.ui,
     host: options.host,
-    port: options.port,
-    cors: options.cors
+    port: options.port ? parseInt(options.port) : void 0,
+    corsOrigins: options.cors ? options.cors.split(",").map((o) => o.trim()) : void 0
   });
-  initContainer(config2);
   console.log(makeText());
   console.log("");
   console.log("Running migrations...");
-  await migrate(config2.dbDatabaseUrl);
-  const app2 = createApp({ corsOrigins: config2.cors, enableUI: config2.ui });
-  startCleanupCron();
-  serve2({
-    fetch: app2.fetch,
-    port: config2.port,
-    hostname: config2.host
-  });
-  console.log(
-    `Starting server on ${config2.host}:${config2.port}...`
-  );
-  console.log(`\u{1F4C1} Config: ${config2.configDir}`);
+  const { url: url2 } = await server.start();
+  console.log(`Starting server on ${url2}...`);
 }
 var program2 = new Command();
 program2.name("cloudy").description("Cloudy AI agent CLI").version("1.0.0");

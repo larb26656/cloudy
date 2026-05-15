@@ -1,0 +1,11 @@
+packages:
+  - "apps/desktop"
+  - "apps/server"
+  - "apps/web-app"
+  - "packages/*"
+allowBuilds:
+  core-js: true
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+  msw: true
