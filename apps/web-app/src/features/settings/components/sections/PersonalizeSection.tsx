@@ -1,8 +1,9 @@
-import { useSettingsStore } from "../../store/settingsStore";
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSettingsStore } from "@/stores/settingsStore";
 
 export function PersonalizeSection() {
   const { theme, fontSize, language, setTheme, setFontSize, setLanguage } = useSettingsStore();

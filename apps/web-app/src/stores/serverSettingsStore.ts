@@ -18,6 +18,7 @@ type ServerSettingsStore = ServerSettings & {
   setMode: (mode: ServerMode) => void;
   setLocalConfig: (config: Partial<ServerSettings["local"]>) => void;
   setRemoteEndpoint: (endpoint: string) => void;
+  getServerUrl: () => string;
 };
 
 const defaultLocalConfig = {
@@ -27,7 +28,7 @@ const defaultLocalConfig = {
 
 export const useServerSettingsStore = create<ServerSettingsStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       mode: "local",
       local: defaultLocalConfig,
       remote: {
@@ -43,6 +44,14 @@ export const useServerSettingsStore = create<ServerSettingsStore>()(
         set((state) => ({
           remote: { ...state.remote, endpoint },
         })),
+
+      getServerUrl: () => {
+        const { mode, local, remote } = get(); // ใช้ get() ดึง state ล่าสุด
+        if (mode === "local") {
+          return `http://${local.host}:${local.port}`; // ปรับไส้ในตามโครงสร้างโลคอลของคุณ
+        }
+        return remote.endpoint;
+      },
     }),
     {
       name: "cloudy-server-settings",

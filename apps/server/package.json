@@ -2,12 +2,9 @@
   "name": "@cloudy/server",
   "version": "1.0.0",
   "type": "module",
-  "main": "./src/index.ts",
+  "main": "./src/index.js",
   "exports": {
-    ".": "./src/index.ts",
-    "./config": "./src/config/index.ts",
-    "./db/migrate": "./src/db/migrate.ts",
-    "./features/serve": "./src/features/serve/index.ts"
+    ".": "./src/index.js"
   },
   "bin": {
     "cloudy": "./dist/cli.js"

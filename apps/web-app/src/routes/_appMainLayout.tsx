@@ -16,6 +16,7 @@ import { useEffect, useState } from "react";
 import { useStore } from "@/hooks/instanceScopeHook";
 import { useInstanceStore } from "@/stores/instanceStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
+import StatusBar from "@/components/StatusBar";
 
 export const Route = createFileRoute("/_appMainLayout")({
   component: AppMainLayout,
@@ -85,29 +86,32 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
   }
 
   return (
-    <div className="h-dvh">
-      <ResizablePanelGroup orientation="horizontal" className="bg-background">
-        {sidebarOpen && (
-          <>
-            <ResizablePanel defaultSize={350} className="p-2">
-              <Sidebar instanceId={activeInstanceId} />
-            </ResizablePanel>
-            <ResizableHandle
-              withHandle
-              className="bg-transparent border-none"
-            />
-          </>
-        )}
-        <ResizablePanel>
-          <div className="flex flex-col h-full overflow-hidden">
-            <PermissionBanner
-              onOpenDialog={() => setPermissionDialogOpen(true)}
-            />
-            <QuestionBanner onOpenDialog={() => setQuestionDialogOpen(true)} />
-            <Outlet />
-          </div>
-        </ResizablePanel>
-      </ResizablePanelGroup>
+    <>
+      <div className="flex flex-col h-dvh">
+        <ResizablePanelGroup orientation="horizontal" className="bg-background flex-1">
+          {sidebarOpen && (
+            <>
+              <ResizablePanel defaultSize={350} className="p-2">
+                <Sidebar instanceId={activeInstanceId} />
+              </ResizablePanel>
+              <ResizableHandle
+                withHandle
+                className="bg-transparent border-none"
+              />
+            </>
+          )}
+          <ResizablePanel>
+            <div className="flex flex-col h-full overflow-hidden">
+              <PermissionBanner
+                onOpenDialog={() => setPermissionDialogOpen(true)}
+              />
+              <QuestionBanner onOpenDialog={() => setQuestionDialogOpen(true)} />
+              <Outlet />
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+        <StatusBar/>
+      </div>
       <QuestionDialog
         open={questionDialogOpen}
         onOpenChange={setQuestionDialogOpen}
@@ -116,7 +120,7 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
         open={permissionDialogOpen}
         onOpenChange={setPermissionDialogOpen}
       />
-    </div>
+    </>
   );
 }
 

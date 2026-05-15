@@ -1,5 +1,5 @@
-appId: com.electron.app
-productName: cloudy
+appId: com.cloudy.desktop
+productName: Cloudy
 directories:
   buildResources: build
 files:
@@ -9,8 +9,10 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+
 asarUnpack:
   - resources/**
+  - '**/node_modules/@libsql/**/*'
 win:
   executableName: cloudy
 nsis:
@@ -19,6 +21,7 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  identity: null
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.

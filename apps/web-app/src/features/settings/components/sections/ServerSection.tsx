@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { useServerSettingsStore } from "../../store/serverSettingsStore";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import { debounce } from "lodash-es";
+
 import { SettingsChildLayout } from "../SettingsChildLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { isModeElectron } from "@/main";
+import { useServerSettingsStore } from "@/stores/serverSettingsStore";
 
 export function ServerSection() {
   const { mode, local, remote, setMode, setLocalConfig, setRemoteEndpoint } =
@@ -53,7 +55,7 @@ export function ServerSection() {
     hydrate();
   }, [setMode, setLocalConfig, setRemoteEndpoint]);
 
-  const saveConfig = async () => {
+  const saveConfig = useCallback(async () => {
     if (!isModeElectron || !isHydrated) return;
     try {
       await window.electronAPI?.config.save({
@@ -66,7 +68,12 @@ export function ServerSection() {
     } catch (error) {
       console.error("Failed to save config:", error);
     }
-  };
+  }, [isModeElectron, isHydrated, mode, local, remote]);
+
+  const debouncedSaveConfig = useMemo(
+    () => debounce(saveConfig, 500),
+    [saveConfig]
+  );
 
   const handleModeChange = async (newMode: "local" | "remote") => {
     if (newMode === "remote" && serverStatus.running) {
@@ -74,17 +81,17 @@ export function ServerSection() {
       setServerStatus({ running: false });
     }
     setMode(newMode);
-    await saveConfig();
+    debouncedSaveConfig();
   };
 
-  const handleLocalConfigChange = async (changes: Partial<typeof local>) => {
+  const handleLocalConfigChange = (changes: Partial<typeof local>) => {
     setLocalConfig(changes);
-    await saveConfig();
+    debouncedSaveConfig();
   };
 
-  const handleRemoteEndpointChange = async (endpoint: string) => {
+  const handleRemoteEndpointChange = (endpoint: string) => {
     setRemoteEndpoint(endpoint);
-    await saveConfig();
+    debouncedSaveConfig();
   };
 
   const handleStartServer = async () => {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { useServerSettingsStore } from "@/features/settings/store/serverSettingsStore";
 import { isModeElectron } from "@/main";
 import { Spinner } from "@/components/ui/spinner";
+import { useServerSettingsStore } from "@/stores/serverSettingsStore";
 
 export function ServerSettingsSyncProvider({
   children,

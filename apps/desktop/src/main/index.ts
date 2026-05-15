@@ -69,7 +69,7 @@ const createWindow = (): void => {
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'))
   }
 
-  const { store } = startHub(mainWindow, () => desktopConfig)
+  const { store } = startHub(mainWindow)
 
   ipcMain.handle('context:list', () => {
     return store.list()
