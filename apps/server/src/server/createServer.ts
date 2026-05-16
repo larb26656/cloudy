@@ -3,7 +3,7 @@ import { createApp } from '../server';
 import { initContainer } from '../container';
 import { loadConfig } from '../config/config';
 import { startCleanupCron } from '../features/serve';
-import { migrate } from '@server/db/migrate';
+import { runMigrations } from '@server/db/migrate';
 
 export interface ServerOptions {
   host?: string;
@@ -28,8 +28,9 @@ export function createServer(options: ServerOptions) {
       cors: options.corsOrigins?.join(','),
     });
 
-    await migrate(config.dbDatabaseUrl, options.dbMigrationsDir);
-    initContainer(config);
+    await runMigrations(options.dataDir!);
+
+    await initContainer(config);
 
     const app = createApp({ corsOrigins: config.cors, enableUI: config.ui });
     startCleanupCron();

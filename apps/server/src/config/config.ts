@@ -13,7 +13,7 @@ const ConfigurableSchema = z.object({
 });
 
 export type CloudyConfig = z.infer<typeof ConfigurableSchema> & {
-    dbDatabaseUrl: string;
+    dbPath: string;
     idea: string;
     memory: string;
     artifact: string;
@@ -83,7 +83,7 @@ export function loadConfig(cliFlags: Partial<AppConfig> = {}): CloudyConfig {
     return {
         ...merged,
         dataDir,
-        dbDatabaseUrl: `file:${dataDir}/local.db`,
+        dbPath: `${dataDir}`,
         idea: `${dataDir}/idea`,
         memory: `${dataDir}/memory`,
         artifact: `${dataDir}/artifact`,

@@ -1,109 +1,120 @@
-import type { Client } from '@libsql/client';
+import { eq, like, and, or, asc, desc } from 'drizzle-orm';
+import type { PgliteDatabase } from 'drizzle-orm/pglite';
+import { ideas } from './schema';
 import type { IdeaRecord, IdeaQuery, CreateIdeaInput, UpdateIdeaInput } from './types';
 
+function toDateString(value: unknown): string {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+    return String(value);
+}
+
 export class IdeaRepository {
-    constructor(private db: Client) {}
+    constructor(private db: PgliteDatabase) {}
 
     async findAll(query?: IdeaQuery): Promise<IdeaRecord[]> {
-        const conditions: string[] = [];
-        const args: any[] = [];
+        const conditions = [];
 
         if (query?.status) {
-            conditions.push('status = ?');
-            args.push(query.status);
+            conditions.push(eq(ideas.status, query.status));
         }
 
         if (query?.priority) {
-            conditions.push('priority = ?');
-            args.push(query.priority);
+            conditions.push(eq(ideas.priority, query.priority));
         }
 
         if (query?.tags && query.tags.length > 0) {
-            conditions.push('tags && ?');
-            args.push(query.tags);
+            for (const tag of query.tags) {
+                conditions.push(eq(ideas.tags, [tag]));
+            }
         }
 
         if (query?.q) {
-            conditions.push('(title LIKE ? OR path LIKE ?)');
-            args.push(`%${query.q}%`, `%${query.q}%`);
+            conditions.push(
+                or(
+                    like(ideas.title, `%${query.q}%`),
+                    like(ideas.path, `%${query.q}%`)
+                )
+            );
         }
 
-        let sql = 'SELECT * FROM ideas';
-        if (conditions.length > 0) {
-            sql += ' WHERE ' + conditions.join(' AND ');
-        }
-
+        let orderBy = desc(ideas.updatedAt);
         if (query?.order) {
             const [field, direction] = query.order.split(':');
             if (field === 'updatedAt') {
-                sql += ` ORDER BY updated_at ${direction === 'asc' ? 'ASC' : 'DESC'}`;
+                orderBy = direction === 'asc' ? asc(ideas.updatedAt) : desc(ideas.updatedAt);
             }
-        } else {
-            sql += ' ORDER BY updated_at DESC';
         }
 
-        const result = await this.db.execute(sql, args);
-        return result.rows as unknown as IdeaRecord[];
+        const conditionsCopy = [...conditions];
+        const where = conditionsCopy.length > 0 ? and(...conditionsCopy) : undefined;
+
+        const rows = await this.db.select().from(ideas).where(where).orderBy(orderBy) as any[];
+        return rows.map((row) => ({
+            ...row,
+            createdAt: toDateString(row.createdAt),
+            updatedAt: toDateString(row.updatedAt),
+        })) as IdeaRecord[];
     }
 
     async findByPath(path: string): Promise<IdeaRecord | null> {
-        const result = await this.db.execute(
-            'SELECT * FROM ideas WHERE path = ?',
-            [path]
-        );
-
-        if (result.rows.length === 0) {
-            return null;
-        }
-
-        return result.rows[0] as unknown as IdeaRecord;
+        const rows = await this.db
+            .select()
+            .from(ideas)
+            .where(eq(ideas.path, path))
+            .limit(1) as any[];
+        if (!rows[0]) return null;
+        return {
+            ...rows[0],
+            createdAt: toDateString(rows[0].createdAt),
+            updatedAt: toDateString(rows[0].updatedAt),
+        };
     }
 
     async findById(id: string): Promise<IdeaRecord | null> {
-        const result = await this.db.execute(
-            'SELECT * FROM ideas WHERE id = ?',
-            [id]
-        );
-
-        if (result.rows.length === 0) {
-            return null;
-        }
-
-        return result.rows[0] as unknown as IdeaRecord;
+        const rows = await this.db
+            .select()
+            .from(ideas)
+            .where(eq(ideas.id, id))
+            .limit(1) as any[];
+        if (!rows[0]) return null;
+        return {
+            ...rows[0],
+            createdAt: toDateString(rows[0].createdAt),
+            updatedAt: toDateString(rows[0].updatedAt),
+        };
     }
 
     async exists(ideaPath: string): Promise<boolean> {
-        const result = await this.db.execute(
-            'SELECT 1 FROM ideas WHERE path = ?',
-            [ideaPath]
-        );
-        return result.rows.length > 0;
+        const rows = await this.db
+            .select({ count: ideas.id })
+            .from(ideas)
+            .where(eq(ideas.path, ideaPath))
+            .limit(1) as any[];
+        return rows.length > 0;
     }
 
     async touchUpdatedAt(ideaPath: string): Promise<void> {
-        await this.db.execute(
-            'UPDATE ideas SET updated_at = ? WHERE path = ?',
-            [new Date().toISOString(), ideaPath]
-        );
+        await this.db
+            .update(ideas)
+            .set({ updatedAt: new Date() })
+            .where(eq(ideas.path, ideaPath));
     }
 
     async create(input: CreateIdeaInput): Promise<IdeaRecord> {
-        const now = new Date().toISOString();
+        const now = new Date();
 
-        await this.db.execute(
-            `INSERT INTO ideas (id, title, tags, status, priority, path, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                input.id,
-                input.title || null,
-                JSON.stringify(input.tags || []),
-                input.status || 'draft',
-                input.priority || 'medium',
-                input.path,
-                now,
-                now,
-            ]
-        );
+        await this.db.insert(ideas).values({
+            id: input.id,
+            title: input.title ?? null,
+            tags: input.tags ?? [],
+            status: input.status ?? 'draft',
+            priority: input.priority ?? 'medium',
+            path: input.path,
+            createdAt: now,
+            updatedAt: now,
+        });
 
         const created = await this.findById(input.id);
         if (!created) {
@@ -118,41 +129,34 @@ export class IdeaRepository {
             throw new Error('Idea not found');
         }
 
-        const updates: string[] = [];
-        const args: any[] = [];
+        const updates: Record<string, unknown> = {};
 
         if (input.title !== undefined) {
-            updates.push('title = ?');
-            args.push(input.title);
+            updates.title = input.title;
         }
 
         if (input.tags !== undefined) {
-            updates.push('tags = ?');
-            args.push(JSON.stringify(input.tags));
+            updates.tags = input.tags;
         }
 
         if (input.status !== undefined) {
-            updates.push('status = ?');
-            args.push(input.status);
+            updates.status = input.status;
         }
 
         if (input.priority !== undefined) {
-            updates.push('priority = ?');
-            args.push(input.priority);
+            updates.priority = input.priority;
         }
 
-        if (updates.length === 0) {
+        if (Object.keys(updates).length === 0) {
             return existing;
         }
 
-        updates.push('updated_at = ?');
-        args.push(new Date().toISOString());
-        args.push(id);
+        updates.updatedAt = new Date();
 
-        await this.db.execute(
-            `UPDATE ideas SET ${updates.join(', ')} WHERE id = ?`,
-            args
-        );
+        await this.db
+            .update(ideas)
+            .set(updates)
+            .where(eq(ideas.id, id));
 
         const updated = await this.findById(id);
         if (!updated) {
@@ -170,7 +174,7 @@ export class IdeaRepository {
     }
 
     async delete(id: string): Promise<void> {
-        await this.db.execute('DELETE FROM ideas WHERE id = ?', [id]);
+        await this.db.delete(ideas).where(eq(ideas.id, id));
     }
 
     async deleteByPath(ideaPath: string): Promise<void> {

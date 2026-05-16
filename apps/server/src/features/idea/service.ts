@@ -91,8 +91,8 @@ export class Idea {
                 tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags || [],
                 status: record.status,
                 priority: record.priority,
-                createdAt: new Date(record.created_at),
-                updatedAt: new Date(record.updated_at),
+                createdAt: new Date(record.createdAt),
+                updatedAt: new Date(record.updatedAt),
             },
         };
     }
@@ -132,8 +132,8 @@ export class Idea {
                         tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags || [],
                         status: record.status,
                         priority: record.priority,
-                        createdAt: new Date(record.created_at),
-                        updatedAt: new Date(record.updated_at),
+                        createdAt: new Date(record.createdAt),
+                        updatedAt: new Date(record.updatedAt),
                     },
                 });
             } catch (err) {

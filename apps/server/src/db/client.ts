@@ -1,32 +1,37 @@
-import { createClient, type Client } from '@libsql/client';
+import { PGlite } from '@electric-sql/pglite';
+import { drizzle } from 'drizzle-orm/pglite';
 import { mkdirSync } from 'fs';
-import { dirname } from 'path';
 import type { CloudyConfig } from '../config';
 
 export class DbClient {
-    private db: Client | null = null;
+    private db: PGlite | null = null;
+    private drizzle: ReturnType<typeof drizzle> | null = null;
 
-    constructor(private config: CloudyConfig) {}
+    constructor(private config: CloudyConfig) { }
 
     private ensureDataDir() {
-        const dbPath = this.config.dbDatabaseUrl.replace('file:', '');
-        mkdirSync(dirname(dbPath), { recursive: true });
+        mkdirSync(this.config.dbPath, { recursive: true });
     }
 
-    getClient(): Client {
-        if (!this.db) {
-            this.ensureDataDir();
-            this.db = createClient({
-                url: this.config.dbDatabaseUrl,
-            });
-        }
-        return this.db;
+    async init(): Promise<void> {
+        this.ensureDataDir();
+        console.log("db path");
+        console.log(this.config.dbPath);
+        this.db = new PGlite({ dataDir: this.config.dbPath });
+        await this.db.waitReady;
+        this.drizzle = drizzle(this.db);
     }
 
-    async close() {
-        if (this.db) {
-            await this.db.close();
-            this.db = null;
+    getDb() {
+        if (!this.drizzle) {
+            throw new Error('DbClient not initialized. Call init() first.');
         }
+        return this.drizzle;
+    }
+
+    async close(): Promise<void> {
+        await this.db?.close();
+        this.db = null;
+        this.drizzle = null;
     }
 }

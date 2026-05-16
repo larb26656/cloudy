@@ -39,9 +39,9 @@ const getEndpoint = (server: {
     endpoint: string;
   };
 }) => {
-  const { mode, local, remote } = server; // ใช้ get() ดึง state ล่าสุด
+  const { mode, local, remote } = server;
   if (mode === "local") {
-    return `http://${local.host}:${local.port}`; // ปรับไส้ในตามโครงสร้างโลคอลของคุณ
+    return `http://${local.host}:${local.port}`;
   }
   return remote.endpoint;
 };

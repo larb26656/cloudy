@@ -15,12 +15,13 @@ export let ideaRepository: IdeaRepository;
 export let ideaFileService: IdeaFile;
 export let ideaService: Idea;
 
-export function initContainer(config: CloudyConfig) {
+export async function initContainer(config: CloudyConfig) {
     dbClient = new DbClient(config);
+    await dbClient.init();
     artifactService = new Artifact(config);
     memoryService = new Memory(config);
     proxyService = new Proxy();
-    ideaRepository = new IdeaRepository(dbClient.getClient());
+    ideaRepository = new IdeaRepository(dbClient.getDb() as any);
     ideaFileService = new IdeaFile(ideaRepository, config);
     ideaService = new Idea(ideaRepository, ideaFileService);
 }
