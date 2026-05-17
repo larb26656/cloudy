@@ -1,25 +1,34 @@
 import { defineConfig, defineProject } from 'vitest/config'
+import path from 'path'
 
 export default defineConfig({
   test: {
     projects: [
       defineProject({
         test: {
-          exclude: ['**/*.integration.test.ts'],
+          exclude: ['**/*.integration.test.ts', 'node_modules/**'],
           name: 'unit',
           setupFiles: ['./test/setup.ts'],
-        }
+        },
+        resolve: {
+          alias: {
+            '@server': path.resolve(__dirname, './src'),
+          },
+        },
       }),
       defineProject({
-
         test: {
           name: 'integration',
-          include: ['**/*.integration.test.ts'],
+          include: ['src/**/*.integration.test.ts'],
           setupFiles: ['./test/setup.ts'],
-        }
+        },
+        resolve: {
+          alias: {
+            '@server': path.resolve(__dirname, './src'),
+          },
+        },
       }),
     ],
-    include: ['src/**/*.test.ts'],
     globals: true,
     environment: 'node',
   },

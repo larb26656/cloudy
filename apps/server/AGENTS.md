@@ -1,6 +1,7 @@
 # @cloudy/server
 
 ## Framework
+
 - **Hono** — lightweight TypeScript web framework
 - `@hono/node-server` — Node.js adapter
 - `hono-openapi` + `@scalar/hono-api-reference` — OpenAPI/Swagger UI
@@ -22,22 +23,25 @@ apps/server/
 │   │   ├── {feature}/     # e.g., memory, idea, artifact
 │   │   └── index.ts       # Re-exports all features
 │   └── lib/               # Utilities
+├── test/
+│   └── fixtures/          # Test fixtures (e.g., memory-db.ts)
 ├── drizzle/               # SQL migrations
 └── package.json
 ```
 
 ## Feature Structure
 
-แต่ละ feature มีโครงสร้างแบบ layered architecture:
+Each feature has a layered architecture structure:
 
 ```
 features/{feature}/
-├── schema.ts      # Drizzle ORM table definition
-├── model.ts       # Zod schemas (request/response validation)
-├── repository.ts  # Data access layer (DB operations)
-├── service.ts     # Business logic layer
-├── service.test.ts # Unit tests (co-located)
-└── index.ts       # Hono route handlers
+├── schema.ts                    # Drizzle ORM table definition
+├── model.ts                    # Zod schemas + Type exports
+├── repository.ts               # Data access layer (DB operations)
+├── service.ts                  # Business logic layer
+├── service.test.ts             # Unit tests (co-located)
+├── {feature}.integration.test.ts # Integration tests (co-located)
+└── index.ts                    # Hono route handlers (factory function)
 ```
 
 ### Layer Pattern
@@ -45,7 +49,7 @@ features/{feature}/
 ```
 Routes (index.ts)
     ↓ validates with Zod
-Service (service.ts) — business logic, throws 404 if not found
+Service (service.ts) — business logic, throws HTTPException 404 if not found
     ↓
 Repository (repository.ts) — DB operations, returns DTOs
     ↓
@@ -55,14 +59,20 @@ Schema (schema.ts) — Drizzle table definition
 ## Feature File Patterns
 
 ### `schema.ts`
-```typescript
-import { text, timestamp, pgTable } from 'drizzle-orm/pg-core';
 
-export const tableName = pgTable('table_name', {
-    id: text('id').primaryKey(),
-    field: text('field').notNull(),
-    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+```typescript
+import { text, timestamp, pgTable } from "drizzle-orm/pg-core";
+
+export const tableName = pgTable("table_name", {
+  id: text("id").primaryKey(),
+  field: text("field").notNull(),
+  tags: text("tags").array().default([]).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .defaultNow()
+    .notNull(),
 });
 
 export type Record = typeof tableName.$inferSelect;
@@ -70,80 +80,108 @@ export type NewRecord = typeof tableName.$inferInsert;
 ```
 
 ### `model.ts`
+
 ```typescript
-import { z } from 'zod';
+import { z } from "zod";
 
 export const FeatureModel = {
-    dto: z.object({
-        id: z.string(),
-        field: z.string(),
-        createdAt: z.string(),
-        updatedAt: z.string(),
-    }),
-    createSchema: z.object({
-        id: z.string(),
-        field: z.string(),
-    }),
-    updateSchema: z.object({
-        field: z.string().optional(),
-    }),
-    querySchema: z.object({
-        q: z.string().optional(),
-    }),
+  dto: z.object({
+    id: z.string(),
+    field: z.string(),
+    tags: z.array(z.string()),
+    createdAt: z.string(),
+    updatedAt: z.string(),
+  }),
+  querySchema: z.object({
+    q: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+    order: z.string().optional(),
+  }),
+  createSchema: z.object({
+    id: z.string(),
+    field: z.string(),
+    tags: z.array(z.string()).optional(),
+  }),
+  updateSchema: z.object({
+    field: z.string().optional(),
+    tags: z.array(z.string()).optional(),
+  }),
 };
+
+export type CreateFeatureInput = z.input<typeof FeatureModel.createSchema>;
+export type UpdateFeatureInput = z.input<typeof FeatureModel.updateSchema>;
+export type FeatureDto = z.infer<typeof FeatureModel.dto>;
+export type FeatureQuery = z.input<typeof FeatureModel.querySchema>;
 ```
 
 ### `repository.ts`
-```typescript
-import { eq } from 'drizzle-orm';
-import type { PgliteDatabase } from 'drizzle-orm/pglite';
 
-export interface RecordDTO { ... }
-export interface CreateInput { ... }
-export interface Query { ... }
+```typescript
+import { eq, like, and, or, asc, desc, arrayContains } from 'drizzle-orm';
+import { tableName } from './schema';
+import { AppDatabase } from '@server/db/client';
+import type { CreateFeatureInput, FeatureQuery, FeatureDto, UpdateFeatureInput } from './model';
+
+function toDateString(value: unknown): string {
+    if (value instanceof Date) {
+        return value.toISOString();
+    }
+    return String(value);
+}
 
 export class FeatureRepository {
-    constructor(private db: PgliteDatabase) {}
+    constructor(private db: AppDatabase) { }
 
-    async findAll(query?: Query): Promise<RecordDTO[]> { ... }
-    async findById(id: string): Promise<RecordDTO | null> { ... }
-    async create(input: CreateInput): Promise<RecordDTO> { ... }
-    async update(id: string, input: UpdateInput): Promise<RecordDTO> { ... }
+    async findAll(query?: FeatureQuery): Promise<FeatureDto[]> { ... }
+    async findById(id: string): Promise<FeatureDto | null> { ... }
+    async create(input: CreateFeatureInput): Promise<FeatureDto> { ... }
+    async update(id: string, input: UpdateFeatureInput): Promise<FeatureDto> { ... }
     async delete(id: string): Promise<void> { ... }
 }
 ```
 
 ### `service.ts`
-```typescript
-export class FeatureService {
-    constructor(private repository: FeatureRepository) {}
 
-    async list(query?: Query): Promise<RecordDTO[]> {
+```typescript
+import { HTTPException } from 'hono/http-exception';
+import type { FeatureDto } from './model';
+import type { FeatureQuery, CreateFeatureInput, UpdateFeatureInput } from './model';
+import { FeatureRepository } from './repository';
+
+export class FeatureService {
+    constructor(private repository: FeatureRepository) { }
+
+    async listFeatures(query?: FeatureQuery): Promise<FeatureDto[]> {
         return this.repository.findAll(query);
     }
 
-    async get(id: string): Promise<RecordDTO> {
+    async getFeature(id: string): Promise<FeatureDto> {
         const record = await this.repository.findById(id);
-        if (!record) throw new Response('Not found', { status: 404 });
+        if (!record) {
+            throw new HTTPException(404, { message: `Feature with ID ${id} not found` });
+        }
         return record;
     }
 
-    async create(input: CreateInput): Promise<RecordDTO> { ... }
-    async update(id: string, input: UpdateInput): Promise<RecordDTO> { ... }
-    async delete(id: string): Promise<void> { ... }
+    async createFeature(input: CreateFeatureInput): Promise<FeatureDto> { ... }
+    async updateFeature(id: string, input: UpdateFeatureInput): Promise<FeatureDto> { ... }
+    async deleteFeature(id: string): Promise<void> { ... }
 }
 ```
 
 ### `service.test.ts`
+
 ```typescript
-import { mock } from 'vitest-mock-extended';
+import { mock, MockProxy } from 'vitest-mock-extended';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { FeatureService } from './service';
-import type { FeatureRepository } from './repository';
+import { HTTPException } from 'hono/http-exception';
+import { FeatureRepository } from './repository';
+import { FeatureDto } from './model';
 
 describe('FeatureService', () => {
     let service: FeatureService;
-    let mockRepository: FeatureRepository;
+    let mockRepository: MockProxy<FeatureRepository>;
 
     beforeEach(() => {
         mockRepository = mock<FeatureRepository>();
@@ -152,67 +190,124 @@ describe('FeatureService', () => {
 
     it('should return records', async () => {
         mockRepository.findAll.mockResolvedValue([...]);
-        const result = await service.list();
+        const result = await service.listFeatures();
         expect(result).toHaveLength(1);
     });
 });
 ```
 
-### `index.ts` (Routes)
+### `index.ts` (Routes Factory)
+
 ```typescript
 import { Hono } from 'hono';
 import { describeRoute, resolver, validator } from 'hono-openapi';
 import { FeatureModel } from './model';
-import { featureService } from '../../container';
+import { FeatureService } from './service';
 
-export const feature = new Hono()
-    .get('/', describeRoute({ ... }), validator('query', FeatureModel.querySchema), async (c) => {
-        return c.json(await featureService.list(c.req.valid('query')));
-    })
-    .get('/:id', describeRoute({ ... }), async (c) => {
-        return c.json(await featureService.get(c.req.param('id')));
-    })
-    .post('/', describeRoute({ ... }), validator('json', FeatureModel.createSchema), async (c) => {
-        return c.json(await featureService.create(c.req.valid('json')), 201);
-    })
-    .put('/:id', describeRoute({ ... }), validator('json', FeatureModel.updateSchema), async (c) => {
-        return c.json(await featureService.update(c.req.param('id'), c.req.valid('json')));
-    })
-    .delete('/:id', describeRoute({ ... }), async (c) => {
-        await featureService.delete(c.req.param('id'));
-        return c.body(null, 204);
-    });
+export function createFeatureApp({ featureService }: { featureService: FeatureService }) {
+    return new Hono()
+        .get('/',
+            describeRoute({ ... }),
+            validator('query', FeatureModel.querySchema),
+            async (c) => {
+                const query = c.req.valid('query');
+                return c.json(await featureService.listFeatures(query));
+            })
+        .get('/:id',
+            describeRoute({ ... }),
+            async (c) => {
+                const { id } = c.req.param();
+                return c.json(await featureService.getFeature(id));
+            })
+        .post('/',
+            describeRoute({ ... }),
+            validator('json', FeatureModel.createSchema),
+            async (c) => {
+                const input = c.req.valid('json');
+                return c.json(await featureService.createFeature(input), 201);
+            })
+        .put('/:id',
+            describeRoute({ ... }),
+            validator('json', FeatureModel.updateSchema),
+            async (c) => {
+                const { id } = c.req.param();
+                const input = c.req.valid('json');
+                return c.json(await featureService.updateFeature(id, input));
+            })
+        .delete('/:id',
+            describeRoute({ ... }),
+            async (c) => {
+                const { id } = c.req.param();
+                await featureService.deleteFeature(id);
+                return c.body(null, 204);
+            });
+}
+```
+
+### `{feature}.integration.test.ts`
+
+```typescript
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import {
+  setupFeatureApp,
+  teardownFeatureApp,
+  clearFeatures,
+  getFeatureApp,
+  createFeature,
+} from "../../../test/fixtures/feature-db";
+
+describe("Feature API", () => {
+  beforeAll(async () => {
+    await setupFeatureApp();
+  });
+  afterAll(async () => {
+    await teardownFeatureApp();
+  });
+  beforeEach(async () => {
+    await clearFeatures();
+  });
+
+  it("should return empty array when no features exist", async () => {
+    const app = getFeatureApp();
+    const res = await app.request("/");
+    expect(res.status).toBe(200);
+  });
+});
 ```
 
 ## Testing
 
-- **Framework**: Vitest + `vitest-mock-extended`
-- **Pattern**: Arrange/Act/Assert
-- **Location**: `*.test.ts` co-located with source
-- **Run**: `pnpm test` (inside apps/server)
+| Type        | Framework              | Location                           | Run command                      |
+| ----------- | ---------------------- | ---------------------------------- | -------------------------------- |
+| Unit        | Vitest + mock-extended | `*.test.ts` co-located             | `pnpm test` (inside apps/server) |
+| Integration | Vitest (supertest)     | `*.integration.test.ts` co-located | `pnpm test`                      |
 
-### Test Pattern
+### Test Fixtures Pattern
+
 ```typescript
-describe('ServiceName', () => {
-    let service: ServiceClass;
-    let mockRepository: RepositoryInterface;
+// test/fixtures/{feature}-db.ts
+import { ... } from 'vitest';
+import { createFeatureApp } from '../../features/{feature}';
+import { FeatureService } from '../../features/{feature}/service';
 
-    beforeEach(() => {
-        mockRepository = mock<RepositoryInterface>();
-        service = new ServiceClass(mockRepository);
-    });
+let db: AppDatabase;
+let featureService: FeatureService;
 
-    it('should do something', async () => {
-        // Arrange: mockRepository.method.mockResolvedValue(...)
-        // Act: const result = await service.method(...)
-        // Assert: expect(result).toEqual(...)
-    });
-});
+export async function setupFeatureApp() { ... }
+export async function teardownFeatureApp() { ... }
+export async function clearFeatures() { ... }
+export function getFeatureApp() { ... }
+export async function createFeature(input: CreateFeatureInput) { ... }
 ```
 
 ## Adding a New Feature
 
-1. สร้าง `src/features/{feature}/` directory
-2. สร้างไฟล์ตาม pattern: `schema.ts` → `model.ts` → `repository.ts` → `service.ts` → `service.test.ts` → `index.ts`
-3. Register service in `container.ts`
-4. Mount routes in `server.ts`: `app.route('/api/{feature}', featureRoutes)`
+1. Create `src/features/{feature}/` directory
+2. Create files following the pattern: `schema.ts` → `model.ts` → `repository.ts` → `service.ts` → `service.test.ts` → `index.ts`
+3. Create test fixtures in `test/fixtures/{feature}-db.ts`
+4. Register service in `container.ts`
+5. Mount routes in `server.ts`: `app.route('/api/{feature}', createFeatureApp({ featureService }))`
+
+## Utils
+
+Use utils function in `src/utils` frist when the logic already exist instead inline function

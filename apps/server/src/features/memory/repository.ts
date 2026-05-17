@@ -2,13 +2,8 @@ import { eq, like, and, or, asc, desc, arrayContains } from 'drizzle-orm';
 import { memories } from './schema';
 import { AppDatabase } from '@server/db/client';
 import type { CreateMemoryInput, MemoryQuery, MemoryDto, UpdateMemoryInput } from './model';
+import { toDateString } from '@server/utils';
 
-function toDateString(value: unknown): string {
-    if (value instanceof Date) {
-        return value.toISOString();
-    }
-    return String(value);
-}
 
 export class MemoryRepository {
     constructor(private db: AppDatabase) { }
