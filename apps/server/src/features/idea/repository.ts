@@ -13,6 +13,20 @@ function toDateString(value: unknown): string {
 export class IdeaRepository {
     constructor(private db: PgliteDatabase) {}
 
+    private async findOne(where: ReturnType<typeof eq>): Promise<IdeaRecord | null> {
+        const rows = await this.db
+            .select()
+            .from(ideas)
+            .where(where)
+            .limit(1) as any[];
+        if (!rows[0]) return null;
+        return {
+            ...rows[0],
+            createdAt: toDateString(rows[0].createdAt),
+            updatedAt: toDateString(rows[0].updatedAt),
+        };
+    }
+
     async findAll(query?: IdeaQuery): Promise<IdeaRecord[]> {
         const conditions = [];
 
@@ -59,31 +73,11 @@ export class IdeaRepository {
     }
 
     async findByPath(path: string): Promise<IdeaRecord | null> {
-        const rows = await this.db
-            .select()
-            .from(ideas)
-            .where(eq(ideas.path, path))
-            .limit(1) as any[];
-        if (!rows[0]) return null;
-        return {
-            ...rows[0],
-            createdAt: toDateString(rows[0].createdAt),
-            updatedAt: toDateString(rows[0].updatedAt),
-        };
+        return this.findOne(eq(ideas.path, path));
     }
 
     async findById(id: string): Promise<IdeaRecord | null> {
-        const rows = await this.db
-            .select()
-            .from(ideas)
-            .where(eq(ideas.id, id))
-            .limit(1) as any[];
-        if (!rows[0]) return null;
-        return {
-            ...rows[0],
-            createdAt: toDateString(rows[0].createdAt),
-            updatedAt: toDateString(rows[0].updatedAt),
-        };
+        return this.findOne(eq(ideas.id, id));
     }
 
     async exists(ideaPath: string): Promise<boolean> {

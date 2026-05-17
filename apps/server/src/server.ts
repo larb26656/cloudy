@@ -9,9 +9,10 @@ import { Scalar } from '@scalar/hono-api-reference'
 
 import { serve as serveFeature } from './features/serve'
 import { idea } from './features/idea'
-import { memory } from './features/memory'
+import { createMemoryApp } from './features/memory'
 import { artifact } from './features/artifact'
 import { proxy } from './features/proxy'
+import { memoryService } from './container'
 
 const getDirname = () => {
   try {
@@ -64,7 +65,7 @@ export function createApp({ corsOrigins = [], enableUI = false }: {
 
     app.route('/oc', proxy)
     app.route('/api/idea', idea)
-    app.route('/api/memory', memory)
+    app.route('/api/memory', createMemoryApp({ memoryService }))
     app.route('/api/artifact', artifact)
     app.route('/api/serve', serveFeature)
 

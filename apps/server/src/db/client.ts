@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/pglite';
 import { mkdirSync } from 'fs';
 import type { CloudyConfig } from '../config';
 
+export type AppDatabase = ReturnType<DbClient['getDb']>;
 export class DbClient {
     private db: PGlite | null = null;
     private drizzle: ReturnType<typeof drizzle> | null = null;
