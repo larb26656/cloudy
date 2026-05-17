@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { Context } from 'hono'
 import { proxy as proxyFetch } from 'hono/proxy'
+import { describeRoute } from 'hono-openapi'
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -47,11 +48,41 @@ const proxyHandler = async (c: Context) => {
 }
 
 export const proxy = new Hono()
-    .get('/*', proxyHandler)
-    .post('/*', proxyHandler)
-    .put('/*', proxyHandler)
-    .patch('/*', proxyHandler)
-    .delete('/*', proxyHandler)
+    .get('/*',
+        describeRoute({
+            description: 'Proxy GET requests to OpenCode API',
+            tags: ['Proxy'],
+            responses: { 200: { description: 'Proxied response' } },
+        }),
+        proxyHandler)
+    .post('/*',
+        describeRoute({
+            description: 'Proxy POST requests to OpenCode API',
+            tags: ['Proxy'],
+            responses: { 200: { description: 'Proxied response' } },
+        }),
+        proxyHandler)
+    .put('/*',
+        describeRoute({
+            description: 'Proxy PUT requests to OpenCode API',
+            tags: ['Proxy'],
+            responses: { 200: { description: 'Proxied response' } },
+        }),
+        proxyHandler)
+    .patch('/*',
+        describeRoute({
+            description: 'Proxy PATCH requests to OpenCode API',
+            tags: ['Proxy'],
+            responses: { 200: { description: 'Proxied response' } },
+        }),
+        proxyHandler)
+    .delete('/*',
+        describeRoute({
+            description: 'Proxy DELETE requests to OpenCode API',
+            tags: ['Proxy'],
+            responses: { 200: { description: 'Proxied response' } },
+        }),
+        proxyHandler)
     .options('/*', (c) => {
         const headers = Object.fromEntries(Object.entries(CORS_HEADERS))
         return c.body(null, 204, headers)

@@ -15,8 +15,6 @@ export class DbClient {
 
     async init(): Promise<void> {
         this.ensureDataDir();
-        console.log("db path");
-        console.log(this.config.dbPath);
         this.db = new PGlite({ dataDir: this.config.dbPath });
         await this.db.waitReady;
         this.drizzle = drizzle(this.db);

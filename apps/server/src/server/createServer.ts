@@ -28,7 +28,7 @@ export function createServer(options: ServerOptions) {
       cors: options.corsOrigins?.join(','),
     });
 
-    await runMigrations(options.dataDir!);
+    await runMigrations(options.dataDir!, options.dbMigrationsDir);
 
     await initContainer(config);
 

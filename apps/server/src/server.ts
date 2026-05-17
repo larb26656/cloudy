@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'node:path'
+import { openAPIRouteHandler } from 'hono-openapi'
 import { Scalar } from '@scalar/hono-api-reference'
 
 import { serve as serveFeature } from './features/serve'
@@ -11,7 +12,6 @@ import { idea } from './features/idea'
 import { memory } from './features/memory'
 import { artifact } from './features/artifact'
 import { proxy } from './features/proxy'
-import { openapi } from './openapi'
 
 const getDirname = () => {
   try {
@@ -47,11 +47,19 @@ export function createApp({ corsOrigins = [], enableUI = false }: {
 
     app.get('/api/health', (c) => c.json({ status: 'ok' }))
 
-    app.get('/openapi.json', (c) => c.json(openapi))
+    app.get('/openapi', openAPIRouteHandler(app, {
+        documentation: {
+            info: {
+                title: 'Cloudy API',
+                version: '1.0.0',
+            },
+        },
+    }))
+
     app.use('/docs', Scalar({
-      spec: {
-        content: openapi,
-      },
+        spec: {
+            url: '/openapi',
+        },
     }))
 
     app.route('/oc', proxy)
