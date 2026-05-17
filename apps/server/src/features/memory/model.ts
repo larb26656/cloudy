@@ -1,4 +1,4 @@
-import { z } from 'zod'
+import { z } from 'zod';
 
 export const MemoryModel = {
     memoryDto: z.object({
@@ -25,6 +25,9 @@ export const MemoryModel = {
         content: z.string().optional(),
         tags: z.array(z.string()).optional(),
     }),
-}
+};
 
-export type MemoryModel = z.infer<typeof MemoryModel> & Record<string, unknown>
+export type CreateMemoryInput = z.input<typeof MemoryModel.createSchema>;
+export type UpdateMemoryInput = z.input<typeof MemoryModel.updateSchema>;
+export type MemoryDto = z.infer<typeof MemoryModel.memoryDto>;
+export type MemoryQuery = z.input<typeof MemoryModel.querySchema>;

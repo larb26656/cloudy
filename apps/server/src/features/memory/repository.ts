@@ -1,6 +1,7 @@
 import { eq, like, and, or, asc, desc, arrayContains } from 'drizzle-orm';
 import { memories } from './schema';
 import { AppDatabase } from '@server/db/client';
+import type { CreateMemoryInput, MemoryQuery, MemoryDto, UpdateMemoryInput } from './model';
 
 function toDateString(value: unknown): string {
     if (value instanceof Date) {
@@ -9,38 +10,10 @@ function toDateString(value: unknown): string {
     return String(value);
 }
 
-export interface MemoryQuery {
-    q?: string;
-    tags?: string[];
-    order?: string;
-}
-
-export interface CreateMemoryInput {
-    id: string;
-    title?: string;
-    content: string;
-    tags?: string[];
-}
-
-export interface UpdateMemoryInput {
-    title?: string;
-    content?: string;
-    tags?: string[];
-}
-
-export interface MemoryRecordDTO {
-    id: string;
-    title: string | null;
-    content: string;
-    tags: string[];
-    createdAt: string;
-    updatedAt: string;
-}
-
 export class MemoryRepository {
     constructor(private db: AppDatabase) { }
 
-    async findAll(query?: MemoryQuery): Promise<MemoryRecordDTO[]> {
+    async findAll(query?: MemoryQuery): Promise<MemoryDto[]> {
         const conditions = [];
 
         if (query?.tags && query.tags.length > 0) {
@@ -82,7 +55,7 @@ export class MemoryRepository {
         }));
     }
 
-    async findById(id: string): Promise<MemoryRecordDTO | null> {
+    async findById(id: string): Promise<MemoryDto | null> {
         const rows = await this.db
             .select()
             .from(memories)
@@ -103,7 +76,7 @@ export class MemoryRepository {
         };
     }
 
-    async create(input: CreateMemoryInput): Promise<MemoryRecordDTO> {
+    async create(input: CreateMemoryInput): Promise<MemoryDto> {
         const now = new Date();
 
         await this.db.insert(memories).values({
@@ -122,7 +95,7 @@ export class MemoryRepository {
         return created;
     }
 
-    async update(id: string, input: UpdateMemoryInput): Promise<MemoryRecordDTO> {
+    async update(id: string, input: UpdateMemoryInput): Promise<MemoryDto> {
         const existing = await this.findById(id);
         if (!existing) {
             throw new Error('Memory not found');

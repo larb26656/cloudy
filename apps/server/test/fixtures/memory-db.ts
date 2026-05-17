@@ -3,6 +3,7 @@ import { MemoryService } from '../../src/features/memory/service'
 import { createMemoryApp } from '../../src/features/memory'
 import { memories } from '../../src/features/memory/schema'
 import { createTestDb, type TestDb } from '../helpers/test-db'
+import { CreateMemoryInput } from '@server/features/memory/model'
 
 let app: ReturnType<typeof createMemoryApp>
 let db: TestDb
@@ -28,6 +29,6 @@ export function getMemoryApp() {
     return app
 }
 
-export async function createMemory(input: { id: string; title?: string; content: string; tags?: string[] }) {
+export async function createMemory(input: CreateMemoryInput) {
     return memoryService.createMemory(input)
 }

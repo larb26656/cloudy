@@ -1,8 +1,9 @@
 import { mock, MockProxy } from 'vitest-mock-extended';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { MemoryService } from './service';
-import type { MemoryRepository, MemoryRecordDTO } from './repository';
 import { HTTPException } from 'hono/http-exception';
+import { MemoryRepository } from './repository';
+import { MemoryDto } from './model';
 
 describe('MemoryService', () => {
   let service: MemoryService;
@@ -16,7 +17,7 @@ describe('MemoryService', () => {
   describe('listMemories', () => {
     it('should return all memories', async () => {
       // Arrange
-      const mockMemories: MemoryRecordDTO[] = [
+      const mockMemories: MemoryDto[] = [
         {
           id: '1',
           title: 'Test Memory',
@@ -52,7 +53,7 @@ describe('MemoryService', () => {
   describe('getMemory', () => {
     it('should return memory when found', async () => {
       // Arrange
-      const mockMemory: MemoryRecordDTO = {
+      const mockMemory: MemoryDto = {
         id: '1',
         title: 'Test Memory',
         content: 'Test content',
@@ -84,7 +85,7 @@ describe('MemoryService', () => {
     it('should create and return memory', async () => {
       // Arrange
       const input = { id: '1', title: 'New Memory', content: 'New content', tags: ['new'] };
-      const mockMemory: MemoryRecordDTO = {
+      const mockMemory: MemoryDto = {
         id: '1',
         title: 'New Memory',
         content: 'New content',
@@ -107,7 +108,7 @@ describe('MemoryService', () => {
     it('should update and return memory', async () => {
       // Arrange
       const input = { title: 'Updated Title' };
-      const mockMemory: MemoryRecordDTO = {
+      const mockMemory: MemoryDto = {
         id: '1',
         title: 'Updated Title',
         content: 'content',
@@ -139,7 +140,7 @@ describe('MemoryService', () => {
   describe('deleteMemory', () => {
     it('should call repository delete', async () => {
       // Arrange
-      const mockMemory: MemoryRecordDTO = {
+      const mockMemory: MemoryDto = {
         id: '1',
         title: 'Test Memory',
         content: 'content',
