@@ -8,7 +8,7 @@ const ConfigurableSchema = z.object({
     dataDir: z.string().default('~/.config/cloudy/data'),
     ui: z.union([z.boolean(), z.string()]).transform((val) => val === true || val === "true").default(false),
     host: z.string().default('localhost'),
-    port: z.string().default('3000').transform(Number),
+    port: z.string().default('4122').transform(Number),
     cors: z.string().default('').transform((val) => val ? val.split(",").map((o) => o.trim()) : []),
 });
 
@@ -67,7 +67,7 @@ export function loadConfig(cliFlags: Partial<AppConfig> = {}): CloudyConfig {
     const configDir = resolveConfigDir(cliFlags.configDir as string | undefined);
     const { configPath } = createInitConfig(configDir, {
         host: 'localhost',
-        port: '3000',
+        port: '4122',
     });
 
     const fileConfig = ConfigurableSchema.partial().parse(JSON.parse(readFileSync(configPath, 'utf8')));

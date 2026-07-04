@@ -289,7 +289,7 @@ export function Onboarding({ onComplete }: OnboardingProps) {
   const instanceForm = useForm<InstanceFormData>({
     resolver: zodResolver(instanceSchema),
     defaultValues: {
-      name: "",
+      name: "My workspace",
       endpoint: "http://localhost:4096",
     },
   });
@@ -342,7 +342,8 @@ export function Onboarding({ onComplete }: OnboardingProps) {
         );
 
         setStep("all-set");
-      } catch {
+      } catch (e) {
+        console.error(e);
         workspaceForm.setError("root", {
           message: "Failed to create workspace",
         });

@@ -1,5 +1,6 @@
 import { Clipboard, type LucideIcon } from "lucide-react";
 import { useContextStore } from "@/stores/contextStore";
+import { generateId } from "@/lib/id";
 import type { ContextItem } from "@/types/context";
 
 export type ContextProviderHandler = () => Promise<void>;
@@ -21,7 +22,7 @@ export const contextProviders: ContextProvider[] = [
       if (!text) return;
 
       const item: ContextItem = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         type: "clipboard",
         data: {
           // TODO replace with utils lib

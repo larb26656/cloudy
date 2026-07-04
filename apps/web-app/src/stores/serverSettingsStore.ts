@@ -23,7 +23,7 @@ type ServerSettingsStore = ServerSettings & {
 
 const defaultLocalConfig = {
   host: "localhost",
-  port: 3000,
+  port: 4122,
 };
 
 export const useServerSettingsStore = create<ServerSettingsStore>()(

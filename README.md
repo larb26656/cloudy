@@ -14,7 +14,7 @@ pnpm install
 pnpm run dev
 ```
 
-- API server: http://localhost:3000
+- API server: http://localhost:4122
 - Web app: http://localhost:3001
 
 ## Build & Install CLI Locally
@@ -37,7 +37,7 @@ After that, `cloudy` is available from anywhere:
 cloudy serve --ui
 ```
 
-This starts the server (API + bundled web UI) at http://localhost:3000. Data is stored at `~/.config/cloudy/data/` by default.
+This starts the server (API + bundled web UI) at http://localhost:4122. Data is stored at `~/.config/cloudy/data/` by default.
 
 ### Uninstall
 
@@ -54,7 +54,7 @@ Options:
   --ui              Serve the bundled web UI
   --ui-dir <path>   Override UI assets directory (default: ./public next to CLI)
   -h, --host <addr> Host to bind (default: localhost)
-  -p, --port <num>  Port number (default: 3000)
+  -p, --port <num>  Port number (default: 4122)
   --cors <origins>  Allowed CORS origins, comma-separated
   --config <path>   Config directory (default: ~/.config/cloudy)
   --dataDir <path>  Data directory (default: ~/.config/cloudy/data)

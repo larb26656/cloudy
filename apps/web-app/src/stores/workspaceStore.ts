@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { generateId } from "@/lib/id";
 
 export const WORKSPACE_COLORS = [
   "#3B82F6",
@@ -32,8 +33,6 @@ export interface WorkspaceStore {
   setCurrentWorkspace: (id: string) => void;
   getCurrentWorkspace: () => Workspace | undefined;
 }
-
-const generateId = () => crypto.randomUUID();
 
 export const useWorkspaceStore = create<WorkspaceStore>()(
   persist(

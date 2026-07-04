@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { parseFrontMatter, stringifyFrontMatter } from '@/lib/front-matter';
+import { generateId } from '@/lib/id';
 import type { Memory } from '@/types/memory';
 
 function memoryFromMarkdown(name: string, markdown: string, id?: string): Memory {
@@ -7,7 +8,7 @@ function memoryFromMarkdown(name: string, markdown: string, id?: string): Memory
   const now = new Date().toISOString();
 
   return {
-    id: id || crypto.randomUUID(),
+    id: id || generateId(),
     name,
     markdown,
     content: parsed.content.trim(),
@@ -141,7 +142,7 @@ export const useMemoryStore = create<MemoryStore>()(
       const newMemory: Memory = {
         ...memoryData,
         meta,
-        id: crypto.randomUUID(),
+        id: generateId(),
       };
 
       newMemory.markdown = stringifyFrontMatter(meta, memoryData.content);

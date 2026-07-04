@@ -5,6 +5,7 @@ import { useMemoryUIStore } from "@/features/memory/store/memoryStore";
 import { Header } from "@/components/layout";
 import { apiResponseToMemory } from "@/features/memory/api";
 import { stringifyFrontMatter } from "@/lib/front-matter";
+import { generateId } from "@/lib/id";
 import { cloudyClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
@@ -74,7 +75,7 @@ export default function MemoryPage() {
       );
 
       const newMemory: Memory = {
-        id: crypto.randomUUID(),
+        id: generateId(),
         name: memoryData.name,
         description: memoryData.description || "",
         markdown,

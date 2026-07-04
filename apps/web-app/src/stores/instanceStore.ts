@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
+import { generateId } from "@/lib/id";
 
 export type Instance = {
   id: string;
@@ -15,8 +16,6 @@ type InstanceStore = {
   updateInstance: (id: string, updates: Partial<Omit<Instance, "id" | "createdAt">>) => void;
   getInstance: (id: string) => Instance | undefined;
 };
-
-const generateId = () => crypto.randomUUID();
 
 export const useInstanceStore = create<InstanceStore>()(
   persist(

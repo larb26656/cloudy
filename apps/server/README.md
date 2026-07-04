@@ -35,7 +35,7 @@ Options:
   --ui              Serve the bundled web UI
   --ui-dir <path>   Override UI assets directory
   -h, --host <addr> Host to bind (default: localhost)
-  -p, --port <num>  Port number (default: 3000)
+  -p, --port <num>  Port number (default: 4122)
   --cors <origins>  Allowed CORS origins, comma-separated
   --config <path>   Config directory (default: ~/.config/cloudy)
   --dataDir <path>  Data directory (default: ~/.config/cloudy/data)

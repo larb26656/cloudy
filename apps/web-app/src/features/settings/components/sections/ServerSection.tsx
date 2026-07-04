@@ -204,7 +204,7 @@ export function ServerSection() {
                         port: parseInt(e.target.value) || 0,
                       })
                     }
-                    placeholder="3000"
+                    placeholder="4122"
                   />
                 </div>
               </div>
