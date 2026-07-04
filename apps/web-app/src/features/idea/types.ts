@@ -1,7 +1,19 @@
-import type { IdeaModel } from "@cloudy/contracts";
+import type { InferResponseType } from "hono/client";
+import type { cloudyClient } from "@/lib/api";
 
-export type IdeaStatus = IdeaModel['ideaStatus'];
-export type IdeaPriority = IdeaModel['ideaPriority'];
+type CloudyClient = typeof cloudyClient;
+
+export type IdeaListItemDto = InferResponseType<
+  CloudyClient["api"]["idea"]["$get"],
+  200
+>[number];
+export type IdeaDetailDto = InferResponseType<
+  CloudyClient["api"]["idea"][":path"]["$get"],
+  200
+>;
+
+export type IdeaStatus = IdeaListItemDto["meta"]["status"];
+export type IdeaPriority = IdeaListItemDto["meta"]["priority"];
 
 export type IdeaFile = {
   name: string;
@@ -42,7 +54,7 @@ export type IdeaDetail = {
 };
 
 export function apiResponseToIdeaListItem(
-  data: IdeaModel["ideaDto"],
+  data: IdeaListItemDto,
 ): Idea {
   const now = new Date().toISOString();
   const meta = data.meta;
@@ -71,7 +83,7 @@ export function apiResponseToIdeaListItem(
 }
 
 export function apiResponseToIdeaDetail(
-  data: IdeaModel["ideaDetailDto"],
+  data: IdeaDetailDto,
 ): IdeaDetail {
   const now = new Date().toISOString();
   const meta = data.meta;

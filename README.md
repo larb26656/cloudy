@@ -1,106 +1,113 @@
 # Cloudy
 
-<p align="center">
-  <img src="assets/logo.png" alt="Cloudy" width="200"/>
-</p>
+AI agent sidekick — chat, ideas, memories, and artifacts. Monorepo with a bundled CLI server and a React frontend.
 
-> Your AI Agent's Sidekick
+## Prerequisites
 
-Cloudy is the intuitive interface that makes OpenCode AI accessible to everyone. **Chat**, capture **ideas**, build **memories**, and manage **artifacts** — no CLI required.
+- **Node.js** >= 20
+- **pnpm** >= 9 (`npm install -g pnpm`)
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Bun](https://img.shields.io/badge/Bun-1.3.5+-yellow)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.9+-blue)
+## Quick Start (Development)
 
-## Why Cloudy?
-
-Most AI coding agents are powerful but require terminal expertise. Cloudy bridges that gap — bringing the full power of OpenCode AI to a friendly, unified interface.
-
-- **Chat Naturally** — Talk to your AI agent like talking to a teammate
-- **Capture Ideas** — Track features, tasks, and brainstorms with status and priority
-- **Build Memory** — Store knowledge, docs, and learnings your AI can recall
-- **Manage Artifacts** — Keep generated files, snippets, and outputs organized
-
-## Features
-
-### 💬 Chat
-
-Real-time streaming conversations with beautiful markdown rendering, syntax highlighting, and session management.
-
-### 💡 Idea
-
-Track your ideas, tasks, and features:
-
-- **Status** — pending, in-progress, done
-- **Priority** — low, medium, high
-- **Tags** — organize and filter
-- **Markdown** — rich descriptions
-
-### 🧠 Memory
-
-Build your AI's knowledge base:
-
-- Store context, documentation, and learnings
-- Search and filter by tags
-- AI can reference it in conversations
-
-### 📦 Artifact
-
-Manage generated content:
-
-- **Types** — documents, code, images, and more
-- **Preview** — view artifacts inline
-- **Tags** — organize by project or category
-
-## Quick Start
-
-### Prerequisites
-
-- [Bun](https://bun.sh) >= 1.3.5
-- OpenCode API server running on `http://127.0.0.1:4096`
-
-### Run
-
-```bash
-# Install dependencies
-bun install
-
-# Start development
-bun run dev
+```sh
+pnpm install
+pnpm run dev
 ```
 
-Open `http://localhost:3001` and start using your AI workspace.
+- API server: http://localhost:3000
+- Web app: http://localhost:3001
 
-- **Backend API:** `http://localhost:3000`
-- **Frontend:** `http://localhost:3001`
+## Build & Install CLI Locally
 
-## Tech Stack
+Build everything and install the `cloudy` command globally on your machine via `pnpm pack` + `pnpm install -g` (simulates a real publish):
 
-| Layer         | Technology                         |
-| ------------- | ---------------------------------- |
-| Frontend      | React 19, TypeScript, Tailwind CSS |
-| State         | Zustand                            |
-| UI Components | shadcn/ui                          |
-| Backend       | Bun, Elysia.js                     |
-| Types         | Shared contracts package           |
+```sh
+# 1. Build frontend + bundle CLI + copy assets
+pnpm build:full
+
+# 2. Pack tarball and install globally
+pnpm publish:local
+```
+
+This creates a tarball from `apps/server`, installs it into pnpm's global directory, and exposes the `cloudy` command. Runtime dependency `@electric-sql/pglite` is installed automatically alongside.
+
+After that, `cloudy` is available from anywhere:
+
+```sh
+cloudy serve --ui
+```
+
+This starts the server (API + bundled web UI) at http://localhost:3000. Data is stored at `~/.config/cloudy/data/` by default.
+
+### Uninstall
+
+```sh
+pnpm unpublish:local
+```
+
+### CLI Options
+
+```
+cloudy serve [options]
+
+Options:
+  --ui              Serve the bundled web UI
+  --ui-dir <path>   Override UI assets directory (default: ./public next to CLI)
+  -h, --host <addr> Host to bind (default: localhost)
+  -p, --port <num>  Port number (default: 3000)
+  --cors <origins>  Allowed CORS origins, comma-separated
+  --config <path>   Config directory (default: ~/.config/cloudy)
+  --dataDir <path>  Data directory (default: ~/.config/cloudy/data)
+```
 
 ## Project Structure
 
 ```
-cloudy/
-├── apps/
-│   ├── server/              # API server
-│   └── web-app/             # UI interface
-└── packages/
-    ├── contracts/           # Shared TypeScript types
-    ├── opencode-plugin/     # OpenCode AI plugin — idea management tools & safety guardrails
-    └── create-cloudy/       # CLI scaffolding tool — bootstrap OpenCode project config
+apps/
+  server/         Cloudy CLI server (Hono, bundled via tsup)
+  web-app/        React 19 + Vite frontend
+packages/
+  contracts/      Shared TypeScript types
+  database/       Drizzle ORM + PGlite (WASM Postgres)
+  server/         Hono app library (routes, services)
+  eslint-config/  Shared ESLint configs
+  typescript-config/  Shared tsconfig bases
+scripts/
+  copy-assets.ts  Copies drizzle migrations + web assets into dist/
+  generate-package.ts  Scaffolds new workspace packages
 ```
 
-## Contributing
+## Bundle Architecture
 
-Contributions welcome! Feel free to open issues and PRs.
+The `cloudy` CLI is bundled into a single file (`apps/server/dist/cli.js`, ~1.4 MB) via tsup:
 
-## License
+- **Bundled:** `@repo/server`, `@repo/database`, `hono`, `zod`, `drizzle-orm`, and all other pure-JS dependencies
+- **External:** `@electric-sql/pglite` (WASM Postgres — installed as a runtime dependency, resolves its own `.wasm` assets from `node_modules`)
+- **Assets in `dist/`:** `drizzle/` (migration SQL), `public/` (web UI)
 
-MIT
+This keeps the package lean (~3.4 MB tarball) while PGlite handles its own ~16 MB of WASM binaries separately.
+
+## Commands
+
+| Command | Description |
+| --- | --- |
+| `pnpm run dev` | Dev all apps concurrently |
+| `pnpm run dev:server` | Dev server only |
+| `pnpm run dev:web-app` | Dev web-app only |
+| `pnpm build:full` | Build all + bundle CLI + copy assets |
+| `pnpm publish:local` | Pack tarball + install `cloudy` globally (simulates real publish) |
+| `pnpm unpublish:local` | Remove globally installed `cloudy` |
+| `pnpm run lint` | Lint check |
+| `pnpm run check-types` | Type check |
+| `pnpm run format` | Format with Prettier |
+| `pnpm run clean:modules` | Remove all node_modules + lockfile |
+
+## Publishing (Future)
+
+When ready to distribute as an npm package:
+
+1. Remove `"private": true` from `apps/server/package.json`
+2. Set the real package name in `"name"`
+3. `cd apps/server && npm publish`
+
+The `files: ["dist"]` field ensures only the bundle ships — no source code. `@electric-sql/pglite` is declared as a dependency so npm installs it automatically for users.

@@ -1,9 +1,8 @@
-import type { MemoryModel } from "@cloudy/contracts";
 import { stringifyFrontMatter } from "@/lib/front-matter";
 import { toISOString } from "@/lib/date";
-import type { Memory } from "@/features/memory/types";
+import type { Memory, MemoryDto } from "@/features/memory/types";
 
-export function apiResponseToMemory(data: MemoryModel['memoryDto']): Memory {
+export function apiResponseToMemory(data: MemoryDto): Memory {
   const meta = data.meta;
 
   return {

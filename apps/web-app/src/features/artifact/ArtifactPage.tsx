@@ -20,12 +20,11 @@ import {
   InputGroupAddon,
 } from "@/components/ui/input-group";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { ArtifactModel } from "@cloudy/contracts";
-import type { Artifact } from "@/features/artifact/types";
+import type { Artifact, ArtifactType } from "@/features/artifact/types";
 import { SidebarToggle } from "@/components/layout/SidebarToggle";
 
 const filterOptions: Array<{
-  value: ArtifactModel["artifactType"] | "all";
+  value: ArtifactType | "all";
   label: string;
 }> = [
   { value: "all", label: "All" },
@@ -53,7 +52,7 @@ export default function ArtifactPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await cloudyClient.artifact.$get({
+      const res = await cloudyClient.api.artifact.$get({
         query: { order: "updatedAt:desc" },
       });
       if (!res.ok) {

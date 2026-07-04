@@ -32,7 +32,7 @@ export default function MemoryPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await cloudyClient.memory.$get({
+      const res = await cloudyClient.api.memory.$get({
         query: { order: "updatedAt:desc" },
       });
       if (!res.ok) {

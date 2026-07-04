@@ -14,8 +14,9 @@ import { ContextSyncProvider } from "./providers/ContextSyncProvider";
 import { ServerSettingsSyncProvider } from "./providers/ServerSettingsSyncProvider";
 
 // Create a new router instance
-export const isModeElectron = import.meta.env.MODE === "electron";
-export const isElectronProd = import.meta.env.VITE_IS_ELECTRON_PROD;
+// Electron/desktop modes are disabled in this workspace (web only).
+export const isModeElectron = false;
+export const isElectronProd = false;
 // const router = createRouter({ routeTree, hash:  });
 
 const buildCreateRouter = (isElectronProd: boolean) => {

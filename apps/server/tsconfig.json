@@ -1,20 +1,9 @@
 {
+  "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext", // เปลี่ยนจาก NodeNext เป็น ESNext
-    "moduleResolution": "Bundler", // หัวใจสำคัญคือตัวนี้!
-    "strict": true,
-    "allowImportingTsExtensions": false,
-    "verbatimModuleSyntax": false, // ปรับเป็น false เพื่อให้เขียน import ง่ายขึ้น
-    "skipLibCheck": true,
-    "types": ["node"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx",
-    "outDir": "./dist",
-    "paths": {
-      "@server/*": ["./src/*"]
-    }
+    "outDir": "dist",
+    "types": ["node"]
   },
-  "include": ["src/**/*", "scripts/**/*"],
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }

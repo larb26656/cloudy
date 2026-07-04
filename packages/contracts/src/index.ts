@@ -1,20 +1,40 @@
 /**
- * @cloudy/contracts
+ * @repo/contracts
  *
- * Public interface for frontend applications to consume types from the Bun Monorepo.
- * This package aggregates and re-exports types from multiple internal packages.
+ * Type-only facade for frontend apps to consume API types from `@repo/server`
+ * WITHOUT pulling Node.js runtime code (PGlite, fs, commander, etc.) into
+ * browser bundles.
  *
- * @exports
- * - AppType: Hono app type for RPC client
- * - IdeaModel, MemoryModel, ArtifactModel, ServeModel: Zod schemas for type-safe API
+ * ## Why this package exists
  *
- * @security
- * - Only TYPE exports (no runtime code)
+ * `@repo/server` contains Node-only transitive deps. Even though
+ * `import type { AppType } from '@repo/server'` is stripped at compile time,
+ * a missing `type` keyword (developer mistake, IDE auto-import) would let the
+ * bundler follow the import graph and pull Node code into the browser.
  *
- * @usage Frontend apps should import from this package:
+ * This package enforces the boundary structurally:
+ * - All exports use `export type` only
+ * - No runtime code, no transitive runtime deps
+ * - Bundlers see an empty module at runtime
+ *
+ * ## Usage
+ *
  * ```ts
- * import type { AppType, IdeaModel } from "@cloudy/contracts";
+ * // web-app/lib/api.ts
+ * import type { AppType } from "@repo/contracts";
+ * import { hc } from "hono/client";
+ * export const api = hc<AppType>(import.meta.env.VITE_API_URL);
  * ```
+ *
+ * The `AppType` carries full route inference — request/response shapes for
+ * every endpoint are derived automatically by `hono/client`. No need to
+ * re-export individual model types here.
+ *
+ * ## Adding new exports
+ *
+ * Only add `export type` statements. Never add `export` (value) — that would
+ * defeat the purpose of this package and risk leaking Node runtime code into
+ * browser bundles.
  */
 
-export type { AppType } from "@cloudy/server";
+export type { AppType, ServerOptions } from "@repo/server";

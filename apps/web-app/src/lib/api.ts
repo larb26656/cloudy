@@ -1,6 +1,7 @@
 import { hc } from "hono/client";
-import type { AppType } from "@cloudy/server";
+import type { AppType } from "@repo/contracts";
 import { env } from "@/config/env";
+import { useServerSettingsStore } from "@/stores/serverSettingsStore";
 
 let cachedClient: ReturnType<typeof hc<AppType>> | null = null;
 
@@ -14,5 +15,8 @@ function getClient(): ReturnType<typeof hc<AppType>> {
   return cachedClient;
 }
 
-// TODO resolve this later
-export const cloudyClient = () => getClient();
+useServerSettingsStore.subscribe(() => {
+  cachedClient = null;
+});
+
+export const cloudyClient = getClient();

@@ -1,51 +1,31 @@
 {
   "name": "cloudy",
-  "version": "1.0.0",
-  "devDependencies": {
-    "@changesets/cli": "^2.30.0",
-    "@types/node": "^25.5.2",
-    "biome": "^0.3.3",
-    "typescript": "^5.9.3",
-    "vitest": "^4.1.4"
-  },
   "private": true,
-  "workspaces": [
-    "apps/desktop",
-    "apps/server",
-    "apps/web-app",
-    "packages/*"
-  ],
   "scripts": {
-    "dev:server": "pnpm --filter @cloudy/server dev",
-    "dev:web-app": "pnpm --filter @cloudy/web-app dev",
-    "dev:web-app:electron": "pnpm --filter @cloudy/web-app dev:electron",
-    "dev:desktop": "pnpm --filter cloudy-desktop dev",
-    "dev": "concurrently -n \"server,web-app\" -c \"blue,magenta\" \"pnpm run dev:server\" \"pnpm run dev:web-app\"",
-    "dev:app": "concurrently -n \"server,desktop\" -c \"magenta,green\" \"pnpm run dev:web-app:electron\" \"pnpm run dev:desktop\"",
-    "----LINT----": "",
-    "lint": "biome check",
-    "lint:write": "biome check --write",
-    "format": "biome format --write .",
-    "---CHANGE-LOG----": "",
-    "changeset": "changeset",
-    "version-packages": "changeset version",
-    "release": "changeset publish",
-    "---CREATE-CLOUDY---": "",
-    "dev:create-cloudy": "pnpm --filter @cloudy-app/create-cloudy dev",
-    "test:create-cloudy": "pnpm --filter @cloudy-app/create-cloudy test",
-    "----CLOUDY-CLI----": "",
-    "cloudy:build": "node scripts/build-cloudy.js",
-    "----CLOUDY-DESKTOP---": "",
-    "build:desktop:frontend": "node scripts/build-desktop-frontend.js",
-    "start:desktop": "pnpm run build:desktop:frontend && node scripts/start-desktop.js",
-    "build:desktop": "node scripts/build-desktop.js",
-    "----CI----": "",
-    "publish:opencode-plugin": "pnpm --filter @cloudy-app/opencode-plugin publish",
-    "publish:create-cloudy": "pnpm --filter create-cloudy publish",
-    "----CLEAN----": ""
+    "build": "turbo run build",
+    "build:full": "turbo run build copy-assets",
+    "publish:local": "rm -f apps/server/*.tgz && pnpm -C apps/server pack && pnpm install -g \"$(pwd)/apps/server/\"*.tgz && rm -f apps/server/*.tgz",
+    "unpublish:local": "pnpm uninstall -g server",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "generate:package": "npx tsx scripts/generate-package.ts",
+    "dev:web-app": "turbo run dev --filter=web-app",
+    "build:web-app": "turbo run build --filter=web-app",
+    "check-types:web-app": "turbo run check-types --filter=web-app"
+  },
+  "devDependencies": {
+    "prettier": "^3.7.4",
+    "turbo": "^2.10.2",
+    "typescript": "5.9.2"
+  },
+  "packageManager": "pnpm@9.0.0",
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
-    "concurrently": "^9.2.1",
-    "cross-env": "^10.1.0"
+    "commander": "^15.0.0",
+    "tsx": "^4.23.0"
   }
 }

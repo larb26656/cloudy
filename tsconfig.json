@@ -1,8 +1,0 @@
-{
-  "files": [],
-  "references": [
-    { "path": "./apps/web-app" },
-    { "path": "./apps/server" },
-    { "path": "./packages/contracts" }
-  ]
-}

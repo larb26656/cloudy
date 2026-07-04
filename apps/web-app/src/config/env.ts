@@ -2,8 +2,10 @@ import { resolveUrl } from "@/lib/url";
 import { isModeElectron } from "@/main";
 import { useServerSettingsStore } from "@/stores/serverSettingsStore";
 
-const FALLBACK_API_URL = resolveUrl(import.meta.env.VITE_API_URL) || window.origin + "/api";
-const FALLBACK_OPENCODE_API_URL = resolveUrl(import.meta.env.VITE_OPENCODE_URL) || window.origin + "/api/oc";
+const FALLBACK_API_URL =
+  resolveUrl(import.meta.env.VITE_API_URL) || window.origin;
+const FALLBACK_OPENCODE_API_URL =
+  resolveUrl(import.meta.env.VITE_OPENCODE_URL) || window.origin + "/api/oc";
 
 function getApiUrl(): string {
   if (!isModeElectron) {

@@ -1,9 +1,8 @@
-import type { ArtifactModel } from "@cloudy/contracts";
 import { stringifyArtifactFrontMatter } from "@/lib/front-matter";
 import { toISOString } from "@/lib/date";
-import type { Artifact } from "@/features/artifact/types";
+import type { Artifact, ArtifactDto } from "@/features/artifact/types";
 
-export function apiResponseToArtifact(data: ArtifactModel['artifactDto']): Artifact {
+export function apiResponseToArtifact(data: ArtifactDto): Artifact {
   const now = new Date().toISOString();
   const meta = data.meta;
 
