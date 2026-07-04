@@ -38,4 +38,3 @@
  */
 
 export type { AppType, ServerOptions } from "@repo/server";
-export type { IdeaModel, MemoryModel, ArtifactModel } from "@repo/server";

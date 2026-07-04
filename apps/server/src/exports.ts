@@ -18,5 +18,5 @@
  * ```
  */
 
-export type { AppType } from "./server";
-export type * from "./features";
+export type { AppType } from "./server.js";
+export type * from "./features/index.js";

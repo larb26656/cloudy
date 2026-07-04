@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 import { Command } from "commander";
 import pc from "picocolors";
-import { createServer } from ".";
+import { createServer } from "./index.js";
 
 function makeText(): string {
   return pc.cyan([

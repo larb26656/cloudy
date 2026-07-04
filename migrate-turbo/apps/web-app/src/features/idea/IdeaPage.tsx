@@ -20,12 +20,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/sonner";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { TabGroupButton } from "@/components/ui/tab-group-button";
-import type { Idea, IdeaDetail } from "@/features/idea/types";
+import type { Idea, IdeaDetail, IdeaStatus } from "@/features/idea/types";
 import { apiResponseToIdeaListItem } from "./types";
 import { SidebarToggle } from "@/components/layout/SidebarToggle";
 
 const filterOptions: Array<{
-  value: IdeaModel["ideaStatus"] | "all";
+  value: IdeaStatus | "all";
   label: string;
 }> = [
   { value: "all", label: "All" },
@@ -69,16 +69,13 @@ export default function IdeaPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const query: IdeaModel["querySchema"] = {
-        order: "updatedAt:desc",
-      };
-      if (searchQuery.trim()) {
-        query.q = searchQuery.trim();
-      }
-      if (filterStatus !== "all") {
-        query.status = filterStatus;
-      }
-      const res = await cloudyClient().api.idea.$get({ query });
+      const res = await cloudyClient.api.idea.$get({
+        query: {
+          order: "updatedAt:desc",
+          ...(searchQuery.trim() ? { q: searchQuery.trim() } : {}),
+          ...(filterStatus !== "all" ? { status: filterStatus } : {}),
+        },
+      });
       const data = await res.json();
       setIdeas((data || []).map(apiResponseToIdeaListItem));
     } catch (err) {
@@ -103,7 +100,7 @@ export default function IdeaPage() {
   const confirmDelete = useCallback(async () => {
     if (!deleteConfirmDialog) return;
     try {
-      await cloudyClient().api.idea[":path"].$delete({
+      await cloudyClient.api.idea[":path"].$delete({
         param: { path: deleteConfirmDialog.id },
       });
       setIdeas((prev) => prev.filter((i) => i.id !== deleteConfirmDialog.id));

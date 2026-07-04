@@ -1,6 +1,14 @@
-import type { ArtifactModel } from "@repo/contracts";
+import type { InferResponseType } from "hono/client";
+import type { cloudyClient } from "@/lib/api";
 
-export type ArtifactType = ArtifactModel['artifactType'];
+type CloudyClient = typeof cloudyClient;
+
+export type ArtifactDto = InferResponseType<
+  CloudyClient["api"]["artifact"]["$get"],
+  200
+>[number];
+
+export type ArtifactType = ArtifactDto["meta"]["type"];
 
 export type Artifact = {
   id: string;

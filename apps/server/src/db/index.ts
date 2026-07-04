@@ -1,1 +1,1 @@
-export { DbClient } from './client';
+export { DbClient } from './client.js';
