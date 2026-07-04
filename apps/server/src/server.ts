@@ -4,22 +4,21 @@ import { existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'node:path'
-import { openAPIRouteHandler } from 'hono-openapi'
+import { openAPIRouteHandler, validator } from 'hono-openapi'
 import { Scalar } from '@scalar/hono-api-reference'
 
-import { serve as serveFeature } from './features/serve'
-import { idea } from './features/idea'
+import { createIdeaApp } from './features/idea'
 import { createMemoryApp } from './features/memory'
-import { artifact } from './features/artifact'
-import { proxy } from './features/proxy'
-import { memoryService } from './container'
+import { createArtifactApp } from './features/artifact'
+import { createProxyApp } from './features/proxy'
+import { memoryService, ideaService, artifactService, proxyService, ideaFileService } from './container'
 
 const getDirname = () => {
-  try {
-    return dirname(fileURLToPath(import.meta.url))
-  } catch {
-    return process.cwd()
-  }
+    try {
+        return dirname(fileURLToPath(import.meta.url))
+    } catch {
+        return process.cwd()
+    }
 }
 
 const __dirname = getDirname()
@@ -31,43 +30,31 @@ export function createApp({ corsOrigins = [], enableUI = false }: {
     enableUI?: boolean
 }) {
     const app = new Hono()
-
-    app.use(cors({
-        origin: corsOrigins,
-        allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-        allowHeaders: ['*'],
-    }))
-
-    app.get('/', (c) => {
-        if (!enableUI) return c.notFound()
-        const indexPath = join(PUBLIC_DIR, "index.html")
-        if (!existsSync(indexPath)) return c.notFound()
-        const content = readFileSync(indexPath, 'utf-8')
-        return c.html(content)
-    })
-
-    app.get('/api/health', (c) => c.json({ status: 'ok' }))
+        .use(cors({
+            origin: corsOrigins,
+            allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+            allowHeaders: ['*'],
+        }))
+        .get('/', (c) => {
+            if (!enableUI) return c.notFound()
+            const indexPath = join(PUBLIC_DIR, "index.html")
+            if (!existsSync(indexPath)) return c.notFound()
+            const content = readFileSync(indexPath, 'utf-8')
+            return c.html(content)
+        })
+        .get('/api/health', (c) => c.json({ status: 'ok' }))
+        .route('/api/idea', createIdeaApp({ ideaService, ideaFileService }))
+        .route('/api/memory', createMemoryApp({ memoryService }))
+        .route('/api/artifact', createArtifactApp({ artifactService }))
+        .route('/oc', createProxyApp({ proxyService }))
 
     app.get('/openapi', openAPIRouteHandler(app, {
         documentation: {
-            info: {
-                title: 'Cloudy API',
-                version: '1.0.0',
-            },
+            info: { title: 'Cloudy API', version: '1.0.0' },
         },
     }))
 
-    app.use('/docs', Scalar({
-        spec: {
-            url: '/openapi',
-        },
-    }))
-
-    app.route('/oc', proxy)
-    app.route('/api/idea', idea)
-    app.route('/api/memory', createMemoryApp({ memoryService }))
-    app.route('/api/artifact', artifact)
-    app.route('/api/serve', serveFeature)
+    app.use('/docs', (c, next) => Scalar({ spec: { url: '/openapi' } })(c, next))
 
     if (enableUI) {
         app.get('/*', (c) => {
@@ -81,8 +68,4 @@ export function createApp({ corsOrigins = [], enableUI = false }: {
     return app
 }
 
-const app = createApp({ enableUI: true })
-
-export { app }
-
-export type AppType = typeof app
+export type AppType = ReturnType<typeof createApp>

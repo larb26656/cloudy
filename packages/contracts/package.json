@@ -10,6 +10,9 @@
       "default": "./src/index.ts"
     }
   },
+  "dependencies": {
+    "@cloudy/server": "workspace:*"
+  },
   "devDependencies": {
     "@types/node": "^25.5.2"
   }

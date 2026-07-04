@@ -1,18 +1,34 @@
-import type { CloudyConfig } from '../../config'
-import { readdir, access } from "node:fs/promises";
-import path from "node:path";
+import type { CloudyConfig } from '../../config';
+import { readdir, readFile, access } from 'node:fs/promises';
+import path from 'node:path';
 import matter from 'gray-matter';
+import { HTTPException } from 'hono/http-exception';
+import type { ArtifactDto, ArtifactQuery } from './model';
+import { ArtifactRepository } from './repository';
 
 function isDateString(str: string): boolean {
     return /^\d{4}-\d{2}-\d{2}/.test(str);
 }
 
-function parseArtifactFrontMatter(markdown: string, fallbackTitle?: string): { meta: { title?: string; tags: string[]; type: string; createdAt?: Date; updatedAt?: Date }; content: string } {
+function parseArtifactFrontMatter(
+    markdown: string,
+    fallbackTitle?: string
+): {
+    meta: {
+        title?: string;
+        tags: string[];
+        type: string;
+        createdAt?: Date;
+        updatedAt?: Date;
+    };
+    content: string;
+} {
     try {
         const { data, content } = matter(markdown);
-        const title = data.title && typeof data.title === 'string' && !isDateString(data.title)
-            ? data.title
-            : fallbackTitle;
+        const title =
+            data.title && typeof data.title === 'string' && !isDateString(data.title)
+                ? data.title
+                : fallbackTitle;
 
         return {
             meta: {
@@ -45,77 +61,64 @@ async function fileExists(filePath: string): Promise<boolean> {
     }
 }
 
-export class Artifact {
+const artifactTypeMap: Record<string, string> = {
+    html: 'text/html',
+    pdf: 'application/pdf',
+    image: 'image/*',
+    video: 'video/*',
+};
+
+function getContentType(type?: string): string {
+    if (!type) return 'application/octet-stream';
+    return artifactTypeMap[type] || 'application/octet-stream';
+}
+
+export class ArtifactService {
     private artifactPath: string;
+    private repository: ArtifactRepository;
 
     constructor(config: CloudyConfig) {
         this.artifactPath = config.artifact;
+        this.repository = new ArtifactRepository(config);
     }
 
     private async getIndexFiles(): Promise<string[]> {
-        const indexFiles: string[] = [];
-        const allPaths = await readdir(this.artifactPath, { recursive: true });
-
-        const subfolders = new Set<string>();
-        for (const filePath of allPaths) {
-            if (typeof filePath !== 'string' || filePath.endsWith('/')) continue;
-            const parts = filePath.split('/').filter(Boolean);
-            if (parts.length >= 1) {
-                subfolders.add(parts[0]);
-            }
-        }
-
-        for (const folder of subfolders) {
-            const folderPath = path.join(this.artifactPath, folder);
-            const indexPath = path.join(folderPath, 'index.md');
-            if (await fileExists(indexPath)) {
-                indexFiles.push(`${folder}/index.md`);
-            }
-        }
-
-        return indexFiles;
+        return this.repository.listArtifactIndexFiles();
     }
 
-    async getFiles(): Promise<{ source: 'artifact'; files: { name: string; path: string }[] }> {
-        const files: { name: string; path: string }[] = [];
+    private matchesFilter(
+        artifact: {
+            content: string;
+            meta: { title?: string; tags: string[]; type: string };
+        },
+        filters?: ArtifactQuery
+    ): boolean {
+        if (!filters) return true;
 
-        try {
-            const indexFiles = await this.getIndexFiles();
-
-            for (const filePath of indexFiles) {
-                const name = filePath.split('/')[0];
-                files.push({ name, path: filePath });
-            }
-
-        } catch {
-            throw new Response('Artifact directory not found', { status: 404 });
+        if (filters.q) {
+            const query = filters.q.toLowerCase();
+            const matchTitle = artifact.meta.title?.toLowerCase().includes(query);
+            const matchContent = artifact.content.toLowerCase().includes(query);
+            const matchTags = artifact.meta.tags.some((t) => t.toLowerCase().includes(query));
+            if (!matchTitle && !matchContent && !matchTags) return false;
         }
 
-        return { source: 'artifact', files };
+        if (filters.tags?.length) {
+            if (!filters.tags.some((t) => artifact.meta.tags.includes(t))) return false;
+        }
+
+        if (filters.type && artifact.meta.type !== filters.type) return false;
+
+        return true;
     }
 
-    async getFile(filePath: string): Promise<{ name: string; path: string; content: string }> {
-        const fullPath = `${this.artifactPath}/${filePath}`;
+    async getArtifact(filePath: string): Promise<ArtifactDto> {
+        const fullPath = path.join(this.artifactPath, filePath);
 
         if (!await fileExists(fullPath)) {
-            throw new Response('File not found', { status: 404 });
+            throw new HTTPException(404, { message: 'Artifact not found' });
         }
 
-        const { readFile } = await import('node:fs/promises');
-        const content = await readFile(fullPath, 'utf-8');
-        const name = filePath.split('/').pop() || '';
-
-        return { name, path: filePath, content };
-    }
-
-    async getArtifact(filePath: string): Promise<{ name: string; path: string; content: string; meta: { title?: string; tags: string[]; type: string; createdAt?: Date; updatedAt?: Date } }> {
-        const fullPath = `${this.artifactPath}/${filePath}`;
-
-        if (!await fileExists(fullPath)) {
-            throw new Response('File not found', { status: 404 });
-        }
-
-        const { readFile } = await import('node:fs/promises');
         const content = await readFile(fullPath, 'utf-8');
         const parts = filePath.split('/');
         const name = parts[0];
@@ -128,39 +131,15 @@ export class Artifact {
             meta: {
                 title: parsed.meta.title || name,
                 tags: parsed.meta.tags || [],
-                type: parsed.meta.type || 'html',
-                createdAt: parsed.meta.createdAt,
-                updatedAt: parsed.meta.updatedAt,
+                type: parsed.meta.type as ArtifactDto['meta']['type'],
+                createdAt: parsed.meta.createdAt?.toISOString(),
+                updatedAt: parsed.meta.updatedAt?.toISOString(),
             },
         };
     }
 
-    async getArtifactFolder(folderName: string): Promise<string> {
-        return path.join(this.artifactPath, folderName);
-    }
-
-    private matchesFilter(artifact: { content: string; meta: { title?: string; tags: string[]; type: string } }, filters?: { q?: string; tags?: string[]; type?: string; order?: string }): boolean {
-        if (!filters) return true;
-
-        if (filters.q) {
-            const query = filters.q.toLowerCase();
-            const matchTitle = artifact.meta.title?.toLowerCase().includes(query);
-            const matchContent = artifact.content.toLowerCase().includes(query);
-            const matchTags = artifact.meta.tags.some(t => t.toLowerCase().includes(query));
-            if (!matchTitle && !matchContent && !matchTags) return false;
-        }
-
-        if (filters.tags?.length) {
-            if (!filters.tags.some(t => artifact.meta.tags.includes(t))) return false;
-        }
-
-        if (filters.type && artifact.meta.type !== filters.type) return false;
-
-        return true;
-    }
-
-    async listArtifacts(filters?: { q?: string; tags?: string[]; type?: string; order?: string }): Promise<{ name: string; path: string; content: string; meta: { title?: string; tags: string[]; type: string; createdAt?: Date; updatedAt?: Date } }[]> {
-        const artifacts: { name: string; path: string; content: string; meta: { title?: string; tags: string[]; type: string; createdAt?: Date; updatedAt?: Date } }[] = [];
+    async listArtifacts(filters?: ArtifactQuery): Promise<ArtifactDto[]> {
+        const artifacts: ArtifactDto[] = [];
 
         try {
             const indexFiles = await this.getIndexFiles();
@@ -176,7 +155,6 @@ export class Artifact {
                 }
             }
         } catch {
-            console.error('Error listing artifacts')
             return [];
         }
 
@@ -198,9 +176,8 @@ export class Artifact {
     async getByName(name: string): Promise<Response> {
         const artifactData = await this.getArtifact(`${name}/index.md`);
         const meta = artifactData.meta;
-        const folderPath = await this.getArtifactFolder(name);
-        const response = await this.serveFile(folderPath, meta.type);
-        return response;
+        const folderPath = await this.repository.getArtifactFolder(name);
+        return this.serveFile(folderPath, meta.type as string);
     }
 
     async serveFile(dirPath: string, type: string): Promise<Response> {
@@ -208,7 +185,7 @@ export class Artifact {
         const exists = await fileExists(filePath);
 
         if (!exists) {
-            return new Response('File not found', { status: 404 });
+            throw new HTTPException(404, { message: 'File not found' });
         }
 
         const { createReadStream } = await import('node:fs');
@@ -220,15 +197,5 @@ export class Artifact {
                 'Content-Type': getContentType(type),
             },
         });
-    }
-}
-
-function getContentType(type?: string): string {
-    switch (type) {
-        case 'html': return 'text/html';
-        case 'pdf': return 'application/pdf';
-        case 'image': return 'image/*';
-        case 'video': return 'video/*';
-        default: return 'application/octet-stream';
     }
 }

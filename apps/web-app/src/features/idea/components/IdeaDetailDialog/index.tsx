@@ -24,7 +24,7 @@ import {
   type IdeaDetail,
   apiResponseToIdeaDetail,
 } from "@/features/idea/types";
-import { api } from "@/lib/api";
+import { cloudyClient } from "@/lib/api";
 import { MarkdownEditor } from "@/components/markdown/editor";
 import {
   ResizablePanelGroup,
@@ -179,7 +179,7 @@ function Header({
     }
 
     try {
-      const res = await api.idea[":path"].$patch({
+      const res = await cloudyClient.idea[":path"].$patch({
         param: { path: idea.path },
         json: {
           status: updates.status,
@@ -339,7 +339,9 @@ export function IdeaDetailView({
 
     setIsLoadingIdea(true);
     try {
-      const res = await api.idea[":path"].$get({ param: { path: ideaId } });
+      const res = await cloudyClient.idea[":path"].$get({
+        param: { path: ideaId },
+      });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.message || data.error || "Failed to load idea");
@@ -364,7 +366,7 @@ export function IdeaDetailView({
   const loadFileContent = useCallback(async () => {
     if (!idea || !selectedFile || !idea.path) return;
     try {
-      const res = await api.idea[":ideaPath"].files[":filename"].$get({
+      const res = await cloudyClient.idea[":ideaPath"].files[":filename"].$get({
         param: { ideaPath: idea.path, filename: selectedFile.name },
       });
       if (!res.ok) {
@@ -425,7 +427,7 @@ export function IdeaDetailView({
     setIsSaving(true);
     try {
       if (!idea.path) {
-        const res = await api.idea.$post({
+        const res = await cloudyClient.idea.$post({
           json: {
             title: idea.name,
             status: idea.meta.status,
@@ -451,10 +453,12 @@ export function IdeaDetailView({
 
       if (!selectedFile) return;
 
-      const res2 = await api.idea[":ideaPath"].files[":filename"].$put({
-        param: { ideaPath: idea.path, filename: selectedFile.name },
-        json: { content },
-      });
+      const res2 = await cloudyClient.idea[":ideaPath"].files[":filename"].$put(
+        {
+          param: { ideaPath: idea.path, filename: selectedFile.name },
+          json: { content },
+        },
+      );
       if (!res2.ok) {
         const data = await res2.json();
         throw new Error(data.message || data.error || "Failed to save file");
@@ -481,7 +485,7 @@ export function IdeaDetailView({
     setIdea({ ...idea, files: [...idea.files, newFile] });
     setSelectedFile(newFile);
     try {
-      const res = await api.idea[":ideaPath"].files.$post({
+      const res = await cloudyClient.idea[":ideaPath"].files.$post({
         param: { ideaPath: idea.path },
         json: {
           name: filename,
@@ -522,7 +526,9 @@ export function IdeaDetailView({
     }
     showLoader();
     try {
-      const res = await api.idea[":ideaPath"].files[":filename"].$delete({
+      const res = await cloudyClient.idea[":ideaPath"].files[
+        ":filename"
+      ].$delete({
         param: { ideaPath: idea.path, filename },
       });
       if (!res.ok) {

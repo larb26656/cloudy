@@ -5,7 +5,7 @@ import { useMemoryUIStore } from "@/features/memory/store/memoryStore";
 import { Header } from "@/components/layout";
 import { apiResponseToMemory } from "@/features/memory/api";
 import { stringifyFrontMatter } from "@/lib/front-matter";
-import { api } from "@/lib/api";
+import { cloudyClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -32,7 +32,7 @@ export default function MemoryPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await api.memory.$get({
+      const res = await cloudyClient.memory.$get({
         query: { order: "updatedAt:desc" },
       });
       if (!res.ok) {

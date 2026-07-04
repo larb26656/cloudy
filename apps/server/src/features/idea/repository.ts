@@ -1,31 +1,22 @@
 import { eq, like, and, or, asc, desc } from 'drizzle-orm';
-import type { PgliteDatabase } from 'drizzle-orm/pglite';
 import { ideas } from './schema';
-import type { IdeaRecord, IdeaQuery, CreateIdeaInput, UpdateIdeaInput } from './types';
+import { AppDatabase } from '@server/db/client';
+import type { CreateIdeaInput, IdeaQuery, UpdateIdeaInput } from './model';
+import { toDateString } from '@server/utils';
 
-function toDateString(value: unknown): string {
-    if (value instanceof Date) {
-        return value.toISOString();
-    }
-    return String(value);
-}
+export type IdeaRecord = {
+    id: string;
+    title: string | null;
+    tags: string[] | null;
+    status: string;
+    priority: string;
+    path: string;
+    createdAt: string;
+    updatedAt: string;
+};
 
 export class IdeaRepository {
-    constructor(private db: PgliteDatabase) {}
-
-    private async findOne(where: ReturnType<typeof eq>): Promise<IdeaRecord | null> {
-        const rows = await this.db
-            .select()
-            .from(ideas)
-            .where(where)
-            .limit(1) as any[];
-        if (!rows[0]) return null;
-        return {
-            ...rows[0],
-            createdAt: toDateString(rows[0].createdAt),
-            updatedAt: toDateString(rows[0].updatedAt),
-        };
-    }
+    constructor(private db: AppDatabase) {}
 
     async findAll(query?: IdeaQuery): Promise<IdeaRecord[]> {
         const conditions = [];
@@ -64,39 +55,65 @@ export class IdeaRepository {
         const conditionsCopy = [...conditions];
         const where = conditionsCopy.length > 0 ? and(...conditionsCopy) : undefined;
 
-        const rows = await this.db.select().from(ideas).where(where).orderBy(orderBy) as any[];
+        const rows = await this.db.select().from(ideas).where(where).orderBy(orderBy);
         return rows.map((row) => ({
             ...row,
             createdAt: toDateString(row.createdAt),
             updatedAt: toDateString(row.updatedAt),
-        })) as IdeaRecord[];
+        }));
     }
 
     async findByPath(path: string): Promise<IdeaRecord | null> {
-        return this.findOne(eq(ideas.path, path));
+        const rows = await this.db
+            .select()
+            .from(ideas)
+            .where(eq(ideas.path, path))
+            .limit(1);
+
+        const data = rows[0];
+        if (!data) return null;
+
+        return {
+            ...data,
+            createdAt: toDateString(data.createdAt),
+            updatedAt: toDateString(data.updatedAt),
+        };
     }
 
     async findById(id: string): Promise<IdeaRecord | null> {
-        return this.findOne(eq(ideas.id, id));
+        const rows = await this.db
+            .select()
+            .from(ideas)
+            .where(eq(ideas.id, id))
+            .limit(1);
+
+        const data = rows[0];
+        if (!data) return null;
+
+        return {
+            ...data,
+            createdAt: toDateString(data.createdAt),
+            updatedAt: toDateString(data.updatedAt),
+        };
     }
 
-    async exists(ideaPath: string): Promise<boolean> {
+    async exists(path: string): Promise<boolean> {
         const rows = await this.db
             .select({ count: ideas.id })
             .from(ideas)
-            .where(eq(ideas.path, ideaPath))
-            .limit(1) as any[];
+            .where(eq(ideas.path, path))
+            .limit(1);
         return rows.length > 0;
     }
 
-    async touchUpdatedAt(ideaPath: string): Promise<void> {
+    async touchUpdatedAt(path: string): Promise<void> {
         await this.db
             .update(ideas)
             .set({ updatedAt: new Date() })
-            .where(eq(ideas.path, ideaPath));
+            .where(eq(ideas.path, path));
     }
 
-    async create(input: CreateIdeaInput): Promise<IdeaRecord> {
+    async create(input: CreateIdeaInput & { id: string; path: string }): Promise<IdeaRecord> {
         const now = new Date();
 
         await this.db.insert(ideas).values({
@@ -159,8 +176,8 @@ export class IdeaRepository {
         return updated;
     }
 
-    async updateByPath(ideaPath: string, input: UpdateIdeaInput): Promise<IdeaRecord> {
-        const existing = await this.findByPath(ideaPath);
+    async updateByPath(path: string, input: UpdateIdeaInput): Promise<IdeaRecord> {
+        const existing = await this.findByPath(path);
         if (!existing) {
             throw new Error('Idea not found');
         }
@@ -171,8 +188,8 @@ export class IdeaRepository {
         await this.db.delete(ideas).where(eq(ideas.id, id));
     }
 
-    async deleteByPath(ideaPath: string): Promise<void> {
-        const existing = await this.findByPath(ideaPath);
+    async deleteByPath(path: string): Promise<void> {
+        const existing = await this.findByPath(path);
         if (!existing) {
             throw new Error('Idea not found');
         }

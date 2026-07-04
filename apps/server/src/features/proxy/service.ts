@@ -1,34 +1,49 @@
-export interface ProxyResult {
-    body: ReadableStream | string | null;
-    contentType: string;
-    isStreaming: boolean;
-}
+import type { Context } from 'hono';
+import { proxy as proxyFetch } from 'hono/proxy';
+import { HTTPException } from 'hono/http-exception';
 
-export class Proxy {
-    async proxy(request: Request, opencodeApiBase: string): Promise<ProxyResult> {
-        const incomingUrl = new URL(request.url)
-        const targetPath = incomingUrl.pathname.replace(/^\/oc/, '')
-        const url = new URL(targetPath + incomingUrl.search, opencodeApiBase)
+const CORS_HEADERS = {
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': '*',
+} as const;
 
-        const headers = new Headers(request.headers)
+export class ProxyService {
+    async proxyRequest(c: Context): Promise<Response> {
+        const opencodeApiBase = c.req.header('X-OpenCode-API-Base')
+            || c.req.query('X-OpenCode-API-Base');
 
-        const response = await fetch(url.toString(), {
-            method: request.method,
-            headers,
-            body: request.body,
-            signal: request.signal,
-        } as RequestInit)
-
-        const contentType = response.headers.get('content-type') || ''
-        const isStreaming =
-            contentType.includes('text/event-stream') ||
-            contentType.includes('stream')
-
-        if (isStreaming) {
-            return { body: response.body, contentType, isStreaming }
+        if (!opencodeApiBase) {
+            throw new HTTPException(400, { message: 'Missing X-OpenCode-API-Base header or query parameter' });
         }
 
-        const data = await response.text()
-        return { body: data, contentType, isStreaming }
+        const incomingUrl = new URL(c.req.url);
+        const targetPath = incomingUrl.pathname.replace(/^\/oc/, '');
+        const targetUrl = new URL(targetPath + incomingUrl.search, opencodeApiBase);
+
+        const req = c.req.raw;
+        const res = await proxyFetch(targetUrl.toString(), {
+            method: req.method,
+            headers: {
+                ...c.req.header(),
+                'X-Forwarded-For': c.req.header('host') || '127.0.0.1',
+                'X-Forwarded-Host': c.req.header('host'),
+                Authorization: undefined,
+            },
+            body: req.body,
+            signal: req.signal,
+        });
+
+        res.headers.delete('Set-Cookie');
+
+        const contentType = res.headers.get('content-type') || '';
+
+        return new Response(res.body, {
+            status: res.status,
+            headers: {
+                'Content-Type': contentType || 'application/octet-stream',
+                ...Object.fromEntries(Object.entries(CORS_HEADERS)),
+            },
+        });
     }
 }

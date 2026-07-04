@@ -1,8 +1,7 @@
-import { IdeaModel } from './model'
-import { IdeaRepository } from './repository';
+import { HTTPException } from 'hono/http-exception';
+import type { CreateIdeaInput, IdeaDetailDto, IdeaDto, IdeaQuery, UpdateIdeaInput } from './model';
+import { IdeaRepository, type IdeaRecord } from './repository';
 import { IdeaFile } from './file/service';
-import { IDEA_INDEX_FILE } from './types';
-import type { IdeaQuery } from './types';
 
 export function generateIdeaPath(title: string): string {
     const timestamp = Date.now();
@@ -12,24 +11,92 @@ export function generateIdeaPath(title: string): string {
     return slug ? `${timestamp}_${slug}` : `${timestamp}`;
 }
 
-export class Idea {
-    protected repository: IdeaRepository;
-    protected ideaFile: IdeaFile;
+export class IdeaService {
+    constructor(
+        private repository: IdeaRepository,
+        private ideaFile: IdeaFile
+    ) {}
 
-    constructor(repository: IdeaRepository, ideaFile: IdeaFile) {
-        this.repository = repository;
-        this.ideaFile = ideaFile;
+    private recordToDto(record: IdeaRecord, content: string): IdeaDto {
+        return {
+            title: record.title || record.path,
+            path: record.path,
+            content,
+            meta: {
+                title: record.title || record.path,
+                tags: record.tags || [],
+                status: record.status as IdeaDto['meta']['status'],
+                priority: record.priority as IdeaDto['meta']['priority'],
+                createdAt: record.createdAt,
+                updatedAt: record.updatedAt,
+            },
+        };
     }
 
-    async createIdea(
-        input: z.infer<typeof IdeaModel.ideaCreateDto>,
-    ): Promise<z.infer<typeof IdeaModel.ideaDetailDto>> {
+    private recordToDetailDto(record: IdeaRecord, content: string, files: { name: string; path: string; size: number; updatedAt?: string }[]): IdeaDetailDto {
+        return {
+            title: record.title || record.path,
+            path: record.path,
+            content,
+            files,
+            meta: {
+                title: record.title || record.path,
+                tags: record.tags || [],
+                status: record.status as IdeaDetailDto['meta']['status'],
+                priority: record.priority as IdeaDetailDto['meta']['priority'],
+                createdAt: record.createdAt,
+                updatedAt: record.updatedAt,
+            },
+        };
+    }
+
+    async listIdeas(query?: IdeaQuery): Promise<IdeaDto[]> {
+        const records = await this.repository.findAll(query);
+        const result: IdeaDto[] = [];
+
+        for (const record of records) {
+            try {
+                const file = await this.ideaFile.getFile(record.path);
+                result.push(this.recordToDto(record, file.content));
+            } catch {
+                continue;
+            }
+        }
+
+        return result;
+    }
+
+    async getIdea(path: string): Promise<IdeaDetailDto> {
+        const record = await this.repository.findByPath(path);
+
+        if (!record) {
+            throw new HTTPException(404, { message: `Idea with path ${path} not found` });
+        }
+
+        try {
+            const file = await this.ideaFile.getFile(path);
+            const files = await this.ideaFile.listIdeaFiles(path);
+            return this.recordToDetailDto(
+                record,
+                file.content,
+                files.map(f => ({
+                    ...f,
+                    updatedAt: f.updatedAt?.toISOString(),
+                }))
+            );
+        } catch {
+            throw new HTTPException(404, { message: `Idea with path ${path} not found` });
+        }
+    }
+
+    async createIdea(input: CreateIdeaInput): Promise<IdeaDetailDto> {
         const ideaPath = generateIdeaPath(input.title);
         const title = input.title ?? ideaPath;
 
         await this.ideaFile.createIdeaDirectory(ideaPath, input.content);
 
         await this.repository.create({
+            ...input,
             id: ideaPath,
             title,
             tags: input.tags ?? [],
@@ -38,113 +105,42 @@ export class Idea {
             path: ideaPath,
         });
 
-        return await this.getIdea(ideaPath);
+        return this.getIdea(ideaPath);
     }
 
-    async deleteIdea(ideaPath: string): Promise<{ success: boolean }> {
-        const exists = await this.repository.exists(ideaPath);
-        if (!exists) {
-            throw new Response('Idea not found', { status: 404 });
-        }
-
-        await this.ideaFile.deleteIdeaDirectory(ideaPath);
-
-        await this.repository.deleteByPath(ideaPath);
-
-        return { success: true };
-    }
-
-    async patchMeta(ideaPath: string, updates: z.infer<typeof IdeaModel.ideaMetaUpdateDto>): Promise<z.infer<typeof IdeaModel.ideaDetailDto>> {
-        const existing = await this.repository.findByPath(ideaPath);
+    async updateIdeaMeta(path: string, input: UpdateIdeaInput): Promise<IdeaDetailDto> {
+        const existing = await this.repository.findByPath(path);
 
         if (!existing) {
-            throw new Response('File not found', { status: 404 });
+            throw new HTTPException(404, { message: `Idea with path ${path} not found` });
         }
 
-        await this.repository.updateByPath(ideaPath, {
-            title: updates.title,
-            tags: updates.tags,
-            status: updates.status,
-            priority: updates.priority,
+        await this.repository.updateByPath(path, {
+            title: input.title,
+            tags: input.tags,
+            status: input.status,
+            priority: input.priority,
         });
 
-        return await this.getIdea(ideaPath);
+        return this.getIdea(path);
     }
 
-    async getIdea(ideaPath: string): Promise<z.infer<typeof IdeaModel.ideaDetailDto>> {
-        const record = await this.repository.findByPath(ideaPath);
-
-        if (!record) {
-            throw new Response('File not found', { status: 404 });
-        }
-
-        const file = await this.ideaFile.getFile(ideaPath, IDEA_INDEX_FILE);
-        const files = await this.ideaFile.listIdeaFiles(ideaPath);
-
-        return {
-            title: record.title,
-            path: ideaPath,
-            content: file.content,
-            files,
-            meta: {
-                title: record.title || ideaPath,
-                tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags || [],
-                status: record.status,
-                priority: record.priority,
-                createdAt: new Date(record.createdAt),
-                updatedAt: new Date(record.updatedAt),
-            },
-        };
-    }
-
-    async touchUpdatedAt(ideaPath: string): Promise<void> {
-        const exists = await this.repository.exists(ideaPath);
+    async deleteIdea(path: string): Promise<void> {
+        const exists = await this.repository.exists(path);
         if (!exists) {
-            throw new Response('Idea not found', { status: 404 });
+            throw new HTTPException(404, { message: `Idea with path ${path} not found` });
         }
 
-        await this.repository.touchUpdatedAt(ideaPath);
+        await this.ideaFile.deleteIdeaDirectory(path);
+        await this.repository.deleteByPath(path);
     }
 
-    async listIdeas(filters?: z.infer<typeof IdeaModel.querySchema>): Promise<z.infer<typeof IdeaModel.ideaDto>[]> {
-        const query: IdeaQuery = {
-            q: filters?.q,
-            tags: filters?.tags,
-            status: filters?.status,
-            priority: filters?.priority,
-            order: filters?.order,
-        };
-
-        const ideas = await this.repository.findAll(query);
-
-        const result: z.infer<typeof IdeaModel.ideaDto>[] = [];
-
-        for (const record of ideas) {
-            try {
-                const file = await this.ideaFile.getFile(record.path, IDEA_INDEX_FILE);
-
-                result.push({
-                    title: record.title,
-                    path: record.path,
-                    content: file.content,
-                    meta: {
-                        title: record.title || record.path,
-                        tags: typeof record.tags === 'string' ? JSON.parse(record.tags) : record.tags || [],
-                        status: record.status,
-                        priority: record.priority,
-                        createdAt: new Date(record.createdAt),
-                        updatedAt: new Date(record.updatedAt),
-                    },
-                });
-            } catch (err) {
-                console.log(err)
-
-                continue;
-            }
+    async touchUpdatedAt(path: string): Promise<void> {
+        const exists = await this.repository.exists(path);
+        if (!exists) {
+            throw new HTTPException(404, { message: `Idea with path ${path} not found` });
         }
 
-        return result;
+        await this.repository.touchUpdatedAt(path);
     }
 }
-
-import { z } from 'zod'

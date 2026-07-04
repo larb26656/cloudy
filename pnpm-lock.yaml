@@ -170,6 +170,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.4.1
         version: 1.4.1(@types/react@19.2.14)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      '@cloudy/server':
+        specifier: workspace:*
+        version: link:../server
       '@floating-ui/dom':
         specifier: ^1.7.6
         version: 1.7.6
@@ -371,6 +374,10 @@ importers:
         version: 8.0.12(@types/node@24.12.4)(esbuild@0.27.7)(jiti@2.7.0)(tsx@4.21.0)
 
   packages/contracts:
+    dependencies:
+      '@cloudy/server':
+        specifier: workspace:*
+        version: link:../../apps/server
     devDependencies:
       '@types/node':
         specifier: ^25.5.2

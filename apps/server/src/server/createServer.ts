@@ -2,7 +2,6 @@ import { serve, type ServerType } from '@hono/node-server';
 import { createApp } from '../server';
 import { initContainer } from '../container';
 import { loadConfig } from '../config/config';
-import { startCleanupCron } from '../features/serve';
 import { runMigrations } from '@server/db/migrate';
 
 export interface ServerOptions {
@@ -33,7 +32,6 @@ export function createServer(options: ServerOptions) {
     await initContainer(config);
 
     const app = createApp({ corsOrigins: config.cors, enableUI: config.ui });
-    startCleanupCron();
 
     server = serve({
       fetch: app.fetch,

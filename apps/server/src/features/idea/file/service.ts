@@ -1,8 +1,9 @@
-import { IDEA_INDEX_FILE } from '../types';
 import { readdir, stat, rm, mkdir, unlink, access } from "node:fs/promises";
 import path from "node:path";
 import { IdeaRepository } from '../repository';
 import type { CloudyConfig } from '../../../config';
+
+export const IDEA_INDEX_FILE = 'index.md';
 
 async function fileExists(filePath: string): Promise<boolean> {
     try {

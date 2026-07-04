@@ -4,9 +4,12 @@ import { ErrorState } from "@/components/ui/error-state";
 import { useIdeaUIStore } from "@/features/idea/store/ideaStore";
 
 import { IdeaCard } from "@/features/idea/components";
-import { IdeaDetailDialog, CREATE_IDEA_ID } from "@/features/idea/components/IdeaDetailDialog";
+import {
+  IdeaDetailDialog,
+  CREATE_IDEA_ID,
+} from "@/features/idea/components/IdeaDetailDialog";
 import { Header } from "@/components/layout";
-import { api } from "@/lib/api";
+import { cloudyClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import {
   InputGroup,
@@ -17,7 +20,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "@/components/ui/sonner";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { TabGroupButton } from "@/components/ui/tab-group-button";
-import type { IdeaModel } from "@cloudy/contracts";
 import type { Idea, IdeaDetail } from "@/features/idea/types";
 import { apiResponseToIdeaListItem } from "./types";
 import { SidebarToggle } from "@/components/layout/SidebarToggle";
@@ -76,15 +78,7 @@ export default function IdeaPage() {
       if (filterStatus !== "all") {
         query.status = filterStatus;
       }
-      const res = await api.idea.$get({ query });
-      if (!res.ok) {
-        const data = await res.json();
-        const message = data.message || data.error || "Failed to load ideas";
-        setError(message);
-        setIdeas([]);
-        toast.error(message);
-        return;
-      }
+      const res = await cloudyClient().api.idea.$get({ query });
       const data = await res.json();
       setIdeas((data || []).map(apiResponseToIdeaListItem));
     } catch (err) {
@@ -109,15 +103,9 @@ export default function IdeaPage() {
   const confirmDelete = useCallback(async () => {
     if (!deleteConfirmDialog) return;
     try {
-      const res = await api.idea[':path'].$delete({
+      await cloudyClient().api.idea[":path"].$delete({
         param: { path: deleteConfirmDialog.id },
       });
-      if (!res.ok) {
-        const data = await res.json();
-        const message = data.message || data.error || "Failed to delete idea";
-        toast.error(message);
-        return;
-      }
       setIdeas((prev) => prev.filter((i) => i.id !== deleteConfirmDialog.id));
       if (selectedIdeaId === deleteConfirmDialog.id) selectIdea(null);
     } catch (err) {

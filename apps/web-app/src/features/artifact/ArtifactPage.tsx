@@ -11,7 +11,7 @@ import {
 } from "@/features/artifact/components";
 import { Header } from "@/components/layout";
 import { apiResponseToArtifact } from "@/features/artifact/api";
-import { api } from "@/lib/api";
+import { cloudyClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { TabGroupButton } from "@/components/ui/tab-group-button";
 import {
@@ -53,7 +53,7 @@ export default function ArtifactPage() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await api.artifact.$get({
+      const res = await cloudyClient.artifact.$get({
         query: { order: "updatedAt:desc" },
       });
       if (!res.ok) {

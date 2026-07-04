@@ -1,5 +1,5 @@
 import { hc } from "hono/client";
-import type { AppType } from "@cloudy/contracts";
+import type { AppType } from "@cloudy/server";
 import { env } from "@/config/env";
 
 let cachedClient: ReturnType<typeof hc<AppType>> | null = null;
@@ -15,4 +15,4 @@ function getClient(): ReturnType<typeof hc<AppType>> {
 }
 
 // TODO resolve this later
-export const api = () => getClient().api;
+export const cloudyClient = () => getClient();

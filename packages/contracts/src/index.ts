@@ -18,4 +18,3 @@
  */
 
 export type { AppType } from "@cloudy/server";
-export type { IdeaModel, MemoryModel, ArtifactModel, ServeModel } from "@cloudy/server";
