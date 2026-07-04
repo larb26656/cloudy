@@ -1,156 +1,115 @@
-# Turborepo starter
+# Cloudy
 
-This Turborepo starter is maintained by the Turborepo core team.
+AI agent sidekick — chat, ideas, memories, and artifacts. Monorepo with a bundled CLI server and a React frontend.
 
-## Using this example
+## Prerequisites
 
-Run the following command:
+- **Node.js** >= 20
+- **pnpm** >= 9 (`npm install -g pnpm`)
 
-```sh
-npx create-turbo@latest
-```
-
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+## Quick Start (Development)
 
 ```sh
-cd my-turborepo
-turbo build
+pnpm install
+pnpm run dev
 ```
 
-Without global `turbo`, use your package manager:
+- API server: http://localhost:3000
+- Web app: http://localhost:3001
+
+## Build & Install CLI
+
+Build everything and install the `cloudy` command globally on your machine:
 
 ```sh
-cd my-turborepo
-npx turbo build
-pnpm dlx turbo build
-pnpm exec turbo build
+# 1. Build frontend + bundle CLI + copy assets
+pnpm build:full
+
+# 2. Create symlink (one-time setup)
+pnpm link:cli
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+> **Note:** `link:cli` targets `/usr/local/bin/cloudy` which requires `sudo`. If it fails with `EACCES`, run the printed `sudo ln -sf ...` command manually. Alternatively, a user-writable dir on your `PATH` (e.g. `~/.bun/bin` or `~/.local/bin`) works without sudo.
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+After that, `cloudy` is available from anywhere:
 
 ```sh
-turbo build --filter=docs
+cloudy serve --ui
 ```
 
-Without global `turbo`:
+This starts the server (API + bundled web UI) at http://localhost:3000. Data is stored at `~/.config/cloudy/data/` by default.
+
+### Rebuilding After Changes
+
+The symlink points to `apps/server/dist/cli.js`, so you only need to rebuild — no re-linking:
 
 ```sh
-npx turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
+pnpm build:full
 ```
 
-### Develop
+### CLI Options
 
-To develop all apps and packages, run the following command:
+```
+cloudy serve [options]
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
+Options:
+  --ui              Serve the bundled web UI
+  --ui-dir <path>   Override UI assets directory (default: ./public next to CLI)
+  -h, --host <addr> Host to bind (default: localhost)
+  -p, --port <num>  Port number (default: 3000)
+  --cors <origins>  Allowed CORS origins, comma-separated
+  --config <path>   Config directory (default: ~/.config/cloudy)
+  --dataDir <path>  Data directory (default: ~/.config/cloudy/data)
 ```
 
-Without global `turbo`, use your package manager:
+## Project Structure
 
-```sh
-cd my-turborepo
-npx turbo dev
-pnpm exec turbo dev
-pnpm exec turbo dev
+```
+apps/
+  server/         Cloudy CLI server (Hono, bundled via tsup)
+  web-app/        React 19 + Vite frontend
+packages/
+  contracts/      Shared TypeScript types
+  database/       Drizzle ORM + PGlite (WASM Postgres)
+  server/         Hono app library (routes, services)
+  eslint-config/  Shared ESLint configs
+  typescript-config/  Shared tsconfig bases
+scripts/
+  copy-assets.ts  Copies drizzle migrations + web assets into dist/
+  link-cli.ts     Creates the global `cloudy` symlink
+  generate-package.ts  Scaffolds new workspace packages
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Bundle Architecture
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+The `cloudy` CLI is bundled into a single file (`apps/server/dist/cli.js`, ~1.4 MB) via tsup:
 
-```sh
-turbo dev --filter=web
-```
+- **Bundled:** `@repo/server`, `@repo/database`, `hono`, `zod`, `drizzle-orm`, and all other pure-JS dependencies
+- **External:** `@electric-sql/pglite` (WASM Postgres — installed as a runtime dependency, resolves its own `.wasm` assets from `node_modules`)
+- **Assets in `dist/`:** `drizzle/` (migration SQL), `public/` (web UI)
 
-Without global `turbo`:
+This keeps the package lean (~3.6 MB tarball) while PGlite handles its own ~16 MB of WASM binaries separately.
 
-```sh
-npx turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
-```
+## Commands
 
-### Remote Caching
+| Command | Description |
+| --- | --- |
+| `pnpm run dev` | Dev all apps concurrently |
+| `pnpm run dev:server` | Dev server only |
+| `pnpm run dev:web-app` | Dev web-app only |
+| `pnpm build:full` | Build all + bundle CLI + copy assets |
+| `pnpm link:cli` | Install `cloudy` symlink globally |
+| `pnpm run lint` | Lint check |
+| `pnpm run check-types` | Type check |
+| `pnpm run format` | Format with Prettier |
+| `pnpm run clean:modules` | Remove all node_modules + lockfile |
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## Publishing (Future)
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+When ready to distribute as an npm package:
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+1. Remove `"private": true` from `apps/server/package.json`
+2. Set the real package name in `"name"`
+3. `cd apps/server && npm publish`
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-pnpm exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-pnpm exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+The `files: ["dist"]` field ensures only the bundle ships — no source code. `@electric-sql/pglite` is declared as a dependency so npm installs it automatically for users.

@@ -8,5 +8,9 @@ export default defineConfig({
   clean: true,
   target: "node20",
   platform: "node",
-  banner: { js: "#!/usr/bin/env node" },
+  banner: {
+    js: `#!/usr/bin/env node
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);`,
+  },
 });

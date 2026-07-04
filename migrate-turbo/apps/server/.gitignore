@@ -30,6 +30,9 @@ lerna-debug.log*
 # build output
 dist/
 
+# generated frontend bundle (populated by copy-ui task)
+public/
+
 # runtime data (PGlite database, idea files, artifact files)
 config/data/
 data/

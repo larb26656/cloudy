@@ -11,6 +11,7 @@ export interface ServerOptions {
   configDir?: string;
   corsOrigins?: string[];
   enableUI?: boolean;
+  publicDir?: string;
   dbMigrationsDir?: string;
 }
 
@@ -27,11 +28,15 @@ export function createServer(options: ServerOptions) {
       cors: options.corsOrigins?.join(','),
     });
 
-    await runMigrations(options.dataDir!, options.dbMigrationsDir);
+    await runMigrations(config.dataDir, options.dbMigrationsDir);
 
     await initContainer(config);
 
-    const app = createApp({ corsOrigins: config.cors, enableUI: config.ui });
+    const app = createApp({
+      corsOrigins: config.cors,
+      enableUI: config.ui,
+      publicDir: options.publicDir,
+    });
 
     server = serve({
       fetch: app.fetch,

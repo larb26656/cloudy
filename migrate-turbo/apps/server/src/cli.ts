@@ -1,6 +1,8 @@
 import { Command } from "commander";
 import pc from "picocolors";
 import { createServer } from "@repo/server";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 function makeText(): string {
   return pc.cyan(
@@ -20,16 +22,28 @@ function makeText(): string {
 
 async function serveCommand(options: {
   ui?: boolean;
+  uiDir?: string;
   host?: string;
   port?: string;
   cors?: string;
   config?: string;
   dataDir?: string;
 }) {
+  const cliDir = dirname(fileURLToPath(import.meta.url));
+
+  let publicDir: string | undefined;
+  if (options.ui) {
+    publicDir = options.uiDir ? resolve(options.uiDir) : join(cliDir, "public");
+  }
+
+  const migrationsDir = join(cliDir, "drizzle");
+
   const server = createServer({
     configDir: options.config,
     dataDir: options.dataDir,
     enableUI: options.ui,
+    publicDir,
+    dbMigrationsDir: migrationsDir,
     host: options.host,
     port: options.port ? Number.parseInt(options.port, 10) : undefined,
     corsOrigins: options.cors
@@ -56,6 +70,7 @@ program
   .command("serve")
   .description("Start Cloudy server")
   .option("--ui", "Serve static UI from public/")
+  .option("--ui-dir <path>", "Directory containing UI static assets (default: ./public next to CLI)")
   .option("-h, --host <address>", "Host to bind")
   .option("-p, --port <number>", "Port number")
   .option("--cors <origins>", "Allowed CORS origins (comma-separated)")

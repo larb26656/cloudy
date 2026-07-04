@@ -366,7 +366,9 @@ export function IdeaDetailView({
   const loadFileContent = useCallback(async () => {
     if (!idea || !selectedFile || !idea.path) return;
     try {
-      const res = await cloudyClient.api.idea[":ideaPath"].files[":filename"].$get({
+      const res = await cloudyClient.api.idea[":ideaPath"].files[
+        ":filename"
+      ].$get({
         param: { ideaPath: idea.path, filename: selectedFile.name },
       });
       if (!res.ok) {
@@ -453,12 +455,12 @@ export function IdeaDetailView({
 
       if (!selectedFile) return;
 
-      const res2 = await cloudyClient.api.idea[":ideaPath"].files[":filename"].$put(
-        {
-          param: { ideaPath: idea.path, filename: selectedFile.name },
-          json: { content },
-        },
-      );
+      const res2 = await cloudyClient.api.idea[":ideaPath"].files[
+        ":filename"
+      ].$put({
+        param: { ideaPath: idea.path, filename: selectedFile.name },
+        json: { content },
+      });
       if (!res2.ok) {
         const data = await res2.json();
         throw new Error(data.message || data.error || "Failed to save file");
