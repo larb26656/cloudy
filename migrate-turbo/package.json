@@ -7,7 +7,10 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
-    "generate:package": "npx tsx scripts/generate-package.ts"
+    "generate:package": "npx tsx scripts/generate-package.ts",
+    "dev:web-app": "turbo run dev --filter=web-app",
+    "build:web-app": "turbo run build --filter=web-app",
+    "check-types:web-app": "turbo run check-types --filter=web-app"
   },
   "devDependencies": {
     "prettier": "^3.7.4",
