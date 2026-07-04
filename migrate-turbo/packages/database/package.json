@@ -1,5 +1,5 @@
 {
-  "name": "@repo/server",
+  "name": "@repo/database",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.js",
@@ -7,6 +7,7 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
+    "./schema": "./dist/schema/index.js",
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -14,35 +15,27 @@
     "dev": "tsup --watch",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --pass-with-no-tests",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@hono/node-server": "^1.15.0",
-    "@hono/standard-validator": "^0.2.2",
-    "@hono/zod-validator": "^0.8.0",
-    "@repo/database": "workspace:*",
-    "@scalar/hono-api-reference": "^0.10.16",
-    "drizzle-orm": "^0.45.2",
-    "gray-matter": "^4.0.3",
-    "hono": "^4.12.18",
-    "hono-openapi": "^1.3.0",
-    "node-cron": "^3.0.3",
-    "zod": "^4.4.3"
+    "@electric-sql/pglite": "^0.4.5",
+    "drizzle-orm": "^0.45.2"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^22.15.3",
-    "@types/node-cron": "^3.0.11",
+    "drizzle-kit": "^0.31.10",
     "eslint": "^9.39.1",
     "tsup": "^8.0.0",
     "tsx": "^4.21.0",
     "typescript": "5.9.2",
     "vite": "^6.0.0",
-    "vitest": "^4.1.6",
-    "vitest-mock-extended": "^4.0.0"
+    "vitest": "^4.1.6"
   }
 }

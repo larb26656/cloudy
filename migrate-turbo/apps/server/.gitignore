@@ -26,3 +26,10 @@ lerna-debug.log*
 
 # misc
 .DS_Store
+
+# build output
+dist/
+
+# runtime data (PGlite database, idea files, artifact files)
+config/data/
+data/
