@@ -1,5 +1,5 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
-import { Sidebar, MobileSidebar } from "@/components/layout/Sidebar";
+import { Sidebar, MobileSidebar } from "@/features/sessions/components";
 import { QuestionBanner } from "@/components/question/QuestionBanner";
 import { QuestionDialog } from "@/components/question/QuestionDialog";
 import { PermissionBanner } from "@/components/permission/PermissionBanner";

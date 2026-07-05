@@ -1,9 +1,12 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { MessageCircle } from "lucide-react";
+import { LampDesk, MessageCircle } from "lucide-react";
 
-const navItems = [{ to: "/", label: "Chat", icon: MessageCircle }];
+const navItems = [
+  { to: "/", label: "Chat", icon: MessageCircle },
+  { to: "/desk", label: "Desk", icon: LampDesk },
+];
 
-export function SidebarNav() {
+export function AppNav() {
   const location = useLocation();
 
   return (

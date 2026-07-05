@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bot, ChevronDown, Search } from "lucide-react";
+import { Bot, ChevronDown, Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import type { Agent } from "@/types/agent";
+import { useAgents } from "@/hooks/queries/useAgents";
 
 const agentModeLabels: Record<string, string> = {
   primary: "Primary",
@@ -17,35 +18,23 @@ const agentModeLabels: Record<string, string> = {
   all: "All",
 };
 
-const MOCK_AGENTS: Agent[] = [
-  {
-    name: "general",
-    description: "General-purpose assistant (mock)",
-    mode: "primary",
-    native: true,
-  },
-  {
-    name: "code",
-    description: "Code-focused sub-agent (mock)",
-    mode: "subagent",
-    native: true,
-  },
-  {
-    name: "plan",
-    description: "Planner agent (mock)",
-    mode: "subagent",
-  },
+const FALLBACK_AGENTS: Agent[] = [
+  { name: "build", description: "Default build agent (offline)", mode: "primary", native: true },
 ];
 
 export function AgentSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(
-    MOCK_AGENTS[0]?.name ?? null,
-  );
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { data, isLoading, error } = useAgents();
+  const agents = data ?? FALLBACK_AGENTS;
 
-  const agents = MOCK_AGENTS;
+  useEffect(() => {
+    if (!selectedAgent && agents.length > 0) {
+      setSelectedAgent(agents[0].name);
+    }
+  }, [agents, selectedAgent]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -96,7 +85,15 @@ export function AgentSelector() {
         </div>
         <DropdownMenuSeparator />
         <div className="max-h-80 overflow-y-auto">
-          {filteredAgents.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : error ? (
+            <div className="p-4 text-sm text-destructive text-center">
+              {(error as Error).message}
+            </div>
+          ) : filteredAgents.length === 0 ? (
             <div className="p-4 text-sm text-muted-foreground text-center">
               No agents found
             </div>

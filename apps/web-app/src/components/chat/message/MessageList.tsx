@@ -13,7 +13,7 @@ interface MessageListProps {
   selectedSessionId: string | null;
   isShowEmptyState?: boolean;
   showShadowEdge?: boolean;
-  onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
+  onSnippetSelect?: (type: "idea" | "memory" | "artifact") | undefined;
   showMinimap?: boolean;
   onCloseMinimap?: () => void;
 }

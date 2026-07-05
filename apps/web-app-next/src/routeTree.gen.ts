@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AppMainLayoutRouteImport } from './routes/_appMainLayout'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/_appMainLayout/index'
+import { Route as AppMainLayoutDeskRouteImport } from './routes/_appMainLayout/desk'
 
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/_appMainLayout',
@@ -21,24 +22,36 @@ const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AppMainLayoutRoute,
 } as any)
+const AppMainLayoutDeskRoute = AppMainLayoutDeskRouteImport.update({
+  id: '/desk',
+  path: '/desk',
+  getParentRoute: () => AppMainLayoutRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AppMainLayoutIndexRoute
+  '/desk': typeof AppMainLayoutDeskRoute
 }
 export interface FileRoutesByTo {
+  '/desk': typeof AppMainLayoutDeskRoute
   '/': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_appMainLayout': typeof AppMainLayoutRouteWithChildren
+  '/_appMainLayout/desk': typeof AppMainLayoutDeskRoute
   '/_appMainLayout/': typeof AppMainLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/desk'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/_appMainLayout' | '/_appMainLayout/'
+  to: '/desk' | '/'
+  id:
+    | '__root__'
+    | '/_appMainLayout'
+    | '/_appMainLayout/desk'
+    | '/_appMainLayout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -61,14 +74,23 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMainLayoutIndexRouteImport
       parentRoute: typeof AppMainLayoutRoute
     }
+    '/_appMainLayout/desk': {
+      id: '/_appMainLayout/desk'
+      path: '/desk'
+      fullPath: '/desk'
+      preLoaderRoute: typeof AppMainLayoutDeskRouteImport
+      parentRoute: typeof AppMainLayoutRoute
+    }
   }
 }
 
 interface AppMainLayoutRouteChildren {
+  AppMainLayoutDeskRoute: typeof AppMainLayoutDeskRoute
   AppMainLayoutIndexRoute: typeof AppMainLayoutIndexRoute
 }
 
 const AppMainLayoutRouteChildren: AppMainLayoutRouteChildren = {
+  AppMainLayoutDeskRoute: AppMainLayoutDeskRoute,
   AppMainLayoutIndexRoute: AppMainLayoutIndexRoute,
 }
 

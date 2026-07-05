@@ -4,6 +4,7 @@ import {
   Cloud,
   Sparkles,
   Cpu,
+  Loader2,
   ChevronDown,
   Search,
 } from "lucide-react";
@@ -18,6 +19,7 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useModels } from "@/hooks/queries/useModels";
 
 const providerIcons: Record<string, React.ReactNode> = {
   openai: <Cloud className="size-4" />,
@@ -31,46 +33,37 @@ const providerNames: Record<string, string> = {
   local: "Local",
 };
 
-const mockModel = (
-  providerID: string,
-  modelID: string,
-  name: string,
-  description: string,
-): ModelConfig => ({
-  providerID,
-  modelID,
-  name,
-  description,
-  maxTokens: 128_000,
-  supportsStreaming: true,
-  supportsTools: true,
-});
-
-const MOCK_PROVIDERS: ModelProvider[] = [
+const FALLBACK_PROVIDERS: ModelProvider[] = [
   {
-    id: "anthropic",
-    name: "Anthropic (mock)",
+    id: "offline",
+    name: "Offline (no backend)",
     models: [
-      mockModel("anthropic", "claude-sonnet-4", "Claude Sonnet 4", "Anthropic • 200,000 context"),
-      mockModel("anthropic", "claude-opus-4", "Claude Opus 4", "Anthropic • 200,000 context"),
+      {
+        providerID: "offline",
+        modelID: "offline",
+        name: "Offline",
+        description: "Cannot reach OC backend",
+        maxTokens: 0,
+        supportsStreaming: false,
+        supportsTools: false,
+      },
     ],
-  },
-  {
-    id: "openai",
-    name: "OpenAI (mock)",
-    models: [mockModel("openai", "gpt-4o", "GPT-4o", "OpenAI • 128,000 context")],
   },
 ];
 
 export function ModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedModel, setSelectedModel] = useState<ModelConfig | null>(
-    MOCK_PROVIDERS[0]?.models[0] ?? null,
-  );
+  const [selectedModel, setSelectedModel] = useState<ModelConfig | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { data, isLoading, error } = useModels();
+  const providers = data ?? FALLBACK_PROVIDERS;
 
-  const providers = MOCK_PROVIDERS;
+  useEffect(() => {
+    if (!selectedModel && providers.length > 0 && providers[0].models.length > 0) {
+      setSelectedModel(providers[0].models[0]);
+    }
+  }, [providers, selectedModel]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -124,7 +117,15 @@ export function ModelSelector() {
         </div>
         <DropdownMenuSeparator />
         <div className="max-h-80 overflow-y-auto">
-          {filteredProviders.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="size-5 animate-spin text-muted-foreground" />
+            </div>
+          ) : error ? (
+            <div className="p-4 text-sm text-destructive text-center">
+              {(error as Error).message}
+            </div>
+          ) : filteredProviders.length === 0 ? (
             <div className="p-4 text-sm text-muted-foreground text-center">
               No models found
             </div>

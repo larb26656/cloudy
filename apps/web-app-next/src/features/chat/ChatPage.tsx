@@ -13,6 +13,7 @@ import { RefreshCw, Sun, Moon, PanelRight, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModelSelector } from "@/components/chat/ModelSelector";
 import { SidebarToggle } from "@/components/layout/SidebarToggle";
+import { useSessionStore } from "@/stores/sessionStore";
 
 type SnippetType = "idea" | "memory" | "artifact";
 
@@ -22,10 +23,9 @@ const snippetPrompts: Record<SnippetType, string> = {
   artifact: "Please help me create an artifact",
 };
 
-const MOCK_SELECTED_SESSION_ID = "session-mock-0001";
-
 export default function ChatPage() {
   const { isMobile } = useDeviceType();
+  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const [initialInput, setInitialInput] = useState<string>("");
   const [showMinimap, setShowMinimap] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -49,10 +49,7 @@ export default function ChatPage() {
         prefixActions={[<SidebarToggle key="sidebar-toggle" />]}
         centerSlot={isMobile ? <ModelSelector /> : undefined}
         actions={[
-          <TokenUsageIndicator
-            key="token"
-            sessionId={MOCK_SELECTED_SESSION_ID}
-          />,
+          <TokenUsageIndicator key="token" sessionId={selectedSessionId} />,
           <DropdownMenu key="menu">
             <DropdownMenuTrigger
               render={
@@ -84,13 +81,8 @@ export default function ChatPage() {
         ]}
       />
       <ChatContainer
-        sessionId={MOCK_SELECTED_SESSION_ID}
-        onSnippetSelect={handleSnippetSelect}
-        initialInput={initialInput}
-        showMinimap={showMinimap}
-        onCloseMinimap={handleCloseMinimap}
+        sessionId={selectedSessionId}
         showModelSelector={!isMobile}
-        isDarkMode={isDarkMode}
       />
     </>
   );

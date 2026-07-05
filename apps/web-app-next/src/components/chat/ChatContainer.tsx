@@ -4,27 +4,16 @@ import { QuestionSheet } from "./QuestionSheet";
 import { useMemo } from "react";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 
-type SnippetType = "idea" | "memory" | "artifact";
-
 interface ChatContainerProps {
   sessionId: string | null;
-  initialInput?: string;
-  onSnippetSelect?: (type: SnippetType) => void;
-  showMinimap?: boolean;
-  onCloseMinimap?: () => void;
   showModelSelector?: boolean;
-  isDarkMode?: boolean;
 }
 
 const MOCK_DIRECTORY = "/tmp/cloudy-mock";
 
 export function ChatContainer({
   sessionId,
-  onSnippetSelect,
-  initialInput,
-  showMinimap = false,
-  onCloseMinimap,
-  showModelSelector = true,
+  showModelSelector = false,
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
 
@@ -41,13 +30,8 @@ export function ChatContainer({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden">
-      <MessageList
-        selectedSessionId={sessionId}
-        onSnippetSelect={onSnippetSelect}
-        showMinimap={showMinimap}
-        onCloseMinimap={onCloseMinimap}
-      />
+    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full">
+      <MessageList selectedSessionId={sessionId} />
 
       <ChatInput
         onSend={handleSend}
@@ -56,7 +40,6 @@ export function ChatContainer({
         isLoading={false}
         placeholder={chatplaceholder}
         directory={MOCK_DIRECTORY}
-        initialValue={initialInput}
         showModelSelector={showModelSelector}
       />
 

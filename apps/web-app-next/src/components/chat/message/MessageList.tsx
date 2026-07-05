@@ -1,75 +1,12 @@
-import { useEffect, useRef, useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
-import type { Message } from "@/types/message";
+import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
 import ThinkingAnimation from "./ThinkingAnimation";
 import { ChatMinimap } from "../ChatMinimap";
-
-const now = Date.now();
-
-const MOCK_MESSAGES: Message[] = [
-  {
-    info: {
-      id: "msg-user-1",
-      sessionID: "session-mock-0001",
-      role: "user",
-      time: { created: now - 1000 * 60 * 4 },
-      parts: [],
-      metadata: {},
-    } as any,
-    parts: [{ type: "text", text: "Hello! What can cloudy do?" } as any],
-  },
-  {
-    info: {
-      id: "msg-assistant-1",
-      sessionID: "session-mock-0001",
-      role: "assistant",
-      agent: "general",
-      time: { created: now - 1000 * 60 * 4 + 1000 },
-      parts: [],
-      metadata: {},
-    } as any,
-    parts: [
-      {
-        id: "msg-assistant-1",
-        type: "text",
-        text: "Hi! This is a **mock response** — the chat UI is wired to inline fixtures, not a real backend yet. Replace via React Query in M4.",
-      } as any,
-    ],
-  },
-  {
-    info: {
-      id: "msg-user-2",
-      sessionID: "session-mock-0001",
-      role: "user",
-      time: { created: now - 1000 * 60 * 3 },
-      parts: [],
-      metadata: {},
-    } as any,
-    parts: [
-      { type: "text", text: "Sounds good, show me around." } as any,
-    ],
-  },
-  {
-    info: {
-      id: "msg-assistant-2",
-      sessionID: "session-mock-0001",
-      role: "assistant",
-      agent: "general",
-      time: { created: now - 1000 * 60 * 3 + 1000 },
-      parts: [],
-      metadata: {},
-    } as any,
-    parts: [
-      {
-        id: "msg-assistant-2",
-        type: "text",
-        text: "Try the model picker, agent picker, and command palette (`/`). Sending a message will be a no-op until wire-up.",
-      } as any,
-    ],
-  },
-];
+import { ErrorState } from "@/components/ui/error-state";
+import { useMessages } from "@/hooks/queries/useMessages";
 
 interface MessageListProps {
   selectedSessionId: string | null;
@@ -88,15 +25,24 @@ export function MessageList({
   showMinimap = false,
   onCloseMinimap,
 }: MessageListProps) {
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    hasPreviousPage,
+    fetchPreviousPage,
+    isFetchingPreviousPage,
+    isFetchPreviousPageError,
+  } = useMessages({
+    sessionId: selectedSessionId ?? "",
+  });
+
+  const messages = data?.pages.flat() ?? ([] as Message[]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
-  const isBusy = false;
   const [showScrollButton, setShowScrollButton] = useState(false);
-
-  const messages = useMemo(() => {
-    if (!selectedSessionId) return [];
-    return MOCK_MESSAGES;
-  }, [selectedSessionId]);
+  const isBusy = false;
 
   const prevMessagesLengthRef = useRef(0);
 
@@ -120,7 +66,10 @@ export function MessageList({
       }
     };
 
-    if (messages.length > 0 && messages.length !== prevMessagesLengthRef.current) {
+    if (
+      messages.length > 0 &&
+      messages.length !== prevMessagesLengthRef.current
+    ) {
       timeoutId = setTimeout(scrollToBottom, 16);
     }
 
@@ -148,6 +97,25 @@ export function MessageList({
     }
   };
 
+  if (isLoading && messages.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="animate-pulse flex flex-col items-center gap-3">
+          <div className="w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded-full" />
+          <div className="w-48 h-4 bg-gray-300 dark:bg-gray-700 rounded" />
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <ErrorState message={error.message} onRetry={() => refetch()} />
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex-1 min-h-0">
       <div
@@ -156,9 +124,22 @@ export function MessageList({
         className="absolute inset-0 flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
       >
         {messages.length === 0 ? (
-          isShowEmptyState && <EmptyChatState onSnippetSelect={onSnippetSelect} />
+          isShowEmptyState && (
+            <EmptyChatState onSnippetSelect={onSnippetSelect} />
+          )
         ) : (
           <div className="max-w-4xl mx-auto space-y-4 pb-4">
+            {hasPreviousPage && (
+              <div className="flex justify-center py-2">
+                <button
+                  onClick={() => fetchPreviousPage()}
+                  disabled={isFetchingPreviousPage}
+                  className="px-4 py-2 text-sm bg-muted hover:bg-muted/80 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {isFetchingPreviousPage ? "Loading..." : "Load More"}
+                </button>
+              </div>
+            )}
             {messages.map((message: Message) => (
               <MessageBubble
                 key={message.info.id}

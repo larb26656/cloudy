@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { formatRelativeFromTimestamp } from "@/lib/date";
 import type { Session, SessionStatus } from "@opencode-ai/sdk/v2";
-import { Button } from "../ui/button";
+import { Button } from "@/components/ui/button";
 
 interface SessionItemProps {
   session: Session;
@@ -43,7 +43,6 @@ export function SessionItem({
     setShowMenu(false);
   };
 
-  // TODO fix this later
   const getStatusColor = () => {
     const type = status?.type;
     switch (type) {

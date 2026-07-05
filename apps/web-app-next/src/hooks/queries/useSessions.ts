@@ -1,7 +1,27 @@
-export function useSessions() {
-  throw new Error(
-    "useSessions: not implemented (M4 wire-up). Mock store still in use.",
-  );
+import {
+  getErrorMessage,
+  getOcClient,
+  sessionKeys,
+  type SdkError,
+} from "@/lib/opencode";
+import type { Session } from "@opencode-ai/sdk/v2";
+import { useQuery } from "@tanstack/react-query";
+
+export function useSessions({ directory }: { directory: string }) {
+  return useQuery({
+    queryKey: sessionKeys.infinite(directory),
+    queryFn: async (): Promise<Session[]> => {
+      const oc = getOcClient();
+      const result = await oc.session.list({ directory });
+      if (result.error) {
+        throw new Error(getErrorMessage(result.error as SdkError));
+      }
+      const data = result.data;
+
+      return data;
+    },
+    enabled: !!directory,
+  });
 }
 
 export function useCreateSession() {

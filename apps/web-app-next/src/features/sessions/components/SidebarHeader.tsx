@@ -5,7 +5,7 @@ import {
   InputGroupInput,
   InputGroupAddon,
 } from "@/components/ui/input-group";
-import { SidebarNav } from "./SidebarNav";
+import { AppNav } from "@/features/app/components";
 
 interface SidebarHeaderProps {
   onSearchChange: (query: string) => void;
@@ -20,7 +20,7 @@ export function SidebarHeader({
 }: SidebarHeaderProps) {
   return (
     <div className="flex flex-col">
-      <SidebarNav />
+      <AppNav />
       <div className="flex gap-2 p-2">
         <InputGroup>
           <InputGroupAddon>

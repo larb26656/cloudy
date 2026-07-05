@@ -8,6 +8,7 @@ export const sessionKeys = {
 export const messageKeys = {
   root: () => ["messages"] as const,
   list: (sessionId: string) => ["messages", "list", sessionId] as const,
+  infinite: (sessionId: string) => ["messages", "infinite", sessionId] as const,
 };
 
 export const agentKeys = {

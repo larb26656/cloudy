@@ -1,34 +1,56 @@
-import { SessionItem } from "./SessionItem";
 import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { useState } from "react";
+import { useSessions } from "@/hooks/queries";
+import { OC_DIRECTORY } from "@/lib/opencode";
 import type { Session } from "@opencode-ai/sdk/v2";
+import { SessionItem } from "./SessionItem";
+import { useSessionStore } from "@/stores/sessionStore";
 
 type SessionListProps = {
   searchQuery: string;
-  sessions: Session[];
 };
 
-export function SessionList({ searchQuery, sessions }: SessionListProps) {
+export function SessionList({ searchQuery }: SessionListProps) {
   const navigate = useNavigate();
   const { location } = useRouterState();
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
-    sessions[0]?.id ?? null,
-  );
+  const { data: sessions = [], isLoading, error } = useSessions({ directory: OC_DIRECTORY });
+  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
+  const selectSession = useSessionStore((s) => s.selectSession);
 
   const filteredSessions = sessions
-    .filter((session) => !session.parentID)
-    .filter((session) =>
+    .filter((session: Session) => !session.parentID)
+    .filter((session: Session) =>
       (session.title || "New Chat")
         .toLowerCase()
         .includes(searchQuery.toLowerCase()),
     );
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 p-2 min-h-0 overflow-y-auto">
+        <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center p-4">
+          <p className="text-muted-foreground mb-3">Loading sessions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 p-2 min-h-0 overflow-y-auto">
+        <div className="flex flex-col items-center justify-center h-full min-h-[200px] text-center p-4">
+          <p className="text-destructive mb-3">Failed to load sessions</p>
+          <p className="text-muted-foreground text-sm">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleSelect = (sessionId: string) => {
     const isInChat = location.pathname.startsWith("/");
     if (!isInChat) {
       void navigate({ to: "/" });
     }
-    setSelectedSessionId(sessionId);
+    selectSession(sessionId);
   };
 
   const handleFork = (_sessionId: string) => {
@@ -52,7 +74,7 @@ export function SessionList({ searchQuery, sessions }: SessionListProps) {
   return (
     <div className="flex-1 p-2 min-h-0 overflow-y-auto">
       <div className="space-y-1">
-        {filteredSessions.map((session) => (
+        {filteredSessions.map((session: Session) => (
           <SessionItem
             key={session.id}
             session={session}
