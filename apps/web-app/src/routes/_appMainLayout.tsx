@@ -13,9 +13,10 @@ import {
 import { useDeviceType } from "@/hooks";
 import { useChatUIStore } from "@/stores/chatUIStore";
 import { useEffect, useState } from "react";
-import { useStore } from "@/hooks/instanceScopeHook";
+import { useStore, getStore } from "@/hooks/instanceScopeHook";
 import { useInstanceStore } from "@/stores/instanceStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useLastSessionStore } from "@/stores/lastSessionStore";
 import StatusBar from "@/components/StatusBar";
 
 export const Route = createFileRoute("/_appMainLayout")({
@@ -52,11 +53,21 @@ function AppMainLayoutContent({ activeInstanceId }: AppMainLayoutContentProps) {
 
   useEffect(() => {
     if (selectedDirectory) {
-      loadSessions(selectedDirectory);
+      loadSessions(selectedDirectory).then(() => {
+        const workspace = useWorkspaceStore.getState().getCurrentWorkspace();
+        if (!workspace) return;
+        const lastSessionId = useLastSessionStore.getState().getLastSession(workspace.id);
+        if (!lastSessionId) return;
+        const sessionStore = getStore("session", activeInstanceId);
+        const exists = sessionStore.getState().sessions.some((s) => s.id === lastSessionId);
+        if (exists) {
+          sessionStore.getState().selectSession(lastSessionId);
+        }
+      });
       loadQuestions(selectedDirectory);
       loadPermissions(selectedDirectory);
     }
-  }, [selectedDirectory, loadSessions, loadQuestions, loadPermissions]);
+  }, [selectedDirectory, loadSessions, loadQuestions, loadPermissions, activeInstanceId]);
 
   if (isMobile || isTablet) {
     return (

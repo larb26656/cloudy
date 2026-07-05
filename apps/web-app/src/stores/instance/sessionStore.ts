@@ -1,6 +1,8 @@
 import { createDefaultTitle, getErrorMessage, type SdkError, type OCClient } from "@/lib/opencode";
 import type { QuestionRequest, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import { create } from "zustand";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useLastSessionStore } from "@/stores/lastSessionStore";
 
 export interface ForkSessionResult {
     success: boolean;
@@ -114,28 +116,30 @@ export const createSessionStore = (oc: OCClient) => create<SessionStore>()(
 
         createTempSession: () => {
             console.log("create session temp");
+            const workspace = useWorkspaceStore.getState().getCurrentWorkspace();
+            if (workspace) {
+                useLastSessionStore.getState().clearLastSession(workspace.id);
+            }
             set({
                 selectedSessionId: null,
             });
         },
 
         setCreateSession: (session: Session) => {
-            // skip auto select for sub agent session
-            if (!session.parentID) {
-                set((state) => ({
-                    sessions: [session, ...state.sessions],
-                    selectedSessionId: session.id,
-                }));
-
-                return;
-            }
-
             set((state) => ({
                 sessions: [session, ...state.sessions],
             }));
+            // skip auto select for sub agent session
+            if (!session.parentID) {
+                get().selectSession(session.id);
+            }
         },
 
         selectSession: (sessionId: string) => {
+            const workspace = useWorkspaceStore.getState().getCurrentWorkspace();
+            if (workspace) {
+                useLastSessionStore.getState().setLastSession(workspace.id, sessionId);
+            }
             set({ selectedSessionId: sessionId });
         },
 
@@ -164,14 +168,18 @@ export const createSessionStore = (oc: OCClient) => create<SessionStore>()(
                 set({ error: getErrorMessage(result.error as SdkError) });
                 return;
             }
-            set((state: any) => {
-                const newSessions = state.sessions.filter((s: Session) => s.id !== sessionId);
-                const newCurrentId =
-                    state.currentSessionId === sessionId
-                        ? newSessions[0]?.id || null
-                        : state.currentSessionId;
-                return { sessions: newSessions, selectedSessionId: newCurrentId };
-            });
+            const state = get();
+            const newSessions = state.sessions.filter((s: Session) => s.id !== sessionId);
+            set({ sessions: newSessions });
+
+            if (state.selectedSessionId === sessionId) {
+                const fallbackId = newSessions[0]?.id;
+                if (fallbackId) {
+                    get().selectSession(fallbackId);
+                } else {
+                    get().createTempSession();
+                }
+            }
         },
 
         forkSession: async (sessionId: string, messageId: string): Promise<ForkSessionResult> => {
@@ -188,8 +196,8 @@ export const createSessionStore = (oc: OCClient) => create<SessionStore>()(
             if (session) {
                 set((state: any) => ({
                     sessions: [session, ...state.sessions],
-                    selectedSessionId: session.id,
                 }));
+                get().selectSession(session.id);
                 return { success: true, session };
             }
             return { success: false, error: "No session returned" };

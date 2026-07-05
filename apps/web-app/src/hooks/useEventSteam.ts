@@ -3,7 +3,7 @@ import { useWorkspaceStore } from "@/stores/workspaceStore"
 import type { Event as OpencodeEvent } from "@opencode-ai/sdk/v2";
 import { handleEvent } from "@/events/eventRoute";
 import { useInstanceStore, type Instance } from "@/stores/instanceStore";
-import { getOC } from "./instanceScopeHook";
+import { getOC, getStore } from "./instanceScopeHook";
 
 export function connectEvent(instance: Instance, directory: string) {
     const oc = getOC(instance.id);
@@ -38,6 +38,10 @@ export function createConnection(instance: Instance, directory: string) {
         if (document.visibilityState === "visible") {
             es?.close();
             connect();
+            const selectedSessionId = getStore("session", instance.id).getState().selectedSessionId;
+            if (selectedSessionId) {
+                void getStore("message", instance.id).getState().loadMessages(selectedSessionId);
+            }
         }
     };
 

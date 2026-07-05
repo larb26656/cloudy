@@ -46,15 +46,38 @@ export function MessageList({
     return messagesMap[selectedSessionId] || [];
   }, [messagesMap, selectedSessionId]);
 
-  // Auto-scroll to bottom when messages change
+  const prevMessagesLengthRef = useRef(0);
+
+  // Auto-scroll to bottom when messages change (debounced to prevent snap-back during streaming)
   useEffect(() => {
-    if (shouldScrollRef.current && scrollRef.current && messages.length > 0) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: "smooth",
-      });
+    let rafId: number;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const scrollToBottom = () => {
+      if (!shouldScrollRef.current || !scrollRef.current) return;
+
+      const targetHeight = scrollRef.current.scrollHeight;
+
+      if (targetHeight !== prevMessagesLengthRef.current) {
+        prevMessagesLengthRef.current = targetHeight;
+        rafId = requestAnimationFrame(() => {
+          scrollRef.current?.scrollTo({
+            top: targetHeight,
+            behavior: "smooth",
+          });
+        });
+      }
+    };
+
+    if (messages.length > 0 && messages.length !== prevMessagesLengthRef.current) {
+      timeoutId = setTimeout(scrollToBottom, 16);
     }
-  }, [messages]);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, [messages.length]);
 
   // Handle scroll - pause auto-scroll if user scrolls up
   const handleScroll = () => {

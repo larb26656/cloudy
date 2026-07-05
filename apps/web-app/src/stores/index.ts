@@ -6,3 +6,4 @@ export { useMemoryStore } from './memoryStore';
 export { useFileCacheStore } from './fileCacheStore';
 export { useTextHistoryStore } from './textHistoryStore';
 export { useContextStore } from './contextStore';
+export { useLastSessionStore } from './lastSessionStore';
