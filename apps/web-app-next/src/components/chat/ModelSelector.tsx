@@ -20,6 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useModels } from "@/hooks/queries/useModels";
+import { useDefaultModelStore } from "@/stores/defaultModelStore";
 
 const providerIcons: Record<string, React.ReactNode> = {
   openai: <Cloud className="size-4" />,
@@ -54,7 +55,7 @@ const FALLBACK_PROVIDERS: ModelProvider[] = [
 export function ModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedModel, setSelectedModel] = useState<ModelConfig | null>(null);
+  const [selectedModel, setSelectedModel] = useState<ModelConfig | null>(() => useDefaultModelStore.getState().defaultModel);
   const inputRef = useRef<HTMLInputElement>(null);
   const { data, isLoading, error } = useModels();
   const providers = data ?? FALLBACK_PROVIDERS;
@@ -91,6 +92,7 @@ export function ModelSelector() {
 
   const handleSelectModel = (model: ModelConfig | null) => {
     setSelectedModel(model);
+    useDefaultModelStore.getState().setDefaultModel(model);
     setIsOpen(false);
     setSearchQuery("");
   };

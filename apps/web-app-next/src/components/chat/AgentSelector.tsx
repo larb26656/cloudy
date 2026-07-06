@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Agent } from "@/types/agent";
 import { useAgents } from "@/hooks/queries/useAgents";
+import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 
 const agentModeLabels: Record<string, string> = {
   primary: "Primary",
@@ -25,7 +26,7 @@ const FALLBACK_AGENTS: Agent[] = [
 export function AgentSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(() => useDefaultAgentStore.getState().defaultAgent);
   const inputRef = useRef<HTMLInputElement>(null);
   const { data, isLoading, error } = useAgents();
   const agents = data ?? FALLBACK_AGENTS;
@@ -59,6 +60,7 @@ export function AgentSelector() {
 
   const handleSelectAgent = (agentName: string | null) => {
     setSelectedAgent(agentName);
+    useDefaultAgentStore.getState().setDefaultAgent(agentName);
     setIsOpen(false);
     setSearchQuery("");
   };
