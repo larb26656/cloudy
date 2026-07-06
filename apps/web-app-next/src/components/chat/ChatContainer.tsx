@@ -3,6 +3,8 @@ import { ChatInput } from "./chat-input";
 import { QuestionSheet } from "./QuestionSheet";
 import { useMemo } from "react";
 import { generatePlaceholder } from "@/lib/greeting-generator";
+import { useSendMessage } from "@/hooks/queries/useMessages";
+import { type ChatInputContent } from "@/lib/opencode";
 
 interface ChatContainerProps {
   sessionId: string | null;
@@ -16,9 +18,16 @@ export function ChatContainer({
   showModelSelector = false,
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
+  const sendMessage = useSendMessage();
 
-  const handleSend = () => {
-    // mock: no-op. Wire to React Query in M4.
+  const handleSend = (content: ChatInputContent) => {
+    if (!sessionId) return;
+    sendMessage.mutate({
+      sessionId,
+      content: content.text,
+      // TOOD remove this later?
+      directory: MOCK_DIRECTORY,
+    });
   };
 
   const handleAbort = () => {
@@ -37,7 +46,7 @@ export function ChatContainer({
         onSend={handleSend}
         onImmediateCommand={handleImmediateCommand}
         onAbort={handleAbort}
-        isLoading={false}
+        isLoading={sendMessage.isPending}
         placeholder={chatplaceholder}
         directory={MOCK_DIRECTORY}
         showModelSelector={showModelSelector}

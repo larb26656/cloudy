@@ -9,7 +9,7 @@ import {
   ResizablePanelGroup,
   ResizableHandle,
 } from "@/components/ui/resizable";
-import { useDeviceType } from "@/hooks";
+import { useDeviceType, useStreamingMessages } from "@/hooks";
 import { useEffect, useState } from "react";
 import StatusBar from "@/components/StatusBar";
 
@@ -24,6 +24,8 @@ function AppMainLayoutContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
+
+  useStreamingMessages();
 
   useEffect(() => {
     if (isMobile) setSidebarOpen(false);

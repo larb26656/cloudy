@@ -6,7 +6,11 @@ import {
 } from "@/lib/opencode";
 import { encodeCursor } from "@/lib/opencode/cursor";
 import type { Message } from "@/types";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 
 const MESSAGES_LIMIT = 5;
 
@@ -40,7 +44,35 @@ export function useMessages({ sessionId }: { sessionId: string }) {
 }
 
 export function useSendMessage() {
-  throw new Error("useSendMessage: not implemented (M4 wire-up).");
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      sessionId,
+      content,
+      directory,
+    }: {
+      sessionId: string;
+      content: string;
+      directory?: string;
+    }) => {
+      const oc = getOcClient();
+      const result = await oc.session.promptAsync({
+        sessionID: sessionId,
+        parts: [{ type: "text" as const, text: content }],
+        directory,
+      });
+      if (result.error) {
+        throw new Error(getErrorMessage(result.error as SdkError));
+      }
+      return result;
+    },
+    // onSuccess: (_, variables) => {
+    //   // TODO make event handle this
+    //   queryClient.invalidateQueries({
+    //     queryKey: messageKeys.infinite(variables.sessionId),
+    //   });
+    // },
+  });
 }
 
 export function useAbortGeneration() {

@@ -7,6 +7,7 @@ import ThinkingAnimation from "./ThinkingAnimation";
 import { ChatMinimap } from "../ChatMinimap";
 import { ErrorState } from "@/components/ui/error-state";
 import { useMessages } from "@/hooks/queries/useMessages";
+import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 
 interface MessageListProps {
   selectedSessionId: string | null;
@@ -33,16 +34,25 @@ export function MessageList({
     hasPreviousPage,
     fetchPreviousPage,
     isFetchingPreviousPage,
-    isFetchPreviousPageError,
   } = useMessages({
     sessionId: selectedSessionId ?? "",
   });
 
   const messages = data?.pages.flat() ?? ([] as Message[]);
+
+  const streamingMessage = useStreamingMessagesStore((state) =>
+    selectedSessionId ? state.getStreamingMessage(selectedSessionId) : undefined
+  );
+
+  const allMessages = streamingMessage
+    ? [...messages, streamingMessage.message]
+    : messages;
+
+  const isStreaming = streamingMessage?.status === "streaming";
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const isBusy = false;
 
   const prevMessagesLengthRef = useRef(0);
 
@@ -123,7 +133,7 @@ export function MessageList({
         onScroll={handleScroll}
         className="absolute inset-0 flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
       >
-        {messages.length === 0 ? (
+        {allMessages.length === 0 ? (
           isShowEmptyState && (
             <EmptyChatState onSnippetSelect={onSnippetSelect} />
           )
@@ -140,14 +150,14 @@ export function MessageList({
                 </button>
               </div>
             )}
-            {messages.map((message: Message) => (
+            {allMessages.map((message: Message) => (
               <MessageBubble
                 key={message.info.id}
                 message={message}
-                isStreaming={false}
+                isStreaming={streamingMessage?.message.info.id === message.info.id && isStreaming}
               />
             ))}
-            {isBusy && (
+            {isStreaming && (
               <div className="mt-2">
                 <ThinkingAnimation />
               </div>
@@ -173,7 +183,7 @@ export function MessageList({
         </div>
       )}
       <ChatMinimap
-        messages={messages}
+        messages={allMessages}
         scrollRef={scrollRef}
         isVisible={showMinimap}
         onClose={onCloseMinimap}
