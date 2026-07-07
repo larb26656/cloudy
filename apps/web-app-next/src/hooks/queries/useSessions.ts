@@ -43,15 +43,23 @@ export function useCreateSession() {
       model?: ModelConfig;
     }): Promise<Session> => {
       const oc = getOcClient();
-      const result = await oc.session.create({
-        directory,
-        parentID,
-        title,
-        agent,
-        model: model
-          ? { id: model.modelID, providerID: model.providerID }
-          : undefined,
-      });
+      console.log(directory);
+      const result = await oc.session.create(
+        {
+          directory,
+          parentID,
+          title,
+          agent,
+          model: model
+            ? { id: model.modelID, providerID: model.providerID }
+            : undefined,
+        },
+        {
+          headers: {
+            "x-opencode-directory": directory,
+          },
+        },
+      );
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }

@@ -4,14 +4,15 @@ import { QuestionSheet } from "./QuestionSheet";
 import { useMemo } from "react";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useSendMessage } from "@/hooks/queries/useMessages";
+import { useCreateSession } from "@/hooks/queries/useSessions";
 import { type ChatInputContent } from "@/lib/opencode";
+import { MOCK_DIRECTORY } from "@/constants/mock";
+import { useSessionStore } from "@/stores/sessionStore";
 
 interface ChatContainerProps {
   sessionId: string | null;
   showModelSelector?: boolean;
 }
-
-const MOCK_DIRECTORY = "/tmp/cloudy-mock";
 
 export function ChatContainer({
   sessionId,
@@ -19,9 +20,25 @@ export function ChatContainer({
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
   const sendMessage = useSendMessage();
+  const createSession = useCreateSession();
+  const selectSession = useSessionStore((s) => s.selectSession);
 
   const handleSend = (content: ChatInputContent) => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      createSession.mutate(
+        { directory: MOCK_DIRECTORY },
+        {
+          onSuccess: (newSession) => {
+            sendMessage.mutate({
+              sessionId: newSession.id,
+              content: content.text,
+            });
+            selectSession(newSession.id);
+          },
+        },
+      );
+      return;
+    }
     sendMessage.mutate({
       sessionId,
       content: content.text,

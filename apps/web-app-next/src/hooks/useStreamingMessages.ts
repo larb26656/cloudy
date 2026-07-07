@@ -77,7 +77,8 @@ function handleEvent(
 
     case "session.updated": {
       const props = event.payload.properties;
-      console.log("[useStreamingMessages] session.updated:", props.sessionID);
+      console.log(event);
+      console.log("[useStreamingMessages] session.updated:", props.info.id);
       queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
       break;
     }

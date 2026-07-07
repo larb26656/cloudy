@@ -1,9 +1,9 @@
 import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { useSessions } from "@/hooks/queries";
-import { OC_DIRECTORY } from "@/lib/opencode";
 import type { Session } from "@opencode-ai/sdk/v2";
 import { SessionItem } from "./SessionItem";
 import { useSessionStore } from "@/stores/sessionStore";
+import { MOCK_DIRECTORY } from "@/constants/mock";
 
 type SessionListProps = {
   searchQuery: string;
@@ -12,7 +12,11 @@ type SessionListProps = {
 export function SessionList({ searchQuery }: SessionListProps) {
   const navigate = useNavigate();
   const { location } = useRouterState();
-  const { data: sessions = [], isLoading, error } = useSessions({ directory: OC_DIRECTORY });
+  const {
+    data: sessions = [],
+    isLoading,
+    error,
+  } = useSessions({ directory: MOCK_DIRECTORY });
   const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const selectSession = useSessionStore((s) => s.selectSession);
 

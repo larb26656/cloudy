@@ -9,6 +9,7 @@ import { shouldShowSlashCommand } from "@/lib/command";
 import { useEffect, useMemo } from "react";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
+import { MOCK_DIRECTORY } from "@/constants/mock";
 
 interface ChatInputEditorProps {
   content: ChatInputContent;
@@ -30,8 +31,6 @@ function getMentions(editor: Editor) {
 
   return mentions;
 }
-
-const MOCK_DIRECTORY = "/tmp/cloudy-mock";
 
 export function ChatInputEditor({
   content,

@@ -7,12 +7,14 @@ import {
 } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
+import { MOCK_DIRECTORY } from "@/constants/mock";
+
 const MOCK_WORKSPACE = {
   id: "workspace-mock-0001",
   instanceId: "instance-mock-0001",
   name: "Mock",
   color: "#3B82F6" as const,
-  directory: "/tmp/cloudy-mock",
+  directory: MOCK_DIRECTORY,
   createdAt: Date.now(),
 };
 
