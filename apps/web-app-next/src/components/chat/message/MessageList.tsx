@@ -26,6 +26,7 @@ export function MessageList({
   showMinimap = false,
   onCloseMinimap,
 }: MessageListProps) {
+  const { streamingMessages } = useStreamingMessagesStore();
   const {
     data,
     isLoading,
@@ -38,17 +39,18 @@ export function MessageList({
     sessionId: selectedSessionId ?? "",
   });
 
-  const messages = data?.pages.flat() ?? ([] as Message[]);
+  const sessionStreaming = selectedSessionId
+    ? Array.from(streamingMessages.get(selectedSessionId)?.values() ?? [])
+    : [];
+  const streamingIds = new Set(sessionStreaming.map((m) => m.info.id));
 
-  const streamingMessage = useStreamingMessagesStore((state) =>
-    selectedSessionId ? state.getStreamingMessage(selectedSessionId) : undefined
+  const cachedMessages = (data?.pages.flat() ?? ([] as Message[])).filter(
+    (m) => !streamingIds.has(m.info.id),
   );
 
-  const allMessages = streamingMessage
-    ? [...messages, streamingMessage.message]
-    : messages;
+  const allMessages = cachedMessages;
 
-  const isStreaming = streamingMessage?.status === "streaming";
+  const isStreaming = sessionStreaming.length > 0;
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
@@ -77,8 +79,8 @@ export function MessageList({
     };
 
     if (
-      messages.length > 0 &&
-      messages.length !== prevMessagesLengthRef.current
+      allMessages.length > 0 &&
+      allMessages.length !== prevMessagesLengthRef.current
     ) {
       timeoutId = setTimeout(scrollToBottom, 16);
     }
@@ -87,7 +89,7 @@ export function MessageList({
       if (rafId) cancelAnimationFrame(rafId);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [messages.length]);
+  }, [allMessages.length]);
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -107,7 +109,7 @@ export function MessageList({
     }
   };
 
-  if (isLoading && messages.length === 0) {
+  if (isLoading && allMessages.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-3">
@@ -154,9 +156,30 @@ export function MessageList({
               <MessageBubble
                 key={message.info.id}
                 message={message}
-                isStreaming={streamingMessage?.message.info.id === message.info.id && isStreaming}
+                isStreaming={false}
               />
             ))}
+            {sessionStreaming.map((message: Message) => (
+              <div
+                key={`streaming-${message.info.id}`}
+                className="bg-amber-100"
+              >
+                <MessageBubble message={message} isStreaming />
+              </div>
+            ))}
+            {/*{selectedSessionId}
+            <pre className="text-xs whitespace-pre-wrap break-all bg-muted/50 p-2 rounded">
+              {JSON.stringify(
+                Object.fromEntries(
+                  Array.from(streamingMessages, ([sid, msgs]) => [
+                    sid,
+                    Object.fromEntries(msgs),
+                  ]),
+                ),
+                null,
+                2,
+              )}
+            </pre>*/}
             {isStreaming && (
               <div className="mt-2">
                 <ThinkingAnimation />

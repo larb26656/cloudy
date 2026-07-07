@@ -25,8 +25,6 @@ export function ChatContainer({
     sendMessage.mutate({
       sessionId,
       content: content.text,
-      // TOOD remove this later?
-      directory: MOCK_DIRECTORY,
     });
   };
 

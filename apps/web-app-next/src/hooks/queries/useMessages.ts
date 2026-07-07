@@ -12,7 +12,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 
-const MESSAGES_LIMIT = 5;
+const MESSAGES_LIMIT = 20;
 
 export function useMessages({ sessionId }: { sessionId: string }) {
   return useInfiniteQuery({

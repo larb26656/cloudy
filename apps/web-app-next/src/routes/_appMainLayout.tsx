@@ -12,6 +12,7 @@ import {
 import { useDeviceType, useStreamingMessages } from "@/hooks";
 import { useEffect, useState } from "react";
 import StatusBar from "@/components/StatusBar";
+import { useSidebarStore } from "@/stores/sidebarStore";
 
 export const Route = createFileRoute("/_appMainLayout")({
   component: AppMainLayout,
@@ -21,7 +22,8 @@ const MOCK_INSTANCE_ID = "instance-mock-0001";
 
 function AppMainLayoutContent() {
   const { isMobile, isTablet } = useDeviceType();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const sidebarOpen = useSidebarStore((s) => s.sidebarOpen);
+  const setSidebarOpen = useSidebarStore((s) => s.setSidebarOpen);
   const [questionDialogOpen, setQuestionDialogOpen] = useState(false);
   const [permissionDialogOpen, setPermissionDialogOpen] = useState(false);
 
@@ -29,7 +31,7 @@ function AppMainLayoutContent() {
 
   useEffect(() => {
     if (isMobile) setSidebarOpen(false);
-  }, [isMobile]);
+  }, [isMobile, setSidebarOpen]);
 
   if (isMobile || isTablet) {
     return (
@@ -81,7 +83,9 @@ function AppMainLayoutContent() {
               <PermissionBanner
                 onOpenDialog={() => setPermissionDialogOpen(true)}
               />
-              <QuestionBanner onOpenDialog={() => setQuestionDialogOpen(true)} />
+              <QuestionBanner
+                onOpenDialog={() => setQuestionDialogOpen(true)}
+              />
               <Outlet />
             </div>
           </ResizablePanel>

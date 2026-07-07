@@ -4,25 +4,26 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useState } from "react";
+import { useSidebarStore } from "@/stores/sidebarStore";
 
 export function SidebarToggle() {
-  const [open, setOpen] = useState(true);
+  const sidebarOpen = useSidebarStore((s) => s.sidebarOpen);
+  const toggleSidebar = useSidebarStore((s) => s.toggleSidebar);
 
   return (
     <Tooltip>
       <TooltipTrigger
-        onClick={() => setOpen((v) => !v)}
+        onClick={toggleSidebar}
         className="h-9 w-9 shrink-0 inline-flex items-center justify-center rounded-md hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground"
       >
-        {open ? (
+        {sidebarOpen ? (
           <PanelLeftClose className="size-5" />
         ) : (
           <PanelLeft className="size-5" />
         )}
       </TooltipTrigger>
       <TooltipContent>
-        {open ? "Close sidebar" : "Open sidebar"} (Cmd+B)
+        {sidebarOpen ? "Close sidebar" : "Open sidebar"} (Cmd+B)
       </TooltipContent>
     </Tooltip>
   );
