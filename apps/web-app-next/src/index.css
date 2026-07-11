@@ -214,6 +214,11 @@
   height: 100dvh;
 }
 
+.scrollbar-none {
+  -webkit-scrollbar { display: none !important; }
+  scrollbar-width: none !important;
+}
+
 [data-slot="field-label"].required::after {
   content: " *";
   color: var(--destructive);

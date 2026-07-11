@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Home, MessageCircle } from "lucide-react";
+import { Home, MessageCircle, X } from "lucide-react";
 
 import { useTabStore } from "@/stores/tabStore";
 import { cn } from "@/lib/utils";
@@ -24,9 +24,7 @@ function TabItem({ icon, label, isActive, onClick, onClose }: TabItemProps) {
       )}
     >
       <span className="[&>svg]:size-4">{icon}</span>
-      {label && (
-        <span className="text-[13px] max-w-30 truncate">{label}</span>
-      )}
+      {label && <span className="text-[13px] max-w-30 truncate">{label}</span>}
       {onClose && (
         <span
           onClick={(e) => {
@@ -35,28 +33,10 @@ function TabItem({ icon, label, isActive, onClick, onClose }: TabItemProps) {
           }}
           className="ml-1 rounded p-0.5 hover:bg-muted"
         >
-          <CloseIcon />
+          <X size={12} />
         </span>
       )}
     </button>
-  );
-}
-
-function CloseIcon() {
-  return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="size-3"
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
   );
 }
 
@@ -67,22 +47,24 @@ export function MainTabBar() {
   const removeTab = useTabStore((s) => s.removeTab);
 
   return (
-    <div className="flex border-b">
+    <div className="flex">
       <TabItem
         icon={<Home />}
         isActive={activeTabId === "home"}
         onClick={() => setActiveTab("home")}
       />
-      {tabs.map((tab) => (
-        <TabItem
-          key={tab.id}
-          icon={<MessageCircle />}
-          label={tab.data.sessionName}
-          isActive={activeTabId === tab.id}
-          onClick={() => setActiveTab(tab.id)}
-          onClose={() => removeTab(tab.id)}
-        />
-      ))}
+      <div className="flex flex-1 border-b overflow-x-auto scrollbar-none">
+        {tabs.map((tab) => (
+          <TabItem
+            key={tab.id}
+            icon={<MessageCircle />}
+            label={tab.data.sessionName}
+            isActive={activeTabId === tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            onClose={() => removeTab(tab.id)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

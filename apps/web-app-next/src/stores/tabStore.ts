@@ -11,7 +11,7 @@ type Tab = { id: string; type: "session"; data: SessionData };
 
 interface TabStore {
   tabs: Tab[];
-  activeTabId: string | null;
+  activeTabId: string;
   addTab: {
     (type: "session", data: SessionData): string;
   };
@@ -25,7 +25,7 @@ export const useTabStore = create<TabStore>()(
   persist(
     (set, get) => ({
       tabs: [],
-      activeTabId: null,
+      activeTabId: "home",
 
       addTab: (type, data) => {
         const id = crypto.randomUUID();
@@ -57,8 +57,8 @@ export const useTabStore = create<TabStore>()(
 
       setActiveTab: (id) => set({ activeTabId: id }),
 
-      clearAll: () => set({ tabs: [], activeTabId: null }),
+      clearAll: () => set({ tabs: [], activeTabId: "home" }),
     }),
-    { name: "tabs" },
+    { name: "tabs", partialize: (state) => ({ tabs: state.tabs }) },
   ),
 );
