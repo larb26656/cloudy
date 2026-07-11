@@ -1,8 +1,10 @@
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { ErrorState, NotFound } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
+import { useStreamingMessages } from "@/hooks";
 
 function RootComponent() {
+  useStreamingMessages();
   return <Outlet />;
 }
 

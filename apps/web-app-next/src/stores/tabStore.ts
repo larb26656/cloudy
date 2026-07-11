@@ -15,6 +15,7 @@ interface TabStore {
   addTab: {
     (type: "session", data: SessionData): string;
   };
+  getTab: (id: string) => Tab;
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
   clearAll: () => void;
@@ -22,7 +23,7 @@ interface TabStore {
 
 export const useTabStore = create<TabStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       tabs: [],
       activeTabId: null,
 
@@ -35,6 +36,12 @@ export const useTabStore = create<TabStore>()(
         return id;
       },
 
+      getTab: (id) => {
+        const tab = get().tabs.find((t: Tab) => t.id === id);
+        if (!tab) throw new Error(`Tab ${id} not found`);
+        return tab;
+      },
+
       removeTab: (id) => {
         set((state) => {
           const tabs = state.tabs.filter((t) => t.id !== id);
@@ -42,7 +49,7 @@ export const useTabStore = create<TabStore>()(
             state.activeTabId === id
               ? tabs.length > 0
                 ? tabs[tabs.length - 1].id
-                : 'home'
+                : "home"
               : state.activeTabId;
           return { tabs, activeTabId };
         });
