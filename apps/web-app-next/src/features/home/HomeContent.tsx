@@ -1,7 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { FolderOpen, Plus } from "lucide-react";
 import { WorkspaceItem } from "./components/WorkspaceItem";
-import { SessionTabBar } from "./components/SessionTabBar";
 import { SessionList } from "./components/SessionList";
 import { EmptyState } from "@/components/ui/empty-state";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
@@ -44,7 +43,6 @@ export function HomeContent() {
       </section>
 
       <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 p-4">
-        <SessionTabBar />
         <h2 className="shrink-0 text-sm font-semibold text-muted-foreground">
           Sessions
         </h2>

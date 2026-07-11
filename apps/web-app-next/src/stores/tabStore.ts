@@ -1,25 +1,24 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-type Session = {
+type SessionData = {
   sessionId: string;
   workspaceId: string;
   sessionName: string;
 };
 
-type Tab = {
-  id: string;
-  data: Session;
-};
+type Tab = { id: string; type: "session"; data: SessionData };
 
-type TabStore = {
+interface TabStore {
   tabs: Tab[];
   activeTabId: string | null;
-  addTab: (data: Session) => string;
+  addTab: {
+    (type: "session", data: SessionData): string;
+  };
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
   clearAll: () => void;
-};
+}
 
 export const useTabStore = create<TabStore>()(
   persist(
@@ -27,10 +26,10 @@ export const useTabStore = create<TabStore>()(
       tabs: [],
       activeTabId: null,
 
-      addTab: (data) => {
+      addTab: (type, data) => {
         const id = crypto.randomUUID();
         set((state) => ({
-          tabs: [...state.tabs, { id, data }],
+          tabs: [...state.tabs, { id, type, data } as Tab],
           activeTabId: id,
         }));
         return id;
@@ -43,7 +42,7 @@ export const useTabStore = create<TabStore>()(
             state.activeTabId === id
               ? tabs.length > 0
                 ? tabs[tabs.length - 1].id
-                : null
+                : 'home'
               : state.activeTabId;
           return { tabs, activeTabId };
         });

@@ -1,8 +1,6 @@
-import { useNavigate } from "@tanstack/react-router";
 import type { Session } from "@opencode-ai/sdk/v2";
 
 import { Button } from "@/components/ui/button";
-import { useSessionStore } from "@/stores/sessionStore";
 import { useTabStore } from "@/stores/tabStore";
 import { useSessions, useCreateSession } from "@/hooks/queries";
 import { Plus } from "lucide-react";
@@ -15,21 +13,16 @@ function SessionList({
   directory: string;
   workspaceId: string;
 }) {
-  const navigate = useNavigate();
   const { data: sessions = [], isLoading, error } = useSessions({ directory });
   const createSession = useCreateSession();
-  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
-  const selectSession = useSessionStore((s) => s.selectSession);
   const addTab = useTabStore((s) => s.addTab);
 
   const handleSelect = (session: Session) => {
-    addTab({
+    addTab("session", {
       sessionId: session.id,
       workspaceId,
       sessionName: session.title || "New Chat",
     });
-    selectSession(session.id);
-    void navigate({ to: "/" });
   };
 
   const handleNewChat = () => {
@@ -37,13 +30,11 @@ function SessionList({
       { directory },
       {
         onSuccess: (session) => {
-          addTab({
+          addTab("session", {
             sessionId: session.id,
             workspaceId,
             sessionName: session.title || "New Chat",
           });
-          selectSession(session.id);
-          void navigate({ to: "/" });
         },
       },
     );
@@ -77,7 +68,6 @@ function SessionList({
           onClick={() => handleSelect(session)}
           className={cn(
             "shrink-0 truncate rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
-            session.id === selectedSessionId && "bg-muted font-medium",
           )}
         >
           {session.title || "New Chat"}

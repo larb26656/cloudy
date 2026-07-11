@@ -6,13 +6,13 @@ import { cn } from "@/lib/utils";
 
 interface TabItemProps {
   icon: React.ReactNode;
-  children?: React.ReactNode;
+  label?: string;
   isActive?: boolean;
   onClick?: () => void;
   onClose?: () => void;
 }
 
-function TabItem({ icon, children, isActive, onClick, onClose }: TabItemProps) {
+function TabItem({ icon, label, isActive, onClick, onClose }: TabItemProps) {
   return (
     <button
       onClick={onClick}
@@ -24,7 +24,9 @@ function TabItem({ icon, children, isActive, onClick, onClose }: TabItemProps) {
       )}
     >
       <span className="[&>svg]:size-4">{icon}</span>
-      {children && <span className="text-[13px]">{children}</span>}
+      {label && (
+        <span className="text-[13px] max-w-30 truncate">{label}</span>
+      )}
       {onClose && (
         <span
           onClick={(e) => {
@@ -75,6 +77,7 @@ export function MainTabBar() {
         <TabItem
           key={tab.id}
           icon={<MessageCircle />}
+          label={tab.data.sessionName}
           isActive={activeTabId === tab.id}
           onClick={() => setActiveTab(tab.id)}
           onClose={() => removeTab(tab.id)}
