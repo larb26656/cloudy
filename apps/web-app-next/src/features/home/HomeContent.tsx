@@ -1,13 +1,29 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FolderOpen, Plus } from "lucide-react";
 import { WorkspaceItem } from "./components/WorkspaceItem";
 import { SessionList } from "./components/SessionList";
 import { EmptyState } from "@/components/ui/empty-state";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
+import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
 
 export function HomeContent() {
-  const { workspaces, selectedWorkspaceId, selectWorkspace, getWorkspace } =
-    useWorkspaceStore();
+  const {
+    workspaces,
+    selectedWorkspaceId,
+    selectWorkspace,
+    getWorkspace,
+    deleteWorkspace,
+  } = useWorkspaceStore();
+
+  const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(false);
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(
+    null,
+  );
+  const [deletingWorkspace, setDeletingWorkspace] = useState<Workspace | null>(
+    null,
+  );
 
   const selectedWorkspace = selectedWorkspaceId
     ? getWorkspace(selectedWorkspaceId)
@@ -20,7 +36,14 @@ export function HomeContent() {
           <h2 className="text-sm font-semibold text-muted-foreground">
             Workspaces
           </h2>
-          <Button variant="ghost" size="icon-xs">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => {
+              setEditingWorkspace(null);
+              setWorkspaceDialogOpen(true);
+            }}
+          >
             <Plus data-icon="inline-start" />
           </Button>
         </div>
@@ -32,8 +55,11 @@ export function HomeContent() {
               workspace={w}
               selected={selectedWorkspaceId === w.id}
               onSelect={selectWorkspace}
-              onEdit={() => {}}
-              onDelete={() => {}}
+              onEdit={(workspace) => {
+                setEditingWorkspace(workspace);
+                setWorkspaceDialogOpen(true);
+              }}
+              onDelete={setDeletingWorkspace}
             />
           ))}
           {workspaces.length === 0 && (
@@ -55,6 +81,32 @@ export function HomeContent() {
           <EmptyState icon={FolderOpen} title="Select a workspace" />
         )}
       </section>
+
+      <WorkspaceDialog
+        open={workspaceDialogOpen}
+        onOpenChange={(open) => {
+          setWorkspaceDialogOpen(open);
+          if (!open) {
+            setEditingWorkspace(null);
+          }
+        }}
+        workspace={editingWorkspace}
+      />
+
+      <DeleteConfirmDialog
+        item={
+          deletingWorkspace
+            ? { id: deletingWorkspace.id, name: deletingWorkspace.name }
+            : null
+        }
+        onConfirm={() => {
+          if (deletingWorkspace) {
+            deleteWorkspace(deletingWorkspace.id);
+            setDeletingWorkspace(null);
+          }
+        }}
+        onCancel={() => setDeletingWorkspace(null)}
+      />
     </div>
   );
 }
