@@ -9,13 +9,11 @@ import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
 import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
 
 export function HomeContent() {
-  const {
-    workspaces,
-    selectedWorkspaceId,
-    selectWorkspace,
-    getWorkspace,
-    deleteWorkspace,
-  } = useWorkspaceStore();
+  const workspaces = useWorkspaceStore((s) => s.workspaces);
+  const selectedWorkspaceId = useWorkspaceStore((s) => s.selectedWorkspaceId);
+  const selectWorkspace = useWorkspaceStore((s) => s.selectWorkspace);
+  const getWorkspace = useWorkspaceStore((s) => s.getWorkspace);
+  const deleteWorkspace = useWorkspaceStore((s) => s.deleteWorkspace);
 
   const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(
