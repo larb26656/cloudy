@@ -9,10 +9,16 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as HomeRouteImport } from './routes/home'
 import { Route as AppMainLayoutRouteImport } from './routes/_appMainLayout'
 import { Route as AppMainLayoutIndexRouteImport } from './routes/_appMainLayout/index'
 import { Route as AppMainLayoutDeskRouteImport } from './routes/_appMainLayout/desk'
 
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
   id: '/_appMainLayout',
   getParentRoute: () => rootRouteImport,
@@ -30,36 +36,48 @@ const AppMainLayoutDeskRoute = AppMainLayoutDeskRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof AppMainLayoutIndexRoute
+  '/home': typeof HomeRoute
   '/desk': typeof AppMainLayoutDeskRoute
 }
 export interface FileRoutesByTo {
+  '/home': typeof HomeRoute
   '/desk': typeof AppMainLayoutDeskRoute
   '/': typeof AppMainLayoutIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_appMainLayout': typeof AppMainLayoutRouteWithChildren
+  '/home': typeof HomeRoute
   '/_appMainLayout/desk': typeof AppMainLayoutDeskRoute
   '/_appMainLayout/': typeof AppMainLayoutIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/desk'
+  fullPaths: '/' | '/home' | '/desk'
   fileRoutesByTo: FileRoutesByTo
-  to: '/desk' | '/'
+  to: '/home' | '/desk' | '/'
   id:
     | '__root__'
     | '/_appMainLayout'
+    | '/home'
     | '/_appMainLayout/desk'
     | '/_appMainLayout/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
+  HomeRoute: typeof HomeRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_appMainLayout': {
       id: '/_appMainLayout'
       path: ''
@@ -100,6 +118,7 @@ const AppMainLayoutRouteWithChildren = AppMainLayoutRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
+  HomeRoute: HomeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

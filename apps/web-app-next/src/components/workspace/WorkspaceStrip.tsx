@@ -1,22 +1,22 @@
 import { useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, Settings2, Trash2 } from "lucide-react";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 
-import { MOCK_DIRECTORY } from "@/constants/mock";
-
-const MOCK_WORKSPACE = {
-  id: "workspace-mock-0001",
-  instanceId: "instance-mock-0001",
-  name: "Mock",
-  color: "#3B82F6" as const,
-  directory: MOCK_DIRECTORY,
-  createdAt: Date.now(),
-};
+import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
+import type { Workspace } from "@/stores/workspaceStore";
 
 interface WorkspaceStripProps {
   instanceId: string;
@@ -25,7 +25,26 @@ interface WorkspaceStripProps {
 
 export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
   void instanceId;
-  const [selectedId, setSelectedId] = useState(MOCK_WORKSPACE.id);
+  const { workspaces, selectedWorkspaceId, selectWorkspace } =
+    useWorkspaceStore();
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(
+    null,
+  );
+
+  const handleWorkspaceClick = (workspace: Workspace) => {
+    selectWorkspace(workspace.id);
+  };
+
+  const handleEdit = (workspace: Workspace) => {
+    setEditingWorkspace(workspace);
+    setModalOpen(true);
+  };
+
+  const handleCreateWorkspace = () => {
+    setEditingWorkspace(null);
+    setModalOpen(true);
+  };
 
   return (
     <>
@@ -36,17 +55,50 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
         )}
       >
         <div className="flex flex-col items-center flex-1 w-full py-3 gap-2 overflow-y-auto scrollbar-hidden">
-          <button
-            type="button"
-            onClick={() => setSelectedId(MOCK_WORKSPACE.id)}
-            className={`size-12 rounded-xl flex items-center justify-center text-sm font-semibold text-white transition-all duration-200 hover:rounded-[16px] ${
-              selectedId === MOCK_WORKSPACE.id ? "ring-2 ring-primary" : ""
-            }`}
-            style={{ backgroundColor: MOCK_WORKSPACE.color }}
-            title={MOCK_WORKSPACE.name}
-          >
-            {MOCK_WORKSPACE.name.charAt(0).toUpperCase()}
-          </button>
+          {workspaces.map((workspace) => (
+            <DropdownMenu key={workspace.id}>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <DropdownMenuTrigger
+                      render={
+                        <button
+                          type="button"
+                          onClick={() => handleWorkspaceClick(workspace)}
+                          className={cn(
+                            "size-12 rounded-xl flex items-center justify-center text-sm font-semibold text-white transition-all duration-200 hover:rounded-[16px]",
+                            selectedWorkspaceId === workspace.id &&
+                              "ring-2 ring-primary",
+                          )}
+                          style={{ backgroundColor: workspace.color }}
+                        >
+                          {workspace.name.charAt(0).toUpperCase()}
+                        </button>
+                      }
+                    />
+                  }
+                />
+                <TooltipContent side="right" sideOffset={8}>
+                  {workspace.name}
+                </TooltipContent>
+              </Tooltip>
+
+              <DropdownMenuContent align="start" side="right" sideOffset={8}>
+                <DropdownMenuItem onClick={() => handleEdit(workspace)}>
+                  <Settings2 data-icon="inline-start" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => handleEdit(workspace)}
+                >
+                  <Trash2 data-icon="inline-start" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ))}
         </div>
 
         <div className="pb-3">
@@ -55,17 +107,24 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
               render={
                 <button
                   className="size-12 rounded-xl flex items-center justify-center bg-muted hover:bg-muted/80 transition-all duration-200 hover:rounded-[16px]"
+                  onClick={handleCreateWorkspace}
                 >
                   <Plus className="size-5 text-foreground" />
                 </button>
               }
             />
             <TooltipContent side="right" sideOffset={8}>
-              New workspace (mock)
+              New workspace
             </TooltipContent>
           </Tooltip>
         </div>
       </div>
+
+      <WorkspaceDialog
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        workspace={editingWorkspace}
+      />
     </>
   );
 }

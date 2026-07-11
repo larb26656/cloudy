@@ -1,7 +1,8 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { LampDesk, MessageCircle } from "lucide-react";
+import { Home, LampDesk, MessageCircle } from "lucide-react";
 
 const navItems = [
+  { to: "/home", label: "Home", icon: Home },
   { to: "/", label: "Chat", icon: MessageCircle },
   { to: "/desk", label: "Desk", icon: LampDesk },
 ];

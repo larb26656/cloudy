@@ -1,0 +1,85 @@
+import * as React from "react";
+import { Home, MessageCircle } from "lucide-react";
+
+import { useTabStore } from "@/stores/tabStore";
+import { cn } from "@/lib/utils";
+
+interface TabItemProps {
+  icon: React.ReactNode;
+  children?: React.ReactNode;
+  isActive?: boolean;
+  onClick?: () => void;
+  onClose?: () => void;
+}
+
+function TabItem({ icon, children, isActive, onClick, onClose }: TabItemProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors duration-150",
+        isActive
+          ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground"
+          : "text-muted-foreground hover:text-foreground",
+      )}
+    >
+      <span className="[&>svg]:size-4">{icon}</span>
+      {children && <span className="text-[13px]">{children}</span>}
+      {onClose && (
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="ml-1 rounded p-0.5 hover:bg-muted"
+        >
+          <CloseIcon />
+        </span>
+      )}
+    </button>
+  );
+}
+
+function CloseIcon() {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-3"
+    >
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+export function MainTabBar() {
+  const tabs = useTabStore((s) => s.tabs);
+  const activeTabId = useTabStore((s) => s.activeTabId);
+  const setActiveTab = useTabStore((s) => s.setActiveTab);
+  const removeTab = useTabStore((s) => s.removeTab);
+
+  return (
+    <div className="flex border-b">
+      <TabItem
+        icon={<Home />}
+        isActive={activeTabId === "home"}
+        onClick={() => setActiveTab("home")}
+      />
+      {tabs.map((tab) => (
+        <TabItem
+          key={tab.id}
+          icon={<MessageCircle />}
+          isActive={activeTabId === tab.id}
+          onClick={() => setActiveTab(tab.id)}
+          onClose={() => removeTab(tab.id)}
+        />
+      ))}
+    </div>
+  );
+}
