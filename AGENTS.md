@@ -143,6 +143,17 @@ to `@repo/contracts` — only `export type`.
 - **Stack:** React 19, TanStack Router (file-based routes in `src/routes/`; route tree is
   auto-generated into `src/routeTree.gen.ts` — **never edit by hand**), TanStack Query, Zustand
   (`src/stores/`), Tailwind v4 via `@tailwindcss/vite`, shadcn/ui primitives in `src/components/ui/`.
+- **Zustand selectors:** Always use individual selectors to prevent unnecessary re-renders:
+
+  ```ts
+  // ❌ Bad — causes re-render when ANY store state changes
+  const { workspaces, getWorkspace } = useWorkspaceStore();
+
+  // ✅ Good — only re-renders when `workspaces` or `getWorkspace` changes
+  const workspaces = useWorkspaceStore((s) => s.workspaces);
+  const getWorkspace = useWorkspaceStore((s) => s.getWorkspace);
+  ```
+
 - **Path alias:** `@/*` → `src/*` (configured in `tsconfig.json` and `vite.config.ts`).
 - **Styling helper:** `cn(...)` from `src/lib/utils.ts` (`clsx` + `tailwind-merge`). Prefer it for
   conditional class composition; use `class-variance-authority` (`cva`) for component variants.

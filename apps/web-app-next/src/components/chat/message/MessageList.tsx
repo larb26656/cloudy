@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
 import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
@@ -39,16 +39,21 @@ export function MessageList({
     sessionId: selectedSessionId ?? "",
   });
 
-  const sessionStreaming = selectedSessionId
-    ? Array.from(streamingMessages.get(selectedSessionId)?.values() ?? [])
-    : [];
+  const sessionStreaming = useMemo(() => {
+    return selectedSessionId
+      ? Array.from(streamingMessages.get(selectedSessionId)?.values() ?? [])
+      : []
+  }, [streamingMessages, selectedSessionId])
+
   const streamingIds = new Set(sessionStreaming.map((m) => m.info.id));
 
   const cachedMessages = (data?.pages.flat() ?? ([] as Message[])).filter(
     (m) => !streamingIds.has(m.info.id),
   );
 
-  const allMessages = cachedMessages;
+  const allMessages = useMemo(() => {
+    return [...cachedMessages, ...sessionStreaming]
+  }, [cachedMessages, sessionStreaming])
 
   const isStreaming = sessionStreaming.length > 0;
 
@@ -56,40 +61,13 @@ export function MessageList({
   const shouldScrollRef = useRef(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  const prevMessagesLengthRef = useRef(0);
-
   useEffect(() => {
-    let rafId: number;
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    const scrollToBottom = () => {
-      if (!shouldScrollRef.current || !scrollRef.current) return;
-
-      const targetHeight = scrollRef.current.scrollHeight;
-
-      if (targetHeight !== prevMessagesLengthRef.current) {
-        prevMessagesLengthRef.current = targetHeight;
-        rafId = requestAnimationFrame(() => {
-          scrollRef.current?.scrollTo({
-            top: targetHeight,
-            behavior: "smooth",
-          });
-        });
-      }
-    };
-
-    if (
-      allMessages.length > 0 &&
-      allMessages.length !== prevMessagesLengthRef.current
-    ) {
-      timeoutId = setTimeout(scrollToBottom, 16);
+    console.log(shouldScrollRef.current);
+    if (shouldScrollRef.current) {
+      scrollToBottom();
     }
 
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [allMessages.length]);
+  }, [allMessages]);
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -151,7 +129,8 @@ export function MessageList({
                   {isFetchingPreviousPage ? "Loading..." : "Load More"}
                 </button>
               </div>
-            )}
+              )}
+
             {allMessages.map((message: Message) => (
               <MessageBubble
                 key={message.info.id}
@@ -159,27 +138,7 @@ export function MessageList({
                 isStreaming={false}
               />
             ))}
-            {sessionStreaming.map((message: Message) => (
-              <div
-                key={`streaming-${message.info.id}`}
-                className="bg-amber-100"
-              >
-                <MessageBubble message={message} isStreaming />
-              </div>
-            ))}
-            {/*{selectedSessionId}
-            <pre className="text-xs whitespace-pre-wrap break-all bg-muted/50 p-2 rounded">
-              {JSON.stringify(
-                Object.fromEntries(
-                  Array.from(streamingMessages, ([sid, msgs]) => [
-                    sid,
-                    Object.fromEntries(msgs),
-                  ]),
-                ),
-                null,
-                2,
-              )}
-            </pre>*/}
+
             {isStreaming && (
               <div className="mt-2">
                 <ThinkingAnimation />
