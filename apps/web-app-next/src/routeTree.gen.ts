@@ -9,116 +9,50 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as HomeRouteImport } from './routes/home'
-import { Route as AppMainLayoutRouteImport } from './routes/_appMainLayout'
-import { Route as AppMainLayoutIndexRouteImport } from './routes/_appMainLayout/index'
-import { Route as AppMainLayoutDeskRouteImport } from './routes/_appMainLayout/desk'
+import { Route as IndexRouteImport } from './routes/index'
 
-const HomeRoute = HomeRouteImport.update({
-  id: '/home',
-  path: '/home',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppMainLayoutRoute = AppMainLayoutRouteImport.update({
-  id: '/_appMainLayout',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppMainLayoutIndexRoute = AppMainLayoutIndexRouteImport.update({
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppMainLayoutRoute,
-} as any)
-const AppMainLayoutDeskRoute = AppMainLayoutDeskRouteImport.update({
-  id: '/desk',
-  path: '/desk',
-  getParentRoute: () => AppMainLayoutRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof AppMainLayoutIndexRoute
-  '/home': typeof HomeRoute
-  '/desk': typeof AppMainLayoutDeskRoute
+  '/': typeof IndexRoute
 }
 export interface FileRoutesByTo {
-  '/home': typeof HomeRoute
-  '/desk': typeof AppMainLayoutDeskRoute
-  '/': typeof AppMainLayoutIndexRoute
+  '/': typeof IndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/_appMainLayout': typeof AppMainLayoutRouteWithChildren
-  '/home': typeof HomeRoute
-  '/_appMainLayout/desk': typeof AppMainLayoutDeskRoute
-  '/_appMainLayout/': typeof AppMainLayoutIndexRoute
+  '/': typeof IndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/home' | '/desk'
+  fullPaths: '/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/home' | '/desk' | '/'
-  id:
-    | '__root__'
-    | '/_appMainLayout'
-    | '/home'
-    | '/_appMainLayout/desk'
-    | '/_appMainLayout/'
+  to: '/'
+  id: '__root__' | '/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  AppMainLayoutRoute: typeof AppMainLayoutRouteWithChildren
-  HomeRoute: typeof HomeRoute
+  IndexRoute: typeof IndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/home': {
-      id: '/home'
-      path: '/home'
-      fullPath: '/home'
-      preLoaderRoute: typeof HomeRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_appMainLayout': {
-      id: '/_appMainLayout'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AppMainLayoutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_appMainLayout/': {
-      id: '/_appMainLayout/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof AppMainLayoutIndexRouteImport
-      parentRoute: typeof AppMainLayoutRoute
-    }
-    '/_appMainLayout/desk': {
-      id: '/_appMainLayout/desk'
-      path: '/desk'
-      fullPath: '/desk'
-      preLoaderRoute: typeof AppMainLayoutDeskRouteImport
-      parentRoute: typeof AppMainLayoutRoute
+      preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface AppMainLayoutRouteChildren {
-  AppMainLayoutDeskRoute: typeof AppMainLayoutDeskRoute
-  AppMainLayoutIndexRoute: typeof AppMainLayoutIndexRoute
-}
-
-const AppMainLayoutRouteChildren: AppMainLayoutRouteChildren = {
-  AppMainLayoutDeskRoute: AppMainLayoutDeskRoute,
-  AppMainLayoutIndexRoute: AppMainLayoutIndexRoute,
-}
-
-const AppMainLayoutRouteWithChildren = AppMainLayoutRoute._addFileChildren(
-  AppMainLayoutRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
-  AppMainLayoutRoute: AppMainLayoutRouteWithChildren,
-  HomeRoute: HomeRoute,
+  IndexRoute: IndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
