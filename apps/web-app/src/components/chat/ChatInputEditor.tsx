@@ -7,10 +7,9 @@ import {
 } from "./extensions/suggestion";
 import { shouldShowSlashCommand } from "@/lib/command";
 import { useEffect, useMemo } from "react";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
-import { useCurrentInstanceId } from "@/hooks/instanceScopeHook";
+import { MOCK_DIRECTORY } from "@/constants/mock";
 
 interface ChatInputEditorProps {
   content: ChatInputContent;
@@ -41,10 +40,6 @@ export function ChatInputEditor({
   placeholder,
   disabled,
 }: ChatInputEditorProps) {
-  const selectedDirectory =
-    useWorkspaceStore().getCurrentWorkspace()?.directory;
-  const instanceId = useCurrentInstanceId();
-
   const extensions = useMemo(() => {
     return [
       StarterKit.configure({
@@ -57,21 +52,17 @@ export function ChatInputEditor({
         heading: false,
       }),
       Mention.configure({
-        HTMLAttributes: {
-          class: "mention",
-        },
+        HTMLAttributes: { class: "mention" },
         suggestions: [
           {
             char: "@",
-            allow: () => !!selectedDirectory,
-            ...(selectedDirectory
-              ? createMentionSuggestion(selectedDirectory, instanceId)
-              : {}),
+            allow: () => true,
+            ...createMentionSuggestion(MOCK_DIRECTORY),
           },
           {
             char: "/",
             allow: shouldShowSlashCommand,
-            ...createCommandSuggestion(instanceId, {
+            ...createCommandSuggestion({
               onImmediateExecute: (cmd) => {
                 onImmediateExecute?.(cmd.name);
               },
@@ -79,11 +70,9 @@ export function ChatInputEditor({
           },
         ],
       }),
-      Placeholder.configure({
-        placeholder: placeholder,
-      }),
+      Placeholder.configure({ placeholder: placeholder }),
     ];
-  }, [selectedDirectory, instanceId, placeholder, onImmediateExecute]);
+  }, [placeholder, onImmediateExecute]);
 
   const editor = useEditor({
     extensions,
@@ -99,7 +88,6 @@ export function ChatInputEditor({
 
   useEffect(() => {
     if (!editor) return;
-
     const currentText = editor.getText();
     if (content.text !== currentText) {
       editor.commands.setContent(content.text);

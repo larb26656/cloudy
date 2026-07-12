@@ -1,26 +1,11 @@
-import {
-  createRootRoute,
-  Link,
-  Outlet,
-  useRouterState,
-} from "@tanstack/react-router";
-import { useLoadingStore } from "@/stores/loadingStore";
-import { LoadingOverlay } from "@/components/ui/loading-overlay";
-import { useEventStream } from "@/hooks/useEventSteam";
+import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { ErrorState, NotFound } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
+import { useStreamingMessages } from "@/hooks";
 
 function RootComponent() {
-  const isLoading = useLoadingStore((state) => state.isLoading);
-
-  useEventStream();
-
-  return (
-    <>
-      <Outlet />
-      {isLoading && <LoadingOverlay />}
-    </>
-  );
+  useStreamingMessages();
+  return <Outlet />;
 }
 
 export const Route = createRootRoute({
@@ -30,13 +15,6 @@ export const Route = createRootRoute({
 });
 
 function NotFoundPage() {
-  const state = useRouterState();
-  console.log(window.location.href);
-  console.log(state.location.pathname);
-
-  console.log(state.location.search);
-
-  console.log(state.matches);
   return (
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       <NotFound
@@ -55,7 +33,7 @@ function ErrorPage({ error }: { error: Error }) {
     <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
       <ErrorState
         description={
-          error.message || "    An unexpected error occurred. Please try again."
+          error.message || "An unexpected error occurred. Please try again."
         }
         action={
           <Link to="/">

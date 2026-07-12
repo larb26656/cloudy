@@ -1,23 +1,20 @@
 import { X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useContextStore } from "@/stores/contextStore";
 import type { ContextItem } from "@/types/context";
 
 interface ContextBadgeProps {
   item: ContextItem;
+  onRemove?: (id: string) => void;
 }
 
-export function ContextBadge({ item }: ContextBadgeProps) {
-  const removeContext = useContextStore((s) => s.removeContext);
-
+export function ContextBadge({ item, onRemove }: ContextBadgeProps) {
   const label =
     typeof item.data === "object" && item.data !== null && "label" in item.data
       ? String((item.data as { label: string }).label)
       : item.type;
 
   const handleRemove = () => {
-    removeContext(item.id);
-    window.electronAPI?.context.removeContext(item.id);
+    onRemove?.(item.id);
   };
 
   return (

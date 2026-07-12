@@ -1,19 +1,19 @@
-// components/chat/MessageList.tsx
-import { useEffect, useRef, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageBubble } from "./MessageBubble";
-import type { Message } from "@/types/message";
-import { useStore } from "@/hooks/instanceScopeHook";
+import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
-import { ErrorState } from "@/components/ui/error-state";
 import ThinkingAnimation from "./ThinkingAnimation";
 import { ChatMinimap } from "../ChatMinimap";
+import { ErrorState } from "@/components/ui/error-state";
+import { useMessages } from "@/hooks/queries/useMessages";
+import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 
 interface MessageListProps {
   selectedSessionId: string | null;
   isShowEmptyState?: boolean;
   showShadowEdge?: boolean;
-  onSnippetSelect?: (type: "idea" | "memory" | "artifact") | undefined;
+  onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
   showMinimap?: boolean;
   onCloseMinimap?: () => void;
 }
@@ -26,60 +26,49 @@ export function MessageList({
   showMinimap = false,
   onCloseMinimap,
 }: MessageListProps) {
-  const messageStore = useStore("message");
-  const isLoading = messageStore.isLoading;
-  const error = messageStore.error;
-  const loadMessages = messageStore.loadMessages;
-  const messagesMap = messageStore.messages;
+  const { streamingMessages } = useStreamingMessagesStore();
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    hasPreviousPage,
+    fetchPreviousPage,
+    isFetchingPreviousPage,
+  } = useMessages({
+    sessionId: selectedSessionId ?? "",
+  });
+
+  const sessionStreaming = useMemo(() => {
+    return selectedSessionId
+      ? Array.from(streamingMessages.get(selectedSessionId)?.values() ?? [])
+      : []
+  }, [streamingMessages, selectedSessionId])
+
+  const streamingIds = new Set(sessionStreaming.map((m) => m.info.id));
+
+  const cachedMessages = (data?.pages.flat() ?? ([] as Message[])).filter(
+    (m) => !streamingIds.has(m.info.id),
+  );
+
+  const allMessages = useMemo(() => {
+    return [...cachedMessages, ...sessionStreaming]
+  }, [cachedMessages, sessionStreaming])
+
+  const isStreaming = sessionStreaming.length > 0;
+
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
-  const sessionStatuses = useStore("session").sessionStatuses;
-  const isBusy = Boolean(
-    selectedSessionId && sessionStatuses[selectedSessionId]?.type === "busy",
-  );
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  const messages = useMemo(() => {
-    if (!selectedSessionId) {
-      return [];
-    }
-    return messagesMap[selectedSessionId] || [];
-  }, [messagesMap, selectedSessionId]);
-
-  const prevMessagesLengthRef = useRef(0);
-
-  // Auto-scroll to bottom when messages change (debounced to prevent snap-back during streaming)
   useEffect(() => {
-    let rafId: number;
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    const scrollToBottom = () => {
-      if (!shouldScrollRef.current || !scrollRef.current) return;
-
-      const targetHeight = scrollRef.current.scrollHeight;
-
-      if (targetHeight !== prevMessagesLengthRef.current) {
-        prevMessagesLengthRef.current = targetHeight;
-        rafId = requestAnimationFrame(() => {
-          scrollRef.current?.scrollTo({
-            top: targetHeight,
-            behavior: "smooth",
-          });
-        });
-      }
-    };
-
-    if (messages.length > 0 && messages.length !== prevMessagesLengthRef.current) {
-      timeoutId = setTimeout(scrollToBottom, 16);
+    console.log(shouldScrollRef.current);
+    if (shouldScrollRef.current) {
+      scrollToBottom();
     }
 
-    return () => {
-      if (rafId) cancelAnimationFrame(rafId);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [messages.length]);
+  }, [allMessages]);
 
-  // Handle scroll - pause auto-scroll if user scrolls up
   const handleScroll = () => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
@@ -98,7 +87,7 @@ export function MessageList({
     }
   };
 
-  if (isLoading && messages.length === 0) {
+  if (isLoading && allMessages.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-3">
@@ -112,10 +101,7 @@ export function MessageList({
   if (error) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <ErrorState
-          message={error}
-          onRetry={() => selectedSessionId && loadMessages(selectedSessionId)}
-        />
+        <ErrorState message={error.message} onRetry={() => refetch()} />
       </div>
     );
   }
@@ -127,22 +113,33 @@ export function MessageList({
         onScroll={handleScroll}
         className="absolute inset-0 flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
       >
-        {messages.length === 0 ? (
+        {allMessages.length === 0 ? (
           isShowEmptyState && (
             <EmptyChatState onSnippetSelect={onSnippetSelect} />
           )
         ) : (
           <div className="max-w-4xl mx-auto space-y-4 pb-4">
-            {messages.map((message: Message) => {
-              return (
-                <MessageBubble
-                  key={message.info.id}
-                  message={message}
-                  isStreaming={false}
-                />
-              );
-            })}
-            {isBusy && (
+            {hasPreviousPage && (
+              <div className="flex justify-center py-2">
+                <button
+                  onClick={() => fetchPreviousPage()}
+                  disabled={isFetchingPreviousPage}
+                  className="px-4 py-2 text-sm bg-muted hover:bg-muted/80 rounded-lg transition-colors disabled:opacity-50"
+                >
+                  {isFetchingPreviousPage ? "Loading..." : "Load More"}
+                </button>
+              </div>
+              )}
+
+            {allMessages.map((message: Message) => (
+              <MessageBubble
+                key={message.info.id}
+                message={message}
+                isStreaming={false}
+              />
+            ))}
+
+            {isStreaming && (
               <div className="mt-2">
                 <ThinkingAnimation />
               </div>
@@ -168,7 +165,7 @@ export function MessageList({
         </div>
       )}
       <ChatMinimap
-        messages={messages}
+        messages={allMessages}
         scrollRef={scrollRef}
         isVisible={showMinimap}
         onClose={onCloseMinimap}

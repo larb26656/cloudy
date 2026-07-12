@@ -8,17 +8,20 @@
     "build": "vite build",
     "check-types": "tsc --noEmit",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
-    "@repo/contracts": "workspace:*",
     "@base-ui/react": "^1.4.1",
     "@floating-ui/dom": "^1.7.6",
     "@fontsource-variable/geist": "^5.2.8",
     "@fontsource-variable/inter": "^5.2.8",
     "@hookform/resolvers": "^5.2.2",
     "@opencode-ai/sdk": "^1.14.48",
+    "@repo/contracts": "workspace:*",
     "@tailwindcss/vite": "^4.3.0",
+    "@tanstack/react-query": "^5.62.0",
     "@tanstack/react-router": "^1.169.2",
     "@tiptap/core": "^3.23.1",
     "@tiptap/extension-mention": "^3.23.1",
@@ -65,9 +68,9 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@babel/core": "^7.29.0",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@babel/core": "^7.29.0",
     "@rolldown/plugin-babel": "^0.2.3",
     "@tanstack/router-plugin": "^1.167.35",
     "@types/babel__core": "^7.20.5",
@@ -82,6 +85,6 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "typescript": "5.9.2",
     "typescript-eslint": "^8.58.2",
-    "vite": "^8.0.10"
+    "vite": "^8.1.4"
   }
 }

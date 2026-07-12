@@ -1,97 +1,119 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
-import { generateId } from "@/lib/id";
+import { persist } from "zustand/middleware";
 
 export const WORKSPACE_COLORS = [
-  "#3B82F6",
-  "#10B981",
-  "#F43F5E",
-  "#F59E0B",
-  "#8B5CF6",
-  "#06B6D4",
-  "#F97316",
-  "#64748B",
+  "#3B82F6", // blue
+  "#10B981", // green
+  "#F59E0B", // amber
+  "#EF4444", // red
+  "#8B5CF6", // violet
+  "#EC4899", // pink
+  "#06B6D4", // cyan
+  "#84CC16", // lime
 ] as const;
 
-export type WorkspaceColor = (typeof WORKSPACE_COLORS)[number];
-
-export interface Workspace {
+export type Workspace = {
   id: string;
   instanceId: string;
   name: string;
-  color: WorkspaceColor;
+  color: (typeof WORKSPACE_COLORS)[number];
   directory: string;
   createdAt: number;
-}
+};
 
-export interface WorkspaceStore {
+type WorkspaceStore = {
   workspaces: Workspace[];
-  currentWorkspaceId: string | null;
-  createWorkspace: (instanceId: string, data: { name: string; color: WorkspaceColor; directory: string }, autoSelected?: boolean) => Workspace;
-  updateWorkspace: (id: string, updates: { name?: string; color?: WorkspaceColor; directory?: string; instanceId?: string }) => void;
+  selectedWorkspaceId: string | null;
+  selectWorkspace: (id: string) => void;
+  clearSelectedWorkspace: () => void;
+  getWorkspace: (id: string) => Workspace | undefined;
+  getWorkspaceByDirectory: (directory: string) => Workspace | undefined;
+  createWorkspace: (
+    data: Omit<Workspace, "id" | "createdAt">,
+  ) => { success: true; data: Workspace } | { success: false; error: string };
+  updateWorkspace: (
+    id: string,
+    data: Partial<Omit<Workspace, "id" | "createdAt">>,
+  ) => { success: true } | { success: false; error: string };
   deleteWorkspace: (id: string) => void;
-  setCurrentWorkspace: (id: string) => void;
-  getCurrentWorkspace: () => Workspace | undefined;
-}
+};
 
 export const useWorkspaceStore = create<WorkspaceStore>()(
   persist(
     (set, get) => ({
       workspaces: [],
-      currentWorkspaceId: null,
+      selectedWorkspaceId: null,
 
-      createWorkspace: (instanceId, data, autoSelected = false) => {
-        const workspace: Workspace = {
-          id: generateId(),
-          instanceId,
-          name: data.name,
-          color: data.color,
-          directory: data.directory,
+      selectWorkspace: (id) => set({ selectedWorkspaceId: id }),
+
+      clearSelectedWorkspace: () => set({ selectedWorkspaceId: null }),
+
+      getWorkspace: (id) => {
+        return get().workspaces.find((w) => w.id === id);
+      },
+
+      getWorkspaceByDirectory: (directory) => {
+        return get().workspaces.find((w) => w.directory === directory);
+      },
+
+      createWorkspace: (data) => {
+        const existing = get().workspaces.find(
+          (w) => w.directory === data.directory,
+        );
+        if (existing) {
+          return {
+            success: false,
+            error: `Directory "${data.directory}" is already used`,
+          };
+        }
+
+        const newWorkspace: Workspace = {
+          ...data,
+          id: `workspace-${crypto.randomUUID()}`,
           createdAt: Date.now(),
         };
 
         set((state) => ({
-          workspaces: [...state.workspaces, workspace],
-          currentWorkspaceId: autoSelected ? workspace.id : undefined,
+          workspaces: [...state.workspaces, newWorkspace],
+          selectedWorkspaceId: newWorkspace.id,
         }));
 
-        return workspace;
+        return { success: true, data: newWorkspace };
       },
 
-      updateWorkspace: (id, updates) => {
+      updateWorkspace: (id, data) => {
+        const workspace = get().getWorkspace(id);
+        if (!workspace) {
+          return { success: false, error: "Workspace not found" };
+        }
+
+        if (data.directory && data.directory !== workspace.directory) {
+          const existing = get().getWorkspaceByDirectory(data.directory);
+          if (existing) {
+            return {
+              success: false,
+              error: `Directory "${data.directory}" is already used`,
+            };
+          }
+        }
+
         set((state) => ({
           workspaces: state.workspaces.map((w) =>
-            w.id === id ? { ...w, ...updates } : w,
+            w.id === id ? { ...w, ...data } : w,
           ),
         }));
+
+        return { success: true };
       },
 
       deleteWorkspace: (id) => {
-        set((state) => {
-          const newWorkspaces = state.workspaces.filter((w) => w.id !== id);
-          let newCurrentId = state.currentWorkspaceId;
-          if (state.currentWorkspaceId === id) {
-            newCurrentId = newWorkspaces[0]?.id ?? null;
-          }
-          return {
-            workspaces: newWorkspaces,
-            currentWorkspaceId: newCurrentId,
-          };
-        });
-      },
-
-      setCurrentWorkspace: (id) => {
-        set({ currentWorkspaceId: id });
-      },
-
-      getCurrentWorkspace: () => {
-        const { workspaces, currentWorkspaceId } = get();
-        return workspaces.find((w) => w.id === currentWorkspaceId);
+        set((state) => ({
+          workspaces: state.workspaces.filter((w) => w.id !== id),
+          selectedWorkspaceId:
+            state.selectedWorkspaceId === id ? null : state.selectedWorkspaceId,
+        }));
       },
     }),
-    {
-      name: `cloudy-workspaces`,
-      storage: createJSONStorage(() => localStorage),
-    },
+    { name: "workspaces" },
   ),
 );

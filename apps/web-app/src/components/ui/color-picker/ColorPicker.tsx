@@ -1,145 +1,53 @@
-"use client";
-
-import { useState, useCallback, useRef, useEffect } from "react";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { WORKSPACE_COLORS } from "@/stores/workspaceStore";
 
-const colorPickerVariants = {
-  size: {
-    sm: "size-8",
-    md: "size-10",
-    lg: "size-12",
-  },
-  columns: {
-    2: "grid-cols-2",
-    3: "grid-cols-3",
-    4: "grid-cols-4",
-    6: "grid-cols-6",
-  },
-};
-
-type ColorPickerProps = {
-  value?: string;
-  defaultValue?: string;
-  onChange?: (color: string) => void;
-  colors?: readonly string[];
-  columns?: keyof typeof colorPickerVariants.columns;
-  size?: keyof typeof colorPickerVariants.size;
+interface ColorPickerProps {
+  colors: readonly string[];
+  value: string;
+  onChange: (color: string) => void;
+  columns?: 2 | 3 | 4 | 6;
+  size?: "sm" | "md" | "lg";
   label?: string;
-  className?: string;
   disabled?: boolean;
+}
+
+const sizeClasses = {
+  sm: "size-6",
+  md: "size-8",
+  lg: "size-10",
 };
 
 function ColorPicker({
+  colors,
   value,
-  defaultValue,
   onChange,
-  colors = WORKSPACE_COLORS,
   columns = 4,
   size = "md",
   label,
-  className,
   disabled,
 }: ColorPickerProps) {
-  const isControlled = value !== undefined;
-  const [internalValue, setInternalValue] = useState(defaultValue ?? colors[0]);
-  const selectedValue = isControlled ? value : internalValue;
-  const gridRef = useRef<HTMLDivElement>(null);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-
-  const handleSelect = useCallback(
-    (color: string) => {
-      if (disabled) return;
-      if (!isControlled) {
-        setInternalValue(color);
-      }
-      onChange?.(color);
-    },
-    [disabled, isControlled, onChange],
-  );
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent, currentIndex: number) => {
-      const colCount = Number(columns);
-      let newIndex = currentIndex;
-
-      switch (e.key) {
-        case "ArrowRight":
-          newIndex = (currentIndex + 1) % colors.length;
-          break;
-        case "ArrowLeft":
-          newIndex = (currentIndex - 1 + colors.length) % colors.length;
-          break;
-        case "ArrowDown":
-          newIndex = Math.min(currentIndex + colCount, colors.length - 1);
-          break;
-        case "ArrowUp":
-          newIndex = Math.max(currentIndex - colCount, 0);
-          break;
-        case "Home":
-          newIndex = 0;
-          break;
-        case "End":
-          newIndex = colors.length - 1;
-          break;
-        default:
-          return;
-      }
-
-      e.preventDefault();
-      setFocusedIndex(newIndex);
-    },
-    [colors.length, columns],
-  );
-
-  useEffect(() => {
-    if (focusedIndex >= 0 && gridRef.current) {
-      const buttons = gridRef.current.querySelectorAll("button");
-      buttons[focusedIndex]?.focus();
-    }
-  }, [focusedIndex]);
-
   return (
-    <div className={className}>
-      {label && <span className="text-sm font-medium mb-2 block">{label}</span>}
+    <div className="flex flex-col gap-2">
+      {label && <Label>{label}</Label>}
       <div
-        ref={gridRef}
-        role="radiogroup"
-        aria-label={label ?? "Color picker"}
-        className={cn(
-          "grid gap-2 justify-items-center",
-          colorPickerVariants.columns[columns],
-        )}
+        className="grid w-full gap-3"
+        style={{ gridTemplateColumns: `repeat(${columns}, 1fr)` }}
       >
-        {colors.map((color, index) => {
-          const isSelected = selectedValue === color;
+        {colors.map((color) => {
+          const isSelected = value === color;
           return (
             <button
               key={color}
               type="button"
-              role="radio"
-              aria-checked={isSelected}
-              aria-label={`Select color ${color}`}
               disabled={disabled}
-              tabIndex={
-                focusedIndex === -1
-                  ? isSelected
-                    ? 0
-                    : -1
-                  : focusedIndex === index
-                    ? 0
-                    : -1
-              }
-              onClick={() => handleSelect(color)}
-              onKeyDown={(e) => handleKeyDown(e, index)}
-              onFocus={() => setFocusedIndex(index)}
+              onClick={() => onChange(color)}
+              aria-pressed={isSelected}
+              aria-label={`Color ${color}`}
               className={cn(
-                "rounded-lg transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-                colorPickerVariants.size[size],
-                isSelected
-                  ? "ring-2 ring-offset-2 ring-offset-background ring-foreground"
-                  : "hover:scale-110",
-                disabled && "opacity-50 cursor-not-allowed hover:scale-100",
+                "rounded-lg p-0 transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                isSelected &&
+                  "ring-2 ring-ring ring-offset-2 ring-offset-background scale-110",
+                sizeClasses[size],
               )}
               style={{ backgroundColor: color }}
             />
@@ -151,4 +59,3 @@ function ColorPicker({
 }
 
 export { ColorPicker };
-export type { ColorPickerProps };

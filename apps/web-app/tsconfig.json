@@ -19,6 +19,22 @@
     "src/components/ui/carousel.tsx",
     "src/components/ui/chart.tsx",
     "src/components/ui/drawer.tsx",
-    "src/components/ui/input-otp.tsx"
+    "src/components/ui/input-otp.tsx",
+
+    "src/features/artifact/**",
+    "src/features/dashboard/**",
+    "src/features/idea/**",
+    "src/features/memory/**",
+    "src/features/onboarding/**",
+    "src/features/settings/**",
+
+    "src/routes/_appMainLayout/artifact.tsx",
+    "src/routes/_appMainLayout/dashboard.tsx",
+    "src/routes/_appMainLayout/ideas/**",
+    "src/routes/_appMainLayout/memory.tsx",
+    "src/routes/_onboardLayout/**",
+    "src/routes/ideas.$id.tsx",
+    "src/routes/settings.tsx",
+    "src/routes/settings/**"
   ]
 }

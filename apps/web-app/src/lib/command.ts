@@ -1,7 +1,5 @@
-import { getOC, getStore } from "@/hooks/instanceScopeHook";
 import type { ChatInputContent } from "./opencode";
 import type { ModelConfig } from "@/types";
-import { toast } from "sonner";
 
 export interface SlashCommandState {
   state: {
@@ -57,97 +55,43 @@ export interface SystemCommand {
   name: string;
   description: string;
   immediate?: boolean;
-  execute: (args: string, instanceId: string) => Promise<void> | void;
 }
+
+export type CommandSource = "command" | "mcp" | "skill" | "system";
+
+export type Command = {
+  name: string;
+  description?: string;
+  agent?: string;
+  model?: string;
+  source?: CommandSource;
+  template: string;
+  subtask?: boolean;
+  hints: Array<string>;
+  immediate?: boolean;
+};
 
 export const systemCommands: SystemCommand[] = [
   {
     name: "new",
     description: "Create a new session",
     immediate: true,
-    execute: async (_args, instanceId) => {
-      getStore("session", instanceId).getState().createTempSession();
-    },
   },
   {
     name: "fork",
     description: "Fork current session",
-    execute: async (_args, instanceId) => {
-      const sessionStore = getStore("session", instanceId).getState();
-      const selectedSessionId = sessionStore.selectedSessionId;
-      if (!selectedSessionId) return;
-
-      const oc = getOC(instanceId);
-      const result = await oc.session.messages({ sessionID: selectedSessionId });
-      if (result.error) {
-        toast.error("Failed to load messages for fork");
-        return;
-      }
-      if (!result.data?.length) {
-        toast.error("No messages found to fork");
-        return;
-      }
-
-      const lastMessage = result.data[result.data.length - 1];
-      const forkResult = await sessionStore.forkSession(selectedSessionId, lastMessage.info.id);
-
-      if (!forkResult.success) {
-        toast.error(forkResult.error ?? "Failed to fork session");
-      }
-    },
   },
 ];
 
+export const mockCommands: Command[] = systemCommands.map((cmd) => ({
+  name: cmd.name,
+  description: cmd.description,
+  source: "system",
+  template: "",
+  hints: [],
+  immediate: cmd.immediate,
+}));
+
 export function findSystemCommand(name: string): SystemCommand | undefined {
   return systemCommands.find((cmd) => cmd.name === name);
-}
-
-export async function executeSystemCommand(params: {
-  arguments: string;
-  command: string;
-  instanceId: string;
-}): Promise<boolean> {
-  const { command, arguments: args, instanceId } = params;
-
-  const systemCommand = findSystemCommand(command);
-  if (systemCommand) {
-    await systemCommand.execute(args, instanceId);
-    return true;
-  }
-
-  return false;
-}
-
-export async function executeOCCommand(params: {
-  directory: string;
-  sessionId: string;
-  command: string;
-  arguments: string;
-  model?: ModelConfig | null;
-  agent?: string | null;
-  instanceId: string;
-}): Promise<void> {
-  const { directory, sessionId, command, arguments: args, model, agent, instanceId } = params;
-
-  const isExceSystemCommand = await executeSystemCommand({
-    command,
-    arguments: args,
-    instanceId
-  });
-
-  if (isExceSystemCommand) {
-    return;
-  }
-
-  const sendModel = model ? `${model.providerID}/${model.modelID}` : undefined;
-
-  await getOC(instanceId).session.command({
-    sessionID: sessionId,
-    command,
-    arguments: args,
-    model: sendModel,
-    agent: agent ?? undefined,
-  }, {
-    headers: { 'x-opencode-directory': directory }
-  });
 }

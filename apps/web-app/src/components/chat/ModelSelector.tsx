@@ -1,4 +1,3 @@
-// components/chat/ModelSelector.tsx
 import { useState, useEffect, useRef } from "react";
 import {
   Bot,
@@ -9,8 +8,7 @@ import {
   ChevronDown,
   Search,
 } from "lucide-react";
-import { useStore } from "@/hooks/instanceScopeHook";
-import type { ModelConfig } from "@/types";
+import type { ModelConfig, ModelProvider } from "@/types";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -21,6 +19,8 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useModels } from "@/hooks/queries/useModels";
+import { useDefaultModelStore } from "@/stores/defaultModelStore";
 
 const providerIcons: Record<string, React.ReactNode> = {
   openai: <Cloud className="size-4" />,
@@ -34,34 +34,37 @@ const providerNames: Record<string, string> = {
   local: "Local",
 };
 
+const FALLBACK_PROVIDERS: ModelProvider[] = [
+  {
+    id: "offline",
+    name: "Offline (no backend)",
+    models: [
+      {
+        providerID: "offline",
+        modelID: "offline",
+        name: "Offline",
+        description: "Cannot reach OC backend",
+        maxTokens: 0,
+        supportsStreaming: false,
+        supportsTools: false,
+      },
+    ],
+  },
+];
+
 export function ModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedModel, setSelectedModel] = useState<ModelConfig | null>(() => useDefaultModelStore.getState().defaultModel);
   const inputRef = useRef<HTMLInputElement>(null);
-  const {
-    providers,
-    isLoading,
-    error,
-    fetchProviders,
-    selectedModel,
-    setSelectedModel,
-  } = useStore("model");
+  const { data, isLoading, error } = useModels();
+  const providers = data ?? FALLBACK_PROVIDERS;
 
   useEffect(() => {
-    fetchProviders();
-  }, [fetchProviders]);
-
-  // useEffect(() => {
-  //   const handleKeyDown = (e: KeyboardEvent) => {
-  //     if ((e.metaKey || e.ctrlKey) && e.key === "m") {
-  //       e.preventDefault();
-  //       setIsOpen((prev) => !prev);
-  //     }
-  //   };
-
-  //   document.addEventListener("keydown", handleKeyDown);
-  //   return () => document.removeEventListener("keydown", handleKeyDown);
-  // }, []);
+    if (!selectedModel && providers.length > 0 && providers[0].models.length > 0) {
+      setSelectedModel(providers[0].models[0]);
+    }
+  }, [providers, selectedModel]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -89,6 +92,7 @@ export function ModelSelector() {
 
   const handleSelectModel = (model: ModelConfig | null) => {
     setSelectedModel(model);
+    useDefaultModelStore.getState().setDefaultModel(model);
     setIsOpen(false);
     setSearchQuery("");
   };
@@ -121,7 +125,7 @@ export function ModelSelector() {
             </div>
           ) : error ? (
             <div className="p-4 text-sm text-destructive text-center">
-              {error}
+              {(error as Error).message}
             </div>
           ) : filteredProviders.length === 0 ? (
             <div className="p-4 text-sm text-muted-foreground text-center">

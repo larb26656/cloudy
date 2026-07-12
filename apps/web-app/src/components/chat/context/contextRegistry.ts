@@ -1,5 +1,4 @@
 import { Clipboard, type LucideIcon } from "lucide-react";
-import { useContextStore } from "@/stores/contextStore";
 import { generateId } from "@/lib/id";
 import type { ContextItem } from "@/types/context";
 
@@ -15,25 +14,22 @@ export type ContextProvider = {
 export const contextProviders: ContextProvider[] = [
   {
     type: "clipboard",
-    label: "Clipboard content",
+    label: "Clipboard content (mock)",
     icon: Clipboard,
     handler: async () => {
       const text = await navigator.clipboard.readText();
       if (!text) return;
-
       const item: ContextItem = {
         id: generateId(),
         type: "clipboard",
         data: {
-          // TODO replace with utils lib
           label: `Clipboard: ${text.slice(0, 50)}${text.length > 50 ? "..." : ""}`,
           content: text,
         },
         replace: true,
         timestamp: new Date().toISOString(),
       };
-
-      useContextStore.getState().addContext(item);
+      void item;
     },
   },
 ];

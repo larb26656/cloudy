@@ -1,15 +1,22 @@
-import { useState, useCallback, useMemo } from "react";
-import { Plus } from "lucide-react";
-import { CreateWorkspaceDialog } from "./CreateWorkspaceDialog";
-import { EditWorkspaceDialog } from "./EditWorkspaceDialog";
-import { WorkspaceItem } from "./WorkspaceItem";
-import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
-import { cn } from "@/lib/utils";
+import { useState } from "react";
+import { Plus, Settings2, Trash2 } from "lucide-react";
 import {
   Tooltip,
   TooltipTrigger,
   TooltipContent,
 } from "@/components/ui/tooltip";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+
+import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
+import type { Workspace } from "@/stores/workspaceStore";
 
 interface WorkspaceStripProps {
   instanceId: string;
@@ -17,43 +24,27 @@ interface WorkspaceStripProps {
 }
 
 export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  void instanceId;
+  const { workspaces, selectedWorkspaceId, selectWorkspace } =
+    useWorkspaceStore();
+  const [modalOpen, setModalOpen] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(
     null,
   );
 
-  const allWorkspaces = useWorkspaceStore((state) => state.workspaces);
-  const currentWorkspaceId = useWorkspaceStore(
-    (state) => state.currentWorkspaceId,
-  );
+  const handleWorkspaceClick = (workspace: Workspace) => {
+    selectWorkspace(workspace.id);
+  };
 
-  const workspaces = useMemo(
-    () => allWorkspaces.filter((w) => w.instanceId === instanceId),
-    [allWorkspaces, instanceId],
-  );
-  const setCurrentWorkspace = useWorkspaceStore(
-    (state) => state.setCurrentWorkspace,
-  );
-  const deleteWorkspace = useWorkspaceStore((state) => state.deleteWorkspace);
-
-  const handleSelectWorkspace = useCallback(
-    (workspace: Workspace) => {
-      setCurrentWorkspace(workspace.id);
-    },
-    [setCurrentWorkspace],
-  );
-
-  const handleEditWorkspace = useCallback((workspace: Workspace) => {
+  const handleEdit = (workspace: Workspace) => {
     setEditingWorkspace(workspace);
-  }, []);
+    setModalOpen(true);
+  };
 
-  const handleDeleteWorkspace = useCallback(
-    (workspaceId: string) => {
-      if (workspaces.length <= 1) return;
-      deleteWorkspace(workspaceId);
-    },
-    [deleteWorkspace, workspaces.length],
-  );
+  const handleCreateWorkspace = () => {
+    setEditingWorkspace(null);
+    setModalOpen(true);
+  };
 
   return (
     <>
@@ -65,15 +56,48 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
       >
         <div className="flex flex-col items-center flex-1 w-full py-3 gap-2 overflow-y-auto scrollbar-hidden">
           {workspaces.map((workspace) => (
-            <WorkspaceItem
-              key={workspace.id}
-              workspace={workspace}
-              isSelected={workspace.id === currentWorkspaceId}
-              onSelect={handleSelectWorkspace}
-              onEdit={handleEditWorkspace}
-              onDelete={handleDeleteWorkspace}
-              canDelete={workspaces.length > 1}
-            />
+            <DropdownMenu key={workspace.id}>
+              <Tooltip>
+                <TooltipTrigger
+                  render={
+                    <DropdownMenuTrigger
+                      render={
+                        <button
+                          type="button"
+                          onClick={() => handleWorkspaceClick(workspace)}
+                          className={cn(
+                            "size-12 rounded-xl flex items-center justify-center text-sm font-semibold text-white transition-all duration-200 hover:rounded-[16px]",
+                            selectedWorkspaceId === workspace.id &&
+                              "ring-2 ring-primary",
+                          )}
+                          style={{ backgroundColor: workspace.color }}
+                        >
+                          {workspace.name.charAt(0).toUpperCase()}
+                        </button>
+                      }
+                    />
+                  }
+                />
+                <TooltipContent side="right" sideOffset={8}>
+                  {workspace.name}
+                </TooltipContent>
+              </Tooltip>
+
+              <DropdownMenuContent align="start" side="right" sideOffset={8}>
+                <DropdownMenuItem onClick={() => handleEdit(workspace)}>
+                  <Settings2 data-icon="inline-start" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => handleEdit(workspace)}
+                >
+                  <Trash2 data-icon="inline-start" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ))}
         </div>
 
@@ -82,8 +106,8 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
             <TooltipTrigger
               render={
                 <button
-                  onClick={() => setCreateDialogOpen(true)}
                   className="size-12 rounded-xl flex items-center justify-center bg-muted hover:bg-muted/80 transition-all duration-200 hover:rounded-[16px]"
+                  onClick={handleCreateWorkspace}
                 >
                   <Plus className="size-5 text-foreground" />
                 </button>
@@ -96,19 +120,11 @@ export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
         </div>
       </div>
 
-      <CreateWorkspaceDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+      <WorkspaceDialog
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        workspace={editingWorkspace}
       />
-      {editingWorkspace && (
-        <EditWorkspaceDialog
-          workspace={editingWorkspace}
-          open={true}
-          onOpenChange={(open) => {
-            if (!open) setEditingWorkspace(null);
-          }}
-        />
-      )}
     </>
   );
 }

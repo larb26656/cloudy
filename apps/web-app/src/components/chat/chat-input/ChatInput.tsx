@@ -4,14 +4,9 @@ import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
 import type { ModelConfig } from "../../../types";
 import { Button } from "@/components/ui/button";
-import { useStore } from "@/hooks/instanceScopeHook";
 import { type ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "../ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
-import { useTextHistory } from "@/stores/textHistoryStore";
-import { isModeElectron } from "@/main";
-import { ContextBadge, ContextSelector } from "../context";
-import { useContextStore } from "@/stores/contextStore";
 
 interface ChatInputProps {
   onSend: (
@@ -28,6 +23,8 @@ interface ChatInputProps {
   showModelSelector?: boolean;
 }
 
+const MOCK_HISTORY: string[] = [];
+
 export function ChatInput({
   onSend,
   onImmediateCommand,
@@ -38,14 +35,7 @@ export function ChatInput({
   initialValue,
   showModelSelector = true,
 }: ChatInputProps) {
-  const {
-    cursorIndex,
-    scrollUp: scrollHistoryUp,
-    scrollDown: scrollHistoryDown,
-    push: pushHistory,
-    currentValue: currentHistorySelectValue,
-  } = useTextHistory();
-
+  const [historyIndex, setHistoryIndex] = useState(-1);
   const [chatInputContent, setChatInputContent] = useState<ChatInputContent>({
     text: "",
     mentions: [],
@@ -57,25 +47,20 @@ export function ChatInput({
   const speechBaseRef = useRef("");
   const prevListeningRef = useRef(false);
 
+  const currentHistorySelectValue =
+    historyIndex === -1 ? "" : MOCK_HISTORY[historyIndex] ?? "";
+
   useEffect(() => {
     if (initialValue) {
-      setChatInputContent({
-        text: initialValue,
-        mentions: [],
-      });
+      setChatInputContent({ text: initialValue, mentions: [] });
       setSpeechDraft("");
       speechBaseRef.current = initialValue;
     }
   }, [initialValue]);
 
   useEffect(() => {
-    const newText = currentHistorySelectValue;
-
-    setChatInputContent({
-      text: newText,
-      mentions: [],
-    });
-  }, [cursorIndex]);
+    setChatInputContent({ text: currentHistorySelectValue, mentions: [] });
+  }, [historyIndex]);
 
   useEffect(() => {
     if (isListening && !prevListeningRef.current) {
@@ -86,20 +71,12 @@ export function ChatInput({
       const merged = `${speechBaseRef.current} ${speechDraft}`.trim();
       speechBaseRef.current = merged;
 
-      setChatInputContent((prev) => ({
-        ...prev,
-        text: merged,
-      }));
-
+      setChatInputContent((prev) => ({ ...prev, text: merged }));
       setSpeechDraft("");
     }
 
     prevListeningRef.current = isListening;
   }, [isListening, speechDraft, chatInputContent.text]);
-
-  const { selectedModel } = useStore("model");
-  const { selectedAgent } = useStore("agent");
-  const contexts = useContextStore((s) => s.contexts);
 
   const displayText = isListening
     ? `${speechBaseRef.current} ${speechDraft}`.trim()
@@ -112,49 +89,35 @@ export function ChatInput({
 
   const handleSubmit = () => {
     const finalText = displayText.trim();
-
-    pushHistory(finalText);
-
     if (finalText && !isLoading) {
       onSend(
-        {
-          ...chatInputContent,
-          text: finalText,
-        },
-        selectedModel,
-        selectedAgent,
+        { ...chatInputContent, text: finalText },
+        null,
+        null,
       );
-
-      setChatInputContent({
-        text: "",
-        mentions: [],
-      });
+      setChatInputContent({ text: "", mentions: [] });
       setSpeechDraft("");
+      setHistoryIndex(-1);
     }
   };
 
   const handleHistoryCursor = (e: React.KeyboardEvent) => {
-    const isSameHistoryValue =
-      chatInputContent.text === currentHistorySelectValue;
-
-    if (!isSameHistoryValue) {
-      return;
-    }
+    if (!MOCK_HISTORY.length) return;
+    if (chatInputContent.text !== currentHistorySelectValue) return;
 
     if (e.key === "ArrowUp") {
-      scrollHistoryUp();
+      setHistoryIndex((i) => (i === -1 ? MOCK_HISTORY.length - 1 : Math.max(0, i - 1)));
     } else if (e.key === "ArrowDown") {
-      scrollHistoryDown();
+      setHistoryIndex((i) =>
+        i === -1 || i === MOCK_HISTORY.length - 1 ? -1 : i + 1,
+      );
     }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "@" || e.key === "/") {
-      if (directory) {
-        return;
-      }
+      if (directory) return;
     }
-
     handleHistoryCursor(e);
 
     if (e.key === "Enter" && !e.shiftKey) {
@@ -168,24 +131,13 @@ export function ChatInput({
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full">
-            {isModeElectron && (
-              <div className="flex items-center gap-1.5 flex-wrap min-h-0">
-                {contexts.map((ctx) => (
-                  <ContextBadge key={ctx.id} item={ctx} />
-                ))}
-              </div>
-            )}
             <div className="flex gap-2 w-full pt-2">
               <ChatInputEditor
-                content={{
-                  ...chatInputContent,
-                  text: displayText,
-                }}
+                content={{ ...chatInputContent, text: displayText }}
                 onChange={(next) => {
                   if (!isListening) {
                     setChatInputContent(next);
                     speechBaseRef.current = next.text;
-                    return;
                   }
                 }}
                 onKeyDown={handleKeyDown}
@@ -197,16 +149,13 @@ export function ChatInput({
 
             <div className="flex justify-between gap-2">
               <div className="flex gap-2 min-w-0 overflow-x-auto items-center">
-                {isModeElectron && <ContextSelector />}
                 <AgentSelector />
                 {showModelSelector && <ModelSelector />}
               </div>
 
               <div className="flex gap-2 shrink-0">
                 <SpeechBtn
-                  onTranscript={(text) => {
-                    setSpeechDraft(text);
-                  }}
+                  onTranscript={(text) => setSpeechDraft(text)}
                   onListeningChange={setIsListening}
                 />
 

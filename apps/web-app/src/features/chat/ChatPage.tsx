@@ -8,45 +8,22 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useDeviceType } from "@/hooks";
-import { useChatUIStore } from "@/stores";
-import { useStore } from "@/hooks/instanceScopeHook";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { RefreshCw, Sun, Moon, PanelRight, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModelSelector } from "@/components/chat/ModelSelector";
 import { SidebarToggle } from "@/components/layout/SidebarToggle";
-
-type SnippetType = "idea" | "memory" | "artifact";
-
-const snippetPrompts: Record<SnippetType, string> = {
-  idea: "I want new ideas, please help me brainstorm",
-  memory: "I want to save an important memory",
-  artifact: "Please help me create an artifact",
-};
+import { useSessionStore } from "@/stores/sessionStore";
 
 export default function ChatPage() {
-  const { selectedSessionId } = useStore("session");
-  const { loadMessages } = useStore("message");
-  const { isDarkMode, toggleTheme } = useChatUIStore();
   const { isMobile } = useDeviceType();
-  const [initialInput, setInitialInput] = useState<string>("");
+  const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const [showMinimap, setShowMinimap] = useState(false);
-
-  useEffect(() => {
-    if (!selectedSessionId) return;
-    loadMessages(selectedSessionId);
-  }, [selectedSessionId, loadMessages]);
-
-  const handleSnippetSelect = (type: SnippetType) => {
-    setInitialInput(snippetPrompts[type]);
-  };
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const toggleTheme = () => setIsDarkMode((v) => !v);
 
   const handleToggleMinimap = () => {
     setShowMinimap((prev) => !prev);
-  };
-
-  const handleCloseMinimap = () => {
-    setShowMinimap(false);
   };
 
   return (
@@ -88,10 +65,6 @@ export default function ChatPage() {
       />
       <ChatContainer
         sessionId={selectedSessionId}
-        onSnippetSelect={handleSnippetSelect}
-        initialInput={initialInput}
-        showMinimap={showMinimap}
-        onCloseMinimap={handleCloseMinimap}
         showModelSelector={!isMobile}
       />
     </>

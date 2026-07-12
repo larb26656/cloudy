@@ -1,16 +1,14 @@
-import {
-  PanelLeftClose,
-  PanelLeft,
-} from "lucide-react";
+import { PanelLeftClose, PanelLeft } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useChatUIStore } from "@/stores";
+import { useSidebarStore } from "@/stores/sidebarStore";
 
 export function SidebarToggle() {
-  const { sidebarOpen, toggleSidebar } = useChatUIStore();
+  const sidebarOpen = useSidebarStore((s) => s.sidebarOpen);
+  const toggleSidebar = useSidebarStore((s) => s.toggleSidebar);
 
   return (
     <Tooltip>

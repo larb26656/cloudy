@@ -1,4 +1,3 @@
-// components/chat/AgentSelector.tsx
 import { useState, useEffect, useRef } from "react";
 import { Bot, ChevronDown, Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,9 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useStore } from "@/hooks/instanceScopeHook";
+import type { Agent } from "@/types/agent";
+import { useAgents } from "@/hooks/queries/useAgents";
+import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 
 const agentModeLabels: Record<string, string> = {
   primary: "Primary",
@@ -18,22 +19,23 @@ const agentModeLabels: Record<string, string> = {
   all: "All",
 };
 
+const FALLBACK_AGENTS: Agent[] = [
+  { name: "build", description: "Default build agent (offline)", mode: "primary", native: true },
+];
+
 export function AgentSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedAgent, setSelectedAgent] = useState<string | null>(() => useDefaultAgentStore.getState().defaultAgent);
   const inputRef = useRef<HTMLInputElement>(null);
-  const {
-    agents,
-    isLoading,
-    error,
-    fetchAgents,
-    selectedAgent,
-    setSelectedAgent,
-  } = useStore("agent");
+  const { data, isLoading, error } = useAgents();
+  const agents = data ?? FALLBACK_AGENTS;
 
   useEffect(() => {
-    fetchAgents();
-  }, [fetchAgents]);
+    if (!selectedAgent && agents.length > 0) {
+      setSelectedAgent(agents[0].name);
+    }
+  }, [agents, selectedAgent]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -58,6 +60,7 @@ export function AgentSelector() {
 
   const handleSelectAgent = (agentName: string | null) => {
     setSelectedAgent(agentName);
+    useDefaultAgentStore.getState().setDefaultAgent(agentName);
     setIsOpen(false);
     setSearchQuery("");
   };
@@ -90,7 +93,7 @@ export function AgentSelector() {
             </div>
           ) : error ? (
             <div className="p-4 text-sm text-destructive text-center">
-              {error}
+              {(error as Error).message}
             </div>
           ) : filteredAgents.length === 0 ? (
             <div className="p-4 text-sm text-muted-foreground text-center">

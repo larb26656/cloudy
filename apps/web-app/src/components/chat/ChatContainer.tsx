@@ -1,149 +1,77 @@
-// components/chat/ChatContainer.tsx
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./chat-input";
 import { QuestionSheet } from "./QuestionSheet";
-import { useStore } from "@/hooks/instanceScopeHook";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
-import { generatePlaceholder } from "@/lib/greeting-generator";
-import {
-  isCommand,
-  parseCommand,
-  executeOCCommand,
-  executeSystemCommand,
-} from "@/lib/command";
 import { useMemo } from "react";
-import type { ChatInputContent } from "@/lib/opencode";
-import type { ModelConfig } from "@/types";
-import { useCurrentInstanceId } from "@/hooks/instanceScopeHook";
-import { useContextStore } from "@/stores";
-
-type SnippetType = "idea" | "memory" | "artifact";
+import { generatePlaceholder } from "@/lib/greeting-generator";
+import { useSendMessage } from "@/hooks/queries/useMessages";
+import { useCreateSession } from "@/hooks/queries/useSessions";
+import { type ChatInputContent } from "@/lib/opencode";
+import { MOCK_DIRECTORY } from "@/constants/mock";
+import { useSessionStore } from "@/stores/sessionStore";
 
 interface ChatContainerProps {
   sessionId: string | null;
-  initialInput?: string;
-  onSnippetSelect?: (type: SnippetType) => void;
-  showMinimap?: boolean;
-  onCloseMinimap?: () => void;
   showModelSelector?: boolean;
+  onSessionChange?: (sessionId: string) => void;
 }
 
 export function ChatContainer({
   sessionId,
-  onSnippetSelect,
-  initialInput,
-  showMinimap = false,
-  onCloseMinimap,
-  showModelSelector = true,
+  showModelSelector = false,
+  onSessionChange,
 }: ChatContainerProps) {
-  const createSession = useStore("session").createSession;
-  const instanceId = useCurrentInstanceId();
-  const activeQuestion = useStore("session").activeQuestion;
-  const sendMessage = useStore("message").sendMessage;
-  const abortGeneration = useStore("message").abortGeneration;
-  const selectedDirectory =
-    useWorkspaceStore().getCurrentWorkspace()?.directory;
-  const selectedSessionId = useStore("session").selectedSessionId;
-  const sessionStatuses = useStore("session").sessionStatuses;
-  const { contexts, clearContexts } = useContextStore();
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
-  const isBusy = Boolean(
-    sessionId && sessionStatuses[sessionId]?.type === "busy",
-  );
+  const sendMessage = useSendMessage();
+  const createSession = useCreateSession();
+  const selectSession = useSessionStore((s) => s.selectSession);
 
-  const getOrCreateSession = async (
-    selectedDirectory: string,
-  ): Promise<string> => {
-    if (sessionId) {
-      return sessionId;
+  const handleSend = (content: ChatInputContent) => {
+    if (!sessionId) {
+      createSession.mutate(
+        { directory: MOCK_DIRECTORY },
+        {
+          onSuccess: (newSession) => {
+            sendMessage.mutate({
+              sessionId: newSession.id,
+              content: content.text,
+            });
+            // TODO deprecate selecte session
+            selectSession(newSession.id);
+            onSessionChange?.(newSession.id);
+          },
+        },
+      );
+      return;
     }
-    const session = await createSession(selectedDirectory);
-
-    return session.id;
-  };
-
-  const handleSend = async (
-    content: ChatInputContent,
-    model?: ModelConfig | null,
-    agent?: string | null,
-  ) => {
-    if (!selectedDirectory) return;
-    const currentSessionId = await getOrCreateSession(selectedDirectory);
-
-    const normalizedContent = {
-      ...content,
-      text: content.text.trim(),
-    };
-
-    const text = normalizedContent.text;
-
-    if (isCommand(text)) {
-      const parsed = parseCommand(text);
-      if (parsed) {
-        await executeOCCommand({
-          directory: selectedDirectory,
-          sessionId: currentSessionId,
-          command: parsed.command,
-          arguments: parsed.arguments,
-          model,
-          agent,
-          instanceId,
-        });
-        return;
-      }
-    }
-
-    await sendMessage(
-      selectedDirectory,
-      currentSessionId,
-      normalizedContent,
-      contexts,
-      model,
-      agent,
-    );
-
-    clearContexts();
-  };
-
-  const handleAbort = async () => {
-    if (!selectedDirectory) return;
-    const currentSessionId = await getOrCreateSession(selectedDirectory);
-
-    await abortGeneration(selectedDirectory, currentSessionId);
-  };
-
-  const handleImmediateCommand = async (commandName: string) => {
-    await executeSystemCommand({
-      command: commandName,
-      arguments: "",
-      instanceId,
+    sendMessage.mutate({
+      sessionId,
+      content: content.text,
     });
   };
 
-  return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden">
-      {/* Messages */}
-      <MessageList
-        selectedSessionId={selectedSessionId}
-        onSnippetSelect={onSnippetSelect}
-        showMinimap={showMinimap}
-        onCloseMinimap={onCloseMinimap}
-      />
+  const handleAbort = () => {
+    // mock: no-op
+  };
 
-      {/* Input */}
+  const handleImmediateCommand = () => {
+    // mock: no-op
+  };
+
+  return (
+    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full">
+      <MessageList selectedSessionId={sessionId} />
+
       <ChatInput
         onSend={handleSend}
         onImmediateCommand={handleImmediateCommand}
         onAbort={handleAbort}
-        isLoading={isBusy}
+        isLoading={sendMessage.isPending}
         placeholder={chatplaceholder}
-        directory={selectedDirectory || ""}
-        initialValue={initialInput}
+        directory={MOCK_DIRECTORY}
         showModelSelector={showModelSelector}
       />
 
-      {/* Question Sheet */}
-      <QuestionSheet open={!!activeQuestion} />
+      <QuestionSheet open={false} />
     </div>
   );
 }
