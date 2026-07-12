@@ -16,7 +16,7 @@ export function useAgents() {
       const data = result.data;
       if (!Array.isArray(data)) return [];
       return data
-        .filter((a) => !a.hidden)
+        .filter((a) => !a.hidden && a.mode === 'primary')
         .map((a) => ({
           name: a.name,
           description: a.description,
