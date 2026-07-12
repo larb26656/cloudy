@@ -11,7 +11,13 @@ export function Detail({ input }: WriteToolInputProps) {
   const filePath = String(input.filePath ?? "");
   const content = String(input.content ?? "");
 
-  return filePath && content && <CodeBlock>{content}</CodeBlock>;
+  if (!filePath || !content) return null;
+
+  return (
+    <CodeBlock fileName={filePath} showLineNumbers={true}>
+      {content}
+    </CodeBlock>
+  );
 }
 
 export function Preview({ state }: { state: ToolPartType["state"] }) {

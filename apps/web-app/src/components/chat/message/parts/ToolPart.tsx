@@ -21,31 +21,34 @@ export function ToolPart({ part }: ToolPartProps) {
             ? "Error"
             : "";
 
+  const isEditOrWrite = part.tool === "edit" || part.tool === "write";
+
   return (
     <div className="space-y-1">
       <CollapsiblePart
         label="Tool Call"
         detail={`${part.tool} - ${stateLabel}`}
       >
-        <Card>
-          <CardContent>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <Wrench className="size-4 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground">
-                  Tool Call
-                </span>
+        {!isEditOrWrite && (
+          <Card>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Wrench className="size-4 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">
+                    Tool Call
+                  </span>
+                </div>
+                <div className="text-sm font-medium">{part.tool}</div>
+                <ToolStateDisplay state={part.state}>
+                  <Detail tool={part.tool} state={part.state} />
+                </ToolStateDisplay>
               </div>
-              <div className="text-sm font-medium">
-                {part.tool}
-              </div>
-              <ToolStateDisplay state={part.state}>
-                <Detail tool={part.tool} state={part.state} />
-              </ToolStateDisplay>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </CollapsiblePart>
+      {isEditOrWrite && <Detail tool={part.tool} state={part.state} />}
       <Preview tool={part.tool} state={part.state} />
     </div>
   );

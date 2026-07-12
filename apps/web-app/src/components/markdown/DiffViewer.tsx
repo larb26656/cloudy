@@ -1,18 +1,19 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useLayoutEffect, useRef } from "react";
 import { html as diff2html } from "diff2html";
 import "diff2html/bundles/css/diff2html.min.css";
+import hljs from "highlight.js";
+import "highlight.js/styles/github-dark-dimmed.css";
 import { Check, Copy, Columns, AlignJustify, Hash } from "lucide-react";
 import { ColorSchemeType } from "diff2html/lib/types";
 import { CodeFrame } from "./CodeFrame";
+import { detectLanguage } from "@/lib/highlight";
 
 interface DiffViewerProps {
   diff: string;
   title?: string;
   viewMode?: "side-by-side" | "line-by-line";
-  fileNames?: { old: string; new: string };
-  inline?: boolean;
+  filePath: string;
   defaultViewMode?: "side-by-side" | "line-by-line";
-  headless?: boolean;
   showLineNumbers?: boolean;
 }
 
@@ -20,10 +21,8 @@ export function DiffViewer({
   diff,
   title,
   viewMode: initialViewMode,
-  fileNames,
-  inline = false,
+  filePath,
   defaultViewMode = "side-by-side",
-  headless = false,
   showLineNumbers: controlledShowLineNumbers,
 }: DiffViewerProps) {
   const [copied, setCopied] = useState(false);
@@ -33,11 +32,14 @@ export function DiffViewer({
   const isControlled = initialViewMode !== undefined;
   const isLineNumbersControlled = controlledShowLineNumbers !== undefined;
 
-  const showLineNumbers = isLineNumbersControlled ? controlledShowLineNumbers : showLineNumbersState;
+  const showLineNumbers = isLineNumbersControlled
+    ? controlledShowLineNumbers
+    : showLineNumbersState;
 
   const currentViewMode = isControlled ? initialViewMode : viewMode;
 
   const diffHtml = useMemo(() => {
+    console.log("memo");
     return diff2html(diff, {
       drawFileList: false,
       matching: "lines",
@@ -48,13 +50,42 @@ export function DiffViewer({
     });
   }, [diff, currentViewMode]);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const language = detectLanguage(filePath);
+
   useEffect(() => {
-    document.querySelectorAll(".d2h-code-line-ctn");
+    const container = containerRef.current;
+    if (!container) return;
 
-    // hljs.highlightElement(block as HTMLElement);
+    const applyHighlight = () => {
+      const codeLines = container.querySelectorAll(
+        ".d2h-code-line, .d2h-code-side-line",
+      );
+      codeLines.forEach((line) => {
+        const contentSpan = line.querySelector(".d2h-code-line-ctn");
 
-    // TODO find solution later
-  }, [diffHtml, showLineNumbers]);
+        if (!contentSpan) return;
+
+        const text = contentSpan.textContent ?? "";
+
+        if (!text.trim()) return;
+
+        try {
+          const highlighted =
+            language && language !== "plaintext" && hljs.getLanguage(language)
+              ? hljs.highlight(text, { language }).value
+              : hljs.highlightAuto(text).value;
+
+          contentSpan.innerHTML = highlighted;
+        } catch {
+          // Keep original text if highlighting fails
+        }
+      });
+    };
+
+    applyHighlight();
+  });
 
   useEffect(() => {
     const style = document.createElement("style");
@@ -107,33 +138,10 @@ export function DiffViewer({
     );
   };
 
-  if (inline) {
-    return (
-      <div
-        className={headless ? "" : "overflow-x-auto"}
-        dangerouslySetInnerHTML={{ __html: diffHtml }}
-      />
-    );
-  }
-
-  if (headless) {
-    return (
-      <div
-        className="overflow-x-auto"
-        dangerouslySetInnerHTML={{ __html: diffHtml }}
-      />
-    );
-  }
-
   const header = (
     <>
-      {title || fileNames?.old || "Diff"}
-      {fileNames?.new && fileNames.new !== fileNames.old && (
-        <span className="text-gray-500 mx-1">→</span>
-      )}
-      {fileNames?.new && fileNames.new !== fileNames.old && (
-        <span>{fileNames.new}</span>
-      )}
+      <span className="text-xs text-gray-400 mr-2">[{language}]</span>
+      {title || filePath || "Diff"}
     </>
   );
 
@@ -194,6 +202,7 @@ export function DiffViewer({
   return (
     <CodeFrame header={header} actions={actions}>
       <div
+        ref={containerRef}
         className="overflow-x-auto"
         dangerouslySetInnerHTML={{ __html: diffHtml }}
       />

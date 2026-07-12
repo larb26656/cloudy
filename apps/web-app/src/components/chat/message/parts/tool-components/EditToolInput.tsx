@@ -18,7 +18,9 @@ export function Detail({ input }: EditToolInputProps) {
     (oldString || newString) && (
       <DiffViewer
         diff={createTwoFilesPatch(filePath, filePath, oldString, newString)}
+        filePath={filePath}
         viewMode="line-by-line"
+        showLineNumbers={true}
       />
     )
   );

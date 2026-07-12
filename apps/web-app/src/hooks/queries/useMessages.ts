@@ -13,7 +13,7 @@ import {
   useMutation,
 } from "@tanstack/react-query";
 
-const MESSAGES_LIMIT = 20;
+const MESSAGES_LIMIT = 50;
 
 export function useMessages({ sessionId }: { sessionId: string }) {
   return useInfiniteQuery({
@@ -34,6 +34,7 @@ export function useMessages({ sessionId }: { sessionId: string }) {
     getPreviousPageParam: (firstPage: Message[]) => {
       if (firstPage.length === 0) return undefined;
       const firstMsg = firstPage[0];
+      console.log(firstMsg);
       return encodeCursor({
         id: firstMsg.info.id,
         time: firstMsg.info.time.created,

@@ -45,11 +45,8 @@ export function MessageList({
       : []
   }, [streamingMessages, selectedSessionId])
 
-  const streamingIds = new Set(sessionStreaming.map((m) => m.info.id));
-
-  const cachedMessages = (data?.pages.flat() ?? ([] as Message[])).filter(
-    (m) => !streamingIds.has(m.info.id),
-  );
+  // TODO resolve this later
+  const cachedMessages = data?.pages.flat() ?? [];
 
   const allMessages = useMemo(() => {
     return [...cachedMessages, ...sessionStreaming]
@@ -87,7 +84,7 @@ export function MessageList({
     }
   };
 
-  if (isLoading && allMessages.length === 0) {
+  if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <div className="animate-pulse flex flex-col items-center gap-3">

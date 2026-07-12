@@ -4,6 +4,7 @@ import { CodeBlock } from "./CodeBlock";
 import { MermaidBlock } from "./MermaidBlock";
 import "highlight.js/styles/github-dark-dimmed.css";
 import remarkGfm from "remark-gfm";
+
 interface MarkdownRendererProps {
   content: string;
 }
@@ -16,8 +17,22 @@ function InlineCode({ children }: { children: React.ReactNode }) {
   );
 }
 
+function extractCodeBlockMeta(content: string): Map<string, string> {
+  const metaMap = new Map<string, string>();
+  const regex = /```(\S+):([^\s\n]+)[^\n]*\n([\s\S]*?)```/g;
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    const [, _language, fileName, code] = match;
+    metaMap.set(code.trim(), fileName);
+  }
+
+  return metaMap;
+}
+
 export function MarkdownRenderer({ content }: MarkdownRendererProps) {
   const cleanedContent = content.replace(/^---[\s\S]*?---\s*/, "");
+  const codeBlockMeta = extractCodeBlockMeta(cleanedContent);
 
   return (
     <div className="prose dark:prose-invert text-base max-w-none">
@@ -38,7 +53,8 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
               return <InlineCode>{codeContent}</InlineCode>;
             }
 
-            return <CodeBlock className={className}>{codeContent}</CodeBlock>;
+            const fileName = codeBlockMeta.get(codeContent);
+            return <CodeBlock fileName={fileName}>{codeContent}</CodeBlock>;
           },
           // Custom table styling
           table({ children }) {
@@ -51,9 +67,7 @@ export function MarkdownRenderer({ content }: MarkdownRendererProps) {
             );
           },
           thead({ children }) {
-            return (
-              <thead className="bg-muted">{children}</thead>
-            );
+            return <thead className="bg-muted">{children}</thead>;
           },
           th({ children }) {
             return (

@@ -79,7 +79,7 @@ export function FileUpdateViewer({
       return (
         <DiffViewer
           diff={createTwoFilesPatch(filePath, filePath, oldString, newString)}
-          fileNames={{ old: currentFile.name, new: currentFile.name }}
+          filePath={filePath}
           inline={true}
           viewMode="line-by-line"
           showLineNumbers={true}
