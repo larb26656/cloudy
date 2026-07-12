@@ -77,7 +77,6 @@ export default function ChatPage() {
       <ChatContainer
         directory={selectedWorkspace.directory}
         sessionId={selectedSessionId}
-        showModelSelector={!isMobile}
       />
     </>
   );

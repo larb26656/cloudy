@@ -10,14 +10,12 @@ import { type ChatInputContent } from "@/lib/opencode";
 interface ChatContainerProps {
   directory: string;
   sessionId: string | null;
-  showModelSelector?: boolean;
   onSessionChange?: (sessionId: string) => void;
 }
 
 export function ChatContainer({
   directory,
   sessionId,
-  showModelSelector = false,
   onSessionChange,
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
@@ -68,7 +66,7 @@ export function ChatContainer({
         isLoading={sendMessage.isPending}
         placeholder={chatplaceholder}
         directory={directory}
-        showModelSelector={showModelSelector}
+
       />
 
       <QuestionSheet open={false} />

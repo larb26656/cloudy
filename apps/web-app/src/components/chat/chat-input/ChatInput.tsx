@@ -20,7 +20,6 @@ interface ChatInputProps {
   placeholder?: string;
   directory?: string;
   initialValue?: string;
-  showModelSelector?: boolean;
 }
 
 const MOCK_HISTORY: string[] = [];
@@ -33,7 +32,6 @@ export function ChatInput({
   placeholder = "Type a message...",
   directory,
   initialValue,
-  showModelSelector = true,
 }: ChatInputProps) {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [chatInputContent, setChatInputContent] = useState<ChatInputContent>({
@@ -151,7 +149,7 @@ export function ChatInput({
             <div className="flex justify-between gap-2">
               <div className="flex gap-2 min-w-0 overflow-x-auto items-center">
                 <AgentSelector />
-                {showModelSelector && <ModelSelector />}
+                <ModelSelector />
               </div>
 
               <div className="flex gap-2 shrink-0">
