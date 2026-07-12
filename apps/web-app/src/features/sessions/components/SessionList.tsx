@@ -8,6 +8,9 @@ type SessionListProps = {
   searchQuery: string;
 };
 
+/**
+ * @deprecated Unused - to be removed
+ */
 export function SessionList({ searchQuery }: SessionListProps) {
   const navigate = useNavigate();
   const { location } = useRouterState();

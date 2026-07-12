@@ -24,7 +24,7 @@ export default function HomePage() {
   return (
     <div className="flex flex-col h-dvh w-full overflow-hidden bg-background">
       <MainTabBar />
-      <div className="flex-1">
+      <div className="flex-1 overflow-hidden">
         {activeTabId === "home" ? <HomeContent /> : renderDynamicTab()}
       </div>
     </div>

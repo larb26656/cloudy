@@ -15,6 +15,9 @@ interface MobileSidebarProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * @deprecated Unused - to be removed
+ */
 export function MobileSidebar({
   instanceId,
   open,

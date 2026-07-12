@@ -6,7 +6,6 @@ import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useSendMessage } from "@/hooks/queries/useMessages";
 import { useCreateSession } from "@/hooks/queries/useSessions";
 import { type ChatInputContent } from "@/lib/opencode";
-import { useSessionStore } from "@/stores/sessionStore";
 
 interface ChatContainerProps {
   directory: string;
@@ -24,7 +23,6 @@ export function ChatContainer({
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
   const sendMessage = useSendMessage();
   const createSession = useCreateSession();
-  const selectSession = useSessionStore((s) => s.selectSession);
 
   const handleSend = (content: ChatInputContent) => {
     if (!sessionId) {
@@ -34,11 +32,10 @@ export function ChatContainer({
           onSuccess: (newSession) => {
             sendMessage.mutate({
               sessionId: newSession.id,
-              content: content.text,
+              content: content,
+              directory: directory,
             });
 
-            // TODO deprecate selecte session
-            selectSession(newSession.id);
             onSessionChange?.(newSession.id);
           },
         },
@@ -47,7 +44,8 @@ export function ChatContainer({
     }
     sendMessage.mutate({
       sessionId,
-      content: content.text,
+      content: content,
+      directory: directory,
     });
   };
 

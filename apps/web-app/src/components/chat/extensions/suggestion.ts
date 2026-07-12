@@ -4,9 +4,13 @@ import type { Editor } from "@tiptap/core";
 import type { MentionListRef } from "./MentionList";
 import MentionCommandList, { type CommandListRef } from "./CommandList";
 import MentionList from "./MentionList";
-import type { SuggestionKeyDownProps, SuggestionProps } from "@tiptap/suggestion";
+import type {
+  SuggestionKeyDownProps,
+  SuggestionProps,
+} from "@tiptap/suggestion";
 import type { MentionNodeAttrs } from "@tiptap/extension-mention";
 import { mockCommands, type Command } from "@/lib/command";
+import { getOcClient } from "@/lib/opencode";
 
 type MentionItem = string;
 
@@ -14,8 +18,6 @@ type CommandItem = Command & { id: string; label: string };
 
 type MentionSuggestionProps = SuggestionProps<MentionItem, MentionNodeAttrs>;
 type CommandSuggestionProps = SuggestionProps<CommandItem, MentionNodeAttrs>;
-
-const MOCK_MENTION_FILES = ["README.md", "src/index.ts", "package.json"];
 
 const updatePosition = (editor: Editor, element: HTMLElement) => {
   const virtualElement = {
@@ -39,12 +41,16 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
   });
 };
 
-export function createMentionSuggestion(_directory: string) {
+export function createMentionSuggestion(directory: string) {
   return {
     items: async ({ query }: { query: string }): Promise<string[]> => {
-      if (!query) return MOCK_MENTION_FILES;
-      const q = query.toLowerCase();
-      return MOCK_MENTION_FILES.filter((f) => f.toLowerCase().includes(q));
+      const oc = getOcClient();
+      const result = await oc.find.files({
+        directory,
+        query,
+        limit: 20
+      });
+      return result.data ?? [];
     },
 
     render: () => {

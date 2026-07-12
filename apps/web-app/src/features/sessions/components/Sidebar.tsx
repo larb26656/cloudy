@@ -9,6 +9,9 @@ interface SidebarProps {
   className?: string;
 }
 
+/**
+ * @deprecated Unused - to be removed
+ */
 export function Sidebar({ instanceId, className }: SidebarProps) {
   const [searchQuery, setSearchQuery] = useState("");
 

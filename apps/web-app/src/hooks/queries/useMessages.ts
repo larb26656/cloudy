@@ -2,10 +2,12 @@ import {
   getErrorMessage,
   getOcClient,
   messageKeys,
+  type ChatInputContent,
   type SdkError,
 } from "@/lib/opencode";
 import { encodeCursor } from "@/lib/opencode/cursor";
 import type { Message } from "@/types";
+import type { AgentPartInput, FilePartInput, SubtaskPartInput, TextPartInput } from "@opencode-ai/sdk/v2/types";
 import {
   useInfiniteQuery,
   useMutation,
@@ -42,6 +44,39 @@ export function useMessages({ sessionId }: { sessionId: string }) {
   });
 }
 
+export function buildParts(
+    directory: string,
+    content: ChatInputContent
+): (TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput)[] {
+    const textPart: TextPartInput = { type: 'text', text: content.text };
+
+    const mentionParts: FilePartInput[] = content.mentions.map((mention) => {
+        const filename = mention.id;
+        const path = `${directory}/${filename}`;
+        const url = `file://${path}`
+
+        return {
+            type: 'file',
+            mime: 'text/plain',
+            url,
+            filename,
+            source: {
+                type: "file",
+                text: {
+                    value: filename,
+                    start: 0,
+                    end: filename.length
+                },
+                path
+            }
+        };
+    }
+    );
+
+    return [textPart, ...mentionParts];
+}
+
+
 export function useSendMessage() {
   return useMutation({
     mutationFn: async ({
@@ -50,13 +85,15 @@ export function useSendMessage() {
       directory,
     }: {
       sessionId: string;
-      content: string;
-      directory?: string;
+      content: ChatInputContent,
+      directory: string;
     }) => {
       const oc = getOcClient();
+      const parts = buildParts(directory, content);
+
       const result = await oc.session.promptAsync({
         sessionID: sessionId,
-        parts: [{ type: "text" as const, text: content }],
+        parts,
         directory,
       });
       if (result.error) {
@@ -64,12 +101,6 @@ export function useSendMessage() {
       }
       return result;
     },
-    // onSuccess: (_, variables) => {
-    //   // TODO make event handle this
-    //   queryClient.invalidateQueries({
-    //     queryKey: messageKeys.infinite(variables.sessionId),
-    //   });
-    // },
   });
 }
 

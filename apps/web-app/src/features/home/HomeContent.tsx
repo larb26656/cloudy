@@ -28,7 +28,7 @@ export function HomeContent() {
     : undefined;
 
   return (
-    <div className="flex flex-1 flex-col md:flex-row h-full">
+    <div className="flex flex-1 flex-col md:flex-row h-full overflow-hidden">
       <section className="flex w-full h-60 md:w-64 md:h-full shrink-0 flex-col gap-2 border-b md:border-r p-4">
         <div className="flex shrink-0 items-center justify-between">
           <h2 className="text-sm font-semibold text-muted-foreground">
@@ -66,7 +66,7 @@ export function HomeContent() {
         </div>
       </section>
 
-      <section className="flex min-h-0 min-w-0 flex-1 flex-col gap-2 p-4">
+      <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-2 p-4 overflow-hidden">
         <h2 className="shrink-0 text-sm font-semibold text-muted-foreground">
           Sessions
         </h2>
