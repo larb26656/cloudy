@@ -3,7 +3,6 @@ import { useSessions } from "@/hooks/queries";
 import type { Session } from "@opencode-ai/sdk/v2";
 import { SessionItem } from "./SessionItem";
 import { useSessionStore } from "@/stores/sessionStore";
-import { MOCK_DIRECTORY } from "@/constants/mock";
 
 type SessionListProps = {
   searchQuery: string;
@@ -16,7 +15,7 @@ export function SessionList({ searchQuery }: SessionListProps) {
     data: sessions = [],
     isLoading,
     error,
-  } = useSessions({ directory: MOCK_DIRECTORY });
+  } = useSessions();
   const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const selectSession = useSessionStore((s) => s.selectSession);
 

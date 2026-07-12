@@ -1,4 +1,5 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
+import { ErrorState } from "@/components/ui/error-state";
 import { TokenUsageIndicator } from "@/components/chat/TokenUsageIndicator";
 import { Header } from "@/components/layout";
 import {
@@ -14,13 +15,23 @@ import { Button } from "@/components/ui/button";
 import { ModelSelector } from "@/components/chat/ModelSelector";
 import { SidebarToggle } from "@/components/layout/SidebarToggle";
 import { useSessionStore } from "@/stores/sessionStore";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 
 export default function ChatPage() {
   const { isMobile } = useDeviceType();
   const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
+  const selectedWorkspace = useWorkspaceStore((s) =>
+    s.selectedWorkspaceId ? s.getWorkspace(s.selectedWorkspaceId) : undefined,
+  );
   const [showMinimap, setShowMinimap] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const toggleTheme = () => setIsDarkMode((v) => !v);
+
+  if (!selectedWorkspace) {
+    return (
+      <ErrorState message="No workspace selected. Please select a workspace to continue." />
+    );
+  }
 
   const handleToggleMinimap = () => {
     setShowMinimap((prev) => !prev);
@@ -64,6 +75,7 @@ export default function ChatPage() {
         ]}
       />
       <ChatContainer
+        directory={selectedWorkspace.directory}
         sessionId={selectedSessionId}
         showModelSelector={!isMobile}
       />

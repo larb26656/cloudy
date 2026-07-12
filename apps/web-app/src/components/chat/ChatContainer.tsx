@@ -6,16 +6,17 @@ import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useSendMessage } from "@/hooks/queries/useMessages";
 import { useCreateSession } from "@/hooks/queries/useSessions";
 import { type ChatInputContent } from "@/lib/opencode";
-import { MOCK_DIRECTORY } from "@/constants/mock";
 import { useSessionStore } from "@/stores/sessionStore";
 
 interface ChatContainerProps {
+  directory: string;
   sessionId: string | null;
   showModelSelector?: boolean;
   onSessionChange?: (sessionId: string) => void;
 }
 
 export function ChatContainer({
+  directory,
   sessionId,
   showModelSelector = false,
   onSessionChange,
@@ -28,13 +29,14 @@ export function ChatContainer({
   const handleSend = (content: ChatInputContent) => {
     if (!sessionId) {
       createSession.mutate(
-        { directory: MOCK_DIRECTORY },
+        { directory },
         {
           onSuccess: (newSession) => {
             sendMessage.mutate({
               sessionId: newSession.id,
               content: content.text,
             });
+
             // TODO deprecate selecte session
             selectSession(newSession.id);
             onSessionChange?.(newSession.id);
@@ -67,7 +69,7 @@ export function ChatContainer({
         onAbort={handleAbort}
         isLoading={sendMessage.isPending}
         placeholder={chatplaceholder}
-        directory={MOCK_DIRECTORY}
+        directory={directory}
         showModelSelector={showModelSelector}
       />
 

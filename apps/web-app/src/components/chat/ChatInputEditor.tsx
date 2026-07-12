@@ -9,7 +9,7 @@ import { shouldShowSlashCommand } from "@/lib/command";
 import { useEffect, useMemo } from "react";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
-import { MOCK_DIRECTORY } from "@/constants/mock";
+
 
 interface ChatInputEditorProps {
   content: ChatInputContent;
@@ -18,6 +18,7 @@ interface ChatInputEditorProps {
   onImmediateExecute?: (commandName: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  directory?: string;
 }
 
 function getMentions(editor: Editor) {
@@ -39,6 +40,7 @@ export function ChatInputEditor({
   onImmediateExecute,
   placeholder,
   disabled,
+  directory,
 }: ChatInputEditorProps) {
   const extensions = useMemo(() => {
     return [
@@ -57,7 +59,7 @@ export function ChatInputEditor({
           {
             char: "@",
             allow: () => true,
-            ...createMentionSuggestion(MOCK_DIRECTORY),
+            ...createMentionSuggestion(directory ?? ""),
           },
           {
             char: "/",

@@ -144,6 +144,7 @@ export function ChatInput({
                 onImmediateExecute={handleImmediateExecute}
                 placeholder={placeholder}
                 disabled={isLoading}
+                directory={directory}
               />
             </div>
 

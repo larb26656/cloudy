@@ -4,28 +4,28 @@ import { ChatContent } from "./ChatContent";
 import { HomeContent } from "./HomeContent";
 
 export default function HomePage() {
-  const activeTabId = useTabStore(s => s.activeTabId);
-  const getTab = useTabStore(s => s.getTab);
+  const activeTabId = useTabStore((s) => s.activeTabId);
+  const tabs = useTabStore((s) => s.tabs);
 
   const renderDynamicTab = () => {
     if (!activeTabId) {
       return;
     }
 
-    const currentTab = getTab(activeTabId);
+    const currentTab = tabs.find((t) => t.id === activeTabId);
 
-    if (currentTab.type === 'session') {
-      return <ChatContent tab={currentTab} />
+    if (!currentTab) return;
+
+    if (currentTab.type === "session") {
+      return <ChatContent tab={currentTab} />;
     }
-  }
+  };
 
   return (
     <div className="flex flex-col h-dvh w-full overflow-hidden bg-background">
       <MainTabBar />
       <div className="flex-1">
-        {activeTabId === "home" ? <HomeContent /> :
-          renderDynamicTab()
-        }
+        {activeTabId === "home" ? <HomeContent /> : renderDynamicTab()}
       </div>
     </div>
   );
