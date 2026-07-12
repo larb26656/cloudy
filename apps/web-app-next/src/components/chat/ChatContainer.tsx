@@ -12,11 +12,13 @@ import { useSessionStore } from "@/stores/sessionStore";
 interface ChatContainerProps {
   sessionId: string | null;
   showModelSelector?: boolean;
+  onSessionChange?: (sessionId: string) => void;
 }
 
 export function ChatContainer({
   sessionId,
   showModelSelector = false,
+  onSessionChange,
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
   const sendMessage = useSendMessage();
@@ -33,7 +35,9 @@ export function ChatContainer({
               sessionId: newSession.id,
               content: content.text,
             });
+            // TODO deprecate selecte session
             selectSession(newSession.id);
+            onSessionChange?.(newSession.id);
           },
         },
       );

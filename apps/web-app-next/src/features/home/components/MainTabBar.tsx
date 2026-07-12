@@ -1,8 +1,9 @@
 import * as React from "react";
 import { Home, MessageCircle, X } from "lucide-react";
 
-import { useTabStore } from "@/stores/tabStore";
+import { useTabStore, type Tab } from "@/stores/tabStore";
 import { cn } from "@/lib/utils";
+import { useSession } from "@/hooks/queries/useSessions";
 
 interface TabItemProps {
   icon: React.ReactNode;
@@ -40,6 +41,31 @@ function TabItem({ icon, label, isActive, onClick, onClose }: TabItemProps) {
   );
 }
 
+function SessionTabItem({
+  tab,
+  isActive,
+  onClick,
+  onClose,
+}: {
+  tab: Tab;
+  isActive: boolean;
+  onClick: () => void;
+  onClose: () => void;
+}) {
+  const { data: session } = useSession({ sessionId: tab.data.sessionId });
+  const displayName = session?.title ?? tab.data.sessionName ?? "New Chat";
+
+  return (
+    <TabItem
+      icon={<MessageCircle />}
+      label={displayName}
+      isActive={isActive}
+      onClick={onClick}
+      onClose={onClose}
+    />
+  );
+}
+
 export function MainTabBar() {
   const tabs = useTabStore((s) => s.tabs);
   const activeTabId = useTabStore((s) => s.activeTabId);
@@ -55,10 +81,9 @@ export function MainTabBar() {
       />
       <div className="flex flex-1 border-b overflow-x-auto scrollbar-none">
         {tabs.map((tab) => (
-          <TabItem
+          <SessionTabItem
             key={tab.id}
-            icon={<MessageCircle />}
-            label={tab.data.sessionName}
+            tab={tab}
             isActive={activeTabId === tab.id}
             onClick={() => setActiveTab(tab.id)}
             onClose={() => removeTab(tab.id)}

@@ -9,6 +9,28 @@ import type { Session } from "@opencode-ai/sdk/v2";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ModelConfig } from "@/types";
 
+export function useSession({
+  sessionId,
+  directory = OC_DIRECTORY,
+}: {
+  sessionId: string | null;
+  directory?: string;
+}) {
+  return useQuery({
+    queryKey: sessionKeys.detail(sessionId ?? ""),
+    queryFn: async (): Promise<Session | null> => {
+      if (!sessionId) return null;
+      const oc = getOcClient();
+      const result = await oc.session.get({ sessionID: sessionId, directory });
+      if (result.error) {
+        throw new Error(getErrorMessage(result.error as SdkError));
+      }
+      return result.data;
+    },
+    enabled: !!sessionId,
+  });
+}
+
 export function useSessions({ directory }: { directory: string }) {
   return useQuery({
     queryKey: sessionKeys.infinite(directory),

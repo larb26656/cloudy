@@ -26,18 +26,11 @@ function SessionList({
   };
 
   const handleNewChat = () => {
-    createSession.mutate(
-      { directory },
-      {
-        onSuccess: (session) => {
-          addTab("session", {
-            sessionId: session.id,
-            workspaceId,
-            sessionName: session.title || "New Chat",
-          });
-        },
-      },
-    );
+    addTab("session", {
+      sessionId: null,
+      workspaceId,
+      sessionName: "New Chat",
+    });
   };
 
   if (isLoading) {

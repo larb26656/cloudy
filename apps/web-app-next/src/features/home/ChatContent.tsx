@@ -1,10 +1,18 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
+import type { Tab } from "@/stores/tabStore";
+import { useTabStore } from "@/stores/tabStore";
 
 interface ChatContentProps {
-  sessionId: string;
+  tab: Tab;
 }
 
-export function ChatContent({ sessionId }: ChatContentProps) {
-  // handle sessionId not found
-  return <ChatContainer sessionId={sessionId} />
+export function ChatContent({ tab }: ChatContentProps) {
+  const updateTabData = useTabStore((s) => s.updateTabData);
+
+  return (
+    <ChatContainer
+      sessionId={tab.data.sessionId}
+      onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
+    />
+  );
 }

@@ -15,7 +15,7 @@ export default function HomePage() {
     const currentTab = getTab(activeTabId);
 
     if (currentTab.type === 'session') {
-      return <ChatContent sessionId={currentTab.data.sessionId} />
+      return <ChatContent tab={currentTab} />
     }
   }
 
