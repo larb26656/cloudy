@@ -8,6 +8,7 @@ import { ChatMinimap } from "../ChatMinimap";
 import { ErrorState } from "@/components/ui/error-state";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
+import { InfiniteScrollContainer } from "@/components/utils/InfiniteScrollContainer";
 
 interface MessageListProps {
   selectedSessionId: string | null;
@@ -42,15 +43,15 @@ export function MessageList({
   const sessionStreaming = useMemo(() => {
     return selectedSessionId
       ? Array.from(streamingMessages.get(selectedSessionId)?.values() ?? [])
-      : []
-  }, [streamingMessages, selectedSessionId])
+      : [];
+  }, [streamingMessages, selectedSessionId]);
 
   // TODO resolve this later
   const cachedMessages = data?.pages.flat() ?? [];
 
   const allMessages = useMemo(() => {
-    return [...cachedMessages, ...sessionStreaming]
-  }, [cachedMessages, sessionStreaming])
+    return [...cachedMessages, ...sessionStreaming];
+  }, [cachedMessages, sessionStreaming]);
 
   const isStreaming = sessionStreaming.length > 0;
 
@@ -63,7 +64,6 @@ export function MessageList({
     if (shouldScrollRef.current) {
       scrollToBottom();
     }
-
   }, [allMessages]);
 
   const handleScroll = () => {
@@ -95,39 +95,33 @@ export function MessageList({
     );
   }
 
-  if (error) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <ErrorState message={error.message} onRetry={() => refetch()} />
-      </div>
-    );
-  }
-
   return (
     <div className="relative flex-1 min-h-0">
-      <div
-        ref={scrollRef}
+      <InfiniteScrollContainer
+        prev={
+          hasPreviousPage
+            ? {
+                hasMore: hasPreviousPage,
+                isFetching: isFetchingPreviousPage,
+                fetchMore: fetchPreviousPage,
+              }
+            : undefined
+        }
+        scrollRef={scrollRef}
+        scrollClassName="absolute inset-0 flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
+        className=""
         onScroll={handleScroll}
-        className="absolute inset-0 flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
       >
-        {allMessages.length === 0 ? (
+        {error ? (
+          <div className="flex-1 flex items-center justify-center">
+            <ErrorState message={error.message} onRetry={() => refetch()} />
+          </div>
+        ) : allMessages.length === 0 ? (
           isShowEmptyState && (
             <EmptyChatState onSnippetSelect={onSnippetSelect} />
           )
         ) : (
           <div className="max-w-4xl mx-auto space-y-4 pb-4">
-            {hasPreviousPage && (
-              <div className="flex justify-center py-2">
-                <button
-                  onClick={() => fetchPreviousPage()}
-                  disabled={isFetchingPreviousPage}
-                  className="px-4 py-2 text-sm bg-muted hover:bg-muted/80 rounded-lg transition-colors disabled:opacity-50"
-                >
-                  {isFetchingPreviousPage ? "Loading..." : "Load More"}
-                </button>
-              </div>
-              )}
-
             {allMessages.map((message: Message) => (
               <MessageBubble
                 key={message.info.id}
@@ -143,7 +137,7 @@ export function MessageList({
             )}
           </div>
         )}
-      </div>
+      </InfiniteScrollContainer>
       {showShadowEdge && (
         <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none" />
       )}
