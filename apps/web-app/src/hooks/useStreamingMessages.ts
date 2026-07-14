@@ -63,20 +63,11 @@ function handleEvent(
   event: GlobalEvent,
   queryClient: ReturnType<typeof useQueryClient>,
 ) {
-  // console.log(event.payload.type);
   if (!isKnownEvent(event)) return;
-  // console.log("known event");
 
   switch (event.payload.type) {
-    // case "session.updated": {
-    //   const props = p as SessionUpdated["properties"];
-    //   console.log("[POC] session.updated:", event.payload.properties);
-    //   break;
-    // }
-
     case "session.updated": {
       const props = event.payload.properties;
-      console.log(event);
       console.log("[useStreamingMessages] session.updated:", props.info.id);
       queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
       break;
@@ -103,13 +94,21 @@ function handleEvent(
     case "message.updated": {
       const props = event.payload.properties;
       console.log("[POC] message.updated:", event.payload.properties);
+
+      const summary = props.info.summary;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const isShouldSkip = summary && Array.isArray((summary as any).diffs) && (summary as any).diffs.length === 0;
+
+      if (isShouldSkip) {
+        return;
+      }
+
       useStreamingMessagesStore
         .getState()
         .onMessageInfoUpdated(props.info.sessionID, {
           info: props.info,
           parts: [],
         });
-      console.log(props);
       break;
     }
 
@@ -122,11 +121,14 @@ function handleEvent(
       break;
     }
 
-    // case "message.part.delta": {
-    //   const props = p as MessagePartDelta["properties"];
-    //   console.log("[POC] message.part.delta:", event.payload.properties);
-    //   break;
-    // }
+    case "message.part.delta": {
+      const props = event.payload.properties;
+      console.log("[POC] message.part.delta:", event.payload.properties);
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartDeltaUpdated(props.sessionID, props.messageID, props.partID, props.delta)
+      break;
+    }
   }
 }
 

@@ -6,6 +6,7 @@ interface StreamingMessagesStore {
   streamingMessages: Map<string, Map<string, Message>>;
   onMessageInfoUpdated: (sessionId: string, message: Message) => void;
   onMessagePartUpdated: (sessionId: string, part: Part) => void;
+  onMessagePartDeltaUpdated: (sessionId: string, msessageId: string, partId: string, delta: string) => void;
   takeSessionStreaming: (sessionId: string) => Message[];
 }
 
@@ -54,14 +55,51 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
       });
     },
 
+    onMessagePartDeltaUpdated: (sessionId, messageId, partId, delta) => {
+      set((state) => {
+        const sessionMap = state.streamingMessages.get(sessionId);
+        const target = sessionMap?.get(messageId);
+        if (!sessionMap || !target) return state;
+
+        const existingIdx = target.parts.findIndex((p) => p.id === partId);
+        const nextParts = target.parts.map((p, i) => {
+          const targetPath = i === existingIdx;
+          if (!targetPath) {
+            return p;
+          }
+
+          if (p.type === "text") {
+            return {
+              ...p,
+              text: p.text + delta,
+            };
+          }
+
+          return p;
+        });
+
+        const nextSessionMap = new Map(sessionMap).set(messageId, {
+          ...target,
+          parts: nextParts,
+        });
+        const nextMap = new Map(state.streamingMessages).set(
+          sessionId,
+          nextSessionMap,
+        );
+        return { streamingMessages: nextMap };
+      });
+    },
+
     takeSessionStreaming: (sessionId) => {
       let result: Message[] = [];
       set((state) => {
         const sessionMap = state.streamingMessages.get(sessionId);
+        console.log(sessionMap);
         if (!sessionMap) return state;
         result = Array.from(sessionMap.values());
         const nextMap = new Map(state.streamingMessages);
         nextMap.delete(sessionId);
+
         return { streamingMessages: nextMap };
       });
       return result;

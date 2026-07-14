@@ -60,7 +60,6 @@ export function MessageList({
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   useEffect(() => {
-    console.log(shouldScrollRef.current);
     if (shouldScrollRef.current) {
       scrollToBottom();
     }
@@ -138,6 +137,7 @@ export function MessageList({
           </div>
         )}
       </InfiniteScrollContainer>
+
       {showShadowEdge && (
         <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none" />
       )}
