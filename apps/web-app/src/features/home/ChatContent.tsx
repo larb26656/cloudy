@@ -1,11 +1,11 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import { ErrorState } from "@/components/ui/error-state";
-import type { Tab } from "@/stores/tabStore";
+import type { SessionData } from "@/stores/tabStore";
 import { useTabStore } from "@/stores/tabStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 
 interface ChatContentProps {
-  tab: Tab;
+  tab: { id: string; type: "session"; data: SessionData };
 }
 
 export function ChatContent({ tab }: ChatContentProps) {

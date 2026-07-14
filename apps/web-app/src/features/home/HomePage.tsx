@@ -2,6 +2,8 @@ import { useTabStore } from "@/stores/tabStore";
 import { MainTabBar } from "./components/MainTabBar";
 import { ChatContent } from "./ChatContent";
 import { HomeContent } from "./HomeContent";
+import { DeskContent } from "./DeskContent";
+import { WebviewContent } from "./WebviewContent";
 
 export default function HomePage() {
   const activeTabId = useTabStore((s) => s.activeTabId);
@@ -18,6 +20,14 @@ export default function HomePage() {
 
     if (currentTab.type === "session") {
       return <ChatContent tab={currentTab} />;
+    }
+
+    if (currentTab.type === "desk") {
+      return <DeskContent />;
+    }
+
+    if (currentTab.type === "webview") {
+      return <WebviewContent tab={currentTab} />;
     }
   };
 
