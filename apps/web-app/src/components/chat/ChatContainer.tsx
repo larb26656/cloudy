@@ -6,7 +6,7 @@ import { PermissionBanner } from "@/components/permission/PermissionBanner";
 import { PermissionDialog } from "@/components/permission/PermissionDialog";
 import { useMemo, useState } from "react";
 import { generatePlaceholder } from "@/lib/greeting-generator";
-import { useSendMessage } from "@/hooks/queries/useMessages";
+import { useSendMessage, useAbortGeneration } from "@/hooks/queries/useMessages";
 import { useCreateSession } from "@/hooks/queries/useSessions";
 import { useQuestions } from "@/hooks/queries/useQuestions";
 import { usePermissions } from "@/hooks/queries/usePermissions";
@@ -25,6 +25,7 @@ export function ChatContainer({
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
   const sendMessage = useSendMessage();
+  const abortGeneration = useAbortGeneration();
   const createSession = useCreateSession();
 
   const [questionOpen, setQuestionOpen] = useState(false);
@@ -67,7 +68,9 @@ export function ChatContainer({
   };
 
   const handleAbort = () => {
-    // mock: no-op
+    if (sessionId) {
+      abortGeneration.mutate({ sessionId, directory });
+    }
   };
 
   const handleImmediateCommand = () => {
@@ -82,7 +85,7 @@ export function ChatContainer({
         onSend={handleSend}
         onImmediateCommand={handleImmediateCommand}
         onAbort={handleAbort}
-        isLoading={sendMessage.isPending}
+        isLoading={sendMessage.isPending || abortGeneration.isPending}
         placeholder={chatplaceholder}
         directory={directory}
       />

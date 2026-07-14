@@ -1,9 +1,22 @@
 import * as React from "react";
-import { Home, MessageCircle, X } from "lucide-react";
+import { useState } from "react";
+import { Home, MessageCircle, Plus, X } from "lucide-react";
 
 import { useTabStore, type Tab } from "@/stores/tabStore";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/hooks/queries/useSessions";
+import { CreateChatDialog } from "@/features/chat/components/CreateChatDialog";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+
+type MenuEntry =
+  | { type: "item"; id: string; label: string; icon?: React.ReactNode; action: () => void; disabled?: boolean }
+  | { type: "separator"; id: string };
 
 interface TabItemProps {
   icon: React.ReactNode;
@@ -71,25 +84,70 @@ export function MainTabBar() {
   const activeTabId = useTabStore((s) => s.activeTabId);
   const setActiveTab = useTabStore((s) => s.setActiveTab);
   const removeTab = useTabStore((s) => s.removeTab);
+  const [createChatOpen, setCreateChatOpen] = useState(false);
+
+  const menuItems: MenuEntry[] = [
+    { type: "item", id: "new-chat", label: "New Chat", icon: <MessageCircle />, action: () => setCreateChatOpen(true) },
+  ];
+
+  const handleMenuItemClick = (entry: MenuEntry) => {
+    if (entry.type === "item" && !entry.disabled) {
+      entry.action();
+    }
+  };
 
   return (
-    <div className="flex">
-      <TabItem
-        icon={<Home />}
-        isActive={activeTabId === "home"}
-        onClick={() => setActiveTab("home")}
-      />
-      <div className="flex flex-1 border-b overflow-x-auto scrollbar-none">
-        {tabs.map((tab) => (
-          <SessionTabItem
-            key={tab.id}
-            tab={tab}
-            isActive={activeTabId === tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            onClose={() => removeTab(tab.id)}
+    <>
+      <div className="flex border-b">
+        <TabItem
+          icon={<Home />}
+          isActive={activeTabId === "home"}
+          onClick={() => setActiveTab("home")}
+        />
+        <div className="flex flex-1 overflow-x-auto scrollbar-none">
+          {tabs.map((tab) => (
+            <SessionTabItem
+              key={tab.id}
+              tab={tab}
+              isActive={activeTabId === tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              onClose={() => removeTab(tab.id)}
+            />
+          ))}
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
+                <Plus size={16} />
+              </button>
+            }
           />
-        ))}
+          <DropdownMenuContent align="end">
+            {menuItems.map((entry) =>
+              entry.type === "separator" ? (
+                <DropdownMenuSeparator key={entry.id} />
+              ) : (
+                <DropdownMenuItem
+                  key={entry.id}
+                  disabled={entry.disabled}
+                  onClick={() => handleMenuItemClick(entry)}
+                >
+                  {entry.icon && (
+                    <span className="mr-2 [&>svg]:size-4">{entry.icon}</span>
+                  )}
+                  {entry.label}
+                </DropdownMenuItem>
+              )
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-    </div>
+
+      <CreateChatDialog
+        open={createChatOpen}
+        onOpenChange={setCreateChatOpen}
+      />
+    </>
   );
 }

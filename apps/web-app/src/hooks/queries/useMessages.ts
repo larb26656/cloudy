@@ -106,5 +106,17 @@ export function useSendMessage() {
 }
 
 export function useAbortGeneration() {
-  throw new Error("useAbortGeneration: not implemented (M4 wire-up).");
+  return useMutation({
+    mutationFn: async ({ sessionId, directory }: { sessionId: string; directory: string }) => {
+      const oc = getOcClient();
+      const result = await oc.session.abort({
+        sessionID: sessionId,
+        directory,
+      });
+      if (result.error) {
+        throw new Error(getErrorMessage(result.error as SdkError));
+      }
+      return result;
+    },
+  });
 }

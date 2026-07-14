@@ -4,14 +4,13 @@ import {
   sessionKeys,
   type SdkError,
 } from "@/lib/opencode";
-import { OC_DIRECTORY } from "@/lib/opencode/oc-instance";
 import type { Session } from "@opencode-ai/sdk/v2";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ModelConfig } from "@/types";
 
 export function useSession({
   sessionId,
-  directory = OC_DIRECTORY,
+  directory
 }: {
   sessionId: string | null;
   directory?: string;
@@ -52,7 +51,7 @@ export function useCreateSession() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async ({
-      directory = OC_DIRECTORY,
+      directory,
       parentID,
       title,
       agent,
@@ -103,7 +102,7 @@ export function useUpdateSession() {
   return useMutation({
     mutationFn: async ({
       sessionID,
-      directory = OC_DIRECTORY,
+      directory,
       title,
       metadata,
     }: {
@@ -143,7 +142,7 @@ export function useDeleteSession() {
   return useMutation({
     mutationFn: async ({
       sessionID,
-      directory = OC_DIRECTORY,
+      directory,
     }: {
       sessionID: string;
       directory?: string;
@@ -161,9 +160,13 @@ export function useDeleteSession() {
       queryClient.invalidateQueries({
         queryKey: sessionKeys.root(),
       });
-      queryClient.invalidateQueries({
-        queryKey: sessionKeys.infinite(variables.directory ?? OC_DIRECTORY),
-      });
+
+      if (variables.directory) {
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.infinite(variables.directory),
+        });
+      }
+
     },
   });
 }
@@ -173,7 +176,7 @@ export function useForkSession() {
   return useMutation({
     mutationFn: async ({
       sessionID,
-      directory = OC_DIRECTORY,
+      directory,
       messageID,
     }: {
       sessionID: string;

@@ -11,6 +11,3 @@ export function getOcClient(): OCClient {
   }
   return cached;
 }
-
-export const OC_DIRECTORY =
-  import.meta.env.VITE_OC_DIRECTORY ?? "/Users/luckytime1996/Documents/Work/One-man-show/Code/cloudy";

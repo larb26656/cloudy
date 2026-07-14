@@ -22,6 +22,7 @@ import {
   Preview as DefaultPreview,
 } from "./DefaultToolInput";
 import { Detail as TaskDetail, Preview as TaskPreview } from "./TaskToolInput";
+import { Detail as TodoDetail, Preview as TodoPreview } from "./TodoToolInput";
 
 interface ToolComponentProps {
   tool: string;
@@ -51,6 +52,8 @@ export function Preview({ tool, state }: ToolComponentProps) {
       return <SkillPreview state={state} />;
     case "task":
       return <TaskPreview state={state} />;
+    case "todowrite":
+      return <TodoPreview state={state} />;
     default:
       return <DefaultPreview tool={tool} state={state} />;
   }
@@ -79,6 +82,8 @@ export function Detail({ tool, state }: ToolComponentProps) {
       return <SkillDetail input={state.input} />;
     case "task":
       return <TaskDetail input={state.input} />;
+    case "todowrite":
+      return <TodoDetail input={state.input} />;
     default:
       return <DefaultDetail input={state.input} />;
   }
