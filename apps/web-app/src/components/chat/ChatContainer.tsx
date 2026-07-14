@@ -1,11 +1,15 @@
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./chat-input";
 import { QuestionSheet } from "./QuestionSheet";
+import { QuestionBanner } from "./QuestionBanner";
+import { PermissionBanner } from "@/components/permission/PermissionBanner";
+import { PermissionDialog } from "@/components/permission/PermissionDialog";
 import { useMemo, useState } from "react";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useSendMessage } from "@/hooks/queries/useMessages";
 import { useCreateSession } from "@/hooks/queries/useSessions";
-import { useQuestions, useSessionQuestions } from "@/hooks/queries/useQuestions";
+import { useQuestions } from "@/hooks/queries/useQuestions";
+import { usePermissions } from "@/hooks/queries/usePermissions";
 import { type ChatInputContent } from "@/lib/opencode";
 
 interface ChatContainerProps {
@@ -24,12 +28,18 @@ export function ChatContainer({
   const createSession = useCreateSession();
 
   const [questionOpen, setQuestionOpen] = useState(false);
+  const [permissionOpen, setPermissionOpen] = useState(false);
 
   const { data: questions = [] } = useQuestions({
     directory: directory,
   });
 
+  const { data: permissions = [] } = usePermissions({
+    directory: directory,
+  });
+
   const sessionQuestions = questions.filter(question => question.sessionID === sessionId);
+  const sessionPermissions = permissions.filter(p => p.sessionID === sessionId);
 
   const handleSend = (content: ChatInputContent) => {
     if (!sessionId) {
@@ -78,12 +88,17 @@ export function ChatContainer({
       />
 
       {sessionQuestions.length > 0 && !questionOpen && (
-        <button
-          onClick={() => setQuestionOpen(true)}
-          className="fixed top-4 right-4 z-40 px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-200 text-xs font-medium rounded-full shadow-md hover:bg-amber-200 dark:hover:bg-amber-900/50 transition-colors"
-        >
-          {sessionQuestions.length} question{sessionQuestions.length > 1 ? "s" : ""} pending
-        </button>
+        <QuestionBanner
+          onOpenDialog={() => setQuestionOpen(true)}
+          count={sessionQuestions.length}
+        />
+      )}
+
+      {sessionPermissions.length > 0 && !permissionOpen && (
+        <PermissionBanner
+          onOpenDialog={() => setPermissionOpen(true)}
+          count={sessionPermissions.length}
+        />
       )}
 
       <QuestionSheet
@@ -91,6 +106,13 @@ export function ChatContainer({
         onOpenChange={setQuestionOpen}
         questions={sessionQuestions}
         sessionID={sessionId ?? ""}
+      />
+
+      <PermissionDialog
+        open={permissionOpen}
+        onOpenChange={setPermissionOpen}
+        permissions={sessionPermissions}
+        directory={directory}
       />
     </div>
   );

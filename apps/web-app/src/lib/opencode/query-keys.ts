@@ -23,7 +23,14 @@ export const modelKeys = {
 
 export const permissionKeys = {
   root: () => ["permissions"] as const,
-  list: (directory: string) => ["permissions", "list", directory] as const,
+  request: {
+    root: () => ["permissions", "request"] as const,
+    list: (directory: string) => ["permissions", "request", "list", directory] as const,
+  },
+  saved: {
+    root: () => ["permissions", "saved"] as const,
+    list: (projectId?: string) => ["permissions", "saved", "list", projectId ?? "all"] as const,
+  },
 };
 
 export const questionKeys = {

@@ -1,7 +1,7 @@
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useGlobalEvent } from "@/hooks/useGlobalEvent";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import { messageKeys, questionKeys, sessionKeys } from "@/lib/opencode";
+import { messageKeys, permissionKeys, questionKeys, sessionKeys } from "@/lib/opencode";
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
 import type { GlobalEvent, MessageUpdated } from "@opencode-ai/sdk/v2";
 import type { Message } from "@/types";
@@ -56,7 +56,8 @@ function isKnownEvent(event: GlobalEvent): event is GlobalEvent & KnownEvent {
     type === "message.part.updated" ||
     type === "message.part.delta" ||
     type === "message.updated" ||
-    type === "question.asked"
+    type === "question.asked" ||
+    type === "permission.asked"
   );
 }
 
@@ -135,6 +136,14 @@ function handleEvent(
       const props = event.payload.properties;
       console.log("[useStreamingMessages] session.question.asked:", props);
       queryClient.invalidateQueries({ queryKey: questionKeys.list(event.directory) });
+      break;
+    }
+
+    case "permission.asked": {
+      const props = event.payload.properties;
+      console.log("[useStreamingMessages] permission.asked:", props);
+      queryClient.invalidateQueries({ queryKey: permissionKeys.request.root() });
+      break;
     }
   }
 }
