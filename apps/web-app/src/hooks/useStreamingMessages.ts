@@ -1,7 +1,7 @@
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useGlobalEvent } from "@/hooks/useGlobalEvent";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import { messageKeys, sessionKeys } from "@/lib/opencode";
+import { messageKeys, questionKeys, sessionKeys } from "@/lib/opencode";
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
 import type { GlobalEvent, MessageUpdated } from "@opencode-ai/sdk/v2";
 import type { Message } from "@/types";
@@ -55,7 +55,8 @@ function isKnownEvent(event: GlobalEvent): event is GlobalEvent & KnownEvent {
     type === "session.idle" ||
     type === "message.part.updated" ||
     type === "message.part.delta" ||
-    type === "message.updated"
+    type === "message.updated" ||
+    type === "question.asked"
   );
 }
 
@@ -68,7 +69,7 @@ function handleEvent(
   switch (event.payload.type) {
     case "session.updated": {
       const props = event.payload.properties;
-      console.log("[useStreamingMessages] session.updated:", props.info.id);
+      console.log("[useStreamingMessages] session.updated:", props);
       queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
       break;
     }
@@ -93,11 +94,11 @@ function handleEvent(
 
     case "message.updated": {
       const props = event.payload.properties;
-      console.log("[POC] message.updated:", event.payload.properties);
+      console.log("[POC] message.updated:", props);
 
       const summary = props.info.summary;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const isShouldSkip = summary && Array.isArray((summary as any).diffs) && (summary as any).diffs.length === 0;
+      const isShouldSkip = summary && Array.isArray((summary as any).diffs);
 
       if (isShouldSkip) {
         return;
@@ -114,7 +115,7 @@ function handleEvent(
 
     case "message.part.updated": {
       const props = event.payload.properties;
-      console.log("[POC] message.part.updated:", event.payload.properties);
+      console.log("[POC] message.part.updated:", props);
       useStreamingMessagesStore
         .getState()
         .onMessagePartUpdated(props.part.sessionID, props.part);
@@ -123,11 +124,17 @@ function handleEvent(
 
     case "message.part.delta": {
       const props = event.payload.properties;
-      console.log("[POC] message.part.delta:", event.payload.properties);
+      console.log("[POC] message.part.delta:", props);
       useStreamingMessagesStore
         .getState()
         .onMessagePartDeltaUpdated(props.sessionID, props.messageID, props.partID, props.delta)
       break;
+    }
+
+    case "question.asked": {
+      const props = event.payload.properties;
+      console.log("[useStreamingMessages] session.question.asked:", props);
+      queryClient.invalidateQueries({ queryKey: questionKeys.list(event.directory) });
     }
   }
 }

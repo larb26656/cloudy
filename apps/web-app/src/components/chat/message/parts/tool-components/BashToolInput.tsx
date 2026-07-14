@@ -14,7 +14,7 @@ export function Detail({ input }: BashToolInputProps) {
 
 export function Preview({ state }: { state: ToolPartType["state"] }) {
   const description =
-    (state.input.description as string | undefined) || "Running command...";
+    (state.input.command as string | undefined) || "Running command...";
 
   return (
     <div className="flex flex-col">

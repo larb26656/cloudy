@@ -46,12 +46,21 @@ export function MessageList({
       : [];
   }, [streamingMessages, selectedSessionId]);
 
-  // TODO resolve this later
-  const cachedMessages = data?.pages.flat() ?? [];
+  const remoteMessages = data?.pages.flat() ?? [];
 
   const allMessages = useMemo(() => {
-    return [...cachedMessages, ...sessionStreaming];
-  }, [cachedMessages, sessionStreaming]);
+    const map = new Map<string, Message>();
+
+    for (const msg of remoteMessages) {
+      map.set(msg.info.id, msg);
+    }
+
+    for (const msg of sessionStreaming) {
+      map.set(msg.info.id, msg);
+    }
+
+    return Array.from(map.values());
+  }, [remoteMessages, sessionStreaming]);
 
   const isStreaming = sessionStreaming.length > 0;
 

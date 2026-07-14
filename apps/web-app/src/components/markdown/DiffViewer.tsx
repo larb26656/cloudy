@@ -39,7 +39,6 @@ export function DiffViewer({
   const currentViewMode = isControlled ? initialViewMode : viewMode;
 
   const diffHtml = useMemo(() => {
-    console.log("memo");
     return diff2html(diff, {
       drawFileList: false,
       matching: "lines",

@@ -94,7 +94,6 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
       let result: Message[] = [];
       set((state) => {
         const sessionMap = state.streamingMessages.get(sessionId);
-        console.log(sessionMap);
         if (!sessionMap) return state;
         result = Array.from(sessionMap.values());
         const nextMap = new Map(state.streamingMessages);
