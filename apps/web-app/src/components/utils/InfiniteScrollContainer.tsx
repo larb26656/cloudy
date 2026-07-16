@@ -1,5 +1,5 @@
 import { useRef, type ReactNode, type RefObject } from "react";
-import { IsVisible } from "./IsVisible";
+import { Button } from "../ui/button";
 
 type PaginationConfig = {
   hasMore: boolean;
@@ -12,6 +12,7 @@ interface InfiniteScrollContainerProps {
   prev?: PaginationConfig;
   next?: PaginationConfig;
   loadingComponent?: ReactNode;
+  reverse?: boolean;
   rootMargin?: string;
   threshold?: number;
   enabled?: boolean;
@@ -26,6 +27,7 @@ export function InfiniteScrollContainer({
   prev,
   next,
   loadingComponent = <div>Loading...</div>,
+  reverse = false,
   rootMargin = "200px",
   threshold = 0,
   enabled = true,
@@ -37,39 +39,32 @@ export function InfiniteScrollContainer({
   const internalRef = useRef<HTMLDivElement>(null);
   const ref = scrollRef ?? internalRef;
 
+  const topSection = reverse ? next : prev;
+  const bottomSection = reverse ? prev : next;
+
   return (
-    <div className={className}>
-      {prev && (
-        <>
-          {prev.hasMore && !prev.isFetching && (
-            <IsVisible
-              onVisible={prev.fetchMore}
-              rootMargin={rootMargin}
-              threshold={threshold}
-              enabled={enabled}
-            />
-          )}
-          {prev.isFetching && loadingComponent}
-        </>
-      )}
+    <div ref={ref} className={scrollClassName} onScroll={onScroll}>
+      <div className={className}>
+        {topSection && (
+          <>
+            {topSection.hasMore && !topSection.isFetching && (
+              <Button onClick={topSection.fetchMore}>Load more {topSection.hasMore}</Button>
+            )}
+            {topSection.isFetching && loadingComponent}
+          </>
+        )}
 
-      <div ref={ref} className={scrollClassName} onScroll={onScroll}>
-        {children}
+        <div>{children}</div>
+
+        {bottomSection && (
+          <>
+            {bottomSection.hasMore && !bottomSection.isFetching && (
+              <Button onClick={bottomSection.fetchMore}>Load more</Button>
+            )}
+            {bottomSection.isFetching && loadingComponent}
+          </>
+        )}
       </div>
-
-      {next && (
-        <>
-          {next.hasMore && !next.isFetching && (
-            <IsVisible
-              onVisible={next.fetchMore}
-              rootMargin={rootMargin}
-              threshold={threshold}
-              enabled={enabled}
-            />
-          )}
-          {next.isFetching && loadingComponent}
-        </>
-      )}
     </div>
   );
 }

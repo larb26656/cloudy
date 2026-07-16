@@ -17,6 +17,6 @@ export function appendStreamingMessages(
   }
 
   const pages = [...old.pages];
-  pages[pages.length - 1] = [...pages[pages.length - 1], ...toAdd];
+  pages[0] = [...pages[0], ...toAdd];
   return { ...old, pages };
 }

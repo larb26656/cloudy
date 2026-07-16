@@ -33,9 +33,9 @@ export function MessageList({
     isLoading,
     error,
     refetch,
-    hasPreviousPage,
-    fetchPreviousPage,
-    isFetchingPreviousPage,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
   } = useMessages({
     sessionId: selectedSessionId ?? "",
   });
@@ -46,7 +46,7 @@ export function MessageList({
       : [];
   }, [streamingMessages, selectedSessionId]);
 
-  const remoteMessages = data?.pages.flat() ?? [];
+  const remoteMessages = useMemo(() => (data?.pages.reverse().flat() ?? []), [data?.pages]);
 
   const allMessages = useMemo(() => {
     const map = new Map<string, Message>();
@@ -92,6 +92,10 @@ export function MessageList({
     }
   };
 
+  useEffect(() => {
+    console.log(`is isLoading: ${isLoading}`);
+  }, [isLoading]);
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -106,19 +110,17 @@ export function MessageList({
   return (
     <div className="relative flex-1 min-h-0">
       <InfiniteScrollContainer
-        prev={
-          hasPreviousPage
-            ? {
-                hasMore: hasPreviousPage,
-                isFetching: isFetchingPreviousPage,
-                fetchMore: fetchPreviousPage,
-              }
-            : undefined
-        }
+        next={{
+          hasMore: hasNextPage,
+          isFetching: isFetchingNextPage,
+          fetchMore: fetchNextPage,
+        }}
+        reverse={true}
         scrollRef={scrollRef}
-        scrollClassName="absolute inset-0 flex-1 min-h-0 overflow-y-auto p-4 space-y-2 scroll-smooth"
-        className=""
+        scrollClassName="overflow-y-auto h-full"
+        className="max-w-4xl mx-auto p-4 h-full"
         onScroll={handleScroll}
+        enabled={!isLoading}
       >
         {error ? (
           <div className="flex-1 flex items-center justify-center">
@@ -129,7 +131,7 @@ export function MessageList({
             <EmptyChatState onSnippetSelect={onSnippetSelect} />
           )
         ) : (
-          <div className="max-w-4xl mx-auto space-y-4 pb-4">
+          <div className="mx-auto space-y-4 pb-4">
             {allMessages.map((message: Message) => (
               <MessageBubble
                 key={message.info.id}
@@ -147,12 +149,12 @@ export function MessageList({
         )}
       </InfiniteScrollContainer>
 
-      {showShadowEdge && (
+      {/*{showShadowEdge && (
         <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none" />
       )}
       {showShadowEdge && (
         <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-      )}
+      )}*/}
       {showScrollButton && (
         <div className="absolute bottom-4 mx-auto w-full">
           <button

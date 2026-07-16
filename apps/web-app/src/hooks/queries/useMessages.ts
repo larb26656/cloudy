@@ -23,24 +23,25 @@ export function useMessages({ sessionId }: { sessionId: string }) {
       const result = await oc.session.messages({
         sessionID: sessionId,
         limit: MESSAGES_LIMIT,
-        before: pageParam ?? undefined,
+        before: pageParam,
       });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
       return result.data;
     },
-    initialPageParam: undefined as string | undefined,
-    getPreviousPageParam: (firstPage: Message[]) => {
-      if (firstPage.length === 0) return undefined;
-      const firstMsg = firstPage[0];
+    initialPageParam: undefined,
+    getPreviousPageParam: undefined,
+    getNextPageParam: (message: Message[]) => {
+      console.log(message);
+      if (message.length === 0) return undefined;
+      const firstMsg = message[0];
 
       return encodeCursor({
         id: firstMsg.info.id,
         time: firstMsg.info.time.created,
       });
     },
-    getNextPageParam: () => undefined,
     enabled: !!sessionId,
   });
 }
