@@ -73,7 +73,6 @@ function DeskCanvasInner({ tabId }: DeskCanvasProps) {
         type: template.id,
         position,
         data: {
-          label: data?.sessionName ?? `${template.id} Node`,
           ...data,
         },
         style: template.size ?? undefined,

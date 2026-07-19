@@ -160,6 +160,81 @@ to `@repo/contracts` — only `export type`.
 - **API client:** import `cloudyClient` from `src/lib/api.ts`; all endpoints are type-inferred.
 - **Dev server proxy:** `/service/*` is proxied to `http://127.0.0.1:4122` (the API) in `vite.config.ts`.
 
+## Desk conventions (`apps/web-app`)
+
+Desk is a tab type (`"desk"`) that provides a React Flow canvas for building node-based workflows.
+
+### Architecture
+
+- **Tab type** — defined in `src/stores/tabStore.ts` as `type: "desk"` with `DeskData = Record<string, never>`
+- **Flow persistence** — `src/stores/flowStore.ts` stores flows keyed as `desk-${tabId}`: `{ nodes, edges, viewport }`
+- **Canvas** — `src/features/Desk/DeskCanvas.tsx` uses `@xyflow/react` (`ReactFlow`, `NodeResizer`, etc.)
+
+### Adding a new node type
+
+Create a new folder under `src/features/Desk/nodes/implementations/<node-name>/`:
+
+```
+<node-name>/
+  index.ts          — re-exports
+  <NodeName>.tsx    — React component (use `NodeProps<Node<{...}, "node-id">>`)
+  meta.ts           — `NodeTemplate` definition
+```
+
+**1. Component** (`<NodeName>.tsx`):
+```tsx
+import { NodeResizer, useReactFlow } from "@xyflow/react";
+import type { Node, NodeProps } from "@xyflow/react";
+
+type MyNodeProps = Node<{ label?: string; /* custom fields */ }, "my-node">;
+
+export function MyNode({ data, id, selected }: NodeProps<MyNodeProps>) {
+  const { deleteElements, updateNodeData } = useReactFlow();
+  // render via <NodeResizer> + your UI
+}
+```
+
+**2. Template** (`meta.ts`):
+```ts
+import { SomeIcon } from "lucide-react";
+import type { NodeTemplate } from "../../template";
+import { MyNode } from "./MyNode";
+
+export const myNodeTemplate: NodeTemplate = {
+  id: "my-node",
+  label: "My Node",
+  icon: SomeIcon,
+  size: { width: 200, height: 150 },   // optional default size
+  defaultData: { label: "Hello" },       // optional initial data
+  component: MyNode,
+};
+```
+
+**3. Register** in `src/features/Desk/nodes/template/index.ts`:
+```ts
+import { myNodeTemplate } from "../implementations/my-node";
+export const nodeTemplates: NodeTemplate[] = [
+  chatTemplate, stickyNoteTemplate, mermaidTemplate, myNodeTemplate,
+];
+export const nodeTypes = nodeTemplates.reduce((acc, t) => {
+  acc[t.id] = t.component;
+  return acc;
+}, {});
+```
+
+### Node data model
+
+`NodeTemplate` shape:
+| Field | Type | Description |
+|---|---|---|
+| `id` | `string` | Unique node type identifier |
+| `label` | `string` | Display name in sidebar |
+| `icon` | `LucideIcon` | Sidebar icon |
+| `size` | `CSSProperties` | Optional default `{ width, height }` |
+| `configDialog` | `ComponentType<ConfigDialogProps>` | Optional dialog before adding |
+| `defaultData` | `Record<string, unknown>` | Optional initial node data |
+| `component` | `ComponentType` | React Flow node component |
+
 ## Error handling
 
 - **Services** throw `HTTPException(status, { message })` (typically `404` for missing entities).
