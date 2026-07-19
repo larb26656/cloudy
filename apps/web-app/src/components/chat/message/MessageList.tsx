@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, memo } from "react";
 import { MessageBubble } from "./MessageBubble";
 import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
@@ -19,10 +19,10 @@ interface MessageListProps {
   onCloseMinimap?: () => void;
 }
 
-export function MessageList({
+export const MessageList = memo(function MessageList({
   selectedSessionId,
   isShowEmptyState = true,
-  showShadowEdge = true,
+  showShadowEdge: _showShadowEdge = true,
   onSnippetSelect,
   showMinimap = false,
   onCloseMinimap,
@@ -91,10 +91,6 @@ export function MessageList({
       });
     }
   };
-
-  useEffect(() => {
-    console.log(`is isLoading: ${isLoading}`);
-  }, [isLoading]);
 
   if (isLoading) {
     return (
@@ -174,4 +170,4 @@ export function MessageList({
       />
     </div>
   );
-}
+});

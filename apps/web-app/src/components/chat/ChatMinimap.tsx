@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useCallback, useMemo, memo, useRef } from "react";
 import type { Message } from "@/types/message";
 import { User, Bot, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -68,7 +68,7 @@ function extractPreview(message: Message): MinimapItem {
   };
 }
 
-export function ChatMinimap({
+export const ChatMinimap = memo(function ChatMinimap({
   messages,
   scrollRef,
   isVisible,
@@ -77,9 +77,13 @@ export function ChatMinimap({
   const [activeId, setActiveId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
-  const items: MinimapItem[] = messages
-    .map(extractPreview)
-    .filter((item) => item.textContent.length > 0);
+  const items: MinimapItem[] = useMemo(
+    () =>
+      messages
+        .map(extractPreview)
+        .filter((item) => item.textContent.length > 0),
+    [messages],
+  );
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return items;
@@ -110,36 +114,40 @@ export function ChatMinimap({
     [scrollRef],
   );
 
+  const observerRef = useRef<IntersectionObserver | null>(null);
+
   useEffect(() => {
-    if (!scrollRef.current) return;
+    if (!scrollRef.current || !isVisible) return;
 
     const scrollContainer = scrollRef.current;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            const messageId = entry.target.getAttribute("data-message-id");
-            if (messageId) {
-              setActiveId(messageId);
+    if (!observerRef.current) {
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              const messageId = entry.target.getAttribute("data-message-id");
+              if (messageId) {
+                setActiveId(messageId);
+              }
             }
           }
-        }
-      },
-      {
-        root: scrollContainer,
-        threshold: 0.5,
-      },
-    );
+        },
+        {
+          root: scrollContainer,
+          threshold: 0.5,
+        },
+      );
+    }
 
-    const messageElements =
-      scrollContainer.querySelectorAll("[data-message-id]");
+    const observer = observerRef.current;
+    const messageElements = scrollContainer.querySelectorAll("[data-message-id]");
     for (const el of messageElements) {
       observer.observe(el);
     }
 
     return () => observer.disconnect();
-  }, [messages, scrollRef]);
+  }, [messages, scrollRef, isVisible]);
 
   if (!isVisible) return null;
 
@@ -245,4 +253,4 @@ export function ChatMinimap({
       </div>
     </div>
   );
-}
+});
