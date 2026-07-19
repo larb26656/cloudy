@@ -8,6 +8,7 @@ import {
   applyNodeChanges,
   applyEdgeChanges,
   Controls,
+  Panel,
   type Node,
   type Edge,
   type OnNodesChange,
@@ -17,7 +18,9 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useState } from "react";
-import { DeskCanvasSidebar } from "./DeskCanvasSidebar";
+import { PlusIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { NodeDrawerSidebar } from "./NodeDrawerSidebar";
 import { useFlowStore } from "@/stores/flowStore";
 import { type NodeTemplate } from "./nodes/template/nodeTemplates";
 import { nodeTypes } from "./nodes/template";
@@ -30,6 +33,7 @@ function DeskCanvasInner({ tabId }: DeskCanvasProps) {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
+  const [isNodeDrawerOpen, setNodeDrawerOpen] = useState(false);
   const { screenToFlowPosition, setViewport } = useReactFlow();
   const { saveFlow, getFlow } = useFlowStore();
 
@@ -97,8 +101,21 @@ function DeskCanvasInner({ tabId }: DeskCanvasProps) {
       >
         <Background />
         <Controls />
+        <Panel position="top-right">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setNodeDrawerOpen(true)}
+          >
+            <PlusIcon />
+          </Button>
+        </Panel>
       </ReactFlow>
-      <DeskCanvasSidebar onAddNode={handleAddNode} />
+      <NodeDrawerSidebar
+        isOpen={isNodeDrawerOpen}
+        setOpen={setNodeDrawerOpen}
+        onAddNode={handleAddNode}
+      />
     </div>
   );
 }
