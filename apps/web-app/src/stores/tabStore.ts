@@ -91,7 +91,12 @@ export const useTabStore = create<TabStore>()(
             newHistory.push(url);
             return {
               ...t,
-              data: { ...t.data, url, history: newHistory, historyIndex: newHistory.length - 1 },
+              data: {
+                ...t.data,
+                url,
+                history: newHistory,
+                historyIndex: newHistory.length - 1,
+              },
             };
           }),
         }));
@@ -105,7 +110,11 @@ export const useTabStore = create<TabStore>()(
             const newIndex = t.data.historyIndex - 1;
             return {
               ...t,
-              data: { ...t.data, url: t.data.history[newIndex], historyIndex: newIndex },
+              data: {
+                ...t.data,
+                url: t.data.history[newIndex],
+                historyIndex: newIndex,
+              },
             };
           }),
         }));
@@ -119,7 +128,11 @@ export const useTabStore = create<TabStore>()(
             const newIndex = t.data.historyIndex + 1;
             return {
               ...t,
-              data: { ...t.data, url: t.data.history[newIndex], historyIndex: newIndex },
+              data: {
+                ...t.data,
+                url: t.data.history[newIndex],
+                historyIndex: newIndex,
+              },
             };
           }),
         }));
@@ -127,6 +140,6 @@ export const useTabStore = create<TabStore>()(
 
       clearAll: () => set({ tabs: [], activeTabId: "home" }),
     }),
-    { name: "tabs", partialize: (state) => ({ tabs: state.tabs }) },
+    { name: "tabs" },
   ),
 );
