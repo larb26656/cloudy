@@ -20,9 +20,14 @@ import { useTabStore } from "@/stores/tabStore";
 interface CreateChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onCreated?: (data: {
+    directory: string;
+    sessionId: string | null;
+    sessionName: string;
+  }) => void;
 }
 
-export function CreateChatDialog({ open, onOpenChange }: CreateChatDialogProps) {
+export function CreateChatDialog({ open, onOpenChange, onCreated }: CreateChatDialogProps) {
   const navigate = useNavigate();
   const workspaces = useWorkspaceStore((s) => s.workspaces);
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
@@ -43,22 +48,38 @@ export function CreateChatDialog({ open, onOpenChange }: CreateChatDialogProps) 
   const handleNewChat = async () => {
     if (!selectedWorkspace) return;
 
-    addTab("session", {
-      sessionId: null,
-      workspaceId: selectedWorkspace.id,
-      sessionName: "New Chat",
-    });
+    if (onCreated) {
+      onCreated({
+        directory: selectedWorkspace.directory,
+        sessionId: null,
+        sessionName: "New Chat",
+      });
+    } else {
+      addTab("session", {
+        sessionId: null,
+        workspaceId: selectedWorkspace.id,
+        sessionName: "New Chat",
+      });
+    }
 
-     handleClose();
+    handleClose();
   };
 
   const handleSessionSelect = (session: Session) => {
     if (!selectedWorkspace) return;
-    addTab("session", {
-      sessionId: session.id,
-      workspaceId: selectedWorkspace.id,
-      sessionName: session.title || "New Chat",
-    });
+    if (onCreated) {
+      onCreated({
+        directory: selectedWorkspace.directory,
+        sessionId: session.id,
+        sessionName: session.title || "New Chat",
+      });
+    } else {
+      addTab("session", {
+        sessionId: session.id,
+        workspaceId: selectedWorkspace.id,
+        sessionName: session.title || "New Chat",
+      });
+    }
     handleClose();
   };
 

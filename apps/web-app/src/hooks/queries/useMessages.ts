@@ -7,11 +7,13 @@ import {
 } from "@/lib/opencode";
 import { encodeCursor } from "@/lib/opencode/cursor";
 import type { Message } from "@/types";
-import type { AgentPartInput, FilePartInput, SubtaskPartInput, TextPartInput } from "@opencode-ai/sdk/v2/types";
-import {
-  useInfiniteQuery,
-  useMutation,
-} from "@tanstack/react-query";
+import type {
+  AgentPartInput,
+  FilePartInput,
+  SubtaskPartInput,
+  TextPartInput,
+} from "@opencode-ai/sdk/v2/types";
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 
 const MESSAGES_LIMIT = 50;
 
@@ -33,7 +35,6 @@ export function useMessages({ sessionId }: { sessionId: string }) {
     initialPageParam: undefined,
     getPreviousPageParam: undefined,
     getNextPageParam: (message: Message[]) => {
-      console.log(message);
       if (message.length === 0) return undefined;
       const firstMsg = message[0];
 
@@ -47,37 +48,35 @@ export function useMessages({ sessionId }: { sessionId: string }) {
 }
 
 export function buildParts(
-    directory: string,
-    content: ChatInputContent
+  directory: string,
+  content: ChatInputContent,
 ): (TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput)[] {
-    const textPart: TextPartInput = { type: 'text', text: content.text };
+  const textPart: TextPartInput = { type: "text", text: content.text };
 
-    const mentionParts: FilePartInput[] = content.mentions.map((mention) => {
-        const filename = mention.id;
-        const path = `${directory}/${filename}`;
-        const url = `file://${path}`
+  const mentionParts: FilePartInput[] = content.mentions.map((mention) => {
+    const filename = mention.id;
+    const path = `${directory}/${filename}`;
+    const url = `file://${path}`;
 
-        return {
-            type: 'file',
-            mime: 'text/plain',
-            url,
-            filename,
-            source: {
-                type: "file",
-                text: {
-                    value: filename,
-                    start: 0,
-                    end: filename.length
-                },
-                path
-            }
-        };
-    }
-    );
+    return {
+      type: "file",
+      mime: "text/plain",
+      url,
+      filename,
+      source: {
+        type: "file",
+        text: {
+          value: filename,
+          start: 0,
+          end: filename.length,
+        },
+        path,
+      },
+    };
+  });
 
-    return [textPart, ...mentionParts];
+  return [textPart, ...mentionParts];
 }
-
 
 export function useSendMessage() {
   return useMutation({
@@ -87,7 +86,7 @@ export function useSendMessage() {
       directory,
     }: {
       sessionId: string;
-      content: ChatInputContent,
+      content: ChatInputContent;
       directory: string;
     }) => {
       const oc = getOcClient();
@@ -108,7 +107,13 @@ export function useSendMessage() {
 
 export function useAbortGeneration() {
   return useMutation({
-    mutationFn: async ({ sessionId, directory }: { sessionId: string; directory: string }) => {
+    mutationFn: async ({
+      sessionId,
+      directory,
+    }: {
+      sessionId: string;
+      directory: string;
+    }) => {
       const oc = getOcClient();
       const result = await oc.session.abort({
         sessionID: sessionId,
