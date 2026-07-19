@@ -1,42 +1,25 @@
 import { useState } from "react";
-import {
-  MessageSquareIcon,
-  BotIcon,
-  WorkflowIcon,
-  PlusIcon,
-  PanelRightIcon,
-} from "lucide-react";
+import { PlusIcon, PanelRightIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CreateChatDialog } from "@/features/chat/components/CreateChatDialog";
+import { NodeMenuButton } from "./nodes/NodeMenuButton";
+import { nodeTemplates, type NodeTemplate } from "./nodes/template";
 
 interface DeskCanvasSidebarProps {
-  onAddNode: (type: string, data?: Record<string, unknown>) => void;
+  onAddNode: (template: NodeTemplate, data?: Record<string, unknown>) => void;
 }
 
 export function DeskCanvasSidebar({ onAddNode }: DeskCanvasSidebarProps) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [createChatOpen, setCreateChatOpen] = useState(false);
+  const [activeDialogTemplate, setActiveDialogTemplate] =
+    useState<NodeTemplate | null>(null);
 
-  const nodeTemplates = [
-    {
-      id: "chat",
-      label: "Chat",
-      icon: MessageSquareIcon,
-      onClick: () => setCreateChatOpen(true),
-    },
-    {
-      id: "agent",
-      label: "Agent",
-      icon: BotIcon,
-      onClick: () => onAddNode("agent"),
-    },
-    {
-      id: "workflow",
-      label: "Workflow",
-      icon: WorkflowIcon,
-      onClick: () => onAddNode("workflow"),
-    },
-  ];
+  const handleSelect = (template: NodeTemplate) => {
+    if (template.configDialog) {
+      setActiveDialogTemplate(template);
+    } else {
+      onAddNode(template, template.defaultData);
+    }
+  };
 
   return (
     <div className="absolute top-0 bottom-0 right-0 z-10 flex items-stretch">
@@ -60,17 +43,13 @@ export function DeskCanvasSidebar({ onAddNode }: DeskCanvasSidebarProps) {
             </Button>
           </div>
           <div className="flex flex-col gap-1">
-            {nodeTemplates.map((node) => (
-              <Button
-                key={node.id}
-                variant="ghost"
-                size="sm"
-                className="justify-start gap-2 h-8"
-                onClick={node.onClick}
-              >
-                <node.icon className="size-4" />
-                <span>{node.label}</span>
-              </Button>
+            {nodeTemplates.map((template) => (
+              <NodeMenuButton
+                key={template.id}
+                icon={template.icon}
+                label={template.label}
+                onClick={() => handleSelect(template)}
+              />
             ))}
           </div>
         </div>
@@ -85,13 +64,16 @@ export function DeskCanvasSidebar({ onAddNode }: DeskCanvasSidebarProps) {
         </button>
       )}
 
-      <CreateChatDialog
-        open={createChatOpen}
-        onOpenChange={setCreateChatOpen}
-        onCreated={(data) => {
-          onAddNode("chat", data);
-        }}
-      />
+      {activeDialogTemplate?.configDialog && (
+        <activeDialogTemplate.configDialog
+          open={!!activeDialogTemplate}
+          onOpenChange={(open) => !open && setActiveDialogTemplate(null)}
+          onSubmit={(data) => {
+            onAddNode(activeDialogTemplate, data);
+            setActiveDialogTemplate(null);
+          }}
+        />
+      )}
     </div>
   );
 }

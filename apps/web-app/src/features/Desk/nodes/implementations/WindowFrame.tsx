@@ -4,8 +4,8 @@ import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import { useCallback } from "react";
 
-interface WindowNodeProps {
-  title: string;
+interface WindowFrameProps {
+  title?: string;
   nodeId: string;
   selected?: boolean;
   minWidth?: number;
@@ -14,9 +14,11 @@ interface WindowNodeProps {
   maxHeight?: number;
   children: React.ReactNode;
   className?: string;
+  color?: string;
+  headerAction?: React.ReactNode;
 }
 
-export function WindowNode({
+export function WindowFrame({
   title,
   nodeId,
   selected = false,
@@ -26,7 +28,9 @@ export function WindowNode({
   maxHeight = 600,
   children,
   className,
-}: WindowNodeProps) {
+  color,
+  headerAction,
+}: WindowFrameProps) {
   const { deleteElements } = useReactFlow();
 
   const handleClose = useCallback(() => {
@@ -46,11 +50,15 @@ export function WindowNode({
       <div
         className={cn(
           "rounded-lg border shadow-md bg-background overflow-hidden h-full",
+          color,
           className,
         )}
       >
         <div className="flex items-center justify-between px-3 py-2 bg-muted border-b cursor-grab active:cursor-grabbing select-none">
-          <span className="text-sm font-medium truncate">{title}</span>
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            {headerAction}
+            {title && <span className="text-sm font-medium truncate">{title}</span>}
+          </div>
           <button
             onClick={handleClose}
             className="p-1 hover:bg-muted-foreground/20 rounded"

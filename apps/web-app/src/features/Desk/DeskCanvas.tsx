@@ -17,19 +17,14 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useState } from "react";
-import { ChatNode } from "./nodes/ChatNode";
 import { DeskCanvasSidebar } from "./DeskCanvasSidebar";
 import { useFlowStore } from "@/stores/flowStore";
+import { type NodeTemplate } from "./nodes/template/nodeTemplates";
+import { nodeTypes } from "./nodes/template";
 
 interface DeskCanvasProps {
   tabId: string;
 }
-
-const CHAT_NODE_DEFAULT_SIZE = { width: 400, height: 400 };
-
-const nodeTypes = {
-  chat: ChatNode,
-};
 
 function DeskCanvasInner({ tabId }: DeskCanvasProps) {
   const [nodes, setNodes] = useState<Node[]>([]);
@@ -71,18 +66,17 @@ function DeskCanvasInner({ tabId }: DeskCanvasProps) {
   }, [nodes, edges, rfInstance, saveFlow, tabId]);
 
   const handleAddNode = useCallback(
-    (type: string, data?: Record<string, unknown>) => {
+    (template: NodeTemplate, data?: Record<string, unknown>) => {
       const position = screenToFlowPosition({ x: 300, y: 300 });
-      const isChat = type === "chat";
       const newNode: Node = {
         id: `node-${Date.now()}`,
-        type: isChat ? "chat" : undefined,
+        type: template.id,
         position,
         data: {
-          label: data?.sessionName ?? `${type} Node`,
+          label: data?.sessionName ?? `${template.id} Node`,
           ...data,
         },
-        style: isChat ? CHAT_NODE_DEFAULT_SIZE : undefined,
+        style: template.size ?? undefined,
       };
       setNodes((nds) => [...nds, newNode]);
     },
