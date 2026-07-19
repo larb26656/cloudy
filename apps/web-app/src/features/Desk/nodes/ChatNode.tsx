@@ -11,9 +11,9 @@ type ChatNodeProps = Node<
   "chat"
 >;
 
-export function ChatNode({ data, id }: NodeProps<ChatNodeProps>) {
+export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   return (
-    <WindowNode title={data.label ?? "Chat"} nodeId={id}>
+    <WindowNode title={data.label ?? "Chat"} nodeId={id} selected={selected}>
       <ChatContainer sessionId={data.sessionId} directory={data.directory} />
     </WindowNode>
   );

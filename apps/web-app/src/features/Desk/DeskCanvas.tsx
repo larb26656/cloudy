@@ -19,32 +19,17 @@ import { useCallback, useState } from "react";
 import { ChatNode } from "./nodes/ChatNode";
 import { DeskCanvasSidebar } from "./DeskCanvasSidebar";
 
-interface DeskCanvasProps {
-  tabId: string;
-}
+interface DeskCanvasProps {}
 
 const CHAT_NODE_DEFAULT_SIZE = { width: 400, height: 400 };
-
-const initialNodes: Node[] = [
-  {
-    id: "n11",
-    type: "chat",
-    position: { x: 0, y: 0 },
-    data: { directory: "my-dir", sessionId: "my-session" },
-    style: CHAT_NODE_DEFAULT_SIZE,
-  },
-  { id: "n1", position: { x: 0, y: 0 }, data: { label: "Node 1" } },
-  { id: "n2", position: { x: 0, y: 100 }, data: { label: "Node 2" } },
-];
-const initialEdges: Edge[] = [{ id: "n1-n2", source: "n1", target: "n2" }];
 
 const nodeTypes = {
   chat: ChatNode,
 };
 
-function DeskCanvasInner(_props: DeskCanvasProps) {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+function DeskCanvasInner({}: DeskCanvasProps) {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
   const { screenToFlowPosition } = useReactFlow();
 
   const onNodesChange: OnNodesChange<Node> = useCallback(

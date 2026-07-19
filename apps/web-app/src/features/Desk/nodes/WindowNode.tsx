@@ -7,6 +7,7 @@ import { useCallback } from "react";
 interface WindowNodeProps {
   title: string;
   nodeId: string;
+  selected?: boolean;
   minWidth?: number;
   minHeight?: number;
   maxWidth?: number;
@@ -18,6 +19,7 @@ interface WindowNodeProps {
 export function WindowNode({
   title,
   nodeId,
+  selected = false,
   minWidth = 300,
   minHeight = 200,
   maxWidth = 800,
@@ -39,12 +41,12 @@ export function WindowNode({
         maxWidth={maxWidth}
         maxHeight={maxHeight}
         handleClassName="!border-primary !bg-primary/20 hover:!bg-primary/30"
-        isVisible={false}
+        isVisible={selected}
       />
       <div
         className={cn(
           "rounded-lg border shadow-md bg-background overflow-hidden h-full",
-          className
+          className,
         )}
       >
         <div className="flex items-center justify-between px-3 py-2 bg-muted border-b cursor-grab active:cursor-grabbing select-none">
