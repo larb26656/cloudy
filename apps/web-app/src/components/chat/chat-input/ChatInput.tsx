@@ -130,7 +130,7 @@ export function ChatInput({
   };
 
   return (
-    <div className="p-4">
+    <div className="p-4 @container">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col gap-2">
           <div className="flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full">
@@ -187,7 +187,7 @@ export function ChatInput({
             </div>
           </div>
 
-          <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden md:block">
+          <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden @[480px]:block">
             Press Enter to send, Shift + Enter for new line
             {directory && " • @ or / to mention files"}
             {" • Cmd/Ctrl + M for model"}
