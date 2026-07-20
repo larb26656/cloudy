@@ -2,7 +2,6 @@ import { serve, type ServerType } from '@hono/node-server';
 import { createApp } from '../server';
 import { initContainer } from '../container';
 import { loadConfig } from '../config/config';
-import { runMigrations } from '@repo/database';
 
 export interface ServerOptions {
   host?: string;
@@ -12,7 +11,6 @@ export interface ServerOptions {
   corsOrigins?: string[];
   enableUI?: boolean;
   publicDir?: string;
-  dbMigrationsDir?: string;
 }
 
 export function createServer(options: ServerOptions) {
@@ -28,9 +26,7 @@ export function createServer(options: ServerOptions) {
       cors: options.corsOrigins?.join(','),
     });
 
-    await runMigrations(config.dataDir, options.dbMigrationsDir);
-
-    await initContainer(config);
+    initContainer(config);
 
     const app = createApp({
       corsOrigins: config.cors,

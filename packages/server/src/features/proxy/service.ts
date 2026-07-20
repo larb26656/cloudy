@@ -9,13 +9,14 @@ const CORS_HEADERS = {
 } as const;
 
 export class ProxyService {
-    async proxyRequest(c: Context): Promise<Response> {
-        const opencodeApiBase = c.req.header('X-OpenCode-API-Base')
-            || c.req.query('X-OpenCode-API-Base');
+    constructor(private defaultApiBase: string = '') {}
 
-        if (!opencodeApiBase) {
-            throw new HTTPException(400, { message: 'Missing X-OpenCode-API-Base header or query parameter' });
+    async proxyRequest(c: Context): Promise<Response> {
+        if (!this.defaultApiBase) {
+            throw new HTTPException(400, { message: 'Missing opencodeApiBase config. Set opencodeApiBase in config.json, CLOUDY_OPENCODE_API_BASE env, or --opencode-api-base CLI flag' });
         }
+
+        const opencodeApiBase = this.defaultApiBase;
 
         const incomingUrl = new URL(c.req.url);
         const targetPath = incomingUrl.pathname.replace(/^\/oc/, '');

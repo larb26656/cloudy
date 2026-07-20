@@ -13,18 +13,15 @@
   "scripts": {
     "build": "tsup",
     "copy-assets": "tsx ../../scripts/copy-assets.ts",
-    "dev": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --cors=* --host=127.0.0.1",
-    "dev:ui": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --cors=* --host=127.0.0.1 --ui --ui-dir ../../apps/web-app/dist",
+    "dev": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --host=127.0.0.1",
+    "dev:ui": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --host=127.0.0.1 --ui --ui-dir ../../apps/web-app/dist",
     "start": "node dist/cli.js",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
-  "dependencies": {
-    "@electric-sql/pglite": "^0.4.5"
-  },
+  "dependencies": {},
   "devDependencies": {
-    "@repo/database": "workspace:*",
     "@repo/eslint-config": "workspace:*",
     "@repo/server": "workspace:*",
     "@repo/typescript-config": "workspace:*",

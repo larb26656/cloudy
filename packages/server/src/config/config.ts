@@ -10,13 +10,10 @@ const ConfigurableSchema = z.object({
     host: z.string().default('localhost'),
     port: z.string().default('4122').transform(Number),
     cors: z.string().default('').transform((val) => val ? val.split(",").map((o) => o.trim()) : []),
+    opencodeApiBase: z.string().default('http://localhost:4096'),
 });
 
-export type CloudyConfig = z.infer<typeof ConfigurableSchema> & {
-    dbPath: string;
-    idea: string;
-    artifact: string;
-};
+export type CloudyConfig = z.infer<typeof ConfigurableSchema>;
 
 type AppConfig = z.input<typeof ConfigurableSchema>;
 
@@ -82,8 +79,5 @@ export function loadConfig(cliFlags: Partial<AppConfig> = {}): CloudyConfig {
     return {
         ...merged,
         dataDir,
-        dbPath: `${dataDir}`,
-        idea: `${dataDir}/idea`,
-        artifact: `${dataDir}/artifact`,
     };
 }

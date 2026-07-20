@@ -36,14 +36,11 @@ async function serveCommand(options: {
     publicDir = options.uiDir ? resolve(options.uiDir) : join(cliDir, "public");
   }
 
-  const migrationsDir = join(cliDir, "drizzle");
-
   const server = createServer({
     configDir: options.config,
     dataDir: options.dataDir,
     enableUI: options.ui,
     publicDir,
-    dbMigrationsDir: migrationsDir,
     host: options.host,
     port: options.port ? Number.parseInt(options.port, 10) : undefined,
     corsOrigins: options.cors
@@ -53,7 +50,6 @@ async function serveCommand(options: {
 
   console.log(makeText());
   console.log("");
-  console.log("Running migrations...");
 
   const { url } = await server.start();
   console.log(`Starting server on ${url}...`);
