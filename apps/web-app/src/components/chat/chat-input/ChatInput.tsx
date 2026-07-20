@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { type ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "../ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
+import { useDefaultModelStore } from "@/stores/defaultModelStore";
+import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 
 interface ChatInputProps {
   onSend: (
@@ -38,6 +40,9 @@ export function ChatInput({
     text: "",
     mentions: [],
   });
+
+  const defaultModel = useDefaultModelStore((s) => s.defaultModel);
+  const defaultAgent = useDefaultAgentStore((s) => s.defaultAgent);
 
   const [isListening, setIsListening] = useState(false);
   const [speechDraft, setSpeechDraft] = useState("");
@@ -90,8 +95,8 @@ export function ChatInput({
     if (finalText && !isLoading) {
       onSend(
         { ...chatInputContent, text: finalText },
-        null,
-        null,
+        defaultModel,
+        defaultAgent,
       );
       setChatInputContent({ text: "", mentions: [] });
       setSpeechDraft("");

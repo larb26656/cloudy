@@ -11,6 +11,7 @@ import { useCreateSession } from "@/hooks/queries/useSessions";
 import { useQuestions } from "@/hooks/queries/useQuestions";
 import { usePermissions } from "@/hooks/queries/usePermissions";
 import { type ChatInputContent } from "@/lib/opencode";
+import type { ModelConfig } from "@/types";
 
 interface ChatContainerProps {
   directory: string;
@@ -42,16 +43,22 @@ export function ChatContainer({
   const sessionQuestions = questions.filter(question => question.sessionID === sessionId);
   const sessionPermissions = permissions.filter(p => p.sessionID === sessionId);
 
-  const handleSend = (content: ChatInputContent) => {
+  const handleSend = (
+    content: ChatInputContent,
+    model?: ModelConfig | null,
+    agent?: string | null,
+  ) => {
     if (!sessionId) {
       createSession.mutate(
-        { directory },
+        { directory, model: model ?? undefined, agent: agent ?? undefined },
         {
           onSuccess: (newSession) => {
             sendMessage.mutate({
               sessionId: newSession.id,
               content: content,
               directory: directory,
+              model,
+              agent,
             });
 
             onSessionChange?.(newSession.id);
@@ -64,6 +71,8 @@ export function ChatContainer({
       sessionId,
       content: content,
       directory: directory,
+      model,
+      agent,
     });
   };
 

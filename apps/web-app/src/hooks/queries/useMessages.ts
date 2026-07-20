@@ -6,7 +6,7 @@ import {
   type SdkError,
 } from "@/lib/opencode";
 import { encodeCursor } from "@/lib/opencode/cursor";
-import type { Message } from "@/types";
+import type { Message, ModelConfig } from "@/types";
 import type {
   AgentPartInput,
   FilePartInput,
@@ -84,10 +84,14 @@ export function useSendMessage() {
       sessionId,
       content,
       directory,
+      model,
+      agent,
     }: {
       sessionId: string;
       content: ChatInputContent;
       directory: string;
+      model?: ModelConfig | null;
+      agent?: string | null;
     }) => {
       const oc = getOcClient();
       const parts = buildParts(directory, content);
@@ -96,6 +100,10 @@ export function useSendMessage() {
         sessionID: sessionId,
         parts,
         directory,
+        model: model
+          ? { providerID: model.providerID, modelID: model.modelID }
+          : undefined,
+        agent: agent ?? undefined,
       });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));

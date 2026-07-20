@@ -40,7 +40,13 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   );
 
   return (
-    <WindowFrame title={data.label ?? "Chat"} nodeId={id} selected={selected}>
+    <WindowFrame
+      title={data.label ?? "Chat"}
+      nodeId={id}
+      selected={selected}
+      maxWidth={1200}
+      maxHeight={1200}
+    >
       <ChatContainer
         sessionId={data.sessionId}
         directory={data.directory}
