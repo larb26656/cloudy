@@ -49,12 +49,12 @@ export function WindowFrame({
       />
       <div
         className={cn(
-          "rounded-lg border shadow-md bg-background overflow-hidden h-full",
+          "rounded-lg border shadow-md bg-background overflow-hidden h-full flex flex-col",
           color,
           className,
         )}
       >
-        <div className="flex items-center justify-between px-3 py-2 bg-muted border-b cursor-grab active:cursor-grabbing select-none">
+        <div className="flex items-center justify-between px-3 py-2 bg-muted border-b cursor-grab active:cursor-grabbing select-none shrink-0">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {headerAction}
             {title && (
@@ -68,7 +68,7 @@ export function WindowFrame({
             <X className="h-4 w-4" />
           </button>
         </div>
-        <div className="nodrag nopan nowheel h-full overflow-auto">
+        <div className="nodrag nopan nowheel flex-1 min-h-0 overflow-auto">
           {children}
         </div>
       </div>
