@@ -15,6 +15,7 @@ import {
   type OnEdgesChange,
   type OnConnect,
   type ReactFlowInstance,
+  PanOnScrollMode,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useState } from "react";
@@ -97,6 +98,8 @@ function DeskCanvasInner({ tabId }: DeskCanvasProps) {
         onConnect={onConnect}
         onInit={setRfInstance}
         fitView
+        panOnScroll
+        panOnScrollMode={PanOnScrollMode.Free}
         className="h-full w-full"
       >
         <Background />

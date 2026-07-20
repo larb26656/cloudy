@@ -2,7 +2,11 @@ import * as React from "react";
 import { useState } from "react";
 import { Globe, Home, MessageCircle, PenTool, Plus, X } from "lucide-react";
 
-import { useTabStore, type SessionData, type WebviewData } from "@/stores/tabStore";
+import {
+  useTabStore,
+  type SessionData,
+  type WebviewData,
+} from "@/stores/tabStore";
 import { cn } from "@/lib/utils";
 import { useSession } from "@/hooks/queries/useSessions";
 import { CreateChatDialog } from "@/features/chat/components/CreateChatDialog";
@@ -23,7 +27,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 type MenuEntry =
-  | { type: "item"; id: string; label: string; icon?: React.ReactNode; action: () => void; disabled?: boolean }
+  | {
+      type: "item";
+      id: string;
+      label: string;
+      icon?: React.ReactNode;
+      action: () => void;
+      disabled?: boolean;
+    }
   | { type: "separator"; id: string };
 
 interface TabItemProps {
@@ -149,18 +160,43 @@ export function MainTabBar() {
 
   const handleOpenWebview = () => {
     let normalizedUrl = webviewUrl.trim();
-    if (!normalizedUrl.startsWith("http://") && !normalizedUrl.startsWith("https://")) {
+    if (
+      !normalizedUrl.startsWith("http://") &&
+      !normalizedUrl.startsWith("https://")
+    ) {
       normalizedUrl = "https://" + normalizedUrl;
     }
-    addTab("webview", { url: normalizedUrl, history: [normalizedUrl], historyIndex: 0 });
+    addTab("webview", {
+      url: normalizedUrl,
+      history: [normalizedUrl],
+      historyIndex: 0,
+    });
     setWebviewUrl("");
     setWebviewDialogOpen(false);
   };
 
   const menuItems: MenuEntry[] = [
-    { type: "item", id: "new-chat", label: "New Chat", icon: <MessageCircle />, action: () => setCreateChatOpen(true) },
-    { type: "item", id: "new-canvas", label: "New Canvas", icon: <PenTool />, action: () => addTab("desk", {}) },
-    { type: "item", id: "new-webview", label: "New Webview", icon: <Globe />, action: () => setWebviewDialogOpen(true) },
+    {
+      type: "item",
+      id: "new-chat",
+      label: "New Chat",
+      icon: <MessageCircle />,
+      action: () => setCreateChatOpen(true),
+    },
+    {
+      type: "item",
+      id: "new-desk",
+      label: "New Desk",
+      icon: <PenTool />,
+      action: () => addTab("desk", {}),
+    },
+    {
+      type: "item",
+      id: "new-webview",
+      label: "New Webview",
+      icon: <Globe />,
+      action: () => setWebviewDialogOpen(true),
+    },
   ];
 
   const handleMenuItemClick = (entry: MenuEntry) => {
@@ -234,7 +270,7 @@ export function MainTabBar() {
                   )}
                   {entry.label}
                 </DropdownMenuItem>
-              )
+              ),
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -260,7 +296,10 @@ export function MainTabBar() {
             />
           </div>
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setWebviewDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setWebviewDialogOpen(false)}
+            >
               Cancel
             </Button>
             <Button onClick={handleOpenWebview} disabled={!webviewUrl.trim()}>

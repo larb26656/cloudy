@@ -3,6 +3,8 @@ import { WindowFrame } from "../WindowFrame";
 import type { Node, NodeProps } from "@xyflow/react";
 import { CreateChatDialog } from "@/features/chat/components/CreateChatDialog";
 import type { ConfigDialogProps } from "../../template/nodeTemplates";
+import { useReactFlow } from "@xyflow/react";
+import { useCallback } from "react";
 
 type ChatNodeProps = Node<
   {
@@ -28,9 +30,22 @@ export function ChatConfigDialog({
 }
 
 export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
+  const { updateNodeData } = useReactFlow();
+
+  const handleSessionChange = useCallback(
+    (sessionId: string) => {
+      updateNodeData(id, { sessionId });
+    },
+    [id, updateNodeData],
+  );
+
   return (
     <WindowFrame title={data.label ?? "Chat"} nodeId={id} selected={selected}>
-      <ChatContainer sessionId={data.sessionId} directory={data.directory} />
+      <ChatContainer
+        sessionId={data.sessionId}
+        directory={data.directory}
+        onSessionChange={handleSessionChange}
+      />
     </WindowFrame>
   );
 }
