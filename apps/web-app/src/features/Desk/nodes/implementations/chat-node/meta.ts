@@ -6,7 +6,7 @@ export const chatTemplate: NodeTemplate = {
   id: "chat",
   label: "Chat",
   icon: MessageSquareIcon,
-  size: { width: 400, height: 500 },
+  size: { width: 400, height: 600 },
   configDialog: ChatConfigDialog,
   component: ChatNode,
 };
