@@ -48,6 +48,7 @@ export function useReplyQuestion() {
       answers,
     }: {
       requestID: string;
+      directory: string;
       answers: Array<QuestionAnswer>;
     }): Promise<void> => {
       const oc = getOcClient();
@@ -60,8 +61,7 @@ export function useReplyQuestion() {
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: questionKeys.root() });
-      // queryClient.invalidateQueries({ queryKey: questionKeys.list(variables.sessionID) });
+      queryClient.invalidateQueries({ queryKey: questionKeys.list(variables.directory) });
     },
   });
 }
@@ -73,6 +73,7 @@ export function useRejectQuestion() {
       requestID,
     }: {
       requestID: string;
+      directory: string;
     }): Promise<void> => {
       const oc = getOcClient();
       const result = await oc.question.reject({
@@ -83,7 +84,7 @@ export function useRejectQuestion() {
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: questionKeys.root() });
+      queryClient.invalidateQueries({ queryKey: questionKeys.list(variables.directory) });
     },
   });
 }

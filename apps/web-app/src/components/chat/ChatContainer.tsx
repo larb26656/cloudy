@@ -117,7 +117,7 @@ export function ChatContainer({
         open={questionOpen}
         onOpenChange={setQuestionOpen}
         questions={sessionQuestions}
-        sessionID={sessionId ?? ""}
+        directory={directory}
       />
 
       <PermissionDialog

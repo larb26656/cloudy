@@ -16,20 +16,20 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReplyQuestion, useRejectQuestion } from "@/hooks/queries/useQuestions";
-import type { QuestionV2Request, QuestionV2Reply, QuestionAnswer } from "@opencode-ai/sdk/v2";
+import type { QuestionV2Request, QuestionAnswer } from "@opencode-ai/sdk/v2";
 
 interface QuestionSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   questions: QuestionV2Request[];
-  sessionID: string;
+  directory: string;
 }
 
 export function QuestionSheet({
   open,
   onOpenChange,
   questions,
-  sessionID,
+  directory,
 }: QuestionSheetProps) {
   const [answers, setAnswers] = useState<Record<string, string[]>>({});
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
@@ -70,6 +70,7 @@ export function QuestionSheet({
 
     await replyQuestion.mutateAsync({
       requestID: activeQuestion.id,
+      directory,
       answers: answerList,
     });
 
@@ -84,6 +85,7 @@ export function QuestionSheet({
 
     await rejectQuestion.mutateAsync({
       requestID: activeQuestion.id,
+      directory,
     });
 
     resetState();
