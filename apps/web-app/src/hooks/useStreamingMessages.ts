@@ -3,7 +3,7 @@ import { useGlobalEvent } from "@/hooks/useGlobalEvent";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { messageKeys, permissionKeys, questionKeys, sessionKeys } from "@/lib/opencode";
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
-import type { GlobalEvent, MessageUpdated } from "@opencode-ai/sdk/v2";
+import type { GlobalEvent, MessageUpdated, SessionStatus } from "@opencode-ai/sdk/v2";
 import type { Message } from "@/types";
 
 type SessionUpdated = {
@@ -17,6 +17,14 @@ type SessionIdle = {
   type: "session.idle";
   properties: {
     sessionID: string;
+  };
+};
+
+type SessionStatusEvent = {
+  type: "session.status";
+  properties: {
+    sessionID: string;
+    status: SessionStatus;
   };
 };
 
@@ -44,6 +52,7 @@ type MessagePartDelta = {
 type KnownEvent =
   | SessionUpdated
   | SessionIdle
+  | SessionStatusEvent
   | MessageUpdated
   | MessagePartUpdated
   | MessagePartDelta;
@@ -53,12 +62,26 @@ function isKnownEvent(event: GlobalEvent): event is GlobalEvent & KnownEvent {
   return (
     type === "session.updated" ||
     type === "session.idle" ||
+    type === "session.status" ||
     type === "message.part.updated" ||
     type === "message.part.delta" ||
     type === "message.updated" ||
     type === "question.asked" ||
     type === "permission.asked"
   );
+}
+
+function shouldBufferMessage(
+  queryClient: ReturnType<typeof useQueryClient>,
+  directory: string | undefined,
+  sessionId: string,
+): boolean {
+  if (!directory) return true;
+  const statuses = queryClient.getQueryData<Record<string, SessionStatus>>(
+    sessionKeys.statuses(directory),
+  );
+  const status = statuses?.[sessionId];
+  return !status || status.type === "busy" || status.type === "retry";
 }
 
 function handleEvent(
@@ -93,6 +116,15 @@ function handleEvent(
       break;
     }
 
+    case "session.status": {
+      const props = event.payload.properties;
+      queryClient.setQueryData<Record<string, SessionStatus>>(
+        sessionKeys.statuses(event.directory),
+        (old) => ({ ...(old ?? {}), [props.sessionID]: props.status }),
+      );
+      break;
+    }
+
     case "message.updated": {
       const props = event.payload.properties;
       console.log("[POC] message.updated:", props);
@@ -102,6 +134,15 @@ function handleEvent(
       const isShouldSkip = summary && Array.isArray((summary as any).diffs);
 
       if (isShouldSkip) {
+        return;
+      }
+
+      if (
+        !shouldBufferMessage(queryClient, event.directory, props.info.sessionID)
+      ) {
+        queryClient.invalidateQueries({
+          queryKey: messageKeys.infinite(props.info.sessionID),
+        });
         return;
       }
 
@@ -117,6 +158,12 @@ function handleEvent(
     case "message.part.updated": {
       const props = event.payload.properties;
       console.log("[POC] message.part.updated:", props);
+      if (!shouldBufferMessage(queryClient, event.directory, props.part.sessionID)) {
+        queryClient.invalidateQueries({
+          queryKey: messageKeys.infinite(props.part.sessionID),
+        });
+        return;
+      }
       useStreamingMessagesStore
         .getState()
         .onMessagePartUpdated(props.part.sessionID, props.part);
@@ -126,6 +173,9 @@ function handleEvent(
     case "message.part.delta": {
       const props = event.payload.properties;
       console.log("[POC] message.part.delta:", props);
+      if (!shouldBufferMessage(queryClient, event.directory, props.sessionID)) {
+        return;
+      }
       useStreamingMessagesStore
         .getState()
         .onMessagePartDeltaUpdated(props.sessionID, props.messageID, props.partID, props.delta)

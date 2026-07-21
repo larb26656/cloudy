@@ -6,21 +6,25 @@ import { ChevronDown } from "lucide-react";
 import ThinkingAnimation from "./ThinkingAnimation";
 import { ErrorState } from "@/components/ui/error-state";
 import { useMessages } from "@/hooks/queries/useMessages";
+import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { InfiniteScrollContainer } from "@/components/utils/InfiniteScrollContainer";
 
 interface MessageListProps {
   selectedSessionId: string | null;
+  directory: string;
   isShowEmptyState?: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
 }
 
 export const MessageList = memo(function MessageList({
   selectedSessionId,
+  directory,
   isShowEmptyState = true,
   onSnippetSelect,
 }: MessageListProps) {
   const { streamingMessages } = useStreamingMessagesStore();
+  const { data: statuses } = useSessionStatuses({ directory });
   const {
     data,
     isLoading,
@@ -58,7 +62,11 @@ export const MessageList = memo(function MessageList({
     return Array.from(map.values());
   }, [remoteMessages, sessionStreaming]);
 
-  const isStreaming = sessionStreaming.length > 0;
+  const sessionStatus = selectedSessionId
+    ? statuses?.[selectedSessionId]
+    : undefined;
+  const isStreaming =
+    sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);

@@ -1,10 +1,12 @@
 import {
   getErrorMessage,
   getOcClient,
+  messageKeys,
   sessionKeys,
   type SdkError,
 } from "@/lib/opencode";
-import type { Session } from "@opencode-ai/sdk/v2";
+import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
+import type { Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ModelConfig } from "@/types";
 
@@ -42,6 +44,22 @@ export function useSessions({ directory }: { directory: string }) {
       const data = result.data;
 
       return data;
+    },
+    enabled: !!directory,
+  });
+}
+
+export function useSessionStatuses({ directory }: { directory: string }) {
+  return useQuery({
+    queryKey: sessionKeys.statuses(directory),
+    queryFn: async (): Promise<Record<string, SessionStatus>> => {
+      if (!directory) return {};
+      const oc = getOcClient();
+      const result = await oc.session.status({ directory });
+      if (result.error) {
+        throw new Error(getErrorMessage(result.error as SdkError));
+      }
+      return result.data ?? {};
     },
     enabled: !!directory,
   });
@@ -195,6 +213,14 @@ export function useForkSession() {
       return result.data;
     },
     onSuccess: (data) => {
+      queryClient.setQueryData<Record<string, SessionStatus>>(
+        sessionKeys.statuses(data.directory),
+        (old) => ({ ...(old ?? {}), [data.id]: { type: "idle" } }),
+      );
+      useStreamingMessagesStore.getState().takeSessionStreaming(data.id);
+      queryClient.invalidateQueries({
+        queryKey: messageKeys.infinite(data.id),
+      });
       queryClient.invalidateQueries({
         queryKey: sessionKeys.root(),
       });

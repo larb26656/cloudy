@@ -144,7 +144,7 @@ export function ChatContainer({
       tabIndex={-1}
       onKeyDown={handleContainerKeyDown}
     >
-      <MessageList selectedSessionId={sessionId} />
+      <MessageList selectedSessionId={sessionId} directory={directory} />
 
       <ChatInput
         onSend={handleSend}

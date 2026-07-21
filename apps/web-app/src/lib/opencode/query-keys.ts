@@ -3,6 +3,7 @@ export const sessionKeys = {
   infinite: (directory: string) =>
     ["sessions", "infinite", directory] as const,
   detail: (sessionId: string) => ["sessions", "detail", sessionId] as const,
+  statuses: (directory: string) => ["sessions", "statuses", directory] as const,
 };
 
 export const messageKeys = {
