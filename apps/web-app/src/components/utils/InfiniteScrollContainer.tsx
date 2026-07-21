@@ -1,5 +1,6 @@
 import { useRef, type ReactNode, type RefObject } from "react";
 import { Button } from "../ui/button";
+import { cn } from "@/lib/utils";
 
 type PaginationConfig = {
   hasMore: boolean;
@@ -28,9 +29,6 @@ export function InfiniteScrollContainer({
   next,
   loadingComponent = <div>Loading...</div>,
   reverse = false,
-  rootMargin = "200px",
-  threshold = 0,
-  enabled = true,
   className,
   scrollClassName,
   scrollRef,
@@ -43,26 +41,32 @@ export function InfiniteScrollContainer({
   const bottomSection = reverse ? prev : next;
 
   return (
-    <div ref={ref} className={scrollClassName} onScroll={onScroll}>
-      <div className={className}>
+    <div
+      ref={ref}
+      className={cn("overflow-y-auto h-full", scrollClassName)}
+      onScroll={onScroll}
+    >
+      <div className={cn("p-4 h-full flex flex-col gap-4", className)}>
         {topSection && (
-          <>
+          <div className="self-center">
             {topSection.hasMore && !topSection.isFetching && (
-              <Button onClick={topSection.fetchMore}>Load more {topSection.hasMore}</Button>
+              <Button onClick={topSection.fetchMore}>
+                Load more {topSection.hasMore}
+              </Button>
             )}
             {topSection.isFetching && loadingComponent}
-          </>
+          </div>
         )}
 
         <div>{children}</div>
 
         {bottomSection && (
-          <>
+          <div className="self-center">
             {bottomSection.hasMore && !bottomSection.isFetching && (
               <Button onClick={bottomSection.fetchMore}>Load more</Button>
             )}
             {bottomSection.isFetching && loadingComponent}
-          </>
+          </div>
         )}
       </div>
     </div>

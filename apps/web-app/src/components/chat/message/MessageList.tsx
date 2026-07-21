@@ -125,26 +125,23 @@ export const MessageList = memo(function MessageList({
         }}
         reverse={true}
         scrollRef={scrollRef}
-        scrollClassName="overflow-y-auto h-full"
-        className="max-w-4xl mx-auto p-4 h-full"
+        className="max-w-4xl"
         onScroll={handleScroll}
         enabled={!isLoading}
       >
-        <div className="mx-auto space-y-4 pb-4">
-          {allMessages.map((message: Message) => (
-            <MessageBubble
-              key={message.info.id}
-              message={message}
-              isStreaming={false}
-            />
-          ))}
+        {allMessages.map((message: Message) => (
+          <MessageBubble
+            key={message.info.id}
+            message={message}
+            isStreaming={false}
+          />
+        ))}
 
-          {isStreaming && (
-            <div className="mt-2">
-              <ThinkingAnimation />
-            </div>
-          )}
-        </div>
+        {isStreaming && (
+          <div className="mt-2">
+            <ThinkingAnimation />
+          </div>
+        )}
       </InfiniteScrollContainer>
 
       {showScrollButton && (
