@@ -17,6 +17,7 @@ import { usePermissions } from "@/hooks/queries/usePermissions";
 import { type ChatInputContent } from "@/lib/opencode";
 import { isCommand, parseCommand } from "@/lib/command";
 import { useSystemCommands, findSystemCommand } from "@/lib/commands";
+import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
 import type { ModelConfig } from "@/types";
 
 interface ChatContainerProps {
@@ -39,6 +40,7 @@ export function ChatContainer({
 
   const [questionOpen, setQuestionOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
+  const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
 
   const { data: questions = [] } = useQuestions({
     directory: directory,
@@ -86,6 +88,7 @@ export function ChatContainer({
           directory,
           sessionId,
           onSessionChange,
+          openSessionPicker: () => setSessionPickerOpen(true),
           model,
           agent,
         });
@@ -132,6 +135,7 @@ export function ChatContainer({
         directory,
         sessionId,
         onSessionChange,
+        openSessionPicker: () => setSessionPickerOpen(true),
         model: null,
         agent: null,
       });
@@ -181,6 +185,14 @@ export function ChatContainer({
         onOpenChange={setPermissionOpen}
         permissions={sessionPermissions}
         directory={directory}
+      />
+
+      <SessionPickerDialog
+        open={sessionPickerOpen}
+        onOpenChange={setSessionPickerOpen}
+        directory={directory}
+        sessionId={sessionId}
+        onSessionChange={(id) => onSessionChange?.(id)}
       />
     </div>
   );

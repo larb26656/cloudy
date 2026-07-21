@@ -4,6 +4,7 @@ export interface SystemCommandContext {
   directory: string;
   sessionId: string | null;
   onSessionChange?: (id: string | null) => void;
+  openSessionPicker?: () => void;
   model?: ModelConfig | null;
   agent?: string | null;
 }
