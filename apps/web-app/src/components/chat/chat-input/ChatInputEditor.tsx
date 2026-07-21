@@ -4,12 +4,11 @@ import Mention from "@tiptap/extension-mention";
 import {
   createMentionSuggestion,
   createCommandSuggestion,
-} from "./extensions/suggestion";
+} from "../extensions/suggestion";
 import { shouldShowSlashCommand } from "@/lib/command";
 import { useEffect, useMemo } from "react";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
-
 
 interface ChatInputEditorProps {
   content: ChatInputContent;
@@ -18,7 +17,7 @@ interface ChatInputEditorProps {
   onImmediateExecute?: (commandName: string) => void;
   placeholder?: string;
   disabled?: boolean;
-  directory?: string;
+  directory: string;
 }
 
 function getMentions(editor: Editor) {
@@ -59,12 +58,12 @@ export function ChatInputEditor({
           {
             char: "@",
             allow: () => true,
-            ...createMentionSuggestion(directory ?? ""),
+            ...createMentionSuggestion(directory),
           },
           {
             char: "/",
             allow: shouldShowSlashCommand,
-            ...createCommandSuggestion({
+            ...createCommandSuggestion(directory, {
               onImmediateExecute: (cmd) => {
                 onImmediateExecute?.(cmd.name);
               },
@@ -74,7 +73,7 @@ export function ChatInputEditor({
       }),
       Placeholder.configure({ placeholder: placeholder }),
     ];
-  }, [placeholder, onImmediateExecute]);
+  }, [directory, placeholder, onImmediateExecute]);
 
   const editor = useEditor({
     extensions,

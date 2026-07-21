@@ -37,7 +37,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const title = session?.title ?? "Chat";
 
   const handleSessionChange = useCallback(
-    (sessionId: string) => {
+    (sessionId: string | null) => {
       updateNodeData(id, { sessionId });
     },
     [id, updateNodeData],

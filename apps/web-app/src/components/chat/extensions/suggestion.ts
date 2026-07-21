@@ -9,7 +9,8 @@ import type {
   SuggestionProps,
 } from "@tiptap/suggestion";
 import type { MentionNodeAttrs } from "@tiptap/extension-mention";
-import { mockCommands, type Command } from "@/lib/command";
+import { systemCommands } from "@/lib/commands";
+import { type Command, type CommandSource } from "@/lib/command";
 import { getOcClient } from "@/lib/opencode";
 
 type MentionItem = string;
@@ -48,7 +49,7 @@ export function createMentionSuggestion(directory: string) {
       const result = await oc.find.files({
         directory,
         query,
-        limit: 20
+        limit: 20,
       });
       return result.data ?? [];
     },
@@ -94,21 +95,36 @@ type CommandSuggestionOptions = {
   onImmediateExecute?: (item: CommandItem) => void;
 };
 
-export function createCommandSuggestion(options?: CommandSuggestionOptions) {
+export function createCommandSuggestion(
+  directory: string,
+  options?: CommandSuggestionOptions,
+) {
   return {
     items: async ({ query }: { query: string }): Promise<CommandItem[]> => {
-      const commands = query
-        ? mockCommands.filter(
-            (c) =>
-              c.name.toLowerCase().includes(query.toLowerCase()) ||
-              c.description?.toLowerCase().includes(query.toLowerCase()),
-          )
-        : mockCommands;
-      return commands.map((cmd) => ({
-        ...cmd,
-        id: cmd.name,
-        label: cmd.name,
+      const oc = getOcClient();
+      const result = await oc.command.list({
+        directory,
+      });
+      const openCodeCommands = result.data ?? [];
+
+      const systemCommandItems: Command[] = systemCommands.map((cmd) => ({
+        name: cmd.name,
+        description: cmd.description,
+        source: "system" as CommandSource,
+        template: "",
+        hints: [],
+        immediate: cmd.immediate,
       }));
+
+      const commands = [...systemCommandItems, ...openCodeCommands];
+
+      return commands
+        .filter((cmd) => cmd.name.includes(query))
+        .map((cmd) => ({
+          ...cmd,
+          id: cmd.name,
+          label: cmd.name,
+        }));
     },
 
     render: () => {

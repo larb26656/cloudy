@@ -29,6 +29,7 @@ export function useCmdSuggestionHook<T>({ items, selectItem, itemToValue }: UseC
     const moveCursorHandler = (event: KeyboardEvent) => {
         if (cmdRoot) {
             event.preventDefault();
+            event.stopPropagation();
             const newEvent = new KeyboardEvent("keydown", {
                 key: event.key,
                 bubbles: true,

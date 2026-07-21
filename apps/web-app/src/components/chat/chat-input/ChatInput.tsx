@@ -5,7 +5,7 @@ import { AgentSelector } from "../AgentSelector";
 import type { ModelConfig } from "../../../types";
 import { Button } from "@/components/ui/button";
 import { type ChatInputContent } from "@/lib/opencode";
-import { ChatInputEditor } from "../ChatInputEditor";
+import { ChatInputEditor } from "./ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
@@ -51,7 +51,7 @@ export function ChatInput({
   const prevListeningRef = useRef(false);
 
   const currentHistorySelectValue =
-    historyIndex === -1 ? "" : MOCK_HISTORY[historyIndex] ?? "";
+    historyIndex === -1 ? "" : (MOCK_HISTORY[historyIndex] ?? "");
 
   useEffect(() => {
     if (initialValue) {
@@ -109,7 +109,9 @@ export function ChatInput({
     if (chatInputContent.text !== currentHistorySelectValue) return;
 
     if (e.key === "ArrowUp") {
-      setHistoryIndex((i) => (i === -1 ? MOCK_HISTORY.length - 1 : Math.max(0, i - 1)));
+      setHistoryIndex((i) =>
+        i === -1 ? MOCK_HISTORY.length - 1 : Math.max(0, i - 1),
+      );
     } else if (e.key === "ArrowDown") {
       setHistoryIndex((i) =>
         i === -1 || i === MOCK_HISTORY.length - 1 ? -1 : i + 1,

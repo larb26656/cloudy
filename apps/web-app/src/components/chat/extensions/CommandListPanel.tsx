@@ -43,7 +43,7 @@ function CommandListPanel<T>({
   }, [items, selectedValue, setSelectedValue, itemToValue]);
 
   return (
-    <div className="z-50 w-80 rounded-md border bg-popover shadow-md">
+    <div className="nokey z-50 w-80 rounded-md border bg-popover shadow-md">
       <Command
         shouldFilter={false}
         loop

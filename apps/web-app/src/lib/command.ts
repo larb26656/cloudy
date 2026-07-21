@@ -3,12 +3,22 @@ import type { ModelConfig } from "@/types";
 
 export interface SlashCommandState {
   state: {
-    doc: { textBetween: (from: number, to: number, sep?: string, block?: string) => string };
+    doc: {
+      textBetween: (
+        from: number,
+        to: number,
+        sep?: string,
+        block?: string,
+      ) => string;
+    };
   };
   range: { from: number; to: number };
 }
 
-export function shouldShowSlashCommand({ state, range }: SlashCommandState): boolean {
+export function shouldShowSlashCommand({
+  state,
+  range,
+}: SlashCommandState): boolean {
   const textBefore = state.doc.textBetween(0, range.from, " ", "\n");
   const trimmed = textBefore.trim();
   const hasBackslash = trimmed.includes("\\");
@@ -51,12 +61,6 @@ export interface SendMessageParams {
   agent?: string | null;
 }
 
-export interface SystemCommand {
-  name: string;
-  description: string;
-  immediate?: boolean;
-}
-
 export type CommandSource = "command" | "mcp" | "skill" | "system";
 
 export type Command = {
@@ -71,27 +75,3 @@ export type Command = {
   immediate?: boolean;
 };
 
-export const systemCommands: SystemCommand[] = [
-  {
-    name: "new",
-    description: "Create a new session",
-    immediate: true,
-  },
-  {
-    name: "fork",
-    description: "Fork current session",
-  },
-];
-
-export const mockCommands: Command[] = systemCommands.map((cmd) => ({
-  name: cmd.name,
-  description: cmd.description,
-  source: "system",
-  template: "",
-  hints: [],
-  immediate: cmd.immediate,
-}));
-
-export function findSystemCommand(name: string): SystemCommand | undefined {
-  return systemCommands.find((cmd) => cmd.name === name);
-}
