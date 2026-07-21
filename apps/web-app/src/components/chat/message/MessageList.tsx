@@ -125,9 +125,9 @@ export const MessageList = memo(function MessageList({
         }}
         reverse={true}
         scrollRef={scrollRef}
-        className="max-w-4xl"
+        className="max-w-4xl mx-auto"
         onScroll={handleScroll}
-        enabled={!isLoading}
+        autoLoad
       >
         {allMessages.map((message: Message) => (
           <MessageBubble

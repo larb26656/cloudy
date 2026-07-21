@@ -1,5 +1,6 @@
 import { useRef, type ReactNode, type RefObject } from "react";
 import { Button } from "../ui/button";
+import { IsVisible } from "./IsVisible";
 import { cn } from "@/lib/utils";
 
 type PaginationConfig = {
@@ -14,9 +15,7 @@ interface InfiniteScrollContainerProps {
   next?: PaginationConfig;
   loadingComponent?: ReactNode;
   reverse?: boolean;
-  rootMargin?: string;
-  threshold?: number;
-  enabled?: boolean;
+  autoLoad?: boolean;
   className?: string;
   scrollClassName?: string;
   scrollRef?: RefObject<HTMLDivElement | null>;
@@ -29,6 +28,7 @@ export function InfiniteScrollContainer({
   next,
   loadingComponent = <div>Loading...</div>,
   reverse = false,
+  autoLoad = false,
   className,
   scrollClassName,
   scrollRef,
@@ -40,6 +40,21 @@ export function InfiniteScrollContainer({
   const topSection = reverse ? next : prev;
   const bottomSection = reverse ? prev : next;
 
+  const renderSection = (section: PaginationConfig) => (
+    <div className="self-center">
+      {section.hasMore &&
+        !section.isFetching &&
+        (autoLoad ? (
+          <IsVisible onVisible={section.fetchMore} />
+        ) : (
+          <Button onClick={section.fetchMore} variant={"secondary"}>
+            Load more
+          </Button>
+        ))}
+      {section.isFetching && loadingComponent}
+    </div>
+  );
+
   return (
     <div
       ref={ref}
@@ -47,27 +62,11 @@ export function InfiniteScrollContainer({
       onScroll={onScroll}
     >
       <div className={cn("p-4 h-full flex flex-col gap-4", className)}>
-        {topSection && (
-          <div className="self-center">
-            {topSection.hasMore && !topSection.isFetching && (
-              <Button onClick={topSection.fetchMore}>
-                Load more {topSection.hasMore}
-              </Button>
-            )}
-            {topSection.isFetching && loadingComponent}
-          </div>
-        )}
+        {topSection && renderSection(topSection)}
 
         <div>{children}</div>
 
-        {bottomSection && (
-          <div className="self-center">
-            {bottomSection.hasMore && !bottomSection.isFetching && (
-              <Button onClick={bottomSection.fetchMore}>Load more</Button>
-            )}
-            {bottomSection.isFetching && loadingComponent}
-          </div>
-        )}
+        {bottomSection && renderSection(bottomSection)}
       </div>
     </div>
   );
