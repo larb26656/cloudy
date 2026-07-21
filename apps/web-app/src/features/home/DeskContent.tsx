@@ -1,4 +1,4 @@
-import { DeskCanvas } from "../Desk/DeskCanvas";
+import { DeskCanvas } from "../desk/DeskCanvas";
 import { useTabStore } from "@/stores/tabStore";
 
 export function DeskContent() {

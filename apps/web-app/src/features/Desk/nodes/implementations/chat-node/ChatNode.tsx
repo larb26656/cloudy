@@ -1,10 +1,11 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
-import { WindowFrame } from "../WindowFrame";
 import type { Node, NodeProps } from "@xyflow/react";
 import { CreateChatDialog } from "@/features/chat/components/CreateChatDialog";
 import type { ConfigDialogProps } from "../../template/nodeTemplates";
 import { useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
+import { useSession } from "@/hooks/queries";
+import { WindowFrame } from "../WindowFrame";
 
 type ChatNodeProps = Node<
   {
@@ -32,6 +33,9 @@ export function ChatConfigDialog({
 export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const { updateNodeData } = useReactFlow();
 
+  const { data: session } = useSession({ sessionId: data.sessionId });
+  const title = session?.title ?? "Chat";
+
   const handleSessionChange = useCallback(
     (sessionId: string) => {
       updateNodeData(id, { sessionId });
@@ -41,7 +45,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
 
   return (
     <WindowFrame
-      title={data.label ?? "Chat"}
+      title={title}
       nodeId={id}
       selected={selected}
       maxWidth={1200}
