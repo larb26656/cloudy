@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { generateGreeting } from "@/lib/greeting-generator";
 import { Lightbulb, Brain, FileCode } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 type SnippetType = "idea" | "memory" | "artifact";
 
@@ -36,11 +37,17 @@ const snippetOptions: SnippetOption[] = [
 
 interface SnippetButtonsProps {
   onSelect: (type: SnippetType) => void;
+  className?: string;
 }
 
-export function SnippetButtons({ onSelect }: SnippetButtonsProps) {
+export function SnippetButtons({ onSelect, className }: SnippetButtonsProps) {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl px-4">
+    <div
+      className={cn(
+        "grid grid-cols-1 sm:grid-cols-3 gap-3 w-full max-w-2xl px-4",
+        className,
+      )}
+    >
       {snippetOptions.map((snippet) => {
         const Icon = snippet.icon;
         return (
@@ -145,7 +152,11 @@ export function EmptyChatState({ onSnippetSelect }: EmptyChatStateProps) {
         {greeting.subtitle}
       </p>
 
-      <SnippetButtons onSelect={handleSnippetClick} />
+      <div className="@container"></div>
+      <SnippetButtons
+        onSelect={handleSnippetClick}
+        className="hidden @[480px]:block"
+      />
     </div>
   );
 }

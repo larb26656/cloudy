@@ -4,7 +4,6 @@ import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
 import ThinkingAnimation from "./ThinkingAnimation";
-import { ChatMinimap } from "../ChatMinimap";
 import { ErrorState } from "@/components/ui/error-state";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
@@ -13,19 +12,13 @@ import { InfiniteScrollContainer } from "@/components/utils/InfiniteScrollContai
 interface MessageListProps {
   selectedSessionId: string | null;
   isShowEmptyState?: boolean;
-  showShadowEdge?: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
-  showMinimap?: boolean;
-  onCloseMinimap?: () => void;
 }
 
 export const MessageList = memo(function MessageList({
   selectedSessionId,
   isShowEmptyState = true,
-  showShadowEdge: _showShadowEdge = true,
   onSnippetSelect,
-  showMinimap = false,
-  onCloseMinimap,
 }: MessageListProps) {
   const { streamingMessages } = useStreamingMessagesStore();
   const {
@@ -46,7 +39,10 @@ export const MessageList = memo(function MessageList({
       : [];
   }, [streamingMessages, selectedSessionId]);
 
-  const remoteMessages = useMemo(() => (data?.pages.reverse().flat() ?? []), [data?.pages]);
+  const remoteMessages = useMemo(
+    () => data?.pages.reverse().flat() ?? [],
+    [data?.pages],
+  );
 
   const allMessages = useMemo(() => {
     const map = new Map<string, Message>();
@@ -103,6 +99,22 @@ export const MessageList = memo(function MessageList({
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <ErrorState message={error.message} onRetry={() => refetch()} />
+      </div>
+    );
+  }
+
+  if (allMessages.length === 0 && isShowEmptyState) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <EmptyChatState onSnippetSelect={onSnippetSelect} />
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex-1 min-h-0">
       <InfiniteScrollContainer
@@ -118,39 +130,23 @@ export const MessageList = memo(function MessageList({
         onScroll={handleScroll}
         enabled={!isLoading}
       >
-        {error ? (
-          <div className="flex-1 flex items-center justify-center">
-            <ErrorState message={error.message} onRetry={() => refetch()} />
-          </div>
-        ) : allMessages.length === 0 ? (
-          isShowEmptyState && (
-            <EmptyChatState onSnippetSelect={onSnippetSelect} />
-          )
-        ) : (
-          <div className="mx-auto space-y-4 pb-4">
-            {allMessages.map((message: Message) => (
-              <MessageBubble
-                key={message.info.id}
-                message={message}
-                isStreaming={false}
-              />
-            ))}
+        <div className="mx-auto space-y-4 pb-4">
+          {allMessages.map((message: Message) => (
+            <MessageBubble
+              key={message.info.id}
+              message={message}
+              isStreaming={false}
+            />
+          ))}
 
-            {isStreaming && (
-              <div className="mt-2">
-                <ThinkingAnimation />
-              </div>
-            )}
-          </div>
-        )}
+          {isStreaming && (
+            <div className="mt-2">
+              <ThinkingAnimation />
+            </div>
+          )}
+        </div>
       </InfiniteScrollContainer>
 
-      {/*{showShadowEdge && (
-        <div className="absolute top-0 left-0 right-0 h-8 bg-gradient-to-b from-background to-transparent pointer-events-none" />
-      )}
-      {showShadowEdge && (
-        <div className="absolute bottom-0 left-0 right-0 h-8 bg-gradient-to-t from-background to-transparent pointer-events-none" />
-      )}*/}
       {showScrollButton && (
         <div className="absolute bottom-4 mx-auto w-full">
           <button
@@ -162,12 +158,6 @@ export const MessageList = memo(function MessageList({
           </button>
         </div>
       )}
-      <ChatMinimap
-        messages={allMessages}
-        scrollRef={scrollRef}
-        isVisible={showMinimap}
-        onClose={onCloseMinimap}
-      />
     </div>
   );
 });
