@@ -146,42 +146,62 @@ describe("streamingMessagesStore", () => {
       expect(result.parts[0].text).toBe("Updated");
     });
 
-    test("returns state unchanged when session not found", () => {
-      const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
-        parts: [],
+    test("creates skeleton message when session does not exist", () => {
+      useStreamingMessagesStore.setState({ streamingMessages: new Map() });
+
+      const newPart = createTextPart({
+        id: "part_new",
+        text: "New part",
+        messageID: "msg_orphan",
+        sessionID: "session_orphan",
       });
 
-      useStreamingMessagesStore.setState({
-        streamingMessages: new Map([
-          ["session_1", new Map([["msg_1", message]])],
-        ]),
-      });
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartUpdated("session_orphan", newPart);
 
-      const newPart = createTextPart({ id: "part_new", text: "New part" });
-      const prevState = useStreamingMessagesStore.getState().streamingMessages;
-      useStreamingMessagesStore.getState().onMessagePartUpdated("nonexistent_session", newPart);
-
-      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(prevState);
+      const state = useStreamingMessagesStore.getState();
+      const sessionMap = state.streamingMessages.get("session_orphan");
+      expect(sessionMap).toBeInstanceOf(Map);
+      const created = sessionMap!.get("msg_orphan");
+      expect(created).toBeDefined();
+      expect(created!.info.id).toBe("msg_orphan");
+      expect(created!.info.sessionID).toBe("session_orphan");
+      expect(created!.parts).toHaveLength(1);
+      expect(created!.parts[0]).toEqual(newPart);
     });
 
-    test("returns state unchanged when message not found", () => {
-      const message = createMockMessage({
+    test("creates skeleton message when message not found in existing session", () => {
+      const existingMessage = createMockMessage({
         info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
         parts: [],
       });
 
       useStreamingMessagesStore.setState({
         streamingMessages: new Map([
-          ["session_1", new Map([["msg_1", message]])],
+          ["session_1", new Map([["msg_1", existingMessage]])],
         ]),
       });
 
-      const newPart = createTextPart({ id: "part_new", text: "New part", messageID: "nonexistent_msg" });
-      const prevState = useStreamingMessagesStore.getState().streamingMessages;
-      useStreamingMessagesStore.getState().onMessagePartUpdated("session_1", newPart);
+      const newPart = createTextPart({
+        id: "part_new",
+        text: "New part",
+        messageID: "msg_2",
+        sessionID: "session_1",
+      });
 
-      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(prevState);
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartUpdated("session_1", newPart);
+
+      const state = useStreamingMessagesStore.getState();
+      const sessionMap = state.streamingMessages.get("session_1")!;
+      expect(sessionMap.size).toBe(2);
+      const created = sessionMap.get("msg_2");
+      expect(created).toBeDefined();
+      expect(created!.info.id).toBe("msg_2");
+      expect(created!.parts).toHaveLength(1);
+      expect(created!.parts[0]).toEqual(newPart);
     });
   });
 
@@ -205,28 +225,29 @@ describe("streamingMessagesStore", () => {
       expect(result.parts[0].text).toBe("Hello, world!");
     });
 
-    test("returns state unchanged when session not found", () => {
-      const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
-        parts: [createTextPart({ id: "part_1", text: "Hello" })],
-      });
+    test("creates skeleton message and placeholder text part when nothing exists", () => {
+      useStreamingMessagesStore.setState({ streamingMessages: new Map() });
 
-      useStreamingMessagesStore.setState({
-        streamingMessages: new Map([
-          ["session_1", new Map([["msg_1", message]])],
-        ]),
-      });
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartDeltaUpdated("session_orphan", "msg_orphan", "part_orphan", "Hello");
 
-      const prevState = useStreamingMessagesStore.getState().streamingMessages;
-      useStreamingMessagesStore.getState().onMessagePartDeltaUpdated("nonexistent_session", "msg_1", "part_1", "!");
-
-      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(prevState);
+      const state = useStreamingMessagesStore.getState();
+      const sessionMap = state.streamingMessages.get("session_orphan");
+      expect(sessionMap).toBeInstanceOf(Map);
+      const created = sessionMap!.get("msg_orphan");
+      expect(created).toBeDefined();
+      expect(created!.info.id).toBe("msg_orphan");
+      expect(created!.parts).toHaveLength(1);
+      expect(created!.parts[0].id).toBe("part_orphan");
+      expect(created!.parts[0].type).toBe("text");
+      expect((created!.parts[0] as { text: string }).text).toBe("Hello");
     });
 
-    test("returns state unchanged when message not found", () => {
+    test("appends delta as new text part when message exists but part does not", () => {
       const message = createMockMessage({
         info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
-        parts: [createTextPart({ id: "part_1", text: "Hello" })],
+        parts: [],
       });
 
       useStreamingMessagesStore.setState({
@@ -235,10 +256,15 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      const prevState = useStreamingMessagesStore.getState().streamingMessages;
-      useStreamingMessagesStore.getState().onMessagePartDeltaUpdated("session_1", "nonexistent_msg", "part_1", "!");
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartDeltaUpdated("session_1", "msg_1", "part_new", "Hello");
 
-      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(prevState);
+      const state = useStreamingMessagesStore.getState();
+      const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
+      expect(result.parts).toHaveLength(1);
+      expect(result.parts[0].type).toBe("text");
+      expect((result.parts[0] as { text: string }).text).toBe("Hello");
     });
 
     test("returns state unchanged when part not found", () => {
