@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { generateId } from "@/lib/id";
 
 export type SessionData = {
   sessionId: string | null;
@@ -45,7 +46,7 @@ export const useTabStore = create<TabStore>()(
       activeTabId: "home",
 
       addTab: (type, data) => {
-        const id = crypto.randomUUID();
+        const id = generateId();
         set((state) => ({
           tabs: [...state.tabs, { id, type, data } as Tab],
           activeTabId: id,

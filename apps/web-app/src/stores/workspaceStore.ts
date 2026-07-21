@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { generateId } from "@/lib/id";
 
 export const WORKSPACE_COLORS = [
   "#3B82F6", // blue
@@ -69,7 +70,7 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
 
         const newWorkspace: Workspace = {
           ...data,
-          id: `workspace-${crypto.randomUUID()}`,
+          id: `workspace-${generateId()}`,
           createdAt: Date.now(),
         };
 
