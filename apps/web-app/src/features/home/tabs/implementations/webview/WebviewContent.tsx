@@ -1,32 +1,31 @@
 import { useState } from "react";
 import { Globe, ChevronLeft, ChevronRight, RotateCw } from "lucide-react";
-import type { WebviewData } from "@/stores/tabStore";
-import { useTabStore } from "@/stores/tabStore";
+import type { Tab } from "@/stores/tabStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { webviewActions } from "./webviewActions";
 
 interface WebviewContentProps {
-  tab: { id: string; type: "webview"; data: WebviewData };
+  tab: Extract<Tab, { type: "webview" }>;
 }
 
 export function WebviewContent({ tab }: WebviewContentProps) {
   const [urlInput, setUrlInput] = useState(tab.data.url);
   const [isLoading, setIsLoading] = useState(false);
 
-  const navigate = useTabStore((s) => s.webviewNavigate);
-  const goBack = useTabStore((s) => s.webviewGoBack);
-  const goForward = useTabStore((s) => s.webviewGoForward);
-
   const canGoBack = tab.data.historyIndex > 0;
   const canGoForward = tab.data.historyIndex < tab.data.history.length - 1;
 
   const handleNavigate = () => {
     let normalizedUrl = urlInput.trim();
-    if (!normalizedUrl.startsWith("http://") && !normalizedUrl.startsWith("https://")) {
+    if (
+      !normalizedUrl.startsWith("http://") &&
+      !normalizedUrl.startsWith("https://")
+    ) {
       normalizedUrl = "https://" + normalizedUrl;
     }
     setUrlInput(normalizedUrl);
-    navigate(tab.id, normalizedUrl);
+    webviewActions.navigate(tab.id, normalizedUrl);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -47,7 +46,7 @@ export function WebviewContent({ tab }: WebviewContentProps) {
           variant="ghost"
           size="icon-sm"
           disabled={!canGoBack}
-          onClick={() => goBack(tab.id)}
+          onClick={() => webviewActions.goBack(tab.id)}
           aria-label="Go back"
         >
           <ChevronLeft className="size-4" />
@@ -56,7 +55,7 @@ export function WebviewContent({ tab }: WebviewContentProps) {
           variant="ghost"
           size="icon-sm"
           disabled={!canGoForward}
-          onClick={() => goForward(tab.id)}
+          onClick={() => webviewActions.goForward(tab.id)}
           aria-label="Go forward"
         >
           <ChevronRight className="size-4" />
@@ -64,7 +63,7 @@ export function WebviewContent({ tab }: WebviewContentProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          onClick={() => navigate(tab.id, tab.data.url)}
+          onClick={() => webviewActions.navigate(tab.id, tab.data.url)}
           aria-label="Refresh"
         >
           <RotateCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />

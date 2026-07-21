@@ -1,14 +1,14 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import { ErrorState } from "@/components/ui/error-state";
-import type { SessionData } from "@/stores/tabStore";
 import { useTabStore } from "@/stores/tabStore";
+import type { Tab } from "@/stores/tabStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 
-interface ChatContentProps {
-  tab: { id: string; type: "session"; data: SessionData };
+interface SessionContentProps {
+  tab: Extract<Tab, { type: "session" }>;
 }
 
-export function ChatContent({ tab }: ChatContentProps) {
+export function SessionContent({ tab }: SessionContentProps) {
   const updateTabData = useTabStore((s) => s.updateTabData);
   const workspace = useWorkspaceStore((s) => s.getWorkspace(tab.data.workspaceId));
 

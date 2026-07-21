@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { FolderOpen, Plus } from "lucide-react";
-import { WorkspaceItem } from "./components/WorkspaceItem";
-import { SessionList } from "./components/SessionList";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
 import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
+import { WorkspaceItem } from "./components/WorkspaceItem";
+import { SessionList } from "./components/SessionList";
 
 export function HomeContent() {
   const workspaces = useWorkspaceStore((s) => s.workspaces);
