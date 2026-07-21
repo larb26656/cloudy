@@ -20,7 +20,7 @@ interface ChatInputProps {
   onAbort?: () => void;
   isLoading?: boolean;
   placeholder?: string;
-  directory?: string;
+  directory: string;
   initialValue?: string;
 }
 

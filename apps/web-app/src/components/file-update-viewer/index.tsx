@@ -80,10 +80,8 @@ export function FileUpdateViewer({
         <DiffViewer
           diff={createTwoFilesPatch(filePath, filePath, oldString, newString)}
           filePath={filePath}
-          inline={true}
           viewMode="line-by-line"
           showLineNumbers={true}
-          headless
         />
       );
     }
