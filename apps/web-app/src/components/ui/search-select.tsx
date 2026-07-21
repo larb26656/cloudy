@@ -23,7 +23,7 @@ interface SearchSelectProps<T extends ValueType> {
   showClear?: boolean
   placeholder?: string
   'aria-invalid'?: boolean
-  [key: string]: any
+  [key: string]: unknown
 }
 
 function SearchSelect<T extends ValueType>({
@@ -48,7 +48,7 @@ function SearchSelect<T extends ValueType>({
     <Combobox
       items={items}
       value={parseValue}
-      onValueChange={(item, _details) => {
+      onValueChange={(item) => {
         onChange?.(item?.value ?? null)
       }}
       {...rest}

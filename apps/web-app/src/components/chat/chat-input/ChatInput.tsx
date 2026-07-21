@@ -63,7 +63,7 @@ export function ChatInput({
 
   useEffect(() => {
     setChatInputContent({ text: currentHistorySelectValue, mentions: [] });
-  }, [historyIndex]);
+  }, [historyIndex, currentHistorySelectValue]);
 
   useEffect(() => {
     if (isListening && !prevListeningRef.current) {

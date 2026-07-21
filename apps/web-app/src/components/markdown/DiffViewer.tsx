@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect, useLayoutEffect, useRef } from "react";
+import { useMemo, useState, useEffect, useRef } from "react";
 import { html as diff2html } from "diff2html";
 import "diff2html/bundles/css/diff2html.min.css";
 import hljs from "highlight.js";

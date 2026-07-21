@@ -24,7 +24,7 @@ export function BackButton({ fallbackTo = '/', forceFallback = false, ...rest }:
     } else {
       navigate({ to: fallbackTo, replace: true })
     }
-  }, [fallbackTo, forceFallback])
+  }, [fallbackTo, forceFallback, navigate, router.history])
 
   return (
     <Button

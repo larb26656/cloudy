@@ -1,7 +1,3 @@
-interface QuestionBannerProps {
-  onOpenDialog: () => void;
-}
-
-export function QuestionBanner(_props: QuestionBannerProps) {
+export function QuestionBanner() {
   return null;
 }

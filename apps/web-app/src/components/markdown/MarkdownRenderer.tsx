@@ -23,7 +23,7 @@ function extractCodeBlockMeta(content: string): Map<string, string> {
   let match;
 
   while ((match = regex.exec(content)) !== null) {
-    const [, _language, fileName, code] = match;
+    const [, , fileName, code] = match;
     metaMap.set(code.trim(), fileName);
   }
 

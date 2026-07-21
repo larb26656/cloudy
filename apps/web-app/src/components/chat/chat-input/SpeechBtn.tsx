@@ -25,7 +25,7 @@ export default function SpeechBtn({
   useEffect(() => {
     const liveTranscript = `${finalTranscript} ${interimTranscript}`.trim();
     onTranscript?.(liveTranscript);
-  }, [interimTranscript, finalTranscript]);
+  }, [interimTranscript, finalTranscript, onTranscript]);
 
   useEffect(() => {
     onListeningChange?.(listening);

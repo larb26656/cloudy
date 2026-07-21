@@ -25,6 +25,7 @@ export function WebviewContent({ tab }: WebviewContentProps) {
       normalizedUrl = "https://" + normalizedUrl;
     }
     setUrlInput(normalizedUrl);
+    setIsLoading(true);
     webviewActions.navigate(tab.id, normalizedUrl);
   };
 
@@ -46,7 +47,10 @@ export function WebviewContent({ tab }: WebviewContentProps) {
           variant="ghost"
           size="icon-sm"
           disabled={!canGoBack}
-          onClick={() => webviewActions.goBack(tab.id)}
+          onClick={() => {
+            setIsLoading(true);
+            webviewActions.goBack(tab.id);
+          }}
           aria-label="Go back"
         >
           <ChevronLeft className="size-4" />
@@ -55,7 +59,10 @@ export function WebviewContent({ tab }: WebviewContentProps) {
           variant="ghost"
           size="icon-sm"
           disabled={!canGoForward}
-          onClick={() => webviewActions.goForward(tab.id)}
+          onClick={() => {
+            setIsLoading(true);
+            webviewActions.goForward(tab.id);
+          }}
           aria-label="Go forward"
         >
           <ChevronRight className="size-4" />
@@ -63,7 +70,10 @@ export function WebviewContent({ tab }: WebviewContentProps) {
         <Button
           variant="ghost"
           size="icon-sm"
-          onClick={() => webviewActions.navigate(tab.id, tab.data.url)}
+          onClick={() => {
+            setIsLoading(true);
+            webviewActions.navigate(tab.id, tab.data.url);
+          }}
           aria-label="Refresh"
         >
           <RotateCw className={`size-4 ${isLoading ? "animate-spin" : ""}`} />
@@ -90,7 +100,6 @@ export function WebviewContent({ tab }: WebviewContentProps) {
           src={tab.data.url}
           className="w-full h-full border-0"
           onLoad={() => handleIframeLoad()}
-          onLoadStart={() => setIsLoading(true)}
           sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
           title="Webview"
         />

@@ -1,8 +1,8 @@
-import type { Part } from "@opencode-ai/sdk/v2";
+import type { AssistantMessage, Part } from "@opencode-ai/sdk/v2";
 import { MessageParts } from "./MessageParts";
 
 interface AssistantMessageBubbleProps {
-  info: any;
+  info: AssistantMessage;
   parts: Part[];
 }
 

@@ -27,8 +27,9 @@ export const useFlowStore = create<FlowState>()(
       getFlow: (tabId) => get().flows[`desk-${tabId}`] ?? null,
       deleteFlow: (tabId) => {
         set((state) => {
-          const { [`desk-${tabId}`]: _, ...rest } = state.flows;
-          return { flows: rest };
+          const flows = { ...state.flows };
+          delete flows[`desk-${tabId}`];
+          return { flows };
         });
       },
     }),

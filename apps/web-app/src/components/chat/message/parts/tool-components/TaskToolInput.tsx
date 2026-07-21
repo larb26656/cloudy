@@ -10,9 +10,8 @@ interface TaskToolInputProps {
 }
 
 function getSessionID(state: ToolPartType["state"]): string | undefined {
-  // TODO refactor later
-  const data = state as any;
-  return data?.metadata?.sessionId as string | undefined;
+  if (state.status === "pending") return undefined;
+  return state.metadata?.sessionId as string | undefined;
 }
 
 export function Preview({ state }: TaskToolInputProps) {
