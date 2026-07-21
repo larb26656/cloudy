@@ -112,9 +112,18 @@ export function ChatContainer({
   };
 
   const handleAbort = () => {
-    if (sessionId) {
+    if (sessionId && !abortGeneration.isPending) {
       abortGeneration.mutate({ sessionId, directory });
     }
+  };
+
+  const handleContainerKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key !== "Escape") return;
+    if (questionOpen || permissionOpen) return;
+    if (abortGeneration.isPending) return;
+
+    e.preventDefault();
+    handleAbort();
   };
 
   const handleImmediateCommand = (commandName: string) => {
@@ -130,7 +139,11 @@ export function ChatContainer({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-background overflow-hidden h-full">
+    <div
+      className="flex-1 flex flex-col bg-background overflow-hidden h-full"
+      tabIndex={-1}
+      onKeyDown={handleContainerKeyDown}
+    >
       <MessageList selectedSessionId={sessionId} />
 
       <ChatInput
