@@ -1,32 +1,20 @@
-import type { Preview } from '@storybook/react';
-import { StrictMode } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { TooltipProvider } from '../src/components/ui/tooltip';
-import { Toaster } from '../src/components/ui/sonner';
-import '../src/index.css';
-
-const queryClient = new QueryClient();
+import type { Preview } from '@storybook/tanstack-react'
 
 const preview: Preview = {
-  decorators: [
-    (Story) => (
-      <StrictMode>
-        <QueryClientProvider client={queryClient}>
-          <TooltipProvider>
-            <Story />
-            <Toaster />
-          </TooltipProvider>
-        </QueryClientProvider>
-      </StrictMode>
-    ),
-  ],
   parameters: {
     controls: {
       matchers: {
-        color: /(background|color)$/i,
-        date: /Date$/i,
+       color: /(background|color)$/i,
+       date: /Date$/i,
       },
     },
+
+    a11y: {
+      // 'todo' - show a11y violations in the test UI only
+      // 'error' - fail CI on a11y violations
+      // 'off' - skip a11y checks entirely
+      test: 'todo'
+    }
   },
 };
 
