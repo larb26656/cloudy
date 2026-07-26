@@ -13,8 +13,8 @@
   "scripts": {
     "build": "tsup",
     "copy-assets": "tsx ../../scripts/copy-assets.ts",
-    "dev": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --host=127.0.0.1",
-    "dev:ui": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --host=127.0.0.1 --ui --ui-dir ../../apps/web-app/dist",
+    "dev": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --host=127.0.0.1 --port=5122",
+    "dev:ui": "tsx watch src/cli.ts serve --config=config --dataDir=config/data --host=127.0.0.1 --port=5122 --ui --ui-dir ../../apps/web-app/dist",
     "start": "node dist/cli.js",
     "lint": "eslint . --max-warnings 0",
     "check-types": "tsc --noEmit",

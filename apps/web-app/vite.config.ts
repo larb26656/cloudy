@@ -15,13 +15,6 @@ export default defineConfig({
   ],
   server: {
     port: 3001,
-    proxy: {
-      '/service': {
-        target: 'http://127.0.0.1:4122',
-        changeOrigin: true,
-        rewrite: path => path.replace(/^\/service/, '')
-      }
-    }
   },
   resolve: {
     tsconfigPaths: true
