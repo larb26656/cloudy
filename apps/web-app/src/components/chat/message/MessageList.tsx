@@ -13,7 +13,7 @@ import { RetryMessage } from "./RetryMessage";
 
 interface MessageListProps {
   selectedSessionId: string | null;
-  directory: string;
+  directory?: string;
   isShowEmptyState?: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
 }

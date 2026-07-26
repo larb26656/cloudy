@@ -9,7 +9,10 @@ import {
   useAbortGeneration,
 } from "@/hooks/queries/useMessages";
 import { useExecuteCommand } from "@/hooks/queries/useCommand";
-import { useCreateSession } from "@/hooks/queries/useSessions";
+import {
+  useCreateSession,
+  useSessionChildren,
+} from "@/hooks/queries/useSessions";
 import { useQuestions } from "@/hooks/queries/useQuestions";
 import { usePermissions } from "@/hooks/queries/usePermissions";
 import { type ChatInputContent } from "@/lib/opencode";
@@ -51,13 +54,28 @@ export function ChatContainer({
     directory: directory,
   });
 
-  const sessionQuestion = questions.find((q) => q.sessionID === sessionId);
+  const { data: childSessions = [] } = useSessionChildren({
+    sessionId: sessionId,
+  });
 
-  const sessionPermissions = permissions.filter(
-    (p) => p.sessionID === sessionId,
+  const sessionRelations = useMemo(() => {
+    if (!sessionId) return new Set<string>();
+    return new Set<string>([sessionId, ...childSessions.map((cs) => cs.id)]);
+  }, [sessionId, childSessions]);
+
+  const sessionQuestions = questions.filter((q) =>
+    sessionRelations.has(q.sessionID),
   );
 
-  const sessionPermission = permissions.find((p) => p.sessionID === sessionId);
+  const currentQuestion = sessionQuestions.length
+    ? sessionQuestions[0]
+    : undefined;
+
+  const sessionPermissions = permissions.filter((q) =>
+    sessionRelations.has(q.sessionID),
+  );
+
+  const currentPermission = permissions.length > 0 ? permissions[0] : undefined;
 
   const ensureSessionId = async (): Promise<string> => {
     if (sessionId) {
@@ -168,34 +186,34 @@ export function ChatContainer({
         directory={directory}
       />
 
-      {(sessionQuestion?.questions?.length ?? 0) > 0 && !questionOpen && (
+      {sessionQuestions.length && !questionOpen && (
         <QuestionBanner
           onOpenDialog={() => setQuestionOpen(true)}
-          count={sessionQuestion?.questions.length ?? 0}
+          count={currentQuestion?.questions.length ?? 0}
         />
       )}
 
-      {sessionPermissions.length > 0 && !permissionOpen && (
+      {sessionPermissions.length && !permissionOpen && (
         <PermissionBanner
           onOpenDialog={() => setPermissionOpen(true)}
           count={sessionPermissions.length}
         />
       )}
 
-      {sessionQuestion && (
+      {currentQuestion && (
         <QuestionSheet
           open={questionOpen}
           onOpenChange={setQuestionOpen}
-          question={sessionQuestion}
+          question={currentQuestion}
           directory={directory}
         />
       )}
 
-      {sessionPermission && (
+      {currentPermission && (
         <PermissionDialog
           open={permissionOpen}
           onOpenChange={setPermissionOpen}
-          permission={sessionPermission}
+          permission={currentPermission}
           directory={directory}
         />
       )}

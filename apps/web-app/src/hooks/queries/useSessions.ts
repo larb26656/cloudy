@@ -49,9 +49,31 @@ export function useSessions({ directory }: { directory: string }) {
   });
 }
 
-export function useSessionStatuses({ directory }: { directory: string }) {
+export function useSessionChildren({
+  sessionId,
+  directory,
+}: {
+  sessionId: string | null;
+  directory?: string;
+}) {
   return useQuery({
-    queryKey: sessionKeys.statuses(directory),
+    queryKey: sessionKeys.children(sessionId ?? ""),
+    queryFn: async (): Promise<Session[]> => {
+      if (!sessionId) return [];
+      const oc = getOcClient();
+      const result = await oc.session.children({ sessionID: sessionId, directory });
+      if (result.error) {
+        throw new Error(getErrorMessage(result.error as SdkError));
+      }
+      return result.data ?? [];
+    },
+    enabled: !!sessionId,
+  });
+}
+
+export function useSessionStatuses({ directory }: { directory?: string }) {
+  return useQuery({
+    queryKey: sessionKeys.statuses(directory ?? ""),
     queryFn: async (): Promise<Record<string, SessionStatus>> => {
       if (!directory) return {};
       const oc = getOcClient();
