@@ -75,7 +75,9 @@ export function ChatContainer({
     sessionRelations.has(q.sessionID),
   );
 
-  const currentPermission = permissions.length > 0 ? permissions[0] : undefined;
+  const currentPermission = sessionPermissions.length
+    ? sessionPermissions[0]
+    : undefined;
 
   const ensureSessionId = async (): Promise<string> => {
     if (sessionId) {
@@ -171,10 +173,27 @@ export function ChatContainer({
 
   return (
     <div
-      className="flex-1 flex flex-col bg-background overflow-hidden h-full"
+      className="relative flex-1 flex flex-col bg-background overflow-hidden h-full"
       tabIndex={-1}
       onKeyDown={handleContainerKeyDown}
     >
+      {/*Notify bar*/}
+      <div className="absolute z-50 top-0 left-0 right-0 flex justify-end gap-2 p-2">
+        {!!sessionQuestions.length && !questionOpen && (
+          <QuestionBanner
+            onOpenDialog={() => setQuestionOpen(true)}
+            count={questions.length}
+          />
+        )}
+
+        {!!sessionPermissions.length && !permissionOpen && (
+          <PermissionBanner
+            onOpenDialog={() => setPermissionOpen(true)}
+            count={sessionPermissions.length}
+          />
+        )}
+      </div>
+
       <MessageList selectedSessionId={sessionId} directory={directory} />
 
       <ChatInput
@@ -185,20 +204,6 @@ export function ChatContainer({
         placeholder={chatplaceholder}
         directory={directory}
       />
-
-      {sessionQuestions.length && !questionOpen && (
-        <QuestionBanner
-          onOpenDialog={() => setQuestionOpen(true)}
-          count={currentQuestion?.questions.length ?? 0}
-        />
-      )}
-
-      {sessionPermissions.length && !permissionOpen && (
-        <PermissionBanner
-          onOpenDialog={() => setPermissionOpen(true)}
-          count={sessionPermissions.length}
-        />
-      )}
 
       {currentQuestion && (
         <QuestionSheet
