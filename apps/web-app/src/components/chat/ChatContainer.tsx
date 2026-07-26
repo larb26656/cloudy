@@ -16,6 +16,7 @@ import { type ChatInputContent } from "@/lib/opencode";
 import { isCommand, parseCommand } from "@/lib/command";
 import { useSystemCommands, findSystemCommand } from "@/lib/commands";
 import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
+import { toast } from "@/components/ui/sonner";
 import type { ModelConfig } from "@/types";
 import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
@@ -50,12 +51,13 @@ export function ChatContainer({
     directory: directory,
   });
 
-  const sessionQuestion = questions.find(
-    (question) => question.sessionID === sessionId,
-  );
+  const sessionQuestion = questions.find((q) => q.sessionID === sessionId);
+
   const sessionPermissions = permissions.filter(
     (p) => p.sessionID === sessionId,
   );
+
+  const sessionPermission = permissions.find((p) => p.sessionID === sessionId);
 
   const ensureSessionId = async (): Promise<string> => {
     if (sessionId) {
@@ -77,16 +79,16 @@ export function ChatContainer({
     const text = content.text.trim();
     if (!text) return;
 
-    const sessionId = await ensureSessionId();
-
     if (isCommand(text)) {
       const parsed = parseCommand(text);
       if (!parsed) return;
 
+      const commandSessionId = await ensureSessionId();
+
       if (findSystemCommand(parsed.command)) {
         systemCommands.execute(parsed.command, parsed.arguments, {
           directory,
-          sessionId,
+          sessionId: commandSessionId,
           onSessionChange,
           openSessionPicker: () => setSessionPickerOpen(true),
           model,
@@ -96,7 +98,7 @@ export function ChatContainer({
       }
 
       executeCommand.mutate({
-        sessionId,
+        sessionId: commandSessionId,
         command: parsed.command,
         args: parsed.arguments,
         directory,
@@ -105,13 +107,20 @@ export function ChatContainer({
       return;
     }
 
-    sendMessage.mutate({
-      sessionId,
-      content: content,
-      directory: directory,
-      model,
-      agent,
-    });
+    try {
+      const messageSessionId = await ensureSessionId();
+      await sendMessage.mutateAsync({
+        sessionId: messageSessionId,
+        content: content,
+        directory: directory,
+        model,
+        agent,
+      });
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to send message",
+      );
+    }
   };
 
   const handleAbort = () => {
@@ -182,12 +191,14 @@ export function ChatContainer({
         />
       )}
 
-      <PermissionDialog
-        open={permissionOpen}
-        onOpenChange={setPermissionOpen}
-        permissions={sessionPermissions}
-        directory={directory}
-      />
+      {sessionPermission && (
+        <PermissionDialog
+          open={permissionOpen}
+          onOpenChange={setPermissionOpen}
+          permission={sessionPermission}
+          directory={directory}
+        />
+      )}
 
       <SessionPickerDialog
         open={sessionPickerOpen}

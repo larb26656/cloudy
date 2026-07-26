@@ -9,6 +9,7 @@ import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { InfiniteScrollContainer } from "@/components/utils/InfiniteScrollContainer";
+import { RetryMessage } from "./RetryMessage";
 
 interface MessageListProps {
   selectedSessionId: string | null;
@@ -65,6 +66,7 @@ export const MessageList = memo(function MessageList({
   const sessionStatus = selectedSessionId
     ? statuses?.[selectedSessionId]
     : undefined;
+
   const isStreaming =
     sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
 
@@ -149,6 +151,14 @@ export const MessageList = memo(function MessageList({
           <div className="mt-2">
             <ThinkingAnimation />
           </div>
+        )}
+
+        {sessionStatus?.type === "retry" && (
+          <RetryMessage
+            attempt={sessionStatus.attempt}
+            message={sessionStatus.message}
+            next={sessionStatus.next}
+          />
         )}
       </InfiniteScrollContainer>
 

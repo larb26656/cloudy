@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import { Shield, ShieldAlert, ShieldCheck, ShieldX } from "lucide-react";
 import {
   Dialog,
@@ -14,55 +13,42 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useReplyPermission } from "@/hooks/queries/usePermissions";
 import type { PermissionRequest } from "@opencode-ai/sdk/v2";
+import { toast } from "../ui/sonner";
 
 interface PermissionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  permissions: PermissionRequest[];
+  permission: PermissionRequest;
   directory: string;
 }
 
 export function PermissionDialog({
   open,
   onOpenChange,
-  permissions,
+  permission,
   directory,
 }: PermissionDialogProps) {
-  const [activeIndex, setActiveIndex] = useState(0);
   const replyPermission = useReplyPermission();
-
   const isPending = replyPermission.isPending;
-  const activePermission = permissions[activeIndex] ?? null;
-
-  const resetState = useCallback(() => {
-    setActiveIndex(0);
-  }, []);
 
   const handleOpenChange = (newOpen: boolean) => {
-    if (!newOpen) {
-      resetState();
-    }
     onOpenChange(newOpen);
   };
 
   const handleReply = async (reply: "once" | "always" | "reject") => {
-    if (!activePermission) return;
-
-    await replyPermission.mutateAsync({
-      requestID: activePermission.id,
-      reply,
-      directory,
-    });
-
-    if (activeIndex >= permissions.length - 1) {
+    try {
+      await replyPermission.mutateAsync({
+        requestID: permission.id,
+        reply,
+        directory,
+      });
       onOpenChange(false);
-      resetState();
-    } else {
-      setActiveIndex((prev) => prev + 1);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to submit answer",
+      );
     }
   };
-
-  if (!activePermission) return null;
 
   const getActionIcon = (permission: string) => {
     switch (permission.toLowerCase()) {
@@ -86,7 +72,7 @@ export function PermissionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ShieldAlert className="size-5 text-red-500" />
-            Permission Request {activeIndex + 1} of {permissions.length}
+            Permission Request
           </DialogTitle>
           <DialogDescription>
             The AI assistant is requesting permission to perform an action.
@@ -97,14 +83,14 @@ export function PermissionDialog({
           <div className="space-y-4 p-1">
             <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
               <div className="flex items-start gap-3">
-                {getActionIcon(activePermission.permission)}
+                {getActionIcon(permission.permission)}
                 <div className="flex-1 space-y-2">
                   <div>
                     <div className="text-xs font-medium text-red-700 dark:text-red-300 uppercase mb-1">
                       Permission
                     </div>
                     <div className="font-medium text-sm">
-                      {activePermission.permission}
+                      {permission.permission}
                     </div>
                   </div>
 
@@ -113,7 +99,7 @@ export function PermissionDialog({
                       Patterns
                     </div>
                     <div className="space-y-1">
-                      {activePermission.patterns.map((pattern, idx) => (
+                      {permission.patterns.map((pattern, idx) => (
                         <code
                           key={idx}
                           className="block text-xs bg-red-100 dark:bg-red-900/40 px-2 py-1 rounded"
@@ -124,24 +110,24 @@ export function PermissionDialog({
                     </div>
                   </div>
 
-                  {activePermission.always && activePermission.always.length > 0 && (
+                  {permission.always && permission.always.length > 0 && (
                     <div>
                       <div className="text-xs font-medium text-red-700 dark:text-red-300 uppercase mb-1">
                         Always Allow
                       </div>
                       <div className="text-xs text-red-600 dark:text-red-400">
-                        {activePermission.always.join(", ")}
+                        {permission.always.join(", ")}
                       </div>
                     </div>
                   )}
 
-                  {activePermission.tool && (
+                  {permission.tool && (
                     <div>
                       <div className="text-xs font-medium text-red-700 dark:text-red-300 uppercase mb-1">
                         Tool
                       </div>
                       <div className="text-xs text-red-600 dark:text-red-400">
-                        Message ID: {activePermission.tool.messageID}
+                        Message ID: {permission.tool.messageID}
                       </div>
                     </div>
                   )}
