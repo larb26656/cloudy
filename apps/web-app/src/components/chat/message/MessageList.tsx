@@ -147,18 +147,18 @@ export const MessageList = memo(function MessageList({
           />
         ))}
 
-        {isStreaming && (
-          <div className="mt-2">
-            <ThinkingAnimation />
-          </div>
-        )}
-
         {sessionStatus?.type === "retry" && (
           <RetryMessage
             attempt={sessionStatus.attempt}
             message={sessionStatus.message}
             next={sessionStatus.next}
           />
+        )}
+
+        {isStreaming && (
+          <div className="mt-2">
+            <ThinkingAnimation />
+          </div>
         )}
       </InfiniteScrollContainer>
 
