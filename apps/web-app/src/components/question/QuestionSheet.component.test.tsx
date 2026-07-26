@@ -1,17 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
+import { http, HttpResponse } from "msw";
 import { renderWithProviders, userEvent } from "@/test/utils";
+import { server } from "@/test/server";
 import { QuestionSheet } from "./QuestionSheet";
 import type { QuestionV2Request } from "@opencode-ai/sdk/v2";
-import * as useQuestionsModule from "@/hooks/queries/useQuestions";
-
-vi.mock("@/hooks/queries/useQuestions", () => ({
-  useReplyQuestion: vi.fn(),
-  useRejectQuestion: vi.fn(),
-}));
-
-const mockUseReplyQuestion = vi.mocked(useQuestionsModule.useReplyQuestion);
-const mockUseRejectQuestion = vi.mocked(useQuestionsModule.useRejectQuestion);
 
 const DEMO_DIRECTORY = "/demo/project";
 
@@ -64,20 +57,28 @@ const renderQuestionSheet = (
 };
 
 describe("QuestionSheet", () => {
-  let mockReplyMutate: ReturnType<typeof vi.fn>;
-  let mockRejectMutate: ReturnType<typeof vi.fn>;
+  let lastReply: { url: URL; body: unknown } | undefined;
+  let lastReject: { url: URL; body: unknown } | undefined;
 
   beforeEach(() => {
-    mockReplyMutate = vi.fn().mockResolvedValue(undefined);
-    mockRejectMutate = vi.fn().mockResolvedValue(undefined);
-    mockUseReplyQuestion.mockReturnValue({
-      mutateAsync: mockReplyMutate,
-      isPending: false,
-    } as ReturnType<typeof useQuestionsModule.useReplyQuestion>);
-    mockUseRejectQuestion.mockReturnValue({
-      mutateAsync: mockRejectMutate,
-      isPending: false,
-    } as ReturnType<typeof useQuestionsModule.useRejectQuestion>);
+    lastReply = undefined;
+    lastReject = undefined;
+    server.use(
+      http.post(/\/question\/([^/]+)\/reply/, async ({ request }) => {
+        lastReply = {
+          url: new URL(request.url),
+          body: await request.json().catch(() => undefined),
+        };
+        return new HttpResponse(null, { status: 200 });
+      }),
+      http.post(/\/question\/([^/]+)\/reject/, async ({ request }) => {
+        lastReject = {
+          url: new URL(request.url),
+          body: await request.json().catch(() => undefined),
+        };
+        return new HttpResponse(null, { status: 200 });
+      }),
+    );
   });
 
   describe("Rendering", () => {
@@ -287,9 +288,11 @@ describe("QuestionSheet", () => {
       renderQuestionSheet(q ?? createMockQuestion());
       await setup();
       await userEvent.click(screen.getByRole("button", { name: /submit/i }));
-      expect(mockReplyMutate).toHaveBeenCalledWith(
-        expect.objectContaining({ answers: expectedAnswers }),
-      );
+      await waitFor(() => {
+        expect(lastReply?.body).toEqual(
+          expect.objectContaining({ answers: expectedAnswers }),
+        );
+      });
     });
 
     test("closes sheet on success", async () => {
@@ -299,7 +302,9 @@ describe("QuestionSheet", () => {
       await userEvent.click(screen.getByRole("button", { name: /next/i }));
       await userEvent.click(screen.getByRole("checkbox", { name: /ทำโปรเจกต์ส่วนตัว/i }));
       await userEvent.click(screen.getByRole("button", { name: /submit/i }));
-      expect(onOpenChange).toHaveBeenCalledWith(false);
+      await waitFor(() => {
+        expect(onOpenChange).toHaveBeenCalledWith(false);
+      });
     });
   });
 
@@ -319,9 +324,13 @@ describe("QuestionSheet", () => {
     test("calls rejectQuestion.mutateAsync", async () => {
       renderQuestionSheet(createMockQuestion());
       await userEvent.click(screen.getByRole("button", { name: /reject/i }));
-      expect(mockRejectMutate).toHaveBeenCalledWith({
-        requestID: "que_test123",
-        directory: DEMO_DIRECTORY,
+      await waitFor(() => {
+        expect(lastReject?.url.pathname).toMatch(
+          /\/question\/que_test123\/reject$/,
+        );
+        expect(lastReject?.url.searchParams.get("directory")).toBe(
+          DEMO_DIRECTORY,
+        );
       });
     });
 
@@ -329,7 +338,9 @@ describe("QuestionSheet", () => {
       const onOpenChange = vi.fn();
       renderQuestionSheet(createMockQuestion(), { onOpenChange });
       await userEvent.click(screen.getByRole("button", { name: /reject/i }));
-      expect(onOpenChange).toHaveBeenCalledWith(false);
+      await waitFor(() => {
+        expect(onOpenChange).toHaveBeenCalledWith(false);
+      });
     });
   });
 });
