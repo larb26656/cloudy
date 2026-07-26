@@ -21,6 +21,7 @@ import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Field } from "../ui/field";
+import { toast } from "@/components/ui/sonner";
 
 const OTHER_VALUE = "other";
 
@@ -127,11 +128,14 @@ export function QuestionSheet({
   };
 
   const handleReply = async () => {
+    const isValid = await form.trigger();
+    if (!isValid) return;
+
     const answerList: Array<QuestionAnswer> = form
       .getValues()
       .answers.map((answer) => {
         if (answer.type === "single") {
-          return [answer.otherText ?? answer.value];
+          return [answer.otherText || answer.value];
         }
 
         const values = answer.values.filter((value) => value !== "other");
@@ -139,20 +143,32 @@ export function QuestionSheet({
         return answer.otherText ? [...values, answer.otherText] : answer.values;
       });
 
-    await replyQuestion.mutateAsync({
-      requestID: question.id,
-      directory,
-      answers: answerList,
-    });
-    onOpenChange(false);
+    try {
+      await replyQuestion.mutateAsync({
+        requestID: question.id,
+        directory,
+        answers: answerList,
+      });
+      onOpenChange(false);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to submit answer",
+      );
+    }
   };
 
   const handleReject = async () => {
-    await rejectQuestion.mutateAsync({
-      requestID: question.id,
-      directory,
-    });
-    onOpenChange(false);
+    try {
+      await rejectQuestion.mutateAsync({
+        requestID: question.id,
+        directory,
+      });
+      onOpenChange(false);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Failed to reject question",
+      );
+    }
   };
 
   const handleBack = (): void => {
@@ -205,8 +221,6 @@ export function QuestionSheet({
                   disabled={isPending}
                 />
               )}
-
-
             </Field>
           </div>
         </div>

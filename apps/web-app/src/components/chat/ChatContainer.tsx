@@ -1,7 +1,5 @@
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./chat-input";
-import { QuestionSheet } from "./QuestionSheet";
-import { QuestionBanner } from "./QuestionBanner";
 import { PermissionBanner } from "@/components/permission/PermissionBanner";
 import { PermissionDialog } from "@/components/permission/PermissionDialog";
 import { useMemo, useState } from "react";
@@ -19,6 +17,8 @@ import { isCommand, parseCommand } from "@/lib/command";
 import { useSystemCommands, findSystemCommand } from "@/lib/commands";
 import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
 import type { ModelConfig } from "@/types";
+import { QuestionBanner } from "../question/QuestionBanner";
+import { QuestionSheet } from "../question/QuestionSheet";
 
 interface ChatContainerProps {
   directory: string;
@@ -50,7 +50,7 @@ export function ChatContainer({
     directory: directory,
   });
 
-  const sessionQuestions = questions.filter(
+  const sessionQuestion = questions.find(
     (question) => question.sessionID === sessionId,
   );
   const sessionPermissions = permissions.filter(
@@ -159,10 +159,10 @@ export function ChatContainer({
         directory={directory}
       />
 
-      {sessionQuestions.length > 0 && !questionOpen && (
+      {(sessionQuestion?.questions?.length ?? 0) > 0 && !questionOpen && (
         <QuestionBanner
           onOpenDialog={() => setQuestionOpen(true)}
-          count={sessionQuestions.length}
+          count={sessionQuestion?.questions.length ?? 0}
         />
       )}
 
@@ -173,12 +173,14 @@ export function ChatContainer({
         />
       )}
 
-      <QuestionSheet
-        open={questionOpen}
-        onOpenChange={setQuestionOpen}
-        questions={sessionQuestions}
-        directory={directory}
-      />
+      {sessionQuestion && (
+        <QuestionSheet
+          open={questionOpen}
+          onOpenChange={setQuestionOpen}
+          question={sessionQuestion}
+          directory={directory}
+        />
+      )}
 
       <PermissionDialog
         open={permissionOpen}

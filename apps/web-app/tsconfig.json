@@ -3,9 +3,9 @@
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
     },
-    "noUncheckedIndexedAccess": false
+    "noUncheckedIndexedAccess": false,
   },
   "include": ["src", "vite.config.ts"],
   "exclude": [
@@ -35,6 +35,6 @@
     "src/routes/_onboardLayout/**",
     "src/routes/ideas.$id.tsx",
     "src/routes/settings.tsx",
-    "src/routes/settings/**"
-  ]
+    "src/routes/settings/**",
+  ],
 }

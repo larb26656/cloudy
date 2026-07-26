@@ -1,12 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOcClient, getErrorMessage, questionKeys, type SdkError } from "@/lib/opencode";
+import {
+  getOcClient,
+  getErrorMessage,
+  questionKeys,
+  type SdkError,
+} from "@/lib/opencode";
 import type { QuestionV2Request, QuestionAnswer } from "@opencode-ai/sdk/v2";
 
-export function useQuestions({
-  directory,
-}: {
-  directory: string;
-}) {
+export function useQuestions({ directory }: { directory: string }) {
   return useQuery({
     queryKey: questionKeys.list(directory),
     queryFn: async (): Promise<QuestionV2Request[]> => {
@@ -21,11 +22,7 @@ export function useQuestions({
   });
 }
 
-export function useSessionQuestions({
-  sessionID,
-}: {
-  sessionID: string;
-}) {
+export function useSessionQuestions({ sessionID }: { sessionID: string }) {
   return useQuery({
     queryKey: questionKeys.list(sessionID),
     queryFn: async (): Promise<QuestionV2Request[]> => {
@@ -46,6 +43,7 @@ export function useReplyQuestion() {
     mutationFn: async ({
       requestID,
       answers,
+      directory,
     }: {
       requestID: string;
       directory: string;
@@ -55,13 +53,16 @@ export function useReplyQuestion() {
       const result = await oc.question.reply({
         requestID,
         answers,
+        directory,
       });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: questionKeys.list(variables.directory) });
+      queryClient.invalidateQueries({
+        queryKey: questionKeys.list(variables.directory),
+      });
     },
   });
 }
@@ -71,6 +72,7 @@ export function useRejectQuestion() {
   return useMutation({
     mutationFn: async ({
       requestID,
+      directory,
     }: {
       requestID: string;
       directory: string;
@@ -78,13 +80,16 @@ export function useRejectQuestion() {
       const oc = getOcClient();
       const result = await oc.question.reject({
         requestID,
+        directory,
       });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: questionKeys.list(variables.directory) });
+      queryClient.invalidateQueries({
+        queryKey: questionKeys.list(variables.directory),
+      });
     },
   });
 }
