@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Sprite } from "../../Sprite";
-import thinkingDarkUrl from "/sprite/thinking-dark.png?url";
-import thinkingUrl from "/sprite/thinking.png?url";
+
+const thinkingDarkUrl = "/sprite/thinking-dark.png";
+const thinkingUrl = "/sprite/thinking.png";
 
 export default function ThinkingAnimation() {
   const [isDarkMode] = useState(false);
