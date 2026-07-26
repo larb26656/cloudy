@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, act } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { renderWithProviders } from "@/test/utils";
 import { server } from "@/test/server";
@@ -17,9 +17,11 @@ vi.mock("@/lib/greeting-generator", () => ({
   generatePlaceholder: () => "Test placeholder",
 }));
 
+const mockExecute = vi.fn();
 vi.mock("@/lib/commands", () => ({
-  useSystemCommands: () => ({ commands: [], execute: vi.fn() }),
-  findSystemCommand: () => null,
+  useSystemCommands: () => ({ commands: [], execute: mockExecute }),
+  findSystemCommand: (name: string) =>
+    name === "test-command" ? { name: "test-command" } : null,
 }));
 
 vi.mock("@/components/chat/message/MessageList", () => ({
@@ -29,9 +31,11 @@ vi.mock("@/components/chat/message/MessageList", () => ({
 vi.mock("@/components/chat/chat-input", () => ({
   ChatInput: ({
     onSend,
+    onImmediateCommand,
     isLoading,
   }: {
     onSend: (content: { text: string; mentions: unknown[] }) => void;
+    onImmediateCommand?: (commandName: string) => void;
     isLoading: boolean;
   }) => (
     <div data-testid="chat-input">
@@ -41,6 +45,12 @@ vi.mock("@/components/chat/chat-input", () => ({
         disabled={isLoading}
       >
         {isLoading ? "loading" : "send"}
+      </button>
+      <button
+        data-testid="trigger-immediate-command"
+        onClick={() => onImmediateCommand?.("test-command")}
+      >
+        trigger command
       </button>
       <span data-testid="loading-state">{isLoading ? "true" : "false"}</span>
     </div>
@@ -58,7 +68,11 @@ vi.mock("@/components/permission/PermissionDialog", () => ({
 }));
 
 vi.mock("@/components/session/SessionPickerDialog", () => ({
-  SessionPickerDialog: () => <div data-testid="session-picker-dialog" />,
+  SessionPickerDialog: ({
+    open,
+  }: {
+    open?: boolean;
+  }) => <div data-testid="session-picker-dialog" data-open={open ?? false} />,
 }));
 
 vi.mock("@/components/question/QuestionBanner", () => ({
@@ -234,5 +248,67 @@ describe("ChatContainer - send message error handling", () => {
     await waitFor(() => {
       expect(screen.getByTestId("loading-state")).toHaveTextContent("true");
     });
+  });
+});
+
+describe("ChatContainer - command execution via onImmediateCommand", () => {
+  beforeEach(() => {
+    mockExecute.mockClear();
+    server.use(
+      http.get(/\/oc\/question(\?.*)?$/, () => HttpResponse.json([])),
+      http.get(/\/oc\/permission(\?.*)?$/, () => HttpResponse.json([])),
+    );
+  });
+
+  test("executes system command when onImmediateCommand is called", async () => {
+    renderChat("test-session");
+
+    const trigger = await screen.findByTestId("trigger-immediate-command");
+    trigger.click();
+
+    await waitFor(() => {
+      expect(mockExecute).toHaveBeenCalledWith(
+        "test-command",
+        "",
+        expect.objectContaining({
+          directory: DIRECTORY,
+          sessionId: "test-session",
+        }),
+      );
+    });
+  });
+
+  test("opens session picker when command calls openSessionPicker", async () => {
+    mockExecute.mockImplementation((command, args, opts) => {
+      opts?.openSessionPicker?.();
+    });
+
+    renderChat("test-session");
+
+    const trigger = await screen.findByTestId("trigger-immediate-command");
+    await act(async () => {
+      trigger.click();
+    });
+
+    await waitFor(() => {
+      const dialog = screen.getByTestId("session-picker-dialog");
+      expect(dialog).toHaveAttribute("data-open", "true");
+    });
+  });
+});
+
+describe("ChatContainer - sessionPickerDialog visibility", () => {
+  beforeEach(() => {
+    server.use(
+      http.get(/\/oc\/question(\?.*)?$/, () => HttpResponse.json([])),
+      http.get(/\/oc\/permission(\?.*)?$/, () => HttpResponse.json([])),
+    );
+  });
+
+  test("renders SessionPickerDialog with open=false by default", async () => {
+    renderChat("test-session");
+
+    const dialog = await screen.findByTestId("session-picker-dialog");
+    expect(dialog).toHaveAttribute("data-open", "false");
   });
 });

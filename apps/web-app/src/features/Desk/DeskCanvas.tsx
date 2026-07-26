@@ -25,12 +25,15 @@ import { NodeDrawerSidebar } from "./NodeDrawerSidebar";
 import { useFlowStore } from "@/stores/flowStore";
 import { type NodeTemplate } from "./nodes/template/nodeTemplates";
 import { nodeTypes } from "./nodes/template";
+import { DeskName } from "./DeskName";
 
 interface DeskCanvasProps {
   tabId: string;
+  name: string;
+  onNameChange: (name: string) => void;
 }
 
-function DeskCanvasInner({ tabId }: DeskCanvasProps) {
+function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
@@ -104,6 +107,9 @@ function DeskCanvasInner({ tabId }: DeskCanvasProps) {
       >
         <Background />
         <Controls />
+        <Panel position="top-left">
+          <DeskName name={name} onNameChange={onNameChange}></DeskName>
+        </Panel>
         <Panel position="top-right">
           <Button
             variant="outline"

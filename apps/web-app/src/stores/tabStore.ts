@@ -8,7 +8,9 @@ export type SessionData = {
   sessionName: string;
 };
 
-export type DeskData = Record<string, never>;
+export type DeskData = {
+  name: string;
+};
 
 export type WebviewData = {
   url: string;
@@ -32,7 +34,10 @@ interface TabStore {
   getTab: (id: string) => Tab;
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
-  updateTabData: <T extends Tab>(tabId: string, data: Partial<T["data"]>) => void;
+  updateTabData: <T extends Tab>(
+    tabId: string,
+    data: Partial<T["data"]>,
+  ) => void;
   clearAll: () => void;
 }
 

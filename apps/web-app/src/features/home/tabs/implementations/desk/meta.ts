@@ -9,5 +9,7 @@ export const deskTemplate: TabTemplate = {
   icon: PenTool,
   TabBarComponent: DeskTabItem,
   ContentComponent: DeskContent,
-  defaultData: {},
+  defaultData: {
+    name: "New desk",
+  },
 };
