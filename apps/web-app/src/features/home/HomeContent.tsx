@@ -1,12 +1,14 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { FolderOpen, Plus } from "lucide-react";
+import { FolderOpen, Plus, Settings } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
 import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
 import { WorkspaceItem } from "./components/WorkspaceItem";
 import { SessionList } from "./components/SessionList";
+import { Separator } from "@/components/ui/separator";
 
 export function HomeContent() {
   const workspaces = useWorkspaceStore((s) => s.workspaces);
@@ -64,6 +66,15 @@ export function HomeContent() {
             <EmptyState icon={Plus} title="No workspaces" />
           )}
         </div>
+
+        <Separator className="my-2" />
+
+        <Link to="/settings" className="shrink-0">
+          <Button variant="ghost" className="w-full justify-start gap-2 px-2">
+            <Settings className="size-4" />
+            <span className="text-sm">Settings</span>
+          </Button>
+        </Link>
       </section>
 
       <section className="flex h-full min-h-0 min-w-0 flex-1 flex-col gap-2 p-4 overflow-hidden">
