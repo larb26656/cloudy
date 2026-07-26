@@ -1,5 +1,5 @@
 import { useTabStore } from "@/stores/tabStore";
-import type { WebviewData } from "@/stores/tabStore";
+import type { WebviewData } from "./meta";
 
 function updateWebviewData(tabId: string, updater: (data: WebviewData) => WebviewData) {
   const store = useTabStore.getState();

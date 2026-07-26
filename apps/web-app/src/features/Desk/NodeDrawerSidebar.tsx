@@ -36,7 +36,7 @@ export function NodeDrawerSidebar({
         <div className="flex flex-col h-full p-2">
           <div className="flex items-center justify-between mb-2 px-1">
             <span className="text-xs font-medium text-muted-foreground">
-              Add Node
+              Nodes
             </span>
             <Button
               variant="ghost"

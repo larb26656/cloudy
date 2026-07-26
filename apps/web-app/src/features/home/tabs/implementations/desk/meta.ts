@@ -3,7 +3,11 @@ import type { TabTemplate } from "../../template";
 import { DeskContent } from "./DeskContent";
 import { DeskTabItem } from "./DeskTabItem";
 
-export const deskTemplate: TabTemplate = {
+export type DeskData = {
+  name: string;
+};
+
+export const deskTemplate: TabTemplate<DeskData> = {
   type: "desk",
   label: "New Desk",
   icon: PenTool,

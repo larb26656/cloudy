@@ -1,6 +1,6 @@
 import type { ComponentType } from "react";
 import type { LucideIcon } from "lucide-react";
-import type { Tab } from "@/stores/tabStore";
+import { templates } from "./registry";
 
 export interface TabBarProps {
   tab: Tab;
@@ -23,12 +23,30 @@ export type TabBarComponent = ComponentType<any>;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TabContentComponent = ComponentType<any>;
 
-export interface TabTemplate {
-  type: Tab["type"];
+export interface TabTemplate<T = unknown> {
+  type: string;
   label: string;
   icon: LucideIcon;
   TabBarComponent: TabBarComponent;
   ContentComponent: TabContentComponent;
   CreateDialog?: ComponentType<CreateDialogProps>;
-  defaultData?: unknown;
+  defaultData?: T;
 }
+
+type ExtractDataType<T> = T extends TabTemplate<infer Data> ? Data : never;
+
+export const tabTemplates = Object.values(templates);
+
+export type TabDataMap = {
+  [K in keyof typeof templates]: ExtractDataType<(typeof templates)[K]>;
+};
+
+export type Tab = {
+  [K in keyof typeof templates]: {
+    id: string;
+    type: K;
+    data: ExtractDataType<(typeof templates)[K]>;
+  };
+}[keyof typeof templates];
+
+export const tabTypeMap = templates;

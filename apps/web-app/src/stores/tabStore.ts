@@ -1,36 +1,12 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { generateId } from "@/lib/id";
-
-export type SessionData = {
-  sessionId: string | null;
-  workspaceId: string;
-  sessionName: string;
-};
-
-export type DeskData = {
-  name: string;
-};
-
-export type WebviewData = {
-  url: string;
-  history: string[];
-  historyIndex: number;
-};
-
-export type Tab =
-  | { id: string; type: "session"; data: SessionData }
-  | { id: string; type: "desk"; data: DeskData }
-  | { id: string; type: "webview"; data: WebviewData };
+import type { Tab, TabDataMap } from "@/features/home/tabs/template";
 
 interface TabStore {
   tabs: Tab[];
   activeTabId: string;
-  addTab: {
-    (type: "session", data: SessionData): string;
-    (type: "desk", data: DeskData): string;
-    (type: "webview", data: WebviewData): string;
-  };
+  addTab: <T extends Tab["type"]>(type: T, data: TabDataMap[T]) => string;
   getTab: (id: string) => Tab;
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
@@ -91,3 +67,5 @@ export const useTabStore = create<TabStore>()(
     { name: "tabs" },
   ),
 );
+
+export type { Tab, TabDataMap };

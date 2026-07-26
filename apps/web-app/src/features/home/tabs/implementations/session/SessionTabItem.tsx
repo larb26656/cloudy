@@ -1,6 +1,7 @@
 import { MessageCircle, X } from "lucide-react";
 import { useSession } from "@/hooks/queries/useSessions";
-import type { SessionData, Tab } from "@/stores/tabStore";
+import type { Tab } from "@/features/home/tabs/template";
+import type { SessionData } from "./meta";
 import { cn } from "@/lib/utils";
 
 interface SessionTabItemProps {

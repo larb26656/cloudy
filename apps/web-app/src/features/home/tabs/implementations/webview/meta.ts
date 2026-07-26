@@ -4,7 +4,13 @@ import { WebviewContent } from "./WebviewContent";
 import { WebviewTabItem } from "./WebviewTabItem";
 import { WebviewCreateDialog } from "./WebviewCreateDialog";
 
-export const webviewTemplate: TabTemplate = {
+export type WebviewData = {
+  url: string;
+  history: string[];
+  historyIndex: number;
+};
+
+export const webviewTemplate: TabTemplate<WebviewData> = {
   type: "webview",
   label: "New Webview",
   icon: Globe,

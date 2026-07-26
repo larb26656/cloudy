@@ -24,12 +24,12 @@ export function MainTabBar() {
 
   const handleMenuClick = (template: (typeof tabTemplates)[number]) => {
     if (template.CreateDialog) {
-      setActiveCreateDialog(template.type);
+      setActiveCreateDialog(template.type as Tab["type"]);
       return;
     }
     if (template.defaultData !== undefined) {
       (addTab as (type: Tab["type"], data: unknown) => string)(
-        template.type,
+        template.type as Tab["type"],
         template.defaultData,
       );
     }
@@ -104,7 +104,7 @@ export function MainTabBar() {
             key={template.type}
             open={activeCreateDialog === template.type}
             onOpenChange={(next) => {
-              setActiveCreateDialog(next ? template.type : null);
+              setActiveCreateDialog(next ? (template.type as Tab["type"]) : null);
             }}
           />
         );
