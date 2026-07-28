@@ -59,7 +59,6 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
 
   useEffect(() => {
     if (!rfInstance) return;
-    console.log(rfInstance);
 
     const flow = getFlow(tabId);
 
@@ -69,8 +68,6 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
       setEdges(flow.edges ?? []);
       setViewport({ x, y, zoom });
     }
-
-    console.log(flow);
   }, [rfInstance, getFlow, tabId, setViewport]);
 
   useEffect(() => {
