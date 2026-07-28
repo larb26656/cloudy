@@ -45,7 +45,7 @@ export const MessageList = memo(function MessageList({
   }, [streamingMessages, selectedSessionId]);
 
   const remoteMessages = useMemo(
-    () => data?.pages.reverse().flat() ?? [],
+    () => data?.pages.flat() ?? [],
     [data?.pages],
   );
 

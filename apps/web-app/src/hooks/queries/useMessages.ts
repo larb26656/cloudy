@@ -43,6 +43,10 @@ export function useMessages({ sessionId }: { sessionId: string }) {
         time: firstMsg.info.time.created,
       });
     },
+    select: (data) => ({
+      ...data,
+      pages: [...data.pages].reverse(),
+    }),
     enabled: !!sessionId,
   });
 }

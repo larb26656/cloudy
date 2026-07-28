@@ -8,102 +8,44 @@ import {
   sessionKeys,
 } from "@/lib/opencode";
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
-import type {
-  GlobalEvent,
-  MessageUpdated,
-  SessionStatus,
-} from "@opencode-ai/sdk/v2";
+import type { GlobalEvent, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import type { Message } from "@/types";
 
-type SessionUpdated = {
-  type: "session.updated";
-  properties: {
-    sessionID: string;
-  };
-};
-
-type SessionIdle = {
-  type: "session.idle";
-  properties: {
-    sessionID: string;
-  };
-};
-
-type SessionStatusEvent = {
-  type: "session.status";
-  properties: {
-    sessionID: string;
-    status: SessionStatus;
-  };
-};
-
-type MessagePartUpdated = {
-  type: "message.part.updated";
-  properties: {
-    sessionID: string;
-    partID: string;
-    part: unknown;
-    time: number;
-  };
-};
-
-type MessagePartDelta = {
-  type: "message.part.delta";
-  properties: {
-    sessionID: string;
-    messageID: string;
-    partID: string;
-    field: string;
-    delta: string;
-  };
-};
-
-type KnownEvent =
-  | SessionUpdated
-  | SessionIdle
-  | SessionStatusEvent
-  | MessageUpdated
-  | MessagePartUpdated
-  | MessagePartDelta;
-
-function isKnownEvent(event: GlobalEvent): event is GlobalEvent & KnownEvent {
-  const type = event.payload.type;
-  return (
-    type === "session.updated" ||
-    type === "session.idle" ||
-    type === "session.status" ||
-    type === "message.part.updated" ||
-    type === "message.part.delta" ||
-    type === "message.updated" ||
-    type === "question.asked" ||
-    type === "permission.asked"
-  );
-}
-
-function shouldBufferMessage(
-  queryClient: ReturnType<typeof useQueryClient>,
-  directory: string | undefined,
-  sessionId: string,
-): boolean {
-  if (!directory) return true;
-  const statuses = queryClient.getQueryData<Record<string, SessionStatus>>(
-    sessionKeys.statuses(directory),
-  );
-  const status = statuses?.[sessionId];
-  return !status || status.type === "busy" || status.type === "retry";
-}
+const KNOWN_EVENT_TYPES = new Set<string>([
+  "session.updated",
+  "session.idle",
+  "session.status",
+  "message.part.updated",
+  "message.part.delta",
+  "message.updated",
+  "question.asked",
+  "permission.asked",
+]);
 
 function handleEvent(
   event: GlobalEvent,
   queryClient: ReturnType<typeof useQueryClient>,
 ) {
-  if (!isKnownEvent(event)) return;
+  if (!KNOWN_EVENT_TYPES.has(event.payload.type)) return;
 
   switch (event.payload.type) {
     case "session.updated": {
       const props = event.payload.properties;
-      console.debug("[useStreamingMessages] session.updated:", props);
-      queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
+      console.debug("[useStreamingMessages] session.updated:", props.sessionID);
+      const session = props.info;
+
+      queryClient.setQueryData<Session | null>(
+        sessionKeys.detail(props.sessionID),
+        session,
+      );
+
+      if (event.directory) {
+        queryClient.setQueryData<Session[]>(
+          sessionKeys.infinite(event.directory),
+          (old) =>
+            (old ?? []).map((s) => (s.id === props.sessionID ? session : s)),
+        );
+      }
       break;
     }
 
@@ -116,12 +58,18 @@ function handleEvent(
         .getState()
         .takeSessionStreaming(sessionId);
 
-      if (flushed.length === 0) return;
+      if (flushed.length > 0) {
+        queryClient.setQueryData<InfiniteData<Message[], string | undefined>>(
+          messageKeys.infinite(sessionId),
+          (old) => appendStreamingMessages(old, flushed),
+        );
+      }
 
-      queryClient.setQueryData<InfiniteData<Message[], string | undefined>>(
-        messageKeys.infinite(sessionId),
-        (old) => appendStreamingMessages(old, flushed),
-      );
+      if (event.directory) {
+        queryClient.invalidateQueries({
+          queryKey: sessionKeys.infinite(event.directory),
+        });
+      }
       break;
     }
 
@@ -146,15 +94,6 @@ function handleEvent(
         return;
       }
 
-      if (
-        !shouldBufferMessage(queryClient, event.directory, props.info.sessionID)
-      ) {
-        queryClient.invalidateQueries({
-          queryKey: messageKeys.infinite(props.info.sessionID),
-        });
-        return;
-      }
-
       useStreamingMessagesStore
         .getState()
         .onMessageInfoUpdated(props.info.sessionID, {
@@ -167,14 +106,6 @@ function handleEvent(
     case "message.part.updated": {
       const props = event.payload.properties;
       console.debug("[POC] message.part.updated:", props);
-      if (
-        !shouldBufferMessage(queryClient, event.directory, props.part.sessionID)
-      ) {
-        queryClient.invalidateQueries({
-          queryKey: messageKeys.infinite(props.part.sessionID),
-        });
-        return;
-      }
       useStreamingMessagesStore
         .getState()
         .onMessagePartUpdated(props.part.sessionID, props.part);
@@ -184,9 +115,6 @@ function handleEvent(
     case "message.part.delta": {
       const props = event.payload.properties;
       console.debug("[POC] message.part.delta:", props);
-      if (!shouldBufferMessage(queryClient, event.directory, props.sessionID)) {
-        return;
-      }
       useStreamingMessagesStore
         .getState()
         .onMessagePartDeltaUpdated(

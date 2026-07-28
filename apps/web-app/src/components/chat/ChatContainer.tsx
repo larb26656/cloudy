@@ -1,5 +1,6 @@
 import { MessageList } from "./message/MessageList";
 import { ChatInput } from "./chat-input";
+import { SessionStatusBar } from "./SessionStatusBar";
 import { PermissionBanner } from "@/components/permission/PermissionBanner";
 import { PermissionDialog } from "@/components/permission/PermissionDialog";
 import { useMemo, useState } from "react";
@@ -177,6 +178,8 @@ export function ChatContainer({
         placeholder={chatplaceholder}
         directory={directory}
       />
+
+      <SessionStatusBar sessionId={sessionId} directory={directory} />
 
       {currentQuestion && (
         <QuestionSheet
