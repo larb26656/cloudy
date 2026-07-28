@@ -57,7 +57,8 @@ function TooltipDetails({ v }: { v: TokenValues }) {
         <div className="flex justify-between gap-4">
           <span className="text-muted-foreground">Reasoning</span>
           <span>
-            {formatNumber(v.reasoning)} ({formatPercentage(v.reasoning, v.total)})
+            {formatNumber(v.reasoning)} (
+            {formatPercentage(v.reasoning, v.total)})
           </span>
         </div>
       )}
@@ -107,26 +108,14 @@ export function SessionStatusBar({
   };
 
   return (
-    <div className="px-4 pb-1">
+    <div className="@container px-4 pb-1">
       <div className="max-w-4xl mx-auto text-xs text-muted-foreground">
-        {/* Desktop (sm+): cost left + tokens right */}
-        <div className="hidden sm:flex items-center gap-2">
-          {cost > 0 && (
-            <Tooltip>
-              <TooltipTrigger className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer">
-                <Coins className="size-3" />
-                <span>${cost.toFixed(6)}</span>
-              </TooltipTrigger>
-              <TooltipContent className="w-auto">
-                <div className="space-y-1 text-xs">
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Cost</span>
-                    <span>${cost.toFixed(6)}</span>
-                  </div>
-                </div>
-              </TooltipContent>
-            </Tooltip>
-          )}
+        <div className="hidden @[40rem]:flex items-center gap-2">
+          {/* Wide (>=40rem container): cost left + tokens right */}
+          <div className="hidden @[40rem]:flex items-center gap-1">
+            <Coins className="size-3" />
+            <span>${cost.toFixed(6)}</span>
+          </div>
 
           {total > 0 && (
             <div className="flex-1 flex justify-end items-center gap-1.5">
@@ -150,7 +139,8 @@ export function SessionStatusBar({
                     <TooltipTrigger className="inline-flex items-center gap-0.5 hover:text-foreground transition-colors cursor-pointer">
                       <span>Out</span>
                       <span className="tabular-nums">
-                        {formatCompact(output)} ({formatPercentage(output, total)})
+                        {formatCompact(output)} (
+                        {formatPercentage(output, total)})
                       </span>
                     </TooltipTrigger>
                     <TooltipContent className="w-auto">
@@ -166,7 +156,8 @@ export function SessionStatusBar({
                     <TooltipTrigger className="inline-flex items-center gap-0.5 hover:text-foreground transition-colors cursor-pointer">
                       <span>Reason</span>
                       <span className="tabular-nums">
-                        {formatCompact(reasoning)} ({formatPercentage(reasoning, total)})
+                        {formatCompact(reasoning)} (
+                        {formatPercentage(reasoning, total)})
                       </span>
                     </TooltipTrigger>
                     <TooltipContent className="w-auto">
@@ -195,9 +186,9 @@ export function SessionStatusBar({
           )}
         </div>
 
-        {/* Mobile (< sm): total tokens only, full breakdown in tooltip */}
-        <div className="flex sm:hidden justify-center">
-          <div>
+        {/* Narrow (<40rem container): total tokens only, full breakdown in tooltip */}
+        <div className="flex @[40rem]:hidden justify-center">
+          <div className="flex items-center gap-1">
             <Coins className="size-3" />
             <span>${cost.toFixed(6)}</span>
           </div>
