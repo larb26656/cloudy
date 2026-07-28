@@ -22,7 +22,7 @@ const KNOWN_EVENT_TYPES = new Set<string>([
   "permission.asked",
 ]);
 
-function handleEvent(
+export function handleEvent(
   event: GlobalEvent,
   queryClient: ReturnType<typeof useQueryClient>,
 ) {
