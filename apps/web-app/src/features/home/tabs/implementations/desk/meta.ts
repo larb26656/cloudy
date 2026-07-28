@@ -1,5 +1,6 @@
 import { PenTool } from "lucide-react";
 import type { TabTemplate } from "../../template";
+import { useFlowStore } from "@/stores/flowStore";
 import { DeskContent } from "./DeskContent";
 import { DeskTabItem } from "./DeskTabItem";
 
@@ -15,5 +16,8 @@ export const deskTemplate: TabTemplate<DeskData> = {
   ContentComponent: DeskContent,
   defaultData: {
     name: "New desk",
+  },
+  onClose: (tabId) => {
+    useFlowStore.getState().deleteFlow(tabId);
   },
 };

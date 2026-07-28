@@ -35,7 +35,7 @@ export default function HomePage() {
         );
       } else {
         const Content = template.ContentComponent;
-        content = <Content tab={currentTab} />;
+        content = <Content key={currentTab.id} tab={currentTab} />;
       }
     }
   }

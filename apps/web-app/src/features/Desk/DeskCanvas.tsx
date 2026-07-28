@@ -18,7 +18,7 @@ import {
   PanOnScrollMode,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { PlusIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NodeDrawerSidebar } from "./NodeDrawerSidebar";
@@ -41,6 +41,9 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
   const { screenToFlowPosition, setViewport } = useReactFlow();
   const { saveFlow, getFlow } = useFlowStore();
 
+  const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
+  rfInstanceRef.current = rfInstance;
+
   const onNodesChange: OnNodesChange<Node> = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [],
@@ -56,13 +59,18 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
 
   useEffect(() => {
     if (!rfInstance) return;
+    console.log(rfInstance);
+
     const flow = getFlow(tabId);
+
     if (flow) {
       const { x = 0, y = 0, zoom = 1 } = flow.viewport ?? {};
       setNodes(flow.nodes ?? []);
       setEdges(flow.edges ?? []);
       setViewport({ x, y, zoom });
     }
+
+    console.log(flow);
   }, [rfInstance, getFlow, tabId, setViewport]);
 
   useEffect(() => {
@@ -72,6 +80,14 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
     }, 500);
     return () => clearTimeout(timeout);
   }, [nodes, edges, rfInstance, saveFlow, tabId]);
+
+  useEffect(() => {
+    return () => {
+      if (rfInstanceRef.current) {
+        saveFlow(tabId, rfInstanceRef.current.toObject());
+      }
+    };
+  }, [tabId, saveFlow]);
 
   const handleAddNode = useCallback(
     (template: NodeTemplate, data?: Record<string, unknown>) => {

@@ -31,6 +31,7 @@ export interface TabTemplate<T = unknown> {
   ContentComponent: TabContentComponent;
   CreateDialog?: ComponentType<CreateDialogProps>;
   defaultData?: T;
+  onClose?: (tabId: string) => void;
 }
 
 type ExtractDataType<T> = T extends TabTemplate<infer Data> ? Data : never;

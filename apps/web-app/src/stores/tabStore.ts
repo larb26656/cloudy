@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { generateId } from "@/lib/id";
-import type { Tab, TabDataMap } from "@/features/home/tabs/template";
+import { tabTypeMap, type Tab, type TabDataMap } from "@/features/home/tabs/template";
 
 interface TabStore {
   tabs: Tab[];
@@ -39,6 +39,7 @@ export const useTabStore = create<TabStore>()(
       },
 
       removeTab: (id) => {
+        const tab = get().tabs.find((t) => t.id === id);
         set((state) => {
           const tabs = state.tabs.filter((t) => t.id !== id);
           const activeTabId =
@@ -49,6 +50,9 @@ export const useTabStore = create<TabStore>()(
               : state.activeTabId;
           return { tabs, activeTabId };
         });
+        if (tab) {
+          tabTypeMap[tab.type]?.onClose?.(id);
+        }
       },
 
       setActiveTab: (id) => set({ activeTabId: id }),

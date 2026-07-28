@@ -95,7 +95,7 @@ export function CreateChatDialog({ open, onOpenChange, onCreated }: CreateChatDi
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>
             {selectedWorkspace ? `Sessions in ${selectedWorkspace.name}` : "Select Workspace"}
@@ -107,7 +107,7 @@ export function CreateChatDialog({ open, onOpenChange, onCreated }: CreateChatDi
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
+        <div className="py-4 flex-1 min-h-0 flex flex-col">
           {!selectedWorkspace ? (
             <WorkspaceStep
               workspaces={workspaces}
@@ -154,7 +154,7 @@ function WorkspaceStep({
   }
 
   return (
-    <div className="flex flex-col gap-1 max-h-[70vh] overflow-y-auto">
+    <div className="flex flex-col gap-1 flex-1 min-h-0 overflow-y-auto">
       {workspaces.map((workspace) => (
         <WorkspaceItem
           key={workspace.id}
@@ -182,13 +182,13 @@ function SessionStep({
   const rootSessions = sessions.filter((s) => !s.parentID);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 flex-1 min-h-0">
       <Button
         variant="outline"
-        className="justify-start gap-2"
+        className="justify-start gap-2 shrink-0"
         onClick={onNewChat}
       >
-        <span data-icon="inline-start">+</span>
+        <span data-icon="inline_start">+</span>
         New Chat
       </Button>
 
@@ -197,7 +197,7 @@ function SessionStep({
       ) : rootSessions.length === 0 ? (
         <p className="text-sm text-muted-foreground">No sessions in this workspace</p>
       ) : (
-        <div className="flex flex-col gap-1 max-h-[70vh] overflow-y-auto">
+        <div className="flex flex-col gap-1 flex-1 min-h-0 overflow-y-auto">
           {rootSessions.map((session) => (
             <SessionItem
               key={session.id}
@@ -208,7 +208,7 @@ function SessionStep({
         </div>
       )}
 
-      <Button variant="ghost" size="sm" onClick={onBack} className="self-start -ml-2">
+      <Button variant="ghost" size="sm" onClick={onBack} className="self-start -ml-2 shrink-0">
         Back to workspaces
       </Button>
     </div>
