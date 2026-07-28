@@ -1,9 +1,18 @@
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useGlobalEvent } from "@/hooks/useGlobalEvent";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import { messageKeys, permissionKeys, questionKeys, sessionKeys } from "@/lib/opencode";
+import {
+  messageKeys,
+  permissionKeys,
+  questionKeys,
+  sessionKeys,
+} from "@/lib/opencode";
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
-import type { GlobalEvent, MessageUpdated, SessionStatus } from "@opencode-ai/sdk/v2";
+import type {
+  GlobalEvent,
+  MessageUpdated,
+  SessionStatus,
+} from "@opencode-ai/sdk/v2";
 import type { Message } from "@/types";
 
 type SessionUpdated = {
@@ -93,14 +102,14 @@ function handleEvent(
   switch (event.payload.type) {
     case "session.updated": {
       const props = event.payload.properties;
-      console.log("[useStreamingMessages] session.updated:", props);
+      console.debug("[useStreamingMessages] session.updated:", props);
       queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
       break;
     }
 
     case "session.idle": {
       const props = event.payload.properties;
-      console.log("[useStreamingMessages] session.idle:", props.sessionID);
+      console.debug("[useStreamingMessages] session.idle:", props.sessionID);
       const sessionId = props.sessionID;
 
       const flushed = useStreamingMessagesStore
@@ -127,7 +136,7 @@ function handleEvent(
 
     case "message.updated": {
       const props = event.payload.properties;
-      console.log("[POC] message.updated:", props);
+      console.debug("[POC] message.updated:", props);
 
       const summary = props.info.summary;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -157,8 +166,10 @@ function handleEvent(
 
     case "message.part.updated": {
       const props = event.payload.properties;
-      console.log("[POC] message.part.updated:", props);
-      if (!shouldBufferMessage(queryClient, event.directory, props.part.sessionID)) {
+      console.debug("[POC] message.part.updated:", props);
+      if (
+        !shouldBufferMessage(queryClient, event.directory, props.part.sessionID)
+      ) {
         queryClient.invalidateQueries({
           queryKey: messageKeys.infinite(props.part.sessionID),
         });
@@ -172,27 +183,36 @@ function handleEvent(
 
     case "message.part.delta": {
       const props = event.payload.properties;
-      console.log("[POC] message.part.delta:", props);
+      console.debug("[POC] message.part.delta:", props);
       if (!shouldBufferMessage(queryClient, event.directory, props.sessionID)) {
         return;
       }
       useStreamingMessagesStore
         .getState()
-        .onMessagePartDeltaUpdated(props.sessionID, props.messageID, props.partID, props.delta)
+        .onMessagePartDeltaUpdated(
+          props.sessionID,
+          props.messageID,
+          props.partID,
+          props.delta,
+        );
       break;
     }
 
     case "question.asked": {
       const props = event.payload.properties;
-      console.log("[useStreamingMessages] session.question.asked:", props);
-      queryClient.invalidateQueries({ queryKey: questionKeys.list(event.directory) });
+      console.debug("[useStreamingMessages] session.question.asked:", props);
+      queryClient.invalidateQueries({
+        queryKey: questionKeys.list(event.directory),
+      });
       break;
     }
 
     case "permission.asked": {
       const props = event.payload.properties;
-      console.log("[useStreamingMessages] permission.asked:", props);
-      queryClient.invalidateQueries({ queryKey: permissionKeys.request.root() });
+      console.debug("[useStreamingMessages] permission.asked:", props);
+      queryClient.invalidateQueries({
+        queryKey: permissionKeys.request.root(),
+      });
       break;
     }
   }
