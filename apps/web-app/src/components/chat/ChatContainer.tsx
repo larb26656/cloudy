@@ -9,12 +9,8 @@ import {
   useAbortGeneration,
 } from "@/hooks/queries/useMessages";
 import { useExecuteCommand } from "@/hooks/queries/useCommand";
-import {
-  useCreateSession,
-  useSessionChildren,
-} from "@/hooks/queries/useSessions";
-import { useQuestions } from "@/hooks/queries/useQuestions";
-import { usePermissions } from "@/hooks/queries/usePermissions";
+import { useCreateSession } from "@/hooks/queries/useSessions";
+import { useSessionData } from "@/hooks/session/useSessionHumanApprove";
 import { type ChatInputContent } from "@/lib/opencode";
 import { isCommand, parseCommand } from "@/lib/command";
 import { useSystemCommands, findSystemCommand } from "@/lib/commands";
@@ -46,38 +42,12 @@ export function ChatContainer({
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
 
-  const { data: questions = [] } = useQuestions({
-    directory: directory,
-  });
-
-  const { data: permissions = [] } = usePermissions({
-    directory: directory,
-  });
-
-  const { data: childSessions = [] } = useSessionChildren({
-    sessionId: sessionId,
-  });
-
-  const sessionRelations = useMemo(() => {
-    if (!sessionId) return new Set<string>();
-    return new Set<string>([sessionId, ...childSessions.map((cs) => cs.id)]);
-  }, [sessionId, childSessions]);
-
-  const sessionQuestions = questions.filter((q) =>
-    sessionRelations.has(q.sessionID),
-  );
-
-  const currentQuestion = sessionQuestions.length
-    ? sessionQuestions[0]
-    : undefined;
-
-  const sessionPermissions = permissions.filter((q) =>
-    sessionRelations.has(q.sessionID),
-  );
-
-  const currentPermission = sessionPermissions.length
-    ? sessionPermissions[0]
-    : undefined;
+  const {
+    sessionQuestions,
+    currentQuestion,
+    sessionPermissions,
+    currentPermission,
+  } = useSessionData({ directory, sessionId });
 
   const ensureSessionId = async (): Promise<string> => {
     if (sessionId) {
@@ -182,7 +152,10 @@ export function ChatContainer({
         {!!sessionQuestions.length && !questionOpen && (
           <QuestionBanner
             onOpenDialog={() => setQuestionOpen(true)}
-            count={questions.length}
+            count={sessionQuestions.reduce(
+              (sum, q) => sum + q.questions.length,
+              0,
+            )}
           />
         )}
 
