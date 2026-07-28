@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { arrayMove } from "@dnd-kit/sortable";
 import { generateId } from "@/lib/id";
 import { tabTypeMap, type Tab, type TabDataMap } from "@/features/home/tabs/template";
 
@@ -10,6 +11,7 @@ interface TabStore {
   getTab: (id: string) => Tab;
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
+  reorderTabs: (activeId: string, overId: string) => void;
   updateTabData: <T extends Tab>(
     tabId: string,
     data: Partial<T["data"]>,
@@ -56,6 +58,15 @@ export const useTabStore = create<TabStore>()(
       },
 
       setActiveTab: (id) => set({ activeTabId: id }),
+
+      reorderTabs: (activeId, overId) => {
+        set((state) => {
+          const oldIndex = state.tabs.findIndex((t) => t.id === activeId);
+          const newIndex = state.tabs.findIndex((t) => t.id === overId);
+          if (oldIndex === -1 || newIndex === -1) return {};
+          return { tabs: arrayMove(state.tabs, oldIndex, newIndex) };
+        });
+      },
 
       updateTabData: (tabId, data) => {
         set((state) => ({
