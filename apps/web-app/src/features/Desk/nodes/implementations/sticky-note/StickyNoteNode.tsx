@@ -1,7 +1,8 @@
 import { NodeResizer, useReactFlow } from "@xyflow/react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { X, ChevronDown } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { debounce } from "lodash-es";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 
@@ -33,9 +34,34 @@ export function StickyNoteNode({
   const [text, setText] = useState(data.label ?? "");
   const [pickerOpen, setPickerOpen] = useState(false);
 
+  useEffect(() => {
+    setText(data.label ?? "");
+  }, [data.label]);
+
+  const debouncedUpdateLabel = useMemo(
+    () => debounce((value: string) => updateNodeData(id, { label: value }), 500),
+    [id, updateNodeData],
+  );
+
+  useEffect(() => {
+    return () => debouncedUpdateLabel.cancel();
+  }, [debouncedUpdateLabel]);
+
   const handleClose = useCallback(() => {
     deleteElements({ nodes: [{ id }] });
   }, [deleteElements, id]);
+
+  const handleTextChange = useCallback(
+    (value: string) => {
+      setText(value);
+      debouncedUpdateLabel(value);
+    },
+    [debouncedUpdateLabel],
+  );
+
+  const handleBlur = useCallback(() => {
+    debouncedUpdateLabel.flush();
+  }, [debouncedUpdateLabel]);
 
   const color = data.color ?? "yellow";
   const bgClass = colorClasses[color];
@@ -92,7 +118,8 @@ export function StickyNoteNode({
         </div>
         <textarea
           value={text}
-          onChange={(e) => setText(e.target.value)}
+          onChange={(e) => handleTextChange(e.target.value)}
+          onBlur={handleBlur}
           placeholder="Write something..."
           className={cn(
             "flex-1 p-2 bg-transparent resize-none outline-none",

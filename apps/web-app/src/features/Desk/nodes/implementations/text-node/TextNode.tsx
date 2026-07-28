@@ -1,6 +1,7 @@
 import { useReactFlow } from "@xyflow/react";
 import type { Node, NodeProps } from "@xyflow/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { debounce } from "lodash-es";
 import { cn } from "@/lib/utils";
 import { TextIcon } from "lucide-react";
 
@@ -33,6 +34,19 @@ export function TextNode({ data, id, selected }: NodeProps<TextNodeProps>) {
   const { textClass } = sizeMap[size];
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+  useEffect(() => {
+    setText(data.text ?? "");
+  }, [data.text]);
+
+  const debouncedUpdateText = useMemo(
+    () => debounce((value: string) => updateNodeData(id, { text: value }), 500),
+    [id, updateNodeData],
+  );
+
+  useEffect(() => {
+    return () => debouncedUpdateText.cancel();
+  }, [debouncedUpdateText]);
+
   const handleSizeChange = useCallback(
     (newSize: TextSize) => {
       updateNodeData(id, { size: newSize });
@@ -52,10 +66,15 @@ export function TextNode({ data, id, selected }: NodeProps<TextNodeProps>) {
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       setText(e.target.value);
+      debouncedUpdateText(e.target.value);
       autoresize();
     },
-    [autoresize],
+    [autoresize, debouncedUpdateText],
   );
+
+  const handleBlur = useCallback(() => {
+    debouncedUpdateText.flush();
+  }, [debouncedUpdateText]);
 
   useEffect(() => {
     autoresize();
@@ -90,6 +109,7 @@ export function TextNode({ data, id, selected }: NodeProps<TextNodeProps>) {
         ref={textareaRef}
         value={text}
         onChange={handleChange}
+        onBlur={handleBlur}
         onInput={autoresize}
         placeholder="Text..."
         rows={1}
