@@ -2,7 +2,7 @@ import type { RetryPart as RetryPartType } from "@opencode-ai/sdk/v2";
 import { RotateCcw, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import CollapsiblePart from "./CollapsiblePart";
-import { formatTime } from "@/lib/date";
+import { formatTime } from "@/lib/format";
 
 interface RetryPartProps {
   part: RetryPartType;

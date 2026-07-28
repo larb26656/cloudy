@@ -1,5 +1,5 @@
 import type { UserMessage, Part } from "@opencode-ai/sdk/v2";
-import { formatTime } from "@/lib/date";
+import { formatTime } from "@/lib/format";
 import { useCopyMessage } from "@/hooks/useCopyMessage";
 import { getTextFromParts } from "@/lib/message/text";
 import { CopyButton } from "@/components/ui/CopyButton";

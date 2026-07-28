@@ -11,7 +11,7 @@ import {
   CommandSeparator,
 } from "@/components/ui/command";
 import { useSessions } from "@/hooks/queries/useSessions";
-import { formatRelativeFromTimestamp } from "@/lib/date";
+import { formatRelativeFromTimestamp } from "@/lib/format";
 import { Check } from "lucide-react";
 
 interface SessionPickerDialogProps {
