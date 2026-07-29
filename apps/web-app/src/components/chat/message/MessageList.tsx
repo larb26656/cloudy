@@ -83,13 +83,11 @@ export const MessageList = memo(function MessageList({
   );
 
   const handleStreamingScroll = useCallback(() => {
-    if (shouldScrollRef.current) {
-      if (!hasInitiallyScrolledRef.current) {
-        hasInitiallyScrolledRef.current = true;
-        scrollToBottom("auto");
-      } else {
-        scrollToBottom("smooth");
-      }
+    if (!hasInitiallyScrolledRef.current) {
+      hasInitiallyScrolledRef.current = true;
+      scrollToBottom("auto");
+    } else {
+      scrollToBottom("smooth");
     }
   }, [scrollToBottom]);
 
