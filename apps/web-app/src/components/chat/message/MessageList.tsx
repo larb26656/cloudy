@@ -63,31 +63,20 @@ export const MessageList = memo(function MessageList({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
-  const hasInitiallyScrolledRef = useRef(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  useEffect(() => {
-    hasInitiallyScrolledRef.current = false;
-  }, [selectedSessionId]);
-
-  const scrollToBottom = useCallback(
-    (behavior: ScrollBehavior = "smooth") => {
-      if (scrollRef.current) {
-        scrollRef.current.scrollTo({
-          top: scrollRef.current.scrollHeight,
-          behavior,
-        });
-      }
-    },
-    [],
-  );
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior,
+      });
+    }
+  }, []);
 
   const handleStreamingScroll = useCallback(() => {
-    if (!hasInitiallyScrolledRef.current) {
-      hasInitiallyScrolledRef.current = true;
-      scrollToBottom("auto");
-    } else {
-      scrollToBottom("smooth");
+    if (shouldScrollRef.current) {
+      scrollToBottom("instant");
     }
   }, [scrollToBottom]);
 
@@ -185,7 +174,7 @@ export const MessageList = memo(function MessageList({
       {showScrollButton && (
         <div className="absolute bottom-4 mx-auto w-full">
           <button
-            onClick={scrollToBottom}
+            onClick={() => scrollToBottom("smooth")}
             className="mx-auto w-10 h-10 rounded-full bg-primary dark:bg-muted text-primary-foreground dark:text-muted-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
             aria-label="Scroll to bottom"
           >
