@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, memo } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MessageBubble } from "./MessageBubble";
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
@@ -47,10 +47,7 @@ export const MessageList = memo(function MessageList({
 
   const streamingIdSet = useMemo(() => new Set(streamingIds), [streamingIds]);
 
-  const remoteMessages = useMemo(
-    () => data?.pages.flat() ?? [],
-    [data?.pages],
-  );
+  const remoteMessages = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);
 
   const displayMessages = useMemo(
     () => remoteMessages.filter((m) => !streamingIdSet.has(m.info.id)),
@@ -65,40 +62,18 @@ export const MessageList = memo(function MessageList({
     sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
 
   const scrollRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
+  const handleStreamingScroll = useCallback(() => {
+    if (shouldScrollRef.current) {
+      scrollToBottom();
+    }
+  }, []);
+
   useEffect(() => {
-    const content = contentRef.current;
-    const scroller = scrollRef.current;
-    if (!content || !scroller) return;
-
-    let raf = 0;
-
-    const doScroll = () => {
-      raf = 0;
-      if (!shouldScrollRef.current) return;
-      scroller.scrollTo({
-        top: scroller.scrollHeight,
-        behavior: "smooth",
-      });
-    };
-
-    const scheduleScroll = () => {
-      if (raf) return;
-      raf = requestAnimationFrame(doScroll);
-    };
-
-    scheduleScroll();
-
-    const ro = new ResizeObserver(scheduleScroll);
-    ro.observe(content);
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-      ro.disconnect();
-    };
-  }, [displayMessages, streamingIds]);
+    handleStreamingScroll();
+  }, [displayMessages, handleStreamingScroll, streamingIds]);
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -163,38 +138,37 @@ export const MessageList = memo(function MessageList({
         onScroll={handleScroll}
         autoLoad
       >
-        <div ref={contentRef}>
-          {displayMessages.map((message: Message) => (
-            <MessageBubble
-              key={message.info.id}
-              message={message}
-              isStreaming={false}
+        {displayMessages.map((message: Message) => (
+          <MessageBubble
+            key={message.info.id}
+            message={message}
+            isStreaming={false}
+          />
+        ))}
+
+        {selectedSessionId &&
+          streamingIds.map((id) => (
+            <StreamingMessageBubble
+              key={id}
+              sessionId={selectedSessionId}
+              messageId={id}
+              onContentChange={handleStreamingScroll}
             />
           ))}
 
-          {selectedSessionId &&
-            streamingIds.map((id) => (
-              <StreamingMessageBubble
-                key={id}
-                sessionId={selectedSessionId}
-                messageId={id}
-              />
-            ))}
+        {sessionStatus?.type === "retry" && (
+          <RetryMessage
+            attempt={sessionStatus.attempt}
+            message={sessionStatus.message}
+            next={sessionStatus.next}
+          />
+        )}
 
-          {sessionStatus?.type === "retry" && (
-            <RetryMessage
-              attempt={sessionStatus.attempt}
-              message={sessionStatus.message}
-              next={sessionStatus.next}
-            />
-          )}
-
-          {isStreaming && (
-            <div className="mt-2">
-              <ThinkingAnimation />
-            </div>
-          )}
-        </div>
+        {isStreaming && (
+          <div className="mt-2">
+            <ThinkingAnimation />
+          </div>
+        )}
       </InfiniteScrollContainer>
 
       {showScrollButton && (
