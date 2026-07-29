@@ -1,40 +1,32 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import type { Node, NodeProps } from "@xyflow/react";
-import { CreateChatDialog } from "@/features/chat/components/CreateChatDialog";
-import type { ConfigDialogProps } from "../../template/nodeTemplates";
 import { useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
 import { useSession } from "@/hooks/queries";
 import { WindowFrame } from "../WindowFrame";
+import { ExternalLink } from "lucide-react";
+import { useTabStore } from "@/stores/tabStore";
+import { useWorkspaceStore } from "@/stores/workspaceStore";
 
 type ChatNodeProps = Node<
   {
-    directory: string;
+    workspaceId: string;
     sessionId: string | null;
-    label?: string;
+    sessionName?: string;
   },
   "chat"
 >;
 
-export function ChatConfigDialog({
-  open,
-  onOpenChange,
-  onSubmit,
-}: ConfigDialogProps) {
-  return (
-    <CreateChatDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      onCreated={(data) => onSubmit(data)}
-    />
-  );
-}
-
 export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const { updateNodeData } = useReactFlow();
+  const addTab = useTabStore((s) => s.addTab);
+  const workspace = useWorkspaceStore((s) =>
+    s.getWorkspace(data.workspaceId),
+  );
 
   const { data: session } = useSession({ sessionId: data.sessionId });
   const title = session?.title ?? "Chat";
+  const directory = workspace?.directory;
 
   const handleSessionChange = useCallback(
     (sessionId: string | null) => {
@@ -43,6 +35,14 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
     [id, updateNodeData],
   );
 
+  const handleOpenInTab = useCallback(() => {
+    addTab("session", {
+      sessionId: data.sessionId,
+      workspaceId: data.workspaceId,
+      sessionName: title,
+    });
+  }, [addTab, data.sessionId, data.workspaceId, title]);
+
   return (
     <WindowFrame
       title={title}
@@ -50,12 +50,26 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       selected={selected}
       maxWidth={1200}
       maxHeight={1200}
+      actions={[
+        {
+          icon: ExternalLink,
+          label: "Open in tab",
+          onClick: handleOpenInTab,
+          disabled: !data.sessionId,
+        },
+      ]}
     >
-      <ChatContainer
-        sessionId={data.sessionId}
-        directory={data.directory}
-        onSessionChange={handleSessionChange}
-      />
+      {directory ? (
+        <ChatContainer
+          sessionId={data.sessionId}
+          directory={directory}
+          onSessionChange={handleSessionChange}
+        />
+      ) : (
+        <div className="p-4 text-sm text-muted-foreground">
+          Workspace not found.
+        </div>
+      )}
     </WindowFrame>
   );
 }

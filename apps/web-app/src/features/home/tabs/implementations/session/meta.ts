@@ -1,6 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import type { TabTemplate } from "../../template";
-import { CreateChatDialog } from "@/features/chat/components/CreateChatDialog";
+import { SessionCreateDialog } from "./SessionCreateDialog";
 import { SessionContent } from "./SessionContent";
 import { SessionTabItem } from "./SessionTabItem";
 
@@ -16,5 +16,5 @@ export const sessionTemplate: TabTemplate<SessionData> = {
   icon: MessageCircle,
   TabBarComponent: SessionTabItem,
   ContentComponent: SessionContent,
-  CreateDialog: CreateChatDialog,
+  CreateDialog: SessionCreateDialog,
 };

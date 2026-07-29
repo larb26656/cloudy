@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { Coins } from "lucide-react";
 import {
   Tooltip,
@@ -78,7 +79,7 @@ function TooltipDetails({ v }: { v: TokenValues }) {
   );
 }
 
-export function SessionStatusBar({
+export const SessionStatusBar = memo(function SessionStatusBar({
   sessionId,
   directory,
 }: SessionStatusBarProps) {
@@ -209,4 +210,4 @@ export function SessionStatusBar({
       </div>
     </div>
   );
-}
+});

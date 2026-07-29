@@ -15,23 +15,21 @@ import { WorkspaceItem } from "@/components/ui/WorkspaceItem";
 import { SessionItem } from "@/components/ui/SessionItem";
 import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
 import { useSessions } from "@/hooks/queries";
-import { useTabStore } from "@/stores/tabStore";
 
 interface CreateChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated?: (data: {
-    directory: string;
+  onSubmit: (data: {
+    workspaceId: string;
     sessionId: string | null;
     sessionName: string;
   }) => void;
 }
 
-export function CreateChatDialog({ open, onOpenChange, onCreated }: CreateChatDialogProps) {
+export function CreateChatDialog({ open, onOpenChange, onSubmit }: CreateChatDialogProps) {
   const navigate = useNavigate();
   const workspaces = useWorkspaceStore((s) => s.workspaces);
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
-  const addTab = useTabStore((s) => s.addTab);
 
   const { data: sessions = [], isLoading: sessionsLoading } = useSessions({
     directory: selectedWorkspace?.directory ?? "",
@@ -45,43 +43,20 @@ export function CreateChatDialog({ open, onOpenChange, onCreated }: CreateChatDi
     setSelectedWorkspace(null);
   };
 
-  const handleNewChat = async () => {
+  const resolveSession = (sessionId: string | null, sessionName: string) => {
     if (!selectedWorkspace) return;
-
-    if (onCreated) {
-      onCreated({
-        directory: selectedWorkspace.directory,
-        sessionId: null,
-        sessionName: "New Chat",
-      });
-    } else {
-      addTab("session", {
-        sessionId: null,
-        workspaceId: selectedWorkspace.id,
-        sessionName: "New Chat",
-      });
-    }
-
+    onSubmit({
+      workspaceId: selectedWorkspace.id,
+      sessionId,
+      sessionName,
+    });
     handleClose();
   };
 
-  const handleSessionSelect = (session: Session) => {
-    if (!selectedWorkspace) return;
-    if (onCreated) {
-      onCreated({
-        directory: selectedWorkspace.directory,
-        sessionId: session.id,
-        sessionName: session.title || "New Chat",
-      });
-    } else {
-      addTab("session", {
-        sessionId: session.id,
-        workspaceId: selectedWorkspace.id,
-        sessionName: session.title || "New Chat",
-      });
-    }
-    handleClose();
-  };
+  const handleNewChat = () => resolveSession(null, "New Chat");
+
+  const handleSessionSelect = (session: Session) =>
+    resolveSession(session.id, session.title || "New Chat");
 
   const handleClose = () => {
     setSelectedWorkspace(null);

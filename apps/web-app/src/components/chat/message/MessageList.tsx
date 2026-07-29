@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState, memo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { MessageBubble } from "./MessageBubble";
+import { StreamingMessageBubble } from "./StreamingMessageBubble";
 import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
 import { ChevronDown } from "lucide-react";
@@ -24,7 +26,12 @@ export const MessageList = memo(function MessageList({
   isShowEmptyState = true,
   onSnippetSelect,
 }: MessageListProps) {
-  const { streamingMessages } = useStreamingMessagesStore();
+  const streamingIds = useStreamingMessagesStore(
+    useShallow((s) => {
+      const map = s.streamingMessages.get(selectedSessionId ?? "");
+      return map ? Array.from(map.keys()) : [];
+    }),
+  );
   const { data: statuses } = useSessionStatuses({ directory });
   const {
     data,
@@ -38,30 +45,17 @@ export const MessageList = memo(function MessageList({
     sessionId: selectedSessionId ?? "",
   });
 
-  const sessionStreaming = useMemo(() => {
-    return selectedSessionId
-      ? Array.from(streamingMessages.get(selectedSessionId)?.values() ?? [])
-      : [];
-  }, [streamingMessages, selectedSessionId]);
+  const streamingIdSet = useMemo(() => new Set(streamingIds), [streamingIds]);
 
   const remoteMessages = useMemo(
     () => data?.pages.flat() ?? [],
     [data?.pages],
   );
 
-  const allMessages = useMemo(() => {
-    const map = new Map<string, Message>();
-
-    for (const msg of remoteMessages) {
-      map.set(msg.info.id, msg);
-    }
-
-    for (const msg of sessionStreaming) {
-      map.set(msg.info.id, msg);
-    }
-
-    return Array.from(map.values());
-  }, [remoteMessages, sessionStreaming]);
+  const displayMessages = useMemo(
+    () => remoteMessages.filter((m) => !streamingIdSet.has(m.info.id)),
+    [remoteMessages, streamingIdSet],
+  );
 
   const sessionStatus = selectedSessionId
     ? statuses?.[selectedSessionId]
@@ -71,14 +65,40 @@ export const MessageList = memo(function MessageList({
     sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
 
   const scrollRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   useEffect(() => {
-    if (shouldScrollRef.current) {
-      scrollToBottom();
-    }
-  }, [allMessages]);
+    const content = contentRef.current;
+    const scroller = scrollRef.current;
+    if (!content || !scroller) return;
+
+    let raf = 0;
+
+    const doScroll = () => {
+      raf = 0;
+      if (!shouldScrollRef.current) return;
+      scroller.scrollTo({
+        top: scroller.scrollHeight,
+        behavior: "smooth",
+      });
+    };
+
+    const scheduleScroll = () => {
+      if (raf) return;
+      raf = requestAnimationFrame(doScroll);
+    };
+
+    scheduleScroll();
+
+    const ro = new ResizeObserver(scheduleScroll);
+    ro.observe(content);
+    return () => {
+      if (raf) cancelAnimationFrame(raf);
+      ro.disconnect();
+    };
+  }, [displayMessages, streamingIds]);
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -117,7 +137,11 @@ export const MessageList = memo(function MessageList({
     );
   }
 
-  if (allMessages.length === 0 && isShowEmptyState) {
+  if (
+    displayMessages.length === 0 &&
+    streamingIds.length === 0 &&
+    isShowEmptyState
+  ) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <EmptyChatState onSnippetSelect={onSnippetSelect} />
@@ -139,27 +163,38 @@ export const MessageList = memo(function MessageList({
         onScroll={handleScroll}
         autoLoad
       >
-        {allMessages.map((message: Message) => (
-          <MessageBubble
-            key={message.info.id}
-            message={message}
-            isStreaming={false}
-          />
-        ))}
+        <div ref={contentRef}>
+          {displayMessages.map((message: Message) => (
+            <MessageBubble
+              key={message.info.id}
+              message={message}
+              isStreaming={false}
+            />
+          ))}
 
-        {sessionStatus?.type === "retry" && (
-          <RetryMessage
-            attempt={sessionStatus.attempt}
-            message={sessionStatus.message}
-            next={sessionStatus.next}
-          />
-        )}
+          {selectedSessionId &&
+            streamingIds.map((id) => (
+              <StreamingMessageBubble
+                key={id}
+                sessionId={selectedSessionId}
+                messageId={id}
+              />
+            ))}
 
-        {isStreaming && (
-          <div className="mt-2">
-            <ThinkingAnimation />
-          </div>
-        )}
+          {sessionStatus?.type === "retry" && (
+            <RetryMessage
+              attempt={sessionStatus.attempt}
+              message={sessionStatus.message}
+              next={sessionStatus.next}
+            />
+          )}
+
+          {isStreaming && (
+            <div className="mt-2">
+              <ThinkingAnimation />
+            </div>
+          )}
+        </div>
       </InfiniteScrollContainer>
 
       {showScrollButton && (

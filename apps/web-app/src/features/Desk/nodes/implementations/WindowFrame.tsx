@@ -2,7 +2,15 @@ import { NodeResizer } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { useCallback } from "react";
+
+export interface WindowFrameAction {
+  icon: LucideIcon;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}
 
 interface WindowFrameProps {
   title?: string;
@@ -16,6 +24,7 @@ interface WindowFrameProps {
   className?: string;
   color?: string;
   headerAction?: React.ReactNode;
+  actions?: WindowFrameAction[];
 }
 
 export function WindowFrame({
@@ -30,6 +39,7 @@ export function WindowFrame({
   className,
   color,
   headerAction,
+  actions,
 }: WindowFrameProps) {
   const { deleteElements } = useReactFlow();
 
@@ -61,12 +71,29 @@ export function WindowFrame({
               <span className="text-sm font-medium truncate">{title}</span>
             )}
           </div>
-          <button
-            onClick={handleClose}
-            className="p-1 hover:bg-muted-foreground/20 rounded"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-1 shrink-0">
+            {actions?.map((action) => {
+              const ActionIcon = action.icon;
+              return (
+                <button
+                  key={action.label}
+                  onClick={action.onClick}
+                  disabled={action.disabled}
+                  title={action.label}
+                  aria-label={action.label}
+                  className="p-1 hover:bg-muted-foreground/20 rounded disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  <ActionIcon className="h-4 w-4" />
+                </button>
+              );
+            })}
+            <button
+              onClick={handleClose}
+              className="p-1 hover:bg-muted-foreground/20 rounded"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
         <div className="nodrag nopan nowheel select-text cursor-auto flex-1 min-h-0 overflow-auto">
           {children}

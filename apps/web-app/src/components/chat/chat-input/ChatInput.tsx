@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
@@ -26,7 +26,7 @@ interface ChatInputProps {
 
 const MOCK_HISTORY: string[] = [];
 
-export function ChatInput({
+export const ChatInput = memo(function ChatInput({
   onSend,
   onImmediateCommand,
   onAbort,
@@ -198,4 +198,4 @@ export function ChatInput({
       </div>
     </div>
   );
-}
+});

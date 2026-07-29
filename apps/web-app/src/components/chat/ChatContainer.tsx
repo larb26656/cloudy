@@ -3,7 +3,7 @@ import { ChatInput } from "./chat-input";
 import { SessionStatusBar } from "./SessionStatusBar";
 import { PermissionBanner } from "@/components/permission/PermissionBanner";
 import { PermissionDialog } from "@/components/permission/PermissionDialog";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import {
   useSendMessage,
@@ -33,11 +33,15 @@ export function ChatContainer({
   onSessionChange,
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
-  const sendMessage = useSendMessage();
-  const executeCommand = useExecuteCommand();
-  const abortGeneration = useAbortGeneration();
-  const createSession = useCreateSession();
+  const { mutateAsync: sendMessageAsync, isPending: isSending } =
+    useSendMessage();
+  const { mutate: executeCmd } = useExecuteCommand();
+  const { mutate: abortMutate, isPending: isAborting } = useAbortGeneration();
+  const { mutateAsync: createSessionAsync } = useCreateSession();
   const systemCommands = useSystemCommands();
+
+  const systemCommandsRef = useRef(systemCommands);
+  systemCommandsRef.current = systemCommands;
 
   const [questionOpen, setQuestionOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
@@ -50,97 +54,109 @@ export function ChatContainer({
     currentPermission,
   } = useSessionData({ directory, sessionId });
 
-  const ensureSessionId = async (): Promise<string> => {
+  const ensureSessionId = useCallback(async (): Promise<string> => {
     if (sessionId) {
       return sessionId;
     }
 
-    const newSession = await createSession.mutateAsync({ directory });
+    const newSession = await createSessionAsync({ directory });
 
     onSessionChange?.(newSession.id);
 
     return newSession.id;
-  };
+  }, [sessionId, createSessionAsync, directory, onSessionChange]);
 
-  const handleSend = async (
-    content: ChatInputContent,
-    model?: ModelConfig | null,
-    agent?: string | null,
-  ) => {
-    const text = content.text.trim();
-    if (!text) return;
+  const handleSend = useCallback(
+    async (
+      content: ChatInputContent,
+      model?: ModelConfig | null,
+      agent?: string | null,
+    ) => {
+      const text = content.text.trim();
+      if (!text) return;
 
-    if (isCommand(text)) {
-      const parsed = parseCommand(text);
-      if (!parsed) return;
+      if (isCommand(text)) {
+        const parsed = parseCommand(text);
+        if (!parsed) return;
 
-      const commandSessionId = await ensureSessionId();
+        const commandSessionId = await ensureSessionId();
 
-      if (findSystemCommand(parsed.command)) {
-        systemCommands.execute(parsed.command, parsed.arguments, {
-          directory,
+        if (findSystemCommand(parsed.command)) {
+          systemCommandsRef.current.execute(parsed.command, parsed.arguments, {
+            directory,
+            sessionId: commandSessionId,
+            onSessionChange,
+            openSessionPicker: () => setSessionPickerOpen(true),
+            model,
+            agent,
+          });
+          return;
+        }
+
+        executeCmd({
           sessionId: commandSessionId,
-          onSessionChange,
-          openSessionPicker: () => setSessionPickerOpen(true),
-          model,
-          agent,
+          command: parsed.command,
+          args: parsed.arguments,
+          directory,
         });
+
         return;
       }
 
-      executeCommand.mutate({
-        sessionId: commandSessionId,
-        command: parsed.command,
-        args: parsed.arguments,
-        directory,
-      });
+      try {
+        const messageSessionId = await ensureSessionId();
+        await sendMessageAsync({
+          sessionId: messageSessionId,
+          content: content,
+          directory: directory,
+          model,
+          agent,
+        });
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Failed to send message",
+        );
+      }
+    },
+    [
+      ensureSessionId,
+      executeCmd,
+      sendMessageAsync,
+      directory,
+      onSessionChange,
+    ],
+  );
 
-      return;
+  const handleAbort = useCallback(() => {
+    if (sessionId && !isAborting) {
+      abortMutate({ sessionId, directory });
     }
-
-    try {
-      const messageSessionId = await ensureSessionId();
-      await sendMessage.mutateAsync({
-        sessionId: messageSessionId,
-        content: content,
-        directory: directory,
-        model,
-        agent,
-      });
-    } catch (err) {
-      toast.error(
-        err instanceof Error ? err.message : "Failed to send message",
-      );
-    }
-  };
-
-  const handleAbort = () => {
-    if (sessionId && !abortGeneration.isPending) {
-      abortGeneration.mutate({ sessionId, directory });
-    }
-  };
+  }, [sessionId, isAborting, abortMutate, directory]);
 
   const handleContainerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Escape") return;
     if (questionOpen || permissionOpen) return;
-    if (abortGeneration.isPending) return;
+    if (isAborting) return;
 
     e.preventDefault();
     handleAbort();
   };
 
-  const handleImmediateCommand = (commandName: string) => {
-    if (findSystemCommand(commandName)) {
-      systemCommands.execute(commandName, "", {
-        directory,
-        sessionId,
-        onSessionChange,
-        openSessionPicker: () => setSessionPickerOpen(true),
-        model: null,
-        agent: null,
-      });
-    }
-  };
+  const handleImmediateCommand = useCallback(
+    (commandName: string) => {
+      if (findSystemCommand(commandName)) {
+        systemCommandsRef.current.execute(commandName, "", {
+          directory,
+          sessionId,
+          onSessionChange,
+          openSessionPicker: () => setSessionPickerOpen(true),
+          model: null,
+          agent: null,
+        });
+      }
+    },
+    [directory, sessionId, onSessionChange],
+  );
 
   return (
     <div
@@ -174,7 +190,7 @@ export function ChatContainer({
         onSend={handleSend}
         onImmediateCommand={handleImmediateCommand}
         onAbort={handleAbort}
-        isLoading={sendMessage.isPending || abortGeneration.isPending}
+        isLoading={isSending || isAborting}
         placeholder={chatplaceholder}
         directory={directory}
       />
