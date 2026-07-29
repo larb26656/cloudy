@@ -63,13 +63,35 @@ export const MessageList = memo(function MessageList({
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const shouldScrollRef = useRef(true);
+  const hasInitiallyScrolledRef = useRef(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
+
+  useEffect(() => {
+    hasInitiallyScrolledRef.current = false;
+  }, [selectedSessionId]);
+
+  const scrollToBottom = useCallback(
+    (behavior: ScrollBehavior = "smooth") => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior,
+        });
+      }
+    },
+    [],
+  );
 
   const handleStreamingScroll = useCallback(() => {
     if (shouldScrollRef.current) {
-      scrollToBottom();
+      if (!hasInitiallyScrolledRef.current) {
+        hasInitiallyScrolledRef.current = true;
+        scrollToBottom("auto");
+      } else {
+        scrollToBottom("smooth");
+      }
     }
-  }, []);
+  }, [scrollToBottom]);
 
   useEffect(() => {
     handleStreamingScroll();
@@ -81,15 +103,6 @@ export const MessageList = memo(function MessageList({
       const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
       shouldScrollRef.current = isAtBottom;
       setShowScrollButton(!isAtBottom);
-    }
-  };
-
-  const scrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: "smooth",
-      });
     }
   };
 
