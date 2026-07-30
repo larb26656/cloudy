@@ -12,7 +12,8 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "generate:splash": "pnpm exec pwa-asset-generator public/favicon.svg public/splash --splash-only -b '#FFFFFF'"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
@@ -83,6 +84,7 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@chromatic-com/storybook": "^5.2.1",
+    "@puppeteer/browsers": "^3.0.6",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "@rolldown/plugin-babel": "^0.2.3",
@@ -111,6 +113,7 @@
     "msw": "^2.15.0",
     "msw-storybook-addon": "^2.0.7",
     "playwright": "^1.61.1",
+    "pwa-asset-generator": "^8.1.5",
     "storybook": "^10.5.3",
     "typescript": "5.9.2",
     "typescript-eslint": "^8.58.2",
