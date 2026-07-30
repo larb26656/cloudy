@@ -82,7 +82,7 @@ describe("appendStreamingMessages", () => {
 
     expect(result.pages[0]).toHaveLength(1);
     const merged = result.pages[0]?.[0];
-    expect(merged?.info.cost).toBe(100);
+    expect((merged?.info as AssistantMessage).cost).toBe(100);
     expect(merged?.parts).toHaveLength(1);
     expect(merged?.parts[0]).toEqual(
       makeTextPart({ id: "part_text", text: "streamed text" }),

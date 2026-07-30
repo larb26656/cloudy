@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { SnapshotPart } from "./SnapshotPart";
 
-const meta: Meta<typeof SnapshotPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/SnapshotPart",
   component: SnapshotPart,
   tags: ["autodocs"],
@@ -11,21 +11,20 @@ const meta: Meta<typeof SnapshotPart> = {
       description: "Snapshot part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof SnapshotPart>;
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     part: {
       type: "snapshot",
       snapshot: '{"conversationId": "abc123", "step": 5}',
     } as any,
   },
-};
+});
 
-export const LongSnapshot: Story = {
+export const LongSnapshot = meta.story({
   args: {
     part: {
       type: "snapshot",
@@ -44,4 +43,4 @@ export const LongSnapshot: Story = {
 }`,
     } as any,
   },
-};
+});

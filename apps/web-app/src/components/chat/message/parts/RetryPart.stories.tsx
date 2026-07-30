@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { RetryPart } from "./RetryPart";
 
-const meta: Meta<typeof RetryPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/RetryPart",
   component: RetryPart,
   tags: ["autodocs"],
@@ -11,12 +11,11 @@ const meta: Meta<typeof RetryPart> = {
       description: "Retry part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof RetryPart>;
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     part: {
       type: "retry",
@@ -32,9 +31,9 @@ export const Default: Story = {
       },
     } as any,
   },
-};
+});
 
-export const MultipleAttempts: Story = {
+export const MultipleAttempts = meta.story({
   args: {
     part: {
       type: "retry",
@@ -50,4 +49,4 @@ export const MultipleAttempts: Story = {
       },
     } as any,
   },
-};
+});

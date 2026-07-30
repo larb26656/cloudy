@@ -68,7 +68,7 @@ export const MessageList = memo(function MessageList({
   const handleScroll = () => {
     if (scrollRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 50;
+      const isAtBottom = scrollHeight - scrollTop - clientHeight < 500;
       shouldScrollRef.current = isAtBottom;
       setShowScrollButton(!isAtBottom);
     }
@@ -99,6 +99,14 @@ export const MessageList = memo(function MessageList({
       clearInterval(interval);
     };
   }, [isStreaming]);
+
+  useEffect(() => {
+    if (!scrollRef.current || remoteMessages.length === 0) return;
+
+    requestAnimationFrame(() => {
+      scrollToBottom();
+    });
+  }, [remoteMessages.length]);
 
   if (isLoading) {
     return (

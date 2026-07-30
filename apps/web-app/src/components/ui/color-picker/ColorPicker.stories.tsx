@@ -1,12 +1,41 @@
-import type { Meta, StoryObj } from "@storybook/react-vite"
+import preview from "@/storybook/preview"
 import { useState } from "react"
 import { Controller, useForm } from "react-hook-form"
 import { ColorPicker } from "./ColorPicker"
 import { WORKSPACE_COLORS } from "@/stores/workspaceStore"
 
-const meta = {
+interface ColorPickerDemoProps {
+  colors: readonly string[]
+  columns?: 2 | 3 | 4 | 6
+  size?: "sm" | "md" | "lg"
+  label?: string
+  disabled?: boolean
+}
+
+function ColorPickerDemo({
+  colors,
+  columns,
+  size,
+  label,
+  disabled,
+}: ColorPickerDemoProps) {
+  const [value, setValue] = useState<string>(colors[0] ?? "")
+  return (
+    <ColorPicker
+      colors={colors}
+      columns={columns}
+      size={size}
+      label={label}
+      disabled={disabled}
+      value={value}
+      onChange={setValue}
+    />
+  )
+}
+
+const meta = preview.meta({
   title: "UI/ColorPicker",
-  component: ColorPicker,
+  component: ColorPickerDemo,
   tags: ["autodocs"],
   parameters: {
     layout: "centered",
@@ -24,106 +53,76 @@ const meta = {
       options: ["sm", "md", "lg"],
     },
   },
-} satisfies Meta<typeof ColorPicker>
+})
 
 export default meta
-type Story = StoryObj<typeof meta>
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     colors: WORKSPACE_COLORS,
     columns: 4,
     size: "md",
   },
-  render: (args) => {
-    const [value, setValue] = useState<string>(WORKSPACE_COLORS[0])
-    return <ColorPicker {...args} value={value} onChange={setValue} />
-  },
-}
+})
 
-export const Small: Story = {
+export const Small = meta.story({
   args: {
     colors: WORKSPACE_COLORS,
     columns: 4,
     size: "sm",
   },
-  render: (args) => {
-    const [value, setValue] = useState<string>(WORKSPACE_COLORS[0])
-    return <ColorPicker {...args} value={value} onChange={setValue} />
-  },
-}
+})
 
-export const Large: Story = {
+export const Large = meta.story({
   args: {
     colors: WORKSPACE_COLORS,
     columns: 4,
     size: "lg",
   },
-  render: (args) => {
-    const [value, setValue] = useState<string>(WORKSPACE_COLORS[0])
-    return <ColorPicker {...args} value={value} onChange={setValue} />
-  },
-}
+})
 
-export const SixColumns: Story = {
+export const SixColumns = meta.story({
   args: {
     colors: WORKSPACE_COLORS,
     columns: 6,
     size: "md",
   },
-  render: (args) => {
-    const [value, setValue] = useState<string>(WORKSPACE_COLORS[0])
-    return <ColorPicker {...args} value={value} onChange={setValue} />
-  },
-}
+})
 
-export const WithLabel: Story = {
+export const WithLabel = meta.story({
   args: {
     colors: WORKSPACE_COLORS,
     columns: 4,
     size: "md",
     label: "Workspace Color",
   },
-  render: (args) => {
-    const [value, setValue] = useState<string>(WORKSPACE_COLORS[0])
-    return <ColorPicker {...args} value={value} onChange={setValue} />
-  },
-}
+})
 
-export const Disabled: Story = {
+export const Disabled = meta.story({
   args: {
     colors: WORKSPACE_COLORS,
     columns: 4,
     size: "md",
     disabled: true,
   },
-  render: (args) => {
-    const [value, setValue] = useState<string>(WORKSPACE_COLORS[0])
-    return <ColorPicker {...args} value={value} onChange={setValue} />
-  },
-}
+})
 
-export const CustomColors: Story = {
+export const CustomColors = meta.story({
   args: {
     colors: ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"] as const,
     columns: 3,
     size: "md",
   },
-  render: (args) => {
-    const colors = args.colors ?? ["#FF0000"]
-    const [value, setValue] = useState<string>(colors[0])
-    return <ColorPicker {...args} value={value} onChange={setValue} />
-  },
-}
+})
 
-export const WithReactHookForm: Story = {
+export const WithReactHookForm = meta.story({
   args: {
     colors: WORKSPACE_COLORS,
     columns: 4,
     size: "md",
     label: "Color",
   },
-  render: (args) => {
+  render: () => {
     const { control, watch } = useForm({
       defaultValues: { color: WORKSPACE_COLORS[0] },
     })
@@ -136,7 +135,10 @@ export const WithReactHookForm: Story = {
           control={control}
           render={({ field }) => (
             <ColorPicker
-              {...args}
+              colors={WORKSPACE_COLORS}
+              columns={4}
+              size="md"
+              label="Color"
               value={field.value}
               onChange={field.onChange}
             />
@@ -148,4 +150,4 @@ export const WithReactHookForm: Story = {
       </div>
     )
   },
-}
+})

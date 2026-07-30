@@ -1,15 +1,17 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { Detail, Preview } from "./TodoToolInput";
 
-const meta: Meta<typeof Preview> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/ToolComponents/TodoToolInput",
   component: Preview,
   tags: ["autodocs"],
-};
+});
+
+const detailMeta = preview.meta({
+  component: Detail,
+});
 
 export default meta;
-type PreviewStory = StoryObj<typeof Preview>;
-type DetailStory = StoryObj<typeof Detail>;
 
 const todos = [
   {
@@ -48,7 +50,7 @@ const todos = [
 // Preview stories
 // ----------------------------------------------------------------------------
 
-export const PreviewFullList: PreviewStory = {
+export const PreviewFullList = meta.story({
   name: "Preview - Full List",
   args: {
     state: {
@@ -59,9 +61,9 @@ export const PreviewFullList: PreviewStory = {
       },
     } as any,
   },
-};
+});
 
-export const PreviewPending: PreviewStory = {
+export const PreviewPending = meta.story({
   name: "Preview - Pending (creating)",
   args: {
     state: {
@@ -71,9 +73,9 @@ export const PreviewPending: PreviewStory = {
       },
     } as any,
   },
-};
+});
 
-export const PreviewAllCompleted: PreviewStory = {
+export const PreviewAllCompleted = meta.story({
   name: "Preview - All Completed",
   args: {
     state: {
@@ -83,9 +85,9 @@ export const PreviewAllCompleted: PreviewStory = {
       },
     } as any,
   },
-};
+});
 
-export const PreviewManyTodos: PreviewStory = {
+export const PreviewManyTodos = meta.story({
   name: "Preview - Many Todos (truncated)",
   args: {
     state: {
@@ -99,9 +101,9 @@ export const PreviewManyTodos: PreviewStory = {
       },
     } as any,
   },
-};
+});
 
-export const PreviewMinimal: PreviewStory = {
+export const PreviewMinimal = meta.story({
   name: "Preview - Minimal (single todo)",
   args: {
     state: {
@@ -116,13 +118,13 @@ export const PreviewMinimal: PreviewStory = {
       },
     } as any,
   },
-};
+});
 
 // ----------------------------------------------------------------------------
 // Detail stories
 // ----------------------------------------------------------------------------
 
-export const DetailFullList: DetailStory = {
+export const DetailFullList = detailMeta.story({
   name: "Detail - Full List",
   args: {
     input: {
@@ -130,18 +132,18 @@ export const DetailFullList: DetailStory = {
       todos,
     },
   },
-};
+});
 
-export const DetailContentOnly: DetailStory = {
+export const DetailContentOnly = detailMeta.story({
   name: "Detail - Content Only",
   args: {
     input: {
       content: "Planning next steps...",
     },
   },
-};
+});
 
-export const DetailNoPriority: DetailStory = {
+export const DetailNoPriority = detailMeta.story({
   name: "Detail - Without Priority",
   args: {
     input: {
@@ -151,14 +153,14 @@ export const DetailNoPriority: DetailStory = {
       ],
     },
   },
-};
+});
 
-export const DetailEmpty: DetailStory = {
+export const DetailEmpty = detailMeta.story({
   name: "Detail - Empty",
   args: {
     input: {},
   },
-};
+});
 
 // ----------------------------------------------------------------------------
 // Narrow container + long text
@@ -185,7 +187,7 @@ const longTodos = [
   },
 ];
 
-export const PreviewNarrowLongText: PreviewStory = {
+export const PreviewNarrowLongText = meta.story({
   name: "Preview - Narrow Container + Long Text",
   render: (args: React.ComponentProps<typeof Preview>) => (
     <div className="w-56 border border-dashed border-muted-foreground/30 rounded p-2">
@@ -201,9 +203,9 @@ export const PreviewNarrowLongText: PreviewStory = {
       },
     } as any,
   },
-};
+});
 
-export const DetailNarrowLongText: DetailStory = {
+export const DetailNarrowLongText = detailMeta.story({
   name: "Detail - Narrow Container + Long Text",
   render: (args: React.ComponentProps<typeof Detail>) => (
     <div className="w-56 border border-dashed border-muted-foreground/30 rounded p-2">
@@ -216,4 +218,4 @@ export const DetailNarrowLongText: DetailStory = {
       todos: longTodos,
     },
   },
-};
+});

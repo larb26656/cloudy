@@ -97,7 +97,7 @@ describe("streamingMessagesStore", () => {
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
-      expect(result.info.cost).toBe(100);
+      expect((result.info as AssistantMessage).cost).toBe(100);
       expect(result.parts).toHaveLength(1);
       expect(result.parts[0]).toEqual(existingMessage.parts[0]);
     });
@@ -143,7 +143,7 @@ describe("streamingMessagesStore", () => {
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
       expect(result.parts).toHaveLength(1);
-      expect(result.parts[0].text).toBe("Updated");
+      expect((result.parts[0] as { text: string }).text).toBe("Updated");
     });
 
     test("creates skeleton message when session does not exist", () => {
@@ -222,7 +222,7 @@ describe("streamingMessagesStore", () => {
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
-      expect(result.parts[0].text).toBe("Hello, world!");
+      expect((result.parts[0] as { text: string }).text).toBe("Hello, world!");
     });
 
     test("creates skeleton message and placeholder text part when nothing exists", () => {
@@ -283,7 +283,7 @@ describe("streamingMessagesStore", () => {
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
-      expect(result.parts[0].text).toBe("Hello");
+      expect((result.parts[0] as { text: string }).text).toBe("Hello");
     });
 
     test("handles non-text part gracefully (no-op)", () => {

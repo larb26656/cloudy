@@ -1,21 +1,20 @@
 import { useEffect } from "react";
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { WorkspaceStrip } from "./WorkspaceStrip";
 import { useWorkspaceStore, WORKSPACE_COLORS } from "@/stores/workspaceStore";
 
 const TEST_INSTANCE_ID = "storybook-test-instance";
 
-const meta: Meta<typeof WorkspaceStrip> = {
+const meta = preview.meta({
   title: "Workspace/WorkspaceStrip",
   component: WorkspaceStrip,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof meta>;
 
 function WorkspaceStoriesWrapper({
   children,
@@ -34,7 +33,7 @@ function WorkspaceStoriesWrapper({
   useEffect(() => {
     if (workspaces && existingWorkspaces.length === 0) {
       for (const ws of workspaces) {
-        createWorkspace(TEST_INSTANCE_ID, ws);
+        createWorkspace({ instanceId: TEST_INSTANCE_ID, ...ws });
       }
     }
   }, [workspaces, existingWorkspaces.length, createWorkspace]);
@@ -42,7 +41,8 @@ function WorkspaceStoriesWrapper({
   return <>{children}</>;
 }
 
-export const Default: Story = {
+export const Default = meta.story({
+  args: { instanceId: TEST_INSTANCE_ID },
   decorators: [
     (Story) => (
       <WorkspaceStoriesWrapper>
@@ -52,9 +52,10 @@ export const Default: Story = {
       </WorkspaceStoriesWrapper>
     ),
   ],
-};
+});
 
-export const WithThreeWorkspaces: Story = {
+export const WithThreeWorkspaces = meta.story({
+  args: { instanceId: TEST_INSTANCE_ID },
   decorators: [
     (Story) => (
       <WorkspaceStoriesWrapper
@@ -70,4 +71,4 @@ export const WithThreeWorkspaces: Story = {
       </WorkspaceStoriesWrapper>
     ),
   ],
-};
+});

@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { TextPart } from "./TextPart";
 
-const meta: Meta<typeof TextPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/TextPart",
   component: TextPart,
   tags: ["autodocs"],
@@ -11,21 +11,20 @@ const meta: Meta<typeof TextPart> = {
       description: "Text part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof TextPart>;
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     part: {
       type: "text",
       text: "Hello, this is a sample text response from the AI assistant.",
     } as any,
   },
-};
+});
 
-export const WithSynthetic: Story = {
+export const WithSynthetic = meta.story({
   args: {
     part: {
       type: "text",
@@ -33,9 +32,9 @@ export const WithSynthetic: Story = {
       synthetic: true,
     } as any,
   },
-};
+});
 
-export const WithIgnored: Story = {
+export const WithIgnored = meta.story({
   args: {
     part: {
       type: "text",
@@ -43,13 +42,13 @@ export const WithIgnored: Story = {
       ignored: true,
     } as any,
   },
-};
+});
 
-export const WithMarkdown: Story = {
+export const WithMarkdown = meta.story({
   args: {
     part: {
       type: "text",
       text: "This is **bold** and this is _italic_. \n\n- List item 1\n- List item 2\n\n`const x = 1`",
     } as any,
   },
-};
+});

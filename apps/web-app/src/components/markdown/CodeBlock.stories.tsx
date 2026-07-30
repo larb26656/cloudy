@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
-const meta: Meta<typeof MarkdownRenderer> = {
+const meta = preview.meta({
   title: "Markdown/CodeBlock",
   component: MarkdownRenderer,
   tags: ["autodocs"],
@@ -11,12 +11,11 @@ const meta: Meta<typeof MarkdownRenderer> = {
       description: "Markdown content with code blocks",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof MarkdownRenderer>;
 
-export const JavaScriptCode: Story = {
+export const JavaScriptCode = meta.story({
   args: {
     content: `Here is some JavaScript code:
 
@@ -31,9 +30,9 @@ const result = greet("World");
 
 And here is some inline code: \`const x = 42\``,
   },
-};
+});
 
-export const TypeScriptCode: Story = {
+export const TypeScriptCode = meta.story({
   args: {
     content: `\`\`\`typescript
 interface User {
@@ -48,9 +47,9 @@ function getUser(id: number): Promise<User> {
 }
 \`\`\``,
   },
-};
+});
 
-export const PythonCode: Story = {
+export const PythonCode = meta.story({
   args: {
     content: `\`\`\`python
 def fibonacci(n: int) -> list[int]:
@@ -68,9 +67,9 @@ def fibonacci(n: int) -> list[int]:
 print(fibonacci(10))
 \`\`\``,
   },
-};
+});
 
-export const JSONCode: Story = {
+export const JSONCode = meta.story({
   args: {
     content: `\`\`\`json
 {
@@ -84,9 +83,9 @@ export const JSONCode: Story = {
 }
 \`\`\``,
   },
-};
+});
 
-export const BashCode: Story = {
+export const BashCode = meta.story({
   args: {
     content: `\`\`\`bash
 # Install dependencies
@@ -99,18 +98,18 @@ npm run dev
 npm run build
 \`\`\``,
   },
-};
+});
 
-export const NoLanguage: Story = {
+export const NoLanguage = meta.story({
   args: {
     content: `\`\`\`
 This is a code block without a specified language.
 It will still be highlighted automatically.
 \`\`\``,
   },
-};
+});
 
-export const MixedContent: Story = {
+export const MixedContent = meta.story({
   args: {
     content: `# Getting Started
 
@@ -144,4 +143,4 @@ console.log(result);
 - Third item
 `,
   },
-};
+});

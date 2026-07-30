@@ -1,5 +1,6 @@
 import type { AssistantMessage, Part } from "@opencode-ai/sdk/v2";
 import { MessageParts } from "./MessageParts";
+import { MessageError } from "./MessageError";
 
 interface AssistantMessageBubbleProps {
   info: AssistantMessage;
@@ -14,6 +15,7 @@ export default function AssistantMessageBubble({
     <div className="flex justify-start mb-4">
       <div className="w-full flex flex-col gap-2 font-content">
         <MessageParts parts={parts} info={info} />
+        {info.error && <MessageError error={info.error} />}
       </div>
     </div>
   );

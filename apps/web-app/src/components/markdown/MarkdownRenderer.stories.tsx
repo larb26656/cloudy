@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { MarkdownRenderer } from "./MarkdownRenderer";
 
-const meta: Meta<typeof MarkdownRenderer> = {
+const meta = preview.meta({
   title: "Markdown/MarkdownRenderer",
   component: MarkdownRenderer,
   tags: ["autodocs"],
@@ -18,10 +18,9 @@ const meta: Meta<typeof MarkdownRenderer> = {
       </div>
     ),
   ],
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof MarkdownRenderer>;
 
 // ---------------------------------------------------------------------------
 // KITCHEN SINK — every element in one scrollable view, the main debug target.
@@ -207,18 +206,18 @@ A [regular link](https://example.com), a [link with title](https://example.com "
 End of the kitchen sink. _That's all the elements!_
 `;
 
-export const KitchenSink: Story = {
+export const KitchenSink = meta.story({
   name: "All Elements (Kitchen Sink)",
   args: {
     content: kitchenSink,
   },
-};
+});
 
 // ---------------------------------------------------------------------------
 // Per-element stories for granular style debugging.
 // ---------------------------------------------------------------------------
 
-export const Headings: Story = {
+export const Headings = meta.story({
   args: {
     content: `# H1 Heading
 
@@ -234,9 +233,9 @@ export const Headings: Story = {
 
 Paragraph after headings to check spacing.`,
   },
-};
+});
 
-export const InlineFormatting: Story = {
+export const InlineFormatting = meta.story({
   args: {
     content: `Inline formatting showcase:
 
@@ -250,9 +249,9 @@ export const InlineFormatting: Story = {
 
 Combined: **bold with _italic_ and \`code\` inside** and a [**styled link**](https://example.com).`,
   },
-};
+});
 
-export const Lists: Story = {
+export const Lists = meta.story({
   args: {
     content: `## Unordered
 
@@ -278,9 +277,9 @@ export const Lists: Story = {
    - Another
 2. Ordered again`,
   },
-};
+});
 
-export const TaskList: Story = {
+export const TaskList = meta.story({
   args: {
     content: `## Task List
 
@@ -289,9 +288,9 @@ export const TaskList: Story = {
 - [x] Done with **bold**
 - [ ] Todo with \`code\``,
   },
-};
+});
 
-export const Table: Story = {
+export const Table = meta.story({
   args: {
     content: `## Aligned Columns
 
@@ -308,9 +307,9 @@ export const Table: Story = {
 | Alice | 30  | Engineer |
 | Bob   | 25  | Designer |`,
   },
-};
+});
 
-export const Blockquote: Story = {
+export const Blockquote = meta.story({
   args: {
     content: `> Single line blockquote.
 >
@@ -320,9 +319,9 @@ export const Blockquote: Story = {
 > >
 > > Even deeper nesting with a [link](https://example.com).`,
   },
-};
+});
 
-export const CodeBlocks: Story = {
+export const CodeBlocks = meta.story({
   args: {
     content: `Inline code: \`const x = 42\`
 
@@ -358,9 +357,9 @@ npm run dev
 Plain code block without language.
 \`\`\``,
   },
-};
+});
 
-export const LinksAndImages: Story = {
+export const LinksAndImages = meta.story({
   args: {
     content: `## Links
 
@@ -375,9 +374,9 @@ export const LinksAndImages: Story = {
 
 ![Placeholder](https://placehold.co/600x200?text=Markdown+Image)`,
   },
-};
+});
 
-export const Math: Story = {
+export const Math = meta.story({
   args: {
     content: `## Inline Math
 
@@ -393,9 +392,9 @@ $$
 f(x) = a x^2 + b x + c
 $$`,
   },
-};
+});
 
-export const Mermaid: Story = {
+export const Mermaid = meta.story({
   args: {
     content: `## Flowchart
 
@@ -418,9 +417,9 @@ sequenceDiagram
     Server-->>Client: Response
 \`\`\``,
   },
-};
+});
 
-export const HorizontalRule: Story = {
+export const HorizontalRule = meta.story({
   args: {
     content: `Content above.
 
@@ -436,9 +435,9 @@ ___
 
 Content after underscore rule.`,
   },
-};
+});
 
-export const NestedStructures: Story = {
+export const NestedStructures = meta.story({
   args: {
     content: `> Blockquote with a list:
 >
@@ -463,4 +462,4 @@ export const NestedStructures: Story = {
     - Nested unordered
 4. Done.`,
   },
-};
+});

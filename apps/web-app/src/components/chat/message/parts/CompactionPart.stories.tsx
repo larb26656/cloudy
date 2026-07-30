@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { CompactionPart } from "./CompactionPart";
 
-const meta: Meta<typeof CompactionPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/CompactionPart",
   component: CompactionPart,
   tags: ["autodocs"],
@@ -11,25 +11,24 @@ const meta: Meta<typeof CompactionPart> = {
       description: "Compaction part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof CompactionPart>;
 
-export const AutoCompaction: Story = {
+export const AutoCompaction = meta.story({
   args: {
     part: {
       type: "compaction",
       auto: true,
     } as any,
   },
-};
+});
 
-export const ManualCompaction: Story = {
+export const ManualCompaction = meta.story({
   args: {
     part: {
       type: "compaction",
       auto: false,
     } as any,
   },
-};
+});

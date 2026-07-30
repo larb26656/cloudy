@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { SubtaskPart } from "./SubtaskPart";
 
-const meta: Meta<typeof SubtaskPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/SubtaskPart",
   component: SubtaskPart,
   tags: ["autodocs"],
@@ -11,12 +11,11 @@ const meta: Meta<typeof SubtaskPart> = {
       description: "Subtask part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof SubtaskPart>;
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     part: {
       type: "subtask",
@@ -24,9 +23,9 @@ export const Default: Story = {
       description: "Review the PR for best practices",
     } as any,
   },
-};
+});
 
-export const WithPrompt: Story = {
+export const WithPrompt = meta.story({
   args: {
     part: {
       type: "subtask",
@@ -35,13 +34,13 @@ export const WithPrompt: Story = {
       prompt: "Create tests for the authentication module covering:\n- Login flow\n- Password reset\n- Token refresh",
     } as any,
   },
-};
+});
 
-export const WithoutAgent: Story = {
+export const WithoutAgent = meta.story({
   args: {
     part: {
       type: "subtask",
       description: "Analyze the codebase structure",
     } as any,
   },
-};
+});

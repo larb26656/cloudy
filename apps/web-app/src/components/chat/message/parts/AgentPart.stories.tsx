@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { AgentPart } from "./AgentPart";
 
-const meta: Meta<typeof AgentPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/AgentPart",
   component: AgentPart,
   tags: ["autodocs"],
@@ -11,21 +11,20 @@ const meta: Meta<typeof AgentPart> = {
       description: "Agent part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof AgentPart>;
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     part: {
       type: "agent",
       name: "code-reviewer",
     } as any,
   },
-};
+});
 
-export const WithSource: Story = {
+export const WithSource = meta.story({
   args: {
     part: {
       type: "agent",
@@ -38,4 +37,4 @@ export const WithSource: Story = {
       },
     } as any,
   },
-};
+});

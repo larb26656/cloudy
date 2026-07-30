@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { ToolPart } from "./ToolPart";
 
-const meta: Meta<typeof ToolPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/ToolPart",
   component: ToolPart,
   tags: ["autodocs"],
@@ -11,12 +11,11 @@ const meta: Meta<typeof ToolPart> = {
       description: "Tool part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof ToolPart>;
 
-export const Pending: Story = {
+export const Pending = meta.story({
   args: {
     part: {
       type: "tool",
@@ -30,9 +29,9 @@ export const Pending: Story = {
       },
     } as any,
   },
-};
+});
 
-export const Running: Story = {
+export const Running = meta.story({
   args: {
     part: {
       type: "tool",
@@ -50,9 +49,9 @@ export const Running: Story = {
       },
     } as any,
   },
-};
+});
 
-export const Completed: Story = {
+export const Completed = meta.story({
   args: {
     part: {
       type: "tool",
@@ -70,9 +69,9 @@ export const Completed: Story = {
       },
     } as any,
   },
-};
+});
 
-export const Error: Story = {
+export const Error = meta.story({
   args: {
     part: {
       type: "tool",
@@ -90,9 +89,9 @@ export const Error: Story = {
       },
     } as any,
   },
-};
+});
 
-export const ReadTool: Story = {
+export const ReadTool = meta.story({
   args: {
     part: {
       type: "tool",
@@ -112,9 +111,9 @@ export const ReadTool: Story = {
       },
     } as any,
   },
-};
+});
 
-export const WriteTool: Story = {
+export const WriteTool = meta.story({
   args: {
     part: {
       type: "tool",
@@ -132,9 +131,9 @@ export const WriteTool: Story = {
       },
     } as any,
   },
-};
+});
 
-export const EditTool: Story = {
+export const EditTool = meta.story({
   args: {
     part: {
       type: "tool",
@@ -153,9 +152,9 @@ export const EditTool: Story = {
       },
     } as any,
   },
-};
+});
 
-export const GrepTool: Story = {
+export const GrepTool = meta.story({
   args: {
     part: {
       type: "tool",
@@ -175,9 +174,9 @@ export const GrepTool: Story = {
       },
     } as any,
   },
-};
+});
 
-export const WebFetchTool: Story = {
+export const WebFetchTool = meta.story({
   args: {
     part: {
       type: "tool",
@@ -196,9 +195,9 @@ export const WebFetchTool: Story = {
       },
     } as any,
   },
-};
+});
 
-export const QuestionTool: Story = {
+export const QuestionTool = meta.story({
   args: {
     part: {
       type: "tool",
@@ -220,9 +219,9 @@ export const QuestionTool: Story = {
       },
     } as any,
   },
-};
+});
 
-export const SkillTool: Story = {
+export const SkillTool = meta.story({
   args: {
     part: {
       type: "tool",
@@ -235,4 +234,4 @@ export const SkillTool: Story = {
       },
     } as any,
   },
-};
+});

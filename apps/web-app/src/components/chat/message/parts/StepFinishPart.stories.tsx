@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { StepFinishPart } from "./StepFinishPart";
 
-const meta: Meta<typeof StepFinishPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/StepFinishPart",
   component: StepFinishPart,
   tags: ["autodocs"],
@@ -15,12 +15,11 @@ const meta: Meta<typeof StepFinishPart> = {
       description: "Optional assistant message info",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof StepFinishPart>;
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     part: {
       type: "step-finish",
@@ -36,9 +35,9 @@ export const Default: Story = {
       cost: 0.0025,
     } as any,
   },
-};
+});
 
-export const WithReasoning: Story = {
+export const WithReasoning = meta.story({
   args: {
     part: {
       type: "step-finish",
@@ -54,9 +53,9 @@ export const WithReasoning: Story = {
       cost: 0.0045,
     } as any,
   },
-};
+});
 
-export const WithModelInfo: Story = {
+export const WithModelInfo = meta.story({
   args: {
     part: {
       type: "step-finish",
@@ -75,9 +74,9 @@ export const WithModelInfo: Story = {
       modelID: "claude-3-opus",
     } as any,
   },
-};
+});
 
-export const ZeroCost: Story = {
+export const ZeroCost = meta.story({
   args: {
     part: {
       type: "step-finish",
@@ -93,4 +92,4 @@ export const ZeroCost: Story = {
       cost: 0,
     } as any,
   },
-};
+});

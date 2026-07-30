@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { ReasoningPart } from "./ReasoningPart";
 
-const meta: Meta<typeof ReasoningPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/ReasoningPart",
   component: ReasoningPart,
   tags: ["autodocs"],
@@ -11,12 +11,11 @@ const meta: Meta<typeof ReasoningPart> = {
       description: "Reasoning part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof ReasoningPart>;
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     part: {
       type: "reasoning",
@@ -27,9 +26,9 @@ export const Default: Story = {
       },
     } as any,
   },
-};
+});
 
-export const WithDuration: Story = {
+export const WithDuration = meta.story({
   args: {
     part: {
       type: "reasoning",
@@ -40,9 +39,9 @@ export const WithDuration: Story = {
       },
     } as any,
   },
-};
+});
 
-export const LongReasoning: Story = {
+export const LongReasoning = meta.story({
   args: {
     part: {
       type: "reasoning",
@@ -53,4 +52,4 @@ export const LongReasoning: Story = {
       },
     } as any,
   },
-};
+});

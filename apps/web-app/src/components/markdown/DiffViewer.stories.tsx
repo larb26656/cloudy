@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { DiffViewer } from "./DiffViewer";
 
-const meta: Meta<typeof DiffViewer> = {
+const meta = preview.meta({
   title: "Markdown/DiffViewer",
   component: DiffViewer,
   tags: ["autodocs"],
@@ -10,28 +10,32 @@ const meta: Meta<typeof DiffViewer> = {
       control: "text",
       description: "Git diff string to display",
     },
-    viewMode: {
-      control: "select",
-      options: ["side-by-side", "line-by-line"],
-      description: "View mode for the diff display",
+    filePath: {
+      control: "text",
+      description: "File path — drives language detection and header fallback",
     },
     title: {
       control: "text",
-      description: "Optional title for the diff",
+      description: "Optional title shown in the header (falls back to filePath)",
     },
-    fileNames: {
-      control: "object",
-      description: "Old and new file names",
+    viewMode: {
+      control: "select",
+      options: ["side-by-side", "line-by-line"],
+      description: "Controlled view mode — hides the toggle button when set",
     },
-    inline: {
+    defaultViewMode: {
+      control: "select",
+      options: ["side-by-side", "line-by-line"],
+      description: "Initial view mode when uncontrolled (toggle button visible)",
+    },
+    showLineNumbers: {
       control: "boolean",
-      description: "Render as inline (no container/wrapper)",
+      description: "Controlled line numbers — hides the toggle button when set",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof DiffViewer>;
 
 const sampleDiff = `diff --git a/src/index.ts b/src/index.ts
 index abc1234..def5678 100644
@@ -84,44 +88,101 @@ index abcdef12..34567890 100644
    );
  }`;
 
-export const Default: Story = {
+const pythonDiff = `diff --git a/src/script.py b/src/script.py
+index 1111111..2222222 100644
+--- a/src/script.py
++++ b/src/script.py
+@@ -1,7 +1,10 @@
+-def greet(name):
+-    print("Hello, " + name)
++def greet(name, greeting="Hello"):
++    print(f"{greeting}, {name}!")
+ 
+-greet("World")
++def main():
++    greet("World")
++    greet("Alice", greeting="Hi")
++
++main()`;
+
+// ---------------------------------------------------------------------------
+// Uncontrolled — toggle buttons visible
+// ---------------------------------------------------------------------------
+
+export const Default = meta.story({
   args: {
     diff: sampleDiff,
+    filePath: "src/index.ts",
+  },
+});
+
+export const LineByLine = meta.story({
+  args: {
+    diff: sampleDiff,
+    filePath: "src/index.ts",
+    defaultViewMode: "line-by-line",
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Controlled — toggle buttons hidden
+// ---------------------------------------------------------------------------
+
+export const ControlledSideBySide = meta.story({
+  args: {
+    diff: sampleDiff,
+    filePath: "src/index.ts",
     viewMode: "side-by-side",
   },
-};
+});
 
-export const LineByLine: Story = {
+export const ControlledLineByLine = meta.story({
   args: {
     diff: sampleDiff,
+    filePath: "src/index.ts",
     viewMode: "line-by-line",
   },
-};
+});
 
-export const WithTitle: Story = {
+export const WithLineNumbers = meta.story({
   args: {
     diff: sampleDiff,
-    title: "src/index.ts changes",
-    viewMode: "side-by-side",
+    filePath: "src/index.ts",
+    showLineNumbers: true,
   },
-};
+});
 
-export const WithFileNames: Story = {
+// ---------------------------------------------------------------------------
+// Header & language detection
+// ---------------------------------------------------------------------------
+
+export const WithTitle = meta.story({
   args: {
     diff: sampleDiff,
-    fileNames: { old: "src/index.ts", new: "src/App.tsx" },
-    viewMode: "side-by-side",
+    filePath: "src/index.ts",
+    title: "src/index.ts — React state refactor",
   },
-};
+});
 
-export const MultiFileDiff: Story = {
+export const PythonFile = meta.story({
+  args: {
+    diff: pythonDiff,
+    filePath: "src/script.py",
+  },
+});
+
+// ---------------------------------------------------------------------------
+// Edge cases
+// ---------------------------------------------------------------------------
+
+export const MultiFileDiff = meta.story({
   args: {
     diff: multiFileDiff,
-    viewMode: "side-by-side",
+    filePath: "package.json",
   },
-};
+});
 
-export const SmallDiff: Story = {
+export const SmallDiff = meta.story({
   args: {
     diff: `diff --git a/README.md b/README.md
 index 1234567..89abcdef 100644
@@ -132,11 +193,12 @@ index 1234567..89abcdef 100644
 +# New Title
  
  This is the content of the file.`,
-    viewMode: "line-by-line",
+    filePath: "README.md",
+    defaultViewMode: "line-by-line",
   },
-};
+});
 
-export const AdditionOnly: Story = {
+export const AdditionOnly = meta.story({
   args: {
     diff: `diff --git a/src/utils.ts b/src/utils.ts
 index 0000000..1234567 100644
@@ -148,11 +210,11 @@ index 0000000..1234567 100644
 +  return true;
 +}
 +`,
-    viewMode: "side-by-side",
+    filePath: "src/utils.ts",
   },
-};
+});
 
-export const DeletionOnly: Story = {
+export const DeletionOnly = meta.story({
   args: {
     diff: `diff --git a/src/old.ts b/src/old.ts
 index 1234567..0000000 100644
@@ -164,21 +226,6 @@ index 1234567..0000000 100644
 -  return false;
 -}
 -`,
-    viewMode: "side-by-side",
+    filePath: "src/old.ts",
   },
-};
-
-export const Inline: Story = {
-  args: {
-    diff: sampleDiff,
-    inline: true,
-  },
-};
-
-export const InlineLineByLine: Story = {
-  args: {
-    diff: sampleDiff,
-    viewMode: "line-by-line",
-    inline: true,
-  },
-};
+});

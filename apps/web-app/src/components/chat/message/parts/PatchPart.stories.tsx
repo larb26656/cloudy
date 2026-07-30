@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { PatchPart } from "./PatchPart";
 
-const meta: Meta<typeof PatchPart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/PatchPart",
   component: PatchPart,
   tags: ["autodocs"],
@@ -11,12 +11,11 @@ const meta: Meta<typeof PatchPart> = {
       description: "Patch part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof PatchPart>;
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     part: {
       type: "patch",
@@ -24,9 +23,9 @@ export const Default: Story = {
       files: [],
     } as any,
   },
-};
+});
 
-export const WithFiles: Story = {
+export const WithFiles = meta.story({
   args: {
     part: {
       type: "patch",
@@ -34,4 +33,4 @@ export const WithFiles: Story = {
       files: ["src/App.tsx", "src/index.ts", "package.json"],
     } as any,
   },
-};
+});

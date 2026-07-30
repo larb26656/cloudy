@@ -1,16 +1,15 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { useState } from "react";
 import { FileUpdateViewer } from "./index";
 import type { FileItem } from "./index";
 
-const meta: Meta<typeof FileUpdateViewer> = {
+const meta = preview.meta({
   title: "FileViewer/FileUpdateViewer",
   component: FileUpdateViewer,
   tags: ["autodocs"],
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof FileUpdateViewer>;
 
 const createModeFiles: FileItem[] = [
   {
@@ -145,42 +144,42 @@ function InteractiveStory({
   );
 }
 
-export const Default: Story = {
+export const Default = meta.story({
   render: () => <InteractiveStory files={mixedModeFiles} defaultSelected="config.json" />,
-};
+});
 
-export const CreateMode: Story = {
+export const CreateMode = meta.story({
   render: () => <InteractiveStory files={createModeFiles} defaultSelected="README.md" />,
-};
+});
 
-export const CreateModeIndexSelected: Story = {
+export const CreateModeIndexSelected = meta.story({
   render: () => <InteractiveStory files={createModeFiles} defaultSelected="index.ts" />,
-};
+});
 
-export const EditMode: Story = {
+export const EditMode = meta.story({
   render: () => <InteractiveStory files={editModeFiles} defaultSelected="README.md" />,
-};
+});
 
-export const EditModeIndexSelected: Story = {
+export const EditModeIndexSelected = meta.story({
   render: () => <InteractiveStory files={editModeFiles} defaultSelected="index.ts" />,
-};
+});
 
-export const MixedMode: Story = {
+export const MixedMode = meta.story({
   render: () => <InteractiveStory files={mixedModeFiles} defaultSelected="config.json" />,
-};
+});
 
-export const EmptyFiles: Story = {
+export const EmptyFiles = meta.story({
   render: () => (
     <div className="h-[500px] border rounded-lg overflow-hidden">
       <FileUpdateViewer files={[]} />
     </div>
   ),
-};
+});
 
-export const NoFileSelected: Story = {
+export const NoFileSelected = meta.story({
   render: () => (
     <div className="h-[500px] border rounded-lg overflow-hidden">
       <FileUpdateViewer files={createModeFiles} />
     </div>
   ),
-};
+});

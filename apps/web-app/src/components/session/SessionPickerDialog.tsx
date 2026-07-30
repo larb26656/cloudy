@@ -8,7 +8,6 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@/components/ui/command";
 import { useSessions } from "@/hooks/queries/useSessions";
 import { formatRelativeFromTimestamp } from "@/lib/format";

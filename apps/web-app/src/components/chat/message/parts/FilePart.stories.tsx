@@ -1,7 +1,7 @@
-import type { Meta, StoryObj } from "@storybook/react";
+import preview from "@/storybook/preview";
 import { FilePart } from "./FilePart";
 
-const meta: Meta<typeof FilePart> = {
+const meta = preview.meta({
   title: "Chat/Message/Parts/FilePart",
   component: FilePart,
   tags: ["autodocs"],
@@ -11,12 +11,11 @@ const meta: Meta<typeof FilePart> = {
       description: "File part data from SDK",
     },
   },
-};
+});
 
 export default meta;
-type Story = StoryObj<typeof FilePart>;
 
-export const Default: Story = {
+export const Default = meta.story({
   args: {
     part: {
       type: "file",
@@ -25,9 +24,9 @@ export const Default: Story = {
       url: "",
     } as any,
   },
-};
+});
 
-export const WithMime: Story = {
+export const WithMime = meta.story({
   args: {
     part: {
       type: "file",
@@ -36,9 +35,9 @@ export const WithMime: Story = {
       url: "",
     } as any,
   },
-};
+});
 
-export const WithFileSource: Story = {
+export const WithFileSource = meta.story({
   args: {
     part: {
       type: "file",
@@ -56,9 +55,9 @@ export const WithFileSource: Story = {
       },
     } as any,
   },
-};
+});
 
-export const WithSymbolSource: Story = {
+export const WithSymbolSource = meta.story({
   args: {
     part: {
       type: "file",
@@ -76,4 +75,4 @@ export const WithSymbolSource: Story = {
       },
     } as any,
   },
-};
+});
