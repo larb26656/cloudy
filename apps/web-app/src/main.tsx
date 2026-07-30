@@ -8,6 +8,7 @@ import { TooltipProvider } from "./components/ui/tooltip";
 import { Toaster } from "./components/ui/sonner";
 import { QueryProvider } from "./providers/QueryProvider";
 import { ThemeProvider } from "./providers/ThemeProvider";
+import { GlobalEventProvider } from "./providers";
 
 export const isModeElectron = false;
 
@@ -26,8 +27,10 @@ if (!rootElement.innerHTML) {
       <ThemeProvider>
         <QueryProvider>
           <TooltipProvider>
-            <RouterProvider router={router} />
-            <Toaster />
+            <GlobalEventProvider>
+              <RouterProvider router={router} />
+              <Toaster />
+            </GlobalEventProvider>
           </TooltipProvider>
         </QueryProvider>
       </ThemeProvider>

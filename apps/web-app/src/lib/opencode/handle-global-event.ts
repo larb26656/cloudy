@@ -1,7 +1,6 @@
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import {
-  getOcClient,
   messageKeys,
   permissionKeys,
   questionKeys,
@@ -10,7 +9,6 @@ import {
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
 import type { GlobalEvent, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import type { Message } from "@/types";
-import { useEffect } from "react";
 
 const KNOWN_EVENT_TYPES = new Set<string>([
   "session.updated",
@@ -145,40 +143,4 @@ export function handleEvent(
       break;
     }
   }
-}
-
-let nextId = 0;
-export function useGlobalEvent() {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const id = ++nextId;
-    let cancelled = false;
-    let stream: AsyncGenerator<GlobalEvent> | undefined;
-
-    (async () => {
-      const oc = getOcClient();
-      const { stream: s } = await oc.global.event();
-
-      console.log(`[${id}] connected`);
-
-      if (cancelled) {
-        console.log(`[${id}] cancelled before connected`);
-        await s.return(undefined);
-        return;
-      }
-
-      stream = s;
-
-      for await (const event of stream) {
-        handleEvent(event, queryClient);
-      }
-    })();
-
-    return () => {
-      console.log(`[${id}] unsub`);
-      cancelled = true;
-      void stream?.return(undefined);
-    };
-  }, [queryClient]);
 }

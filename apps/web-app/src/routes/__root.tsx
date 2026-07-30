@@ -1,11 +1,16 @@
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { ErrorState, NotFound } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
-import { useGlobalEvent } from "@/hooks";
+import { useGlobalEvent } from "@/providers";
 
 function RootComponent() {
-  useGlobalEvent();
-  return <Outlet />;
+  const { status } = useGlobalEvent();
+  return (
+    <div>
+      <h1>Status: {status}</h1>
+      <Outlet />
+    </div>
+  );
 }
 
 export const Route = createRootRoute({

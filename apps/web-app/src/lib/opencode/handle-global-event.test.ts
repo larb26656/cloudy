@@ -1,8 +1,8 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
-import { handleEvent } from "./useGlobalEvent";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import {
+  handleEvent,
   messageKeys,
   permissionKeys,
   questionKeys,
