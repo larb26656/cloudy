@@ -109,40 +109,57 @@ export const MessageList = memo(function MessageList({
   const rowVirtualizer = useVirtualizer({
     count: items.length,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => 160,
+    estimateSize: () => 400,
     overscan: 6,
     getItemKey: (index) => items[index]?.key ?? `empty-${index}`,
+    anchorTo: "end",
+    followOnAppend: true,
+    scrollEndThreshold: 500,
+    useFlushSync: false,
   });
 
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = "smooth") => {
+  const scrollToBottom = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior });
-  }, []);
 
-  const scrollToBottomIfStuck = useCallback(() => {
-    if (!stickToBottomRef.current) return;
-    scrollToBottom("instant");
-  }, [scrollToBottom]);
+    rowVirtualizer.scrollToEnd();
+  }, [rowVirtualizer]);
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
+
     if (!el) return;
-    const isAtBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+
+    const remaining =
+      rowVirtualizer.getTotalSize() - (el.scrollTop + el.clientHeight);
+
+    const isAtBottom = remaining < 500;
+
     stickToBottomRef.current = isAtBottom;
-    setShowScrollButton(!isAtBottom);
-  }, []);
+
+    setShowScrollButton((prev) => (prev !== !isAtBottom ? !isAtBottom : prev));
+  }, [rowVirtualizer]);
+
+  const hasInitialScrollRef = useRef(false);
+
+  // init scroll at first time
+  useEffect(() => {
+    if (hasInitialScrollRef.current) return;
+    if (items.length === 0) return;
+
+    hasInitialScrollRef.current = true;
+
+    requestAnimationFrame(() => {
+      rowVirtualizer.scrollToEnd();
+    });
+  }, [items.length, rowVirtualizer]);
+
+  // reset init scroll
+  useEffect(() => {
+    hasInitialScrollRef.current = false;
+  }, [selectedSessionId]);
 
   const virtualItems = rowVirtualizer.getVirtualItems();
-
-  // --- Stick-to-bottom when new items appear (e.g. streaming starts) ---
-  useEffect(() => {
-    if (!stickToBottomRef.current) return;
-    rowVirtualizer.scrollToIndex(items.length - 1, {
-      align: "end",
-      behavior: "instant",
-    });
-  }, [items, rowVirtualizer]);
 
   if (isLoading) {
     return (
@@ -184,7 +201,6 @@ export const MessageList = memo(function MessageList({
           <StreamingMessageBubble
             sessionId={item.sessionId}
             messageId={item.messageId}
-            onContentChange={scrollToBottomIfStuck}
           />
         );
       case "retry":
@@ -244,7 +260,7 @@ export const MessageList = memo(function MessageList({
       {showScrollButton && (
         <div className="absolute bottom-4 mx-auto w-full">
           <button
-            onClick={() => scrollToBottom("smooth")}
+            onClick={scrollToBottom}
             className="mx-auto w-10 h-10 rounded-full bg-primary dark:bg-muted text-primary-foreground dark:text-muted-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
             aria-label="Scroll to bottom"
           >
