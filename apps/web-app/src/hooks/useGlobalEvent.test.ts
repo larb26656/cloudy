@@ -1,6 +1,6 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
-import { handleEvent } from "./useStreamingMessages";
+import { handleEvent } from "./useGlobalEvent";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import {
   messageKeys,
@@ -97,7 +97,11 @@ describe("handleEvent", () => {
 
       handleEvent(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        buildEvent({ id: "evt_1", type: "unknown.event", properties: {} } as any),
+        buildEvent({
+          id: "evt_1",
+          type: "unknown.event",
+          properties: {},
+        } as any),
         queryClient,
       );
 
@@ -217,10 +221,9 @@ describe("handleEvent", () => {
         queryClient,
       );
 
-      const data =
-        queryClient.getQueryData<
-          InfiniteData<Message[], string | undefined>
-        >(messageKeys.infinite(SESSION_ID));
+      const data = queryClient.getQueryData<
+        InfiniteData<Message[], string | undefined>
+      >(messageKeys.infinite(SESSION_ID));
       expect(data?.pages[0]).toHaveLength(1);
       expect(data?.pages[0][0].info.id).toBe(MESSAGE_ID);
 
@@ -297,10 +300,9 @@ describe("handleEvent", () => {
         queryClient,
       );
 
-      const data =
-        queryClient.getQueryData<
-          InfiniteData<Message[], string | undefined>
-        >(messageKeys.infinite(SESSION_ID));
+      const data = queryClient.getQueryData<
+        InfiniteData<Message[], string | undefined>
+      >(messageKeys.infinite(SESSION_ID));
       expect(data?.pages[0]).toHaveLength(2);
     });
   });

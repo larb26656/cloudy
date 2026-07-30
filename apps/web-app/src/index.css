@@ -178,6 +178,17 @@
   font-family: "Maitree", serif;
 }
 
+/* streamdown markdown list fix — [li_&]:pl-6 typo + list-inside not taking effect upstream */
+[data-streamdown="unordered-list"],
+[data-streamdown="ordered-list"] {
+  list-style-position: inside;
+  padding-left: 1.5rem;
+}
+
+[data-streamdown="list-item"] {
+  padding-left: 0;
+}
+
 /* input editor */
 
 .input-chat {
