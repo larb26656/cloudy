@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 
-type ServerStatus = "PENDING" | "CONNETED" | "DISCONNECTED";
+export type ServerStatus = "PENDING" | "CONNETED" | "DISCONNECTED";
 
 interface GlobalEventType {
   status: ServerStatus;
@@ -58,7 +58,7 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
 
       heartbeatTimer = setTimeout(() => {
         setStatus("DISCONNECTED");
-      }, 30000);
+      }, 10000);
     };
 
     const id = ++nextId;

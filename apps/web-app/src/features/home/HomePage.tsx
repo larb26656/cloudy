@@ -3,8 +3,11 @@ import { MainTabBar } from "./components/MainTabBar";
 import { HomeContent } from "./HomeContent";
 import { tabTypeMap } from "./tabs/template";
 import { ErrorState } from "@/components/ui/error-state";
+import { useGlobalEvent } from "@/providers";
+import { StatusBar } from "./components/StatusBar";
 
 export default function HomePage() {
+  const { status } = useGlobalEvent();
   const activeTabId = useTabStore((s) => s.activeTabId);
   const tabs = useTabStore((s) => s.tabs);
   const removeTab = useTabStore((s) => s.removeTab);
@@ -13,11 +16,7 @@ export default function HomePage() {
     <div className="flex flex-col h-dvh w-full overflow-hidden bg-background">
       <MainTabBar />
       <div className="flex-1 overflow-hidden">
-        <div
-          className={
-            activeTabId === "home" ? "h-full" : "hidden"
-          }
-        >
+        <div className={activeTabId === "home" ? "h-full" : "hidden"}>
           <HomeContent />
         </div>
         {tabs.map((tab) => {
@@ -43,6 +42,7 @@ export default function HomePage() {
           );
         })}
       </div>
+      <StatusBar status={status} />
     </div>
   );
 }
