@@ -66,12 +66,15 @@ export const MessageList = memo(function MessageList({
   const [showScrollButton, setShowScrollButton] = useState(false);
 
   const handleScroll = () => {
-    if (scrollRef.current) {
-      const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
-      const isAtBottom = scrollHeight - scrollTop - clientHeight < 500;
+    const el = scrollRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const hasScroll = scrollHeight > clientHeight;
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 500;
+    if (hasScroll) {
       shouldScrollRef.current = isAtBottom;
-      setShowScrollButton(!isAtBottom);
     }
+    setShowScrollButton(hasScroll && !isAtBottom);
   };
 
   const scrollToBottom = () => {
