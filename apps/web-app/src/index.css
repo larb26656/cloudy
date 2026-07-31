@@ -225,6 +225,19 @@
   height: 100dvh;
 }
 
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+@utility pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
 .scrollbar-none {
   -webkit-scrollbar { display: none !important; }
   scrollbar-width: none !important;

@@ -1,16 +1,13 @@
 import { Check, ListTodo } from "lucide-react";
-import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
+import { ExpandableToolCard } from "./ExpandableToolCard";
 import { ToolValueRenderer } from "./ToolValueRenderer";
+import type { ToolComponentProps } from "./types";
 
 interface TodoItem {
   content: string;
   status?: "pending" | "in_progress" | "completed" | "cancelled";
   priority?: "low" | "medium" | "high";
-}
-
-interface TodoToolInputProps {
-  input: Record<string, unknown>;
 }
 
 function TodoItems({
@@ -79,49 +76,48 @@ function TodoItems({
   );
 }
 
-export function Detail({ input }: TodoToolInputProps) {
+export function TodoTool({ state }: ToolComponentProps) {
+  const input = state.input;
   const todos = input.todos as TodoItem[] | undefined;
   const content = input.content as string | undefined;
 
   return (
-    <div className="space-y-1.5 mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-md">
-      <div className="flex items-center gap-1.5 text-xs font-medium text-purple-700 dark:text-purple-300">
-        <ListTodo className="size-3" />
-        <span>Todo</span>
-      </div>
-      {content && (
-        <div className="text-xs">
-          <span className="text-muted-foreground">content:</span>{" "}
-          <span className="font-medium">{content}</span>
+    <ExpandableToolCard
+      tool="todowrite"
+      state={state}
+      preview={
+        todos && todos.length > 0 ? (
+          <div className="space-y-1">
+            <ToolPreviewLabel
+              icon={<ListTodo className="size-3" />}
+              label={content || "Todo"}
+            />
+            <div className="pl-4">
+              <TodoItems todos={todos} maxItems={10} />
+            </div>
+          </div>
+        ) : (
+          <ToolPreviewLabel
+            icon={<ListTodo className="size-3" />}
+            label={content || "Creating todo..."}
+          />
+        )
+      }
+      detail={
+        <div className="space-y-1.5 mt-2 p-2 bg-purple-50 dark:bg-purple-900/20 rounded-md">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-purple-700 dark:text-purple-300">
+            <ListTodo className="size-3" />
+            <span>Todo</span>
+          </div>
+          {content && (
+            <div className="text-xs">
+              <span className="text-muted-foreground">content:</span>{" "}
+              <span className="font-medium">{content}</span>
+            </div>
+          )}
+          {todos && todos.length > 0 && <TodoItems todos={todos} showBadges />}
         </div>
-      )}
-      {todos && todos.length > 0 && <TodoItems todos={todos} showBadges />}
-    </div>
-  );
-}
-
-export function Preview({ state }: { state: ToolPartType["state"] }) {
-  const todos = state.input.todos as TodoItem[] | undefined;
-  const content = state.input.content as string | undefined;
-
-  if (todos && todos.length > 0) {
-    return (
-      <div className="space-y-1">
-        <ToolPreviewLabel
-          icon={<ListTodo className="size-3" />}
-          label={content || "Todo"}
-        />
-        <div className="pl-4">
-          <TodoItems todos={todos} maxItems={10} />
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <ToolPreviewLabel
-      icon={<ListTodo className="size-3" />}
-      label={content || "Creating todo..."}
+      }
     />
   );
 }

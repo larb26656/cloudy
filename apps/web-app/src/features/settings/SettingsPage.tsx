@@ -12,7 +12,7 @@ const settingsTabs = [
 
 export function SettingsPage() {
   return (
-    <div className="flex h-dvh w-full overflow-hidden bg-background">
+    <div className="flex h-full w-full overflow-hidden bg-background">
       <Tabs
         orientation="vertical"
         defaultValue="appearance"

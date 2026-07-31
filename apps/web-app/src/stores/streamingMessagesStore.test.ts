@@ -37,7 +37,10 @@ const createMockMessage = (overrides: Partial<Message> = {}): Message => ({
 
 describe("streamingMessagesStore", () => {
   beforeEach(() => {
-    useStreamingMessagesStore.setState({ streamingMessages: new Map() });
+    useStreamingMessagesStore.setState({
+      streamingMessages: new Map(),
+      pendingDeltas: new Map(),
+    });
   });
 
   describe("initial state", () => {
@@ -225,26 +228,19 @@ describe("streamingMessagesStore", () => {
       expect((result.parts[0] as { text: string }).text).toBe("Hello, world!");
     });
 
-    test("creates skeleton message and placeholder text part when nothing exists", () => {
-      useStreamingMessagesStore.setState({ streamingMessages: new Map() });
+    test("buffers delta in pendingDeltas when nothing exists", () => {
+      useStreamingMessagesStore.setState({ streamingMessages: new Map(), pendingDeltas: new Map() });
 
       useStreamingMessagesStore
         .getState()
         .onMessagePartDeltaUpdated("session_orphan", "msg_orphan", "part_orphan", "Hello");
 
       const state = useStreamingMessagesStore.getState();
-      const sessionMap = state.streamingMessages.get("session_orphan");
-      expect(sessionMap).toBeInstanceOf(Map);
-      const created = sessionMap!.get("msg_orphan");
-      expect(created).toBeDefined();
-      expect(created!.info.id).toBe("msg_orphan");
-      expect(created!.parts).toHaveLength(1);
-      expect(created!.parts[0].id).toBe("part_orphan");
-      expect(created!.parts[0].type).toBe("text");
-      expect((created!.parts[0] as { text: string }).text).toBe("Hello");
+      expect(state.streamingMessages.size).toBe(0);
+      expect(state.pendingDeltas.get("part_orphan")).toBe("Hello");
     });
 
-    test("appends delta as new text part when message exists but part does not", () => {
+    test("buffers delta in pendingDeltas when message exists but part does not", () => {
       const message = createMockMessage({
         info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
         parts: [],
@@ -254,6 +250,7 @@ describe("streamingMessagesStore", () => {
         streamingMessages: new Map([
           ["session_1", new Map([["msg_1", message]])],
         ]),
+        pendingDeltas: new Map(),
       });
 
       useStreamingMessagesStore
@@ -262,9 +259,8 @@ describe("streamingMessagesStore", () => {
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
-      expect(result.parts).toHaveLength(1);
-      expect(result.parts[0].type).toBe("text");
-      expect((result.parts[0] as { text: string }).text).toBe("Hello");
+      expect(result.parts).toHaveLength(0);
+      expect(state.pendingDeltas.get("part_new")).toBe("Hello");
     });
 
     test("returns state unchanged when part not found", () => {
@@ -286,7 +282,7 @@ describe("streamingMessagesStore", () => {
       expect((result.parts[0] as { text: string }).text).toBe("Hello");
     });
 
-    test("handles non-text part gracefully (no-op)", () => {
+    test("appends delta to existing reasoning part", () => {
       const reasoningPart: Part = {
         id: "reasoning_1",
         sessionID: "session_1",
@@ -305,13 +301,47 @@ describe("streamingMessagesStore", () => {
         streamingMessages: new Map([
           ["session_1", new Map([["msg_1", message]])],
         ]),
+        pendingDeltas: new Map(),
       });
 
       useStreamingMessagesStore.getState().onMessagePartDeltaUpdated("session_1", "msg_1", "reasoning_1", " more");
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
-      expect(result.parts[0]).toEqual(reasoningPart);
+      expect((result.parts[0] as { text: string }).text).toBe("thinking... more");
+    });
+
+    test("flushes pending delta when reasoning part arrives via onMessagePartUpdated", () => {
+      const message = createMockMessage({
+        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        parts: [],
+      });
+
+      useStreamingMessagesStore.setState({
+        streamingMessages: new Map([
+          ["session_1", new Map([["msg_1", message]])],
+        ]),
+        pendingDeltas: new Map([["reasoning_1", "buffered thought"]]),
+      });
+
+      const reasoningPart: Part = {
+        id: "reasoning_1",
+        sessionID: "session_1",
+        messageID: "msg_1",
+        type: "reasoning",
+        text: "base",
+        time: { start: Date.now() },
+      } as const;
+
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartUpdated("session_1", reasoningPart);
+
+      const state = useStreamingMessagesStore.getState();
+      const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
+      expect(result.parts).toHaveLength(1);
+      expect((result.parts[0] as { text: string }).text).toBe("basebuffered thought");
+      expect(state.pendingDeltas.has("reasoning_1")).toBe(false);
     });
   });
 

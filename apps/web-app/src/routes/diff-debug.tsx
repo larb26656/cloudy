@@ -31,7 +31,7 @@ function DiffDebugPage() {
   const [counter, setCounter] = useState(0);
 
   return (
-    <div className="min-h-screen bg-[#1e1e1e] p-8">
+    <div className="h-full overflow-auto bg-[#1e1e1e] p-8">
       <h1 className="text-white text-2xl mb-4">DiffViewer Debug</h1>
       <button
         onClick={() => setCounter((n) => n + 1)}

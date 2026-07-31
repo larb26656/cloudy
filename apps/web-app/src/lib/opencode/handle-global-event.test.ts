@@ -418,7 +418,7 @@ describe("handleEvent", () => {
   });
 
   describe("message.part.delta", () => {
-    test("buffers delta into streaming store", () => {
+    test("buffers delta into pendingDeltas when part does not exist", () => {
       handleEvent(
         buildEvent({
           id: "evt_1",
@@ -435,10 +435,7 @@ describe("handleEvent", () => {
       );
 
       const state = useStreamingMessagesStore.getState();
-      const buffered = state.streamingMessages.get(SESSION_ID)?.get(MESSAGE_ID);
-      expect(buffered).toBeDefined();
-      expect(buffered!.parts).toHaveLength(1);
-      expect(buffered!.parts[0].id).toBe("part_delta");
+      expect(state.pendingDeltas.get("part_delta")).toBe("Hello world");
     });
   });
 

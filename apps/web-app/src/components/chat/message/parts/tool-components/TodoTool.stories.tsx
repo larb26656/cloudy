@@ -1,14 +1,17 @@
 import preview from "@/storybook/preview";
-import { Detail, Preview } from "./TodoToolInput";
+import { TodoTool } from "./TodoTool";
 
 const meta = preview.meta({
-  title: "Chat/Message/Parts/ToolComponents/TodoToolInput",
-  component: Preview,
+  title: "Chat/Message/Parts/ToolComponents/TodoTool",
+  component: TodoTool,
   tags: ["autodocs"],
-});
-
-const detailMeta = preview.meta({
-  component: Detail,
+  argTypes: {
+    tool: { control: "text", description: "Tool name" },
+    state: {
+      control: "object",
+      description: "Tool state from SDK",
+    },
+  },
 });
 
 export default meta;
@@ -46,13 +49,9 @@ const todos = [
   },
 ];
 
-// ----------------------------------------------------------------------------
-// Preview stories
-// ----------------------------------------------------------------------------
-
-export const PreviewFullList = meta.story({
-  name: "Preview - Full List",
+export const FullList = meta.story({
   args: {
+    tool: "todowrite",
     state: {
       status: "completed",
       input: {
@@ -63,9 +62,10 @@ export const PreviewFullList = meta.story({
   },
 });
 
-export const PreviewPending = meta.story({
-  name: "Preview - Pending (creating)",
+export const Pending = meta.story({
+  name: "Pending (creating)",
   args: {
+    tool: "todowrite",
     state: {
       status: "pending",
       input: {
@@ -75,9 +75,9 @@ export const PreviewPending = meta.story({
   },
 });
 
-export const PreviewAllCompleted = meta.story({
-  name: "Preview - All Completed",
+export const AllCompleted = meta.story({
   args: {
+    tool: "todowrite",
     state: {
       status: "completed",
       input: {
@@ -87,9 +87,10 @@ export const PreviewAllCompleted = meta.story({
   },
 });
 
-export const PreviewManyTodos = meta.story({
-  name: "Preview - Many Todos (truncated)",
+export const ManyTodos = meta.story({
+  name: "Many Todos (truncated in preview)",
   args: {
+    tool: "todowrite",
     state: {
       status: "running",
       input: {
@@ -103,9 +104,10 @@ export const PreviewManyTodos = meta.story({
   },
 });
 
-export const PreviewMinimal = meta.story({
-  name: "Preview - Minimal (single todo)",
+export const Minimal = meta.story({
+  name: "Minimal (single todo)",
   args: {
+    tool: "todowrite",
     state: {
       status: "completed",
       input: {
@@ -119,52 +121,6 @@ export const PreviewMinimal = meta.story({
     } as any,
   },
 });
-
-// ----------------------------------------------------------------------------
-// Detail stories
-// ----------------------------------------------------------------------------
-
-export const DetailFullList = detailMeta.story({
-  name: "Detail - Full List",
-  args: {
-    input: {
-      content: "Plan: Implement auth feature",
-      todos,
-    },
-  },
-});
-
-export const DetailContentOnly = detailMeta.story({
-  name: "Detail - Content Only",
-  args: {
-    input: {
-      content: "Planning next steps...",
-    },
-  },
-});
-
-export const DetailNoPriority = detailMeta.story({
-  name: "Detail - Without Priority",
-  args: {
-    input: {
-      todos: [
-        { content: "Task without priority", status: "pending" },
-        { content: "Another task", status: "in_progress" },
-      ],
-    },
-  },
-});
-
-export const DetailEmpty = detailMeta.story({
-  name: "Detail - Empty",
-  args: {
-    input: {},
-  },
-});
-
-// ----------------------------------------------------------------------------
-// Narrow container + long text
-// ----------------------------------------------------------------------------
 
 const longTodos = [
   {
@@ -187,14 +143,15 @@ const longTodos = [
   },
 ];
 
-export const PreviewNarrowLongText = meta.story({
-  name: "Preview - Narrow Container + Long Text",
-  render: (args: React.ComponentProps<typeof Preview>) => (
+export const NarrowContainerLongText = meta.story({
+  name: "Narrow Container + Long Text",
+  render: (args: React.ComponentProps<typeof TodoTool>) => (
     <div className="w-56 border border-dashed border-muted-foreground/30 rounded p-2">
-      <Preview {...args} />
+      <TodoTool {...args} />
     </div>
   ),
   args: {
+    tool: "todowrite",
     state: {
       status: "running",
       input: {
@@ -202,20 +159,5 @@ export const PreviewNarrowLongText = meta.story({
         todos: longTodos,
       },
     } as any,
-  },
-});
-
-export const DetailNarrowLongText = detailMeta.story({
-  name: "Detail - Narrow Container + Long Text",
-  render: (args: React.ComponentProps<typeof Detail>) => (
-    <div className="w-56 border border-dashed border-muted-foreground/30 rounded p-2">
-      <Detail {...args} />
-    </div>
-  ),
-  args: {
-    input: {
-      content: "Refactoring auth and session management system overhaul",
-      todos: longTodos,
-    },
   },
 });

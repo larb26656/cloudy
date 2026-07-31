@@ -4,9 +4,16 @@ import type { Part } from "@opencode-ai/sdk/v2";
 
 interface StreamingMessagesStore {
   streamingMessages: Map<string, Map<string, Message>>;
+  pendingDeltas: Map<string, string>;
   onMessageInfoUpdated: (sessionId: string, message: Message) => void;
   onMessagePartUpdated: (sessionId: string, part: Part) => void;
-  onMessagePartDeltaUpdated: (sessionId: string, msessageId: string, partId: string, delta: string) => void;
+  onMessagePartDeltaUpdated: (
+    sessionId: string,
+    messageId: string,
+    partId: string,
+    delta: string,
+    field?: string,
+  ) => void;
   takeSessionStreaming: (sessionId: string) => Message[];
 }
 
@@ -40,6 +47,7 @@ function getOrCreateMessage(
 export const useStreamingMessagesStore = create<StreamingMessagesStore>(
   (set) => ({
     streamingMessages: new Map(),
+    pendingDeltas: new Map(),
 
     onMessageInfoUpdated: (sessionId, message) => {
       set((state) => {
@@ -66,11 +74,17 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
           sessionId,
         );
 
+        const pending = state.pendingDeltas.get(part.id);
+        const mergedPart =
+          pending && (part.type === "text" || part.type === "reasoning")
+            ? { ...part, text: part.text + pending }
+            : part;
+
         const existingIdx = target.parts.findIndex((p) => p.id === part.id);
         const nextParts =
           existingIdx === -1
-            ? [...target.parts, part]
-            : target.parts.map((p, i) => (i === existingIdx ? part : p));
+            ? [...target.parts, mergedPart]
+            : target.parts.map((p, i) => (i === existingIdx ? mergedPart : p));
 
         const nextSessionMap = new Map(sessionMap).set(part.messageID, {
           ...target,
@@ -80,7 +94,11 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
           sessionId,
           nextSessionMap,
         );
-        return { streamingMessages: nextMap };
+
+        const nextPending = new Map(state.pendingDeltas);
+        nextPending.delete(part.id);
+
+        return { streamingMessages: nextMap, pendingDeltas: nextPending };
       });
     },
 
@@ -90,25 +108,20 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
         const target = getOrCreateMessage(sessionMap, messageId, sessionId);
 
         const existingIdx = target.parts.findIndex((p) => p.id === partId);
-        let nextParts: Part[];
+
         if (existingIdx === -1) {
-          const placeholder: Part = {
-            id: partId,
-            sessionID: sessionId,
-            messageID: messageId,
-            type: "text",
-            text: delta,
-          } as Part;
-          nextParts = [...target.parts, placeholder];
-        } else {
-          nextParts = target.parts.map((p, i) => {
-            if (i !== existingIdx) return p;
-            if (p.type === "text") {
-              return { ...p, text: p.text + delta };
-            }
-            return p;
-          });
+          const nextPending = new Map(state.pendingDeltas);
+          nextPending.set(partId, (nextPending.get(partId) ?? "") + delta);
+          return { streamingMessages: state.streamingMessages, pendingDeltas: nextPending };
         }
+
+        const nextParts = target.parts.map((p, i) => {
+          if (i !== existingIdx) return p;
+          if (p.type === "text" || p.type === "reasoning") {
+            return { ...p, text: p.text + delta };
+          }
+          return p;
+        });
 
         const nextSessionMap = new Map(sessionMap).set(messageId, {
           ...target,

@@ -121,6 +121,7 @@ export function handleEvent(
           props.messageID,
           props.partID,
           props.delta,
+          props.field,
         );
       break;
     }

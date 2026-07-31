@@ -13,7 +13,7 @@ export default function HomePage() {
   const removeTab = useTabStore((s) => s.removeTab);
 
   return (
-    <div className="flex flex-col h-dvh w-full overflow-hidden bg-background">
+    <div className="flex flex-col h-full w-full overflow-hidden bg-background">
       <MainTabBar />
       <div className="flex-1 overflow-hidden">
         <div className={activeTabId === "home" ? "h-full" : "hidden"}>

@@ -3,7 +3,11 @@ import { ErrorState, NotFound } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 
 function RootComponent() {
-  return <Outlet />;
+  return (
+    <div className="flex h-dvh w-full flex-col overflow-hidden bg-background pt-safe pb-safe">
+      <Outlet />
+    </div>
+  );
 }
 
 export const Route = createRootRoute({
