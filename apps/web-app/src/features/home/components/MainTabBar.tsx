@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Home, Plus } from "lucide-react";
 import {
   DndContext,
@@ -36,6 +36,9 @@ export function MainTabBar() {
   const addTab = useTabStore((s) => s.addTab);
   const reorderTabs = useTabStore((s) => s.reorderTabs);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const tabRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
   const [activeCreateDialog, setActiveCreateDialog] = useState<
     Tab["type"] | null
   >(null);
@@ -47,6 +50,31 @@ export function MainTabBar() {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
+
+  useEffect(() => {
+    if (!activeTabId || activeTabId === "home") return;
+
+    const container = containerRef.current;
+    const tabElement = tabRefs.current.get(activeTabId);
+
+    if (container && tabElement) {
+      const containerRect = container.getBoundingClientRect();
+      const tabRect = tabElement.getBoundingClientRect();
+
+      if (tabRect.left < containerRect.left) {
+        container.scrollTo({
+          left: container.scrollLeft + (tabRect.left - containerRect.left) - 16,
+          behavior: "smooth",
+        });
+      } else if (tabRect.right > containerRect.right) {
+        container.scrollTo({
+          left:
+            container.scrollLeft + (tabRect.right - containerRect.right) + 16,
+          behavior: "smooth",
+        });
+      }
+    }
+  });
 
   const handleMenuClick = (template: (typeof tabTemplates)[number]) => {
     if (template.CreateDialog) {
@@ -75,7 +103,7 @@ export function MainTabBar() {
     );
   };
 
-  const dragTab = dragId ? tabs.find((t) => t.id === dragId) ?? null : null;
+  const dragTab = dragId ? (tabs.find((t) => t.id === dragId) ?? null) : null;
 
   return (
     <>
@@ -111,11 +139,25 @@ export function MainTabBar() {
             items={tabs.map((t) => t.id)}
             strategy={horizontalListSortingStrategy}
           >
-            <div className="flex flex-1 overflow-x-auto scrollbar-none">
+            <div
+              ref={containerRef}
+              className="flex flex-1 overflow-x-auto scrollbar-none"
+            >
               {tabs.map((tab) => (
-                <SortableTab key={tab.id} id={tab.id}>
-                  {renderTabBar(tab, true)}
-                </SortableTab>
+                <div
+                  ref={(node) => {
+                    if (node) {
+                      tabRefs.current.set(tab.id, node);
+                    } else {
+                      tabRefs.current.delete(tab.id);
+                    }
+                  }}
+                  key={tab.id}
+                >
+                  <SortableTab id={tab.id}>
+                    {renderTabBar(tab, true)}
+                  </SortableTab>
+                </div>
               ))}
             </div>
           </SortableContext>
@@ -160,7 +202,9 @@ export function MainTabBar() {
             key={template.type}
             open={activeCreateDialog === template.type}
             onOpenChange={(next) => {
-              setActiveCreateDialog(next ? (template.type as Tab["type"]) : null);
+              setActiveCreateDialog(
+                next ? (template.type as Tab["type"]) : null,
+              );
             }}
           />
         );
