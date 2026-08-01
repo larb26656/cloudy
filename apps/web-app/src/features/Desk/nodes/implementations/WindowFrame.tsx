@@ -23,6 +23,7 @@ interface WindowFrameProps {
   children: React.ReactNode;
   className?: string;
   color?: string;
+  headerClassName?: string;
   headerAction?: React.ReactNode;
   actions?: WindowFrameAction[];
   workspaceId?: string;
@@ -39,6 +40,7 @@ export function WindowFrame({
   children,
   className,
   color,
+  headerClassName,
   headerAction,
   actions,
   workspaceId,
@@ -61,7 +63,12 @@ export function WindowFrame({
           className,
         )}
       >
-        <div className="flex items-center justify-between px-3 py-2 bg-muted border-b cursor-grab active:cursor-grabbing select-none shrink-0">
+        <div
+          className={cn(
+            "flex items-center justify-between px-3 py-2 bg-muted border-b cursor-grab active:cursor-grabbing select-none shrink-0",
+            headerClassName,
+          )}
+        >
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {headerAction}
             {workspaceId && <WorkspaceDot workspaceId={workspaceId} />}
