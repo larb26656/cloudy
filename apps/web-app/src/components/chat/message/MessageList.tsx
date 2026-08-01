@@ -101,7 +101,7 @@ export const MessageList = memo(function MessageList({
 
   return (
     <div className="relative flex-1 min-h-0">
-      <MessageScrollerProvider autoScroll defaultScrollPosition="last-anchor">
+      <MessageScrollerProvider autoScroll>
         <MessageScroller className="h-full">
           <MessageScrollerViewport>
             <MessageScrollerContent
