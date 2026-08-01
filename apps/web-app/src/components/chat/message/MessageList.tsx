@@ -1,4 +1,4 @@
-import { useMemo, memo, useEffect, useRef } from "react";
+import { useMemo, memo, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MessageBubble } from "./MessageBubble";
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
@@ -66,6 +66,30 @@ export const MessageList = memo(function MessageList({
     () => streamingIds.filter((id) => !remoteIdSet.has(id)),
     [streamingIds, remoteIdSet],
   );
+
+  // Unified, deduped list of message ids to render. A message id is either
+  // present in the remote cache (source of truth once streaming ends) or in the
+  // streaming store, never both (activeStreamingIds already excludes ids that
+  // landed in remoteIdSet). Rendering them as a single keyed list keeps the
+  // same `MessageScrollerItem` DOM node alive across the streaming -> remote
+  // transition, so the scroller's content childList does not mutate on swap and
+  // its anchor-detection logic (which would otherwise treat the user message's
+  // freshly-enabled scrollAnchor as a brand-new anchor and jump to it) never
+  // fires.
+  const displayItems = useMemo(() => {
+    const items: Array<
+      | { id: string; kind: "remote"; message: Message }
+      | { id: string; kind: "streaming" }
+    > = remoteMessages.map((m) => ({
+      id: m.info.id,
+      kind: "remote" as const,
+      message: m,
+    }));
+    for (const id of activeStreamingIds) {
+      items.push({ id, kind: "streaming" as const });
+    }
+    return items;
+  }, [remoteMessages, activeStreamingIds]);
 
   // Evict stale streaming entries: if a message id is present in both the
   // streaming store and the remote data, the stream is done but wasn't cleared
@@ -140,25 +164,25 @@ export const MessageList = memo(function MessageList({
                 </div>
               )}
 
-              {remoteMessages.map((message: Message) => (
+              {displayItems.map((item) => (
                 <MessageScrollerItem
-                  key={message.info.id}
-                  messageId={message.info.id}
-                  scrollAnchor={message.info.role === "user"}
+                  key={item.id}
+                  messageId={item.id}
+                  scrollAnchor={
+                    item.kind === "remote" &&
+                    item.message.info.role === "user"
+                  }
                 >
-                  <MessageBubble message={message} isStreaming={false} />
+                  {item.kind === "remote" ? (
+                    <MessageBubble message={item.message} isStreaming={false} />
+                  ) : (
+                    <StreamingMessageBubble
+                      sessionId={selectedSessionId ?? ""}
+                      messageId={item.id}
+                    />
+                  )}
                 </MessageScrollerItem>
               ))}
-
-              {selectedSessionId &&
-                activeStreamingIds.map((id) => (
-                  <MessageScrollerItem key={id} messageId={id}>
-                    <StreamingMessageBubble
-                      sessionId={selectedSessionId}
-                      messageId={id}
-                    />
-                  </MessageScrollerItem>
-                ))}
 
               {sessionStatus?.type === "retry" && (
                 <MessageScrollerItem messageId="__retry">
