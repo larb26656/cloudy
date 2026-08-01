@@ -1,4 +1,4 @@
-import { useMemo, memo } from "react";
+import { useMemo, memo, useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MessageBubble } from "./MessageBubble";
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
@@ -18,6 +18,7 @@ import {
   MessageScrollerContent,
   MessageScrollerItem,
   MessageScrollerButton,
+  useMessageScroller,
 } from "@/components/ui/message-scroller";
 
 interface MessageListProps {
@@ -25,6 +26,22 @@ interface MessageListProps {
   directory?: string;
   isShowEmptyState?: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
+}
+
+function ForceScrollOnSend({ streamingIds }: { streamingIds: string[] }) {
+  const { scrollToEnd } = useMessageScroller();
+  const prevIdsRef = useRef<string[]>(streamingIds);
+
+  useEffect(() => {
+    const prev = prevIdsRef.current;
+    const hasNew = streamingIds.some((id) => !prev.includes(id));
+    if (hasNew) {
+      scrollToEnd({ behavior: "smooth" });
+    }
+    prevIdsRef.current = streamingIds;
+  }, [streamingIds, scrollToEnd]);
+
+  return null;
 }
 
 export const MessageList = memo(function MessageList({
@@ -102,6 +119,7 @@ export const MessageList = memo(function MessageList({
   return (
     <div className="relative flex-1 min-h-0">
       <MessageScrollerProvider autoScroll>
+        <ForceScrollOnSend streamingIds={streamingIds} />
         <MessageScroller className="h-full">
           <MessageScrollerViewport>
             <MessageScrollerContent
