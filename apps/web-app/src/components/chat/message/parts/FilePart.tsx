@@ -4,6 +4,7 @@ import type {
 } from "@opencode-ai/sdk/v2";
 import { Paperclip } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { PathText } from "@/components/ui/path-text";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface FilePartProps {
@@ -17,16 +18,20 @@ interface FileSourceDisplayProps {
 function FileSourceDisplay({ source }: FileSourceDisplayProps) {
   if (source.type === "file") {
     return (
-      <div className="text-xs text-muted-foreground">
-        {source.path} ({source.text.start}-{source.text.end})
+      <div className="flex items-center gap-1 text-xs text-muted-foreground">
+        <PathText path={source.path} className="min-w-0 flex-1 font-mono" />
+        <span className="shrink-0">
+          ({source.text.start}-{source.text.end})
+        </span>
       </div>
     );
   }
 
   if (source.type === "symbol") {
     return (
-      <div className="text-xs text-muted-foreground">
-        {source.path}:{source.range.start.line + 1}
+      <div className="flex items-center gap-0.5 text-xs text-muted-foreground">
+        <PathText path={source.path} className="min-w-0 flex-1 font-mono" />
+        <span className="shrink-0">:{source.range.start.line + 1}</span>
       </div>
     );
   }

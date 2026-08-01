@@ -1,6 +1,7 @@
 import type { PatchPart as PatchPartType } from "@opencode-ai/sdk/v2";
 import { GitCommit } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { PathText } from "@/components/ui/path-text";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface PatchPartProps {
@@ -35,8 +36,8 @@ export function PatchPart({ part }: PatchPartProps) {
                 </div>
                 <ul className="text-xs space-y-1">
                   {part.files.map((file, index) => (
-                    <li key={index} className="font-mono truncate">
-                      {file}
+                    <li key={index} className="min-w-0">
+                      <PathText path={file} className="font-mono" />
                     </li>
                   ))}
                 </ul>

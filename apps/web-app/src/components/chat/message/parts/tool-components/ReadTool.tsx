@@ -1,4 +1,5 @@
 import { FileText } from "lucide-react";
+import { PathText } from "@/components/ui/path-text";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import { ExpandableToolCard } from "./ExpandableToolCard";
 import { ToolValueRenderer } from "./ToolValueRenderer";
@@ -15,7 +16,13 @@ export function ReadTool({ state }: ToolComponentProps) {
       preview={
         <ToolPreviewLabel
           icon={<FileText className="size-3" />}
-          label={filePath || "Reading file..."}
+          label={
+            filePath ? (
+              <PathText path={filePath} className="font-mono" />
+            ) : (
+              "Reading file..."
+            )
+          }
         />
       }
       detail={

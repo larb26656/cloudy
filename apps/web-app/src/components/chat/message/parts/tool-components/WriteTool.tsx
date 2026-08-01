@@ -1,5 +1,6 @@
 import { Files } from "lucide-react";
 import { CodeBlock } from "@/components/markdown/CodeBlock";
+import { PathText } from "@/components/ui/path-text";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import type { ToolComponentProps } from "./types";
 
@@ -18,7 +19,7 @@ export function WriteTool({ state }: ToolComponentProps) {
       {filePath && (
         <ToolPreviewLabel
           icon={<Files className="size-3" />}
-          label={`Path: ${filePath}`}
+          label={<PathText path={filePath} className="font-mono" />}
         />
       )}
     </div>

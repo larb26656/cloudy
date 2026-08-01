@@ -1,6 +1,7 @@
 import { Files } from "lucide-react";
 import { createTwoFilesPatch } from "diff";
 import { DiffViewer } from "@/components/markdown/DiffViewer";
+import { PathText } from "@/components/ui/path-text";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import type { ToolComponentProps } from "./types";
 
@@ -24,7 +25,7 @@ export function EditTool({ state }: ToolComponentProps) {
       {filePath && (
         <ToolPreviewLabel
           icon={<Files className="size-3" />}
-          label={`Path: ${filePath}`}
+          label={<PathText path={filePath} className="font-mono" />}
         />
       )}
     </div>
