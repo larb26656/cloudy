@@ -1,6 +1,7 @@
 import { MessageCircle, X } from "lucide-react";
 import { useSession } from "@/hooks/queries/useSessions";
 import type { Tab } from "@/features/home/tabs/template";
+import { WorkspaceDot } from "@/features/home/components/WorkspaceDot";
 import type { SessionData } from "./meta";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ export function SessionTabItem({
       <span className="[&>svg]:size-4">
         <MessageCircle />
       </span>
+      <WorkspaceDot workspaceId={tab.data.workspaceId} />
       <span className="text-[13px] max-w-30 truncate">{displayName}</span>
       <span
         onClick={(e) => {

@@ -1,5 +1,6 @@
 import { FileDiff, X } from "lucide-react";
 import type { Tab } from "@/stores/tabStore";
+import { WorkspaceDot } from "@/features/home/components/WorkspaceDot";
 import { cn } from "@/lib/utils";
 
 interface FilesTabItemProps {
@@ -10,6 +11,7 @@ interface FilesTabItemProps {
 }
 
 export function FilesTabItem({
+  tab,
   isActive,
   onClick,
   onClose,
@@ -27,6 +29,7 @@ export function FilesTabItem({
       <span className="[&>svg]:size-4">
         <FileDiff />
       </span>
+      <WorkspaceDot workspaceId={tab.data.workspaceId} />
       <span className="text-[13px] max-w-30 truncate">Changed Files</span>
       <span
         onClick={(e) => {

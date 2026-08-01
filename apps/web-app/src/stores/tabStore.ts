@@ -79,7 +79,34 @@ export const useTabStore = create<TabStore>()(
 
       clearAll: () => set({ tabs: [], activeTabId: "home" }),
     }),
-    { name: "tabs" },
+    {
+      name: "tabs",
+      version: 1,
+      migrate: (persistedState, version) => {
+        if (version >= 1) return persistedState;
+        const state = persistedState as
+          | { tabs?: Tab[]; activeTabId?: string }
+          | undefined;
+        if (!state?.tabs) return persistedState;
+        const filtered = state.tabs.filter(
+          (t) =>
+            !(
+              t.type === "files" &&
+              !(t.data as { workspaceId?: string } | undefined)?.workspaceId
+            ),
+        );
+        let activeTabId = state.activeTabId;
+        if (
+          activeTabId &&
+          activeTabId !== "home" &&
+          !filtered.some((t) => t.id === activeTabId)
+        ) {
+          activeTabId =
+            filtered.length > 0 ? filtered[filtered.length - 1]!.id : "home";
+        }
+        return { ...state, tabs: filtered, activeTabId };
+      },
+    },
   ),
 );
 

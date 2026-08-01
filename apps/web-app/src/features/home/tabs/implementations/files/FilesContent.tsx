@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { useVcsDiff } from "@/hooks/queries/useFiles";
@@ -12,10 +13,9 @@ interface FilesContentProps {
   tab: Extract<Tab, { type: "files" }>;
 }
 
-export function FilesContent({ tab: _tab }: FilesContentProps) {
-  const workspaceId = useWorkspaceStore((s) => s.selectedWorkspaceId);
+export function FilesContent({ tab }: FilesContentProps) {
   const workspace = useWorkspaceStore((s) =>
-    s.selectedWorkspaceId ? s.getWorkspace(s.selectedWorkspaceId) : undefined,
+    s.getWorkspace(tab.data.workspaceId),
   );
 
   const directory = workspace?.directory;
@@ -32,11 +32,11 @@ export function FilesContent({ tab: _tab }: FilesContentProps) {
     [data, selectedFile],
   );
 
-  if (!workspaceId || !directory) {
+  if (!workspace || !directory) {
     return (
-      <NoData
-        className="h-full"
-        description="Select a workspace to view its changed files."
+      <ErrorState
+        message="Workspace not found. Please close this tab."
+        onRetry={() => useTabStore.getState().removeTab(tab.id)}
       />
     );
   }
