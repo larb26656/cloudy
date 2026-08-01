@@ -3,6 +3,7 @@ import type { GlobalEvent } from "@opencode-ai/sdk/v2";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useState,
@@ -13,10 +14,12 @@ export type ServerStatus = "PENDING" | "CONNETED" | "DISCONNECTED";
 
 interface GlobalEventType {
   status: ServerStatus;
+  reconnect: () => void;
 }
 
 export const GlobalEventContext = createContext<GlobalEventType>({
   status: "PENDING",
+  reconnect: () => {},
 });
 
 interface GlobalEventProviderProps {
@@ -24,9 +27,16 @@ interface GlobalEventProviderProps {
 }
 
 let nextId = 0;
+
 export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<ServerStatus>("PENDING");
+  const [reconnectTick, setReconnectTick] = useState(0);
+
+  const reconnect = useCallback(() => {
+    setStatus("PENDING");
+    setReconnectTick((t) => t + 1);
+  }, []);
 
   const subscribe = async (
     id: number,
@@ -34,7 +44,10 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
     isCancelled: () => boolean,
   ) => {
     const oc = getOcClient();
-    const { stream } = await oc.global.event();
+    const { stream } = await oc.global.event({
+      sseMaxRetryAttempts: 5,
+      sseMaxRetryDelay: 1000,
+    });
     console.log(`[${id}] connected`);
 
     if (isCancelled()) {
@@ -47,20 +60,14 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
       onEvent(event);
     }
 
+    if (!isCancelled()) {
+      setStatus("DISCONNECTED");
+    }
+
     return stream;
   };
 
   useEffect(() => {
-    let heartbeatTimer: ReturnType<typeof setTimeout>;
-
-    const resetHeartbeat = () => {
-      clearTimeout(heartbeatTimer);
-
-      heartbeatTimer = setTimeout(() => {
-        setStatus("DISCONNECTED");
-      }, 10000);
-    };
-
     const id = ++nextId;
     let cancelled = false;
     let stream: AsyncGenerator<GlobalEvent> | undefined;
@@ -69,8 +76,6 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
       stream = await subscribe(
         id,
         (event) => {
-          // Handle it later
-          // resetHeartbeat();
           setStatus("CONNETED");
 
           handleEvent(event, queryClient);
@@ -84,10 +89,10 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
       cancelled = true;
       void stream?.return(undefined);
     };
-  }, [queryClient]);
+  }, [queryClient, reconnectTick]);
 
   return (
-    <GlobalEventContext.Provider value={{ status }}>
+    <GlobalEventContext.Provider value={{ status, reconnect }}>
       {children}
     </GlobalEventContext.Provider>
   );
