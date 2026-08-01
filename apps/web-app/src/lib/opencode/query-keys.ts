@@ -39,3 +39,8 @@ export const questionKeys = {
   root: () => ["questions"] as const,
   list: (directory: string) => ["questions", "list", directory] as const,
 };
+
+export const vcsKeys = {
+  root: () => ["vcs"] as const,
+  diff: (directory: string) => ["vcs", "diff", directory] as const,
+};

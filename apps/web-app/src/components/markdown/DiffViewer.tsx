@@ -15,6 +15,7 @@ interface DiffViewerProps {
   filePath: string;
   defaultViewMode?: "side-by-side" | "line-by-line";
   showLineNumbers?: boolean;
+  headless?: boolean;
 }
 
 export function DiffViewer({
@@ -24,6 +25,7 @@ export function DiffViewer({
   filePath,
   defaultViewMode = "side-by-side",
   showLineNumbers: controlledShowLineNumbers,
+  headless = false,
 }: DiffViewerProps) {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState(defaultViewMode);
@@ -198,13 +200,17 @@ export function DiffViewer({
     </>
   );
 
+  const diffContent = (
+    <div ref={containerRef} dangerouslySetInnerHTML={{ __html: diffHtml }} />
+  );
+
+  if (headless) {
+    return <div className="relative">{diffContent}</div>;
+  }
+
   return (
     <CodeFrame header={header} actions={actions}>
-      <div
-        ref={containerRef}
-        className="overflow-x-auto"
-        dangerouslySetInnerHTML={{ __html: diffHtml }}
-      />
+      {diffContent}
     </CodeFrame>
   );
 }
