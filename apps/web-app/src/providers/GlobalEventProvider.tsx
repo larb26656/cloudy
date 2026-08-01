@@ -46,7 +46,7 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
     const oc = getOcClient();
     const { stream } = await oc.global.event({
       sseMaxRetryAttempts: 5,
-      sseMaxRetryDelay: 1000,
+      sseMaxRetryDelay: 3000,
     });
     console.log(`[${id}] connected`);
 
