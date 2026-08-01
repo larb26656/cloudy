@@ -69,7 +69,8 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
       stream = await subscribe(
         id,
         (event) => {
-          resetHeartbeat();
+          // Handle it later
+          // resetHeartbeat();
           setStatus("CONNETED");
 
           handleEvent(event, queryClient);
