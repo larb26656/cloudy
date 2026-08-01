@@ -1,4 +1,4 @@
-import { PenTool } from "lucide-react";
+import { Palette } from "lucide-react";
 import type { Tab } from "@/stores/tabStore";
 import { TabItemShell } from "@/features/home/components/TabItemShell";
 
@@ -17,7 +17,7 @@ export function DeskTabItem({
 }: DeskTabItemProps) {
   return (
     <TabItemShell
-      icon={PenTool}
+      icon={Palette}
       label={tab.data.name}
       isActive={isActive}
       onClick={onClick}
