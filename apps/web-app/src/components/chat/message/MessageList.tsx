@@ -1,17 +1,24 @@
-import { useEffect, useMemo, useRef, useState, memo } from "react";
+import { useMemo, memo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MessageBubble } from "./MessageBubble";
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
 import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
-import { ChevronDown } from "lucide-react";
 import ThinkingAnimation from "./ThinkingAnimation";
 import { ErrorState } from "@/components/ui/error-state";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import { InfiniteScrollContainer } from "@/components/utils/InfiniteScrollContainer";
+import { IsVisible } from "@/components/utils/IsVisible";
 import { RetryMessage } from "./RetryMessage";
+import {
+  MessageScrollerProvider,
+  MessageScroller,
+  MessageScrollerViewport,
+  MessageScrollerContent,
+  MessageScrollerItem,
+  MessageScrollerButton,
+} from "@/components/ui/message-scroller";
 
 interface MessageListProps {
   selectedSessionId: string | null;
@@ -61,56 +68,6 @@ export const MessageList = memo(function MessageList({
   const isStreaming =
     sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
 
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const shouldScrollRef = useRef(true);
-  const [showScrollButton, setShowScrollButton] = useState(false);
-
-  const handleScroll = () => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const { scrollTop, scrollHeight, clientHeight } = el;
-    const hasScroll = scrollHeight > clientHeight;
-    const isAtBottom = scrollHeight - scrollTop - clientHeight < 500;
-    if (hasScroll) {
-      shouldScrollRef.current = isAtBottom;
-    }
-    setShowScrollButton(hasScroll && !isAtBottom);
-  };
-
-  const scrollToBottom = () => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: "instant",
-      });
-    }
-  };
-
-  useEffect(() => {
-    if (!isStreaming) {
-      return;
-    }
-
-    const interval = setInterval(() => {
-      const scroller = scrollRef.current;
-      if (!scroller || !shouldScrollRef.current) return;
-
-      scrollToBottom();
-    }, 200);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, [isStreaming]);
-
-  useEffect(() => {
-    if (!scrollRef.current || remoteMessages.length === 0) return;
-
-    requestAnimationFrame(() => {
-      scrollToBottom();
-    });
-  }, [remoteMessages.length]);
-
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -144,63 +101,67 @@ export const MessageList = memo(function MessageList({
 
   return (
     <div className="relative flex-1 min-h-0">
-      <InfiniteScrollContainer
-        next={{
-          hasMore: hasNextPage,
-          isFetching: isFetchingNextPage,
-          fetchMore: fetchNextPage,
-        }}
-        reverse={true}
-        scrollRef={scrollRef}
-        className="max-w-4xl mx-auto"
-        onScroll={handleScroll}
-        autoLoad
-      >
-        <div>
-          {displayMessages.map((message: Message) => (
-            <MessageBubble
-              key={message.info.id}
-              message={message}
-              isStreaming={false}
-            />
-          ))}
+      <MessageScrollerProvider autoScroll defaultScrollPosition="last-anchor">
+        <MessageScroller className="h-full">
+          <MessageScrollerViewport>
+            <MessageScrollerContent
+              aria-busy={isStreaming}
+              className="mx-auto w-full max-w-4xl gap-0 p-4"
+            >
+              {hasNextPage && (
+                <div className="self-center py-2">
+                  {isFetchingNextPage ? (
+                    <span className="text-sm text-muted-foreground">
+                      Loading…
+                    </span>
+                  ) : (
+                    <IsVisible onVisible={() => fetchNextPage()} />
+                  )}
+                </div>
+              )}
 
-          {selectedSessionId &&
-            streamingIds.map((id) => (
-              <StreamingMessageBubble
-                key={id}
-                sessionId={selectedSessionId}
-                messageId={id}
-              />
-            ))}
+              {displayMessages.map((message: Message) => (
+                <MessageScrollerItem
+                  key={message.info.id}
+                  messageId={message.info.id}
+                  scrollAnchor={message.info.role === "user"}
+                >
+                  <MessageBubble message={message} isStreaming={false} />
+                </MessageScrollerItem>
+              ))}
 
-          {sessionStatus?.type === "retry" && (
-            <RetryMessage
-              attempt={sessionStatus.attempt}
-              message={sessionStatus.message}
-              next={sessionStatus.next}
-            />
-          )}
+              {selectedSessionId &&
+                streamingIds.map((id) => (
+                  <MessageScrollerItem key={id} messageId={id}>
+                    <StreamingMessageBubble
+                      sessionId={selectedSessionId}
+                      messageId={id}
+                    />
+                  </MessageScrollerItem>
+                ))}
 
-          {isStreaming && (
-            <div className="mt-2">
-              <ThinkingAnimation />
-            </div>
-          )}
-        </div>
-      </InfiniteScrollContainer>
+              {sessionStatus?.type === "retry" && (
+                <MessageScrollerItem messageId="__retry">
+                  <RetryMessage
+                    attempt={sessionStatus.attempt}
+                    message={sessionStatus.message}
+                    next={sessionStatus.next}
+                  />
+                </MessageScrollerItem>
+              )}
 
-      {showScrollButton && (
-        <div className="absolute bottom-4 mx-auto w-full">
-          <button
-            onClick={scrollToBottom}
-            className="mx-auto w-10 h-10 rounded-full bg-primary dark:bg-muted text-primary-foreground dark:text-muted-foreground shadow-lg flex items-center justify-center hover:bg-primary/90 transition-colors"
-            aria-label="Scroll to bottom"
-          >
-            <ChevronDown className="w-5 h-5" />
-          </button>
-        </div>
-      )}
+              {isStreaming && (
+                <MessageScrollerItem messageId="__thinking">
+                  <div className="mt-2">
+                    <ThinkingAnimation />
+                  </div>
+                </MessageScrollerItem>
+              )}
+            </MessageScrollerContent>
+          </MessageScrollerViewport>
+          <MessageScrollerButton />
+        </MessageScroller>
+      </MessageScrollerProvider>
     </div>
   );
 });
