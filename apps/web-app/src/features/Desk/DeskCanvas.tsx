@@ -15,6 +15,7 @@ import {
   type OnEdgesChange,
   type OnConnect,
   type ReactFlowInstance,
+
   PanOnScrollMode,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -38,6 +39,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
   const [edges, setEdges] = useState<Edge[]>([]);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const [isNodeDrawerOpen, setNodeDrawerOpen] = useState(false);
+
   const { screenToFlowPosition, setViewport } = useReactFlow();
   const { saveFlow, getFlow } = useFlowStore();
 
@@ -57,6 +59,10 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
     [],
   );
 
+  const createNodeId = () => `node-${Date.now()}-${Math.random()}`;
+
+
+  // load State
   useEffect(() => {
     if (!rfInstance) return;
 
@@ -70,6 +76,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
     }
   }, [rfInstance, getFlow, tabId, setViewport]);
 
+  // save state
   useEffect(() => {
     if (!rfInstance) return;
     const timeout = setTimeout(() => {
@@ -78,6 +85,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
     return () => clearTimeout(timeout);
   }, [nodes, edges, rfInstance, saveFlow, tabId]);
 
+  // save on unmount
   useEffect(() => {
     return () => {
       if (rfInstanceRef.current) {
@@ -86,11 +94,46 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
     };
   }, [tabId, saveFlow]);
 
+  const duplicateSelectedNodes = useCallback(() => {
+    const selectedNodes = nodes.filter((n) => n.selected);
+    if (selectedNodes.length === 0) return;
+
+    setNodes((nds) =>
+      nds.map((node) => ({
+        ...node,
+        selected: false,
+      })),
+    );
+
+    const newNodes = selectedNodes.map((node) => ({
+      ...node,
+        id: createNodeId(),
+      position: {
+        x: node.position.x + 20,
+        y: node.position.y + 20,
+      },
+      selected: true,
+    }));
+
+    setNodes((nds) => [...nds, ...newNodes]);
+  }, [nodes]);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === "d") {
+        e.preventDefault();
+        duplicateSelectedNodes();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [duplicateSelectedNodes]);
+
   const handleAddNode = useCallback(
     (template: NodeTemplate, data?: Record<string, unknown>) => {
       const position = screenToFlowPosition({ x: 300, y: 300 });
       const newNode: Node = {
-        id: `node-${Date.now()}`,
+        id: createNodeId(),
         type: template.id,
         position,
         data: {
