@@ -4,11 +4,11 @@ import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
 import { useWorkspaceStore } from "@/stores/workspaceStore";
 
-interface SessionContentProps {
-  tab: Extract<Tab, { type: "session" }>;
+interface ChatContentProps {
+  tab: Extract<Tab, { type: "chat" }>;
 }
 
-export function SessionContent({ tab }: SessionContentProps) {
+export function ChatContent({ tab }: ChatContentProps) {
   const updateTabData = useTabStore((s) => s.updateTabData);
   const workspace = useWorkspaceStore((s) => s.getWorkspace(tab.data.workspaceId));
 

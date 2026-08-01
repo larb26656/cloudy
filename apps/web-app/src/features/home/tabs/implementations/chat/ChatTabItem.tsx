@@ -3,19 +3,19 @@ import { useSession } from "@/hooks/queries/useSessions";
 import type { Tab } from "@/features/home/tabs/template";
 import { TabItemShell } from "@/features/home/components/TabItemShell";
 
-interface SessionTabItemProps {
-  tab: Extract<Tab, { type: "session" }>;
+interface ChatTabItemProps {
+  tab: Extract<Tab, { type: "chat" }>;
   isActive: boolean;
   onClick: () => void;
   onClose: () => void;
 }
 
-export function SessionTabItem({
+export function ChatTabItem({
   tab,
   isActive,
   onClick,
   onClose,
-}: SessionTabItemProps) {
+}: ChatTabItemProps) {
   const { data: session } = useSession({
     sessionId: tab.data.sessionId,
   });
@@ -33,4 +33,4 @@ export function SessionTabItem({
   );
 }
 
-export type { SessionData } from "./meta";
+export type { ChatData } from "./meta";

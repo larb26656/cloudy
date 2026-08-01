@@ -81,14 +81,27 @@ export const useTabStore = create<TabStore>()(
     }),
     {
       name: "tabs",
-      version: 1,
+      version: 2,
       migrate: (persistedState, version) => {
-        if (version >= 1) return persistedState;
-        const state = persistedState as
-          | { tabs?: Tab[]; activeTabId?: string }
-          | undefined;
+        // Persisted shapes may predate the current `Tab` union, so read them
+        // through a looser type. Old versions stored `type: "session"` which
+        // no longer exists in the union.
+        type PersistedTab = { id: string; type: string; data: unknown };
+        type Persisted = { tabs?: PersistedTab[]; activeTabId?: string };
+        const state = persistedState as Persisted | undefined;
         if (!state?.tabs) return persistedState;
-        const filtered = state.tabs.filter(
+
+        let tabs = state.tabs;
+
+        // v1 -> v2: rename the "session" tab type to "chat".
+        if (version < 2) {
+          tabs = tabs.map((t) =>
+            t.type === "session" ? { ...t, type: "chat" } : t,
+          );
+        }
+
+        // v0 -> v1: drop stale "files" tabs missing a workspaceId.
+        const filtered = tabs.filter(
           (t) =>
             !(
               t.type === "files" &&
@@ -104,7 +117,10 @@ export const useTabStore = create<TabStore>()(
           activeTabId =
             filtered.length > 0 ? filtered[filtered.length - 1]!.id : "home";
         }
-        return { ...state, tabs: filtered, activeTabId };
+        return { ...state, tabs: filtered, activeTabId } as unknown as {
+          tabs: Tab[];
+          activeTabId: string;
+        };
       },
     },
   ),

@@ -18,7 +18,7 @@ function SessionList({
   const addTab = useTabStore((s) => s.addTab);
 
   const handleSelect = (session: Session) => {
-    addTab("session", {
+    addTab("chat", {
       sessionId: session.id,
       workspaceId,
       sessionName: session.title || "New Chat",
@@ -26,7 +26,7 @@ function SessionList({
   };
 
   const handleNewChat = () => {
-    addTab("session", {
+    addTab("chat", {
       sessionId: null,
       workspaceId,
       sessionName: "New Chat",

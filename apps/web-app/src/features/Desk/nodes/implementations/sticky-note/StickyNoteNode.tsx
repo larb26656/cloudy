@@ -1,10 +1,12 @@
-import { NodeResizer, useReactFlow } from "@xyflow/react";
+import { useReactFlow } from "@xyflow/react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { X, ChevronDown } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash-es";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { useDeleteNode } from "../useDeleteNode";
+import { NodeResizeHandles } from "../NodeResizeHandles";
 
 type StickyColor = "yellow" | "pink" | "green" | "blue" | "purple" | "orange";
 
@@ -30,7 +32,7 @@ export function StickyNoteNode({
   id,
   selected,
 }: NodeProps<StickyNoteNodeProps>) {
-  const { deleteElements, updateNodeData } = useReactFlow();
+  const { updateNodeData } = useReactFlow();
   const [text, setText] = useState(data.label ?? "");
   const [pickerOpen, setPickerOpen] = useState(false);
 
@@ -47,9 +49,7 @@ export function StickyNoteNode({
     return () => debouncedUpdateLabel.cancel();
   }, [debouncedUpdateLabel]);
 
-  const handleClose = useCallback(() => {
-    deleteElements({ nodes: [{ id }] });
-  }, [deleteElements, id]);
+  const handleClose = useDeleteNode(id);
 
   const handleTextChange = useCallback(
     (value: string) => {
@@ -76,13 +76,12 @@ export function StickyNoteNode({
 
   return (
     <>
-      <NodeResizer
+      <NodeResizeHandles
+        isVisible={selected}
         minWidth={150}
         minHeight={100}
         maxWidth={400}
         maxHeight={300}
-        handleClassName="!border-primary !bg-primary/20 hover:!bg-primary/30"
-        isVisible={selected}
       />
       <div
         className={cn(

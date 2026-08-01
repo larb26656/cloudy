@@ -37,7 +37,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   );
 
   const handleOpenInTab = useCallback(() => {
-    addTab("session", {
+    addTab("chat", {
       sessionId: data.sessionId,
       workspaceId: data.workspaceId,
       sessionName: title,
@@ -51,6 +51,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       selected={selected}
       maxWidth={1200}
       maxHeight={1200}
+      workspaceId={data.workspaceId}
       actions={[
         {
           icon: ExternalLink,

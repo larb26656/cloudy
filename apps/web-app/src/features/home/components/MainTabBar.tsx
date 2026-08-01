@@ -18,7 +18,6 @@ import {
 } from "@dnd-kit/sortable";
 
 import { useTabStore, type Tab } from "@/stores/tabStore";
-import { cn } from "@/lib/utils";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -27,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { tabTemplates, tabTypeMap } from "../tabs/template";
 import { SortableTab } from "./SortableTab";
+import { TabItemShell } from "./TabItemShell";
 
 export function MainTabBar() {
   const tabs = useTabStore((s) => s.tabs);
@@ -121,19 +121,11 @@ export function MainTabBar() {
         onDragCancel={() => setDragId(null)}
       >
         <div className="flex border-b">
-          <button
+          <TabItemShell
+            icon={Home}
+            isActive={activeTabId === "home"}
             onClick={() => setActiveTab("home")}
-            className={cn(
-              "relative flex items-center gap-2 px-3 py-2 text-sm font-medium transition-colors duration-150",
-              activeTabId === "home"
-                ? "text-foreground after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-foreground"
-                : "text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <span className="[&>svg]:size-4">
-              <Home />
-            </span>
-          </button>
+          />
 
           <SortableContext
             items={tabs.map((t) => t.id)}

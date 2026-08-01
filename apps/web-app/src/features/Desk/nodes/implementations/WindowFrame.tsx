@@ -1,9 +1,9 @@
-import { NodeResizer } from "@xyflow/react";
-import { useReactFlow } from "@xyflow/react";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { useCallback } from "react";
+import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
+import { useDeleteNode } from "./useDeleteNode";
+import { NodeResizeHandles } from "./NodeResizeHandles";
 
 export interface WindowFrameAction {
   icon: LucideIcon;
@@ -25,6 +25,7 @@ interface WindowFrameProps {
   color?: string;
   headerAction?: React.ReactNode;
   actions?: WindowFrameAction[];
+  workspaceId?: string;
 }
 
 export function WindowFrame({
@@ -40,22 +41,18 @@ export function WindowFrame({
   color,
   headerAction,
   actions,
+  workspaceId,
 }: WindowFrameProps) {
-  const { deleteElements } = useReactFlow();
-
-  const handleClose = useCallback(() => {
-    deleteElements({ nodes: [{ id: nodeId }] });
-  }, [deleteElements, nodeId]);
+  const handleClose = useDeleteNode(nodeId);
 
   return (
     <>
-      <NodeResizer
+      <NodeResizeHandles
+        isVisible={selected}
         minWidth={minWidth}
         minHeight={minHeight}
         maxWidth={maxWidth}
         maxHeight={maxHeight}
-        handleClassName="!border-primary !bg-primary/20 hover:!bg-primary/30"
-        isVisible={selected}
       />
       <div
         className={cn(
@@ -67,6 +64,7 @@ export function WindowFrame({
         <div className="flex items-center justify-between px-3 py-2 bg-muted border-b cursor-grab active:cursor-grabbing select-none shrink-0">
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {headerAction}
+            {workspaceId && <WorkspaceDot workspaceId={workspaceId} />}
             {title && (
               <span className="text-sm font-medium truncate">{title}</span>
             )}

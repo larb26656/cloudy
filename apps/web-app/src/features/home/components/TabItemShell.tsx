@@ -1,14 +1,14 @@
 import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { WorkspaceDot } from "./WorkspaceDot";
+import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
 
 interface TabItemShellProps {
   icon: LucideIcon;
-  label: string;
+  label?: string;
   isActive: boolean;
   onClick: () => void;
-  onClose: () => void;
+  onClose?: () => void;
   workspaceId?: string;
 }
 
@@ -34,16 +34,20 @@ export function TabItemShell({
         <Icon />
       </span>
       <WorkspaceDot workspaceId={workspaceId} />
-      <span className="text-[13px] max-w-30 truncate">{label}</span>
-      <span
-        onClick={(e) => {
-          e.stopPropagation();
-          onClose();
-        }}
-        className="ml-1 rounded p-0.5 hover:bg-muted"
-      >
-        <X size={12} />
-      </span>
+      {label !== undefined && (
+        <span className="text-[13px] max-w-30 truncate">{label}</span>
+      )}
+      {onClose && (
+        <span
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          className="ml-1 rounded p-0.5 hover:bg-muted"
+        >
+          <X size={12} />
+        </span>
+      )}
     </button>
   );
 }

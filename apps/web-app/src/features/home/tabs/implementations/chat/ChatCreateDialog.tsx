@@ -8,14 +8,14 @@ import { CreateChatDialog } from "@/features/chat/components/CreateChatDialog";
 // consumer like `MainTabBar` cannot call `addTab(type, data)` without unsafe
 // casts (unlike the node side, whose store accepts `Record<string, unknown>`).
 // If the tab store typing is ever relaxed, this wrapper can be removed and
-// `CreateChatDialog` wired directly into `sessionTemplate.CreateDialog`.
-export function SessionCreateDialog({ open, onOpenChange }: CreateDialogProps) {
+// `CreateChatDialog` wired directly into `chatTemplate.CreateDialog`.
+export function ChatCreateDialog({ open, onOpenChange }: CreateDialogProps) {
   const addTab = useTabStore((s) => s.addTab);
   return (
     <CreateChatDialog
       open={open}
       onOpenChange={onOpenChange}
-      onSubmit={(data) => addTab("session", data)}
+      onSubmit={(data) => addTab("chat", data)}
     />
   );
 }

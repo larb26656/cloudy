@@ -3,7 +3,6 @@ import type { Node, NodeProps } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "lodash-es";
 import { cn } from "@/lib/utils";
-import { TextIcon } from "lucide-react";
 
 type TextSize = "s" | "m" | "l";
 
@@ -128,5 +127,3 @@ export function TextNode({ data, id, selected }: NodeProps<TextNodeProps>) {
     </div>
   );
 }
-
-export { TextIcon as textNodeIcon };
