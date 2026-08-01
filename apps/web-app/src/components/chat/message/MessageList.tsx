@@ -18,7 +18,6 @@ import {
   MessageScrollerContent,
   MessageScrollerItem,
   MessageScrollerButton,
-  useMessageScroller,
 } from "@/components/ui/message-scroller";
 
 interface MessageListProps {
@@ -26,22 +25,6 @@ interface MessageListProps {
   directory?: string;
   isShowEmptyState?: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
-}
-
-function ForceScrollOnSend({ streamingIds }: { streamingIds: string[] }) {
-  const { scrollToEnd } = useMessageScroller();
-  const prevIdsRef = useRef<string[]>(streamingIds);
-
-  useEffect(() => {
-    const prev = prevIdsRef.current;
-    const hasNew = streamingIds.some((id) => !prev.includes(id));
-    if (hasNew) {
-      scrollToEnd({ behavior: "smooth" });
-    }
-    prevIdsRef.current = streamingIds;
-  }, [streamingIds, scrollToEnd]);
-
-  return null;
 }
 
 export const MessageList = memo(function MessageList({
@@ -56,6 +39,9 @@ export const MessageList = memo(function MessageList({
       return map ? Array.from(map.keys()) : [];
     }),
   );
+  const removeStreamingMessage = useStreamingMessagesStore(
+    (s) => s.removeStreamingMessage,
+  );
   const { data: statuses } = useSessionStatuses({ directory });
   const {
     data,
@@ -69,14 +55,31 @@ export const MessageList = memo(function MessageList({
     sessionId: selectedSessionId ?? "",
   });
 
-  const streamingIdSet = useMemo(() => new Set(streamingIds), [streamingIds]);
-
   const remoteMessages = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);
 
-  const displayMessages = useMemo(
-    () => remoteMessages.filter((m) => !streamingIdSet.has(m.info.id)),
-    [remoteMessages, streamingIdSet],
+  const remoteIdSet = useMemo(
+    () => new Set(remoteMessages.map((m) => m.info.id)),
+    [remoteMessages],
   );
+
+  const activeStreamingIds = useMemo(
+    () => streamingIds.filter((id) => !remoteIdSet.has(id)),
+    [streamingIds, remoteIdSet],
+  );
+
+  // Evict stale streaming entries: if a message id is present in both the
+  // streaming store and the remote data, the stream is done but wasn't cleared
+  // (e.g. session.idle never fired). Remove it from the store so remote — the
+  // source of truth — is shown and the store doesn't leak. Runs in an effect
+  // to avoid mutating zustand during render.
+  useEffect(() => {
+    if (!selectedSessionId) return;
+    for (const id of streamingIds) {
+      if (remoteIdSet.has(id)) {
+        removeStreamingMessage(selectedSessionId, id);
+      }
+    }
+  }, [streamingIds, remoteIdSet, selectedSessionId, removeStreamingMessage]);
 
   const sessionStatus = selectedSessionId
     ? statuses?.[selectedSessionId]
@@ -105,8 +108,8 @@ export const MessageList = memo(function MessageList({
   }
 
   if (
-    displayMessages.length === 0 &&
-    streamingIds.length === 0 &&
+    remoteMessages.length === 0 &&
+    activeStreamingIds.length === 0 &&
     isShowEmptyState
   ) {
     return (
@@ -119,7 +122,6 @@ export const MessageList = memo(function MessageList({
   return (
     <div className="relative flex-1 min-h-0">
       <MessageScrollerProvider autoScroll>
-        <ForceScrollOnSend streamingIds={streamingIds} />
         <MessageScroller className="h-full">
           <MessageScrollerViewport>
             <MessageScrollerContent
@@ -138,7 +140,7 @@ export const MessageList = memo(function MessageList({
                 </div>
               )}
 
-              {displayMessages.map((message: Message) => (
+              {remoteMessages.map((message: Message) => (
                 <MessageScrollerItem
                   key={message.info.id}
                   messageId={message.info.id}
@@ -149,7 +151,7 @@ export const MessageList = memo(function MessageList({
               ))}
 
               {selectedSessionId &&
-                streamingIds.map((id) => (
+                activeStreamingIds.map((id) => (
                   <MessageScrollerItem key={id} messageId={id}>
                     <StreamingMessageBubble
                       sessionId={selectedSessionId}

@@ -421,4 +421,101 @@ describe("streamingMessagesStore", () => {
       expect(useStreamingMessagesStore.getState().streamingMessages.get("session_B")!.get("msg_b")).toEqual(messageB);
     });
   });
+
+  describe("removeStreamingMessage", () => {
+    test("removes a single message while keeping others in the session", () => {
+      const message1 = createMockMessage({
+        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        parts: [],
+      });
+      const message2 = createMockMessage({
+        info: createMockAssistantMessage({ id: "msg_2", sessionID: "session_1" }),
+        parts: [],
+      });
+
+      useStreamingMessagesStore.setState({
+        streamingMessages: new Map([
+          [
+            "session_1",
+            new Map([
+              ["msg_1", message1],
+              ["msg_2", message2],
+            ]),
+          ],
+        ]),
+      });
+
+      useStreamingMessagesStore.getState().removeStreamingMessage("session_1", "msg_1");
+
+      const sessionMap = useStreamingMessagesStore.getState().streamingMessages.get("session_1")!;
+      expect(sessionMap.has("msg_1")).toBe(false);
+      expect(sessionMap.get("msg_2")).toEqual(message2);
+    });
+
+    test("removes the session entry when the last message is removed", () => {
+      const message1 = createMockMessage({
+        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        parts: [],
+      });
+
+      useStreamingMessagesStore.setState({
+        streamingMessages: new Map([
+          ["session_1", new Map([["msg_1", message1]])],
+        ]),
+      });
+
+      useStreamingMessagesStore.getState().removeStreamingMessage("session_1", "msg_1");
+
+      expect(useStreamingMessagesStore.getState().streamingMessages.has("session_1")).toBe(false);
+    });
+
+    test("is a no-op when the session does not exist", () => {
+      const before = useStreamingMessagesStore.getState();
+
+      useStreamingMessagesStore.getState().removeStreamingMessage("nonexistent_session", "msg_1");
+
+      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(before.streamingMessages);
+    });
+
+    test("is a no-op when the message does not exist", () => {
+      const message1 = createMockMessage({
+        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        parts: [],
+      });
+
+      useStreamingMessagesStore.setState({
+        streamingMessages: new Map([
+          ["session_1", new Map([["msg_1", message1]])],
+        ]),
+      });
+      const before = useStreamingMessagesStore.getState();
+
+      useStreamingMessagesStore.getState().removeStreamingMessage("session_1", "nonexistent_msg");
+
+      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(before.streamingMessages);
+    });
+
+    test("preserves other sessions", () => {
+      const messageA = createMockMessage({
+        info: createMockAssistantMessage({ id: "msg_a", sessionID: "session_A" }),
+        parts: [],
+      });
+      const messageB = createMockMessage({
+        info: createMockAssistantMessage({ id: "msg_b", sessionID: "session_B" }),
+        parts: [],
+      });
+
+      useStreamingMessagesStore.setState({
+        streamingMessages: new Map([
+          ["session_A", new Map([["msg_a", messageA]])],
+          ["session_B", new Map([["msg_b", messageB]])],
+        ]),
+      });
+
+      useStreamingMessagesStore.getState().removeStreamingMessage("session_A", "msg_a");
+
+      expect(useStreamingMessagesStore.getState().streamingMessages.has("session_A")).toBe(false);
+      expect(useStreamingMessagesStore.getState().streamingMessages.get("session_B")!.get("msg_b")).toEqual(messageB);
+    });
+  });
 });

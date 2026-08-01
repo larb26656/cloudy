@@ -15,6 +15,7 @@ interface StreamingMessagesStore {
     field?: string,
   ) => void;
   takeSessionStreaming: (sessionId: string) => Message[];
+  removeStreamingMessage: (sessionId: string, messageId: string) => void;
 }
 
 function ensureSessionMap(
@@ -147,6 +148,25 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
         return { streamingMessages: nextMap };
       });
       return result;
+    },
+
+    removeStreamingMessage: (sessionId, messageId) => {
+      set((state) => {
+        const sessionMap = state.streamingMessages.get(sessionId);
+        if (!sessionMap || !sessionMap.has(messageId)) return state;
+
+        const nextSessionMap = new Map(sessionMap);
+        nextSessionMap.delete(messageId);
+
+        const nextMap = new Map(state.streamingMessages);
+        if (nextSessionMap.size === 0) {
+          nextMap.delete(sessionId);
+        } else {
+          nextMap.set(sessionId, nextSessionMap);
+        }
+
+        return { streamingMessages: nextMap };
+      });
     },
   }),
 );
