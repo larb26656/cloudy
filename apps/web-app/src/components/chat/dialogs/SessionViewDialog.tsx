@@ -26,15 +26,17 @@ export function SessionViewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn(SHEET_SIZE_CLASSES)}>
-        <DialogHeader>
+      <DialogContent className={cn(SHEET_SIZE_CLASSES, "p-0", "gap-0")}>
+        <DialogHeader className="p-6">
           <DialogTitle>{session?.title ?? "New Chat"}</DialogTitle>
         </DialogHeader>
-        <MessageList
-          selectedSessionId={sessionId}
-          directory={directory}
-          isShowEmptyState={true}
-        />
+        <div className="flex h-full flex-col overflow-hidden">
+          <MessageList
+            selectedSessionId={sessionId}
+            directory={directory}
+            isShowEmptyState={true}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

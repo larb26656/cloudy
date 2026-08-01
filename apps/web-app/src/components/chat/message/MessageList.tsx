@@ -1,12 +1,14 @@
-import { useMemo, memo, useEffect } from "react";
+import { useMemo, memo, useEffect, useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { Square } from "lucide-react";
 import { MessageBubble } from "./MessageBubble";
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
 import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
 import ThinkingAnimation from "./ThinkingAnimation";
 import { ErrorState } from "@/components/ui/error-state";
-import { useMessages } from "@/hooks/queries/useMessages";
+import { Button } from "@/components/ui/button";
+import { useMessages, useAbortGeneration } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { IsVisible } from "@/components/utils/IsVisible";
@@ -112,6 +114,14 @@ export const MessageList = memo(function MessageList({
   const isStreaming =
     sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
 
+  const { mutate: abortMutate, isPending: isAborting } = useAbortGeneration();
+
+  const handleAbort = useCallback(() => {
+    if (selectedSessionId && directory && !isAborting) {
+      abortMutate({ sessionId: selectedSessionId, directory });
+    }
+  }, [selectedSessionId, directory, isAborting, abortMutate]);
+
   if (isLoading) {
     return (
       <div className="flex-1 flex items-center justify-center">
@@ -169,8 +179,7 @@ export const MessageList = memo(function MessageList({
                   key={item.id}
                   messageId={item.id}
                   scrollAnchor={
-                    item.kind === "remote" &&
-                    item.message.info.role === "user"
+                    item.kind === "remote" && item.message.info.role === "user"
                   }
                 >
                   {item.kind === "remote" ? (
@@ -196,8 +205,17 @@ export const MessageList = memo(function MessageList({
 
               {isStreaming && (
                 <MessageScrollerItem messageId="__thinking">
-                  <div className="mt-2">
+                  <div className="mt-2 flex items-center justify-between gap-2">
                     <ThinkingAnimation />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAbort}
+                      disabled={isAborting}
+                      title="Stop generating"
+                    >
+                      <Square className="size-4" />
+                    </Button>
                   </div>
                 </MessageScrollerItem>
               )}
