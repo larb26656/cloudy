@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
+  CHAT_POLL_INTERVAL,
   getOcClient,
   getErrorMessage,
   questionKeys,
@@ -19,6 +20,8 @@ export function useQuestions({ directory }: { directory: string }) {
       return result.data ?? [];
     },
     enabled: !!directory,
+    refetchInterval: CHAT_POLL_INTERVAL,
+    refetchIntervalInBackground: false,
   });
 }
 

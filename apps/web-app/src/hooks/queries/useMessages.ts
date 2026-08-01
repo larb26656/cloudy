@@ -1,4 +1,5 @@
 import {
+  CHAT_POLL_INTERVAL,
   getErrorMessage,
   getOcClient,
   messageKeys,
@@ -13,11 +14,18 @@ import type {
   SubtaskPartInput,
   TextPartInput,
 } from "@opencode-ai/sdk/v2/types";
+import type { SessionStatus } from "@opencode-ai/sdk/v2";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 
 const MESSAGES_LIMIT = 50;
 
-export function useMessages({ sessionId }: { sessionId: string }) {
+export function useMessages({
+  sessionId,
+  statusType,
+}: {
+  sessionId: string;
+  statusType?: SessionStatus["type"];
+}) {
   return useInfiniteQuery({
     queryKey: messageKeys.infinite(sessionId),
     queryFn: async ({ pageParam }): Promise<Message[]> => {
@@ -48,6 +56,11 @@ export function useMessages({ sessionId }: { sessionId: string }) {
       pages: [...data.pages].reverse(),
     }),
     enabled: !!sessionId,
+    refetchInterval:
+      statusType === "busy" || statusType === "retry"
+        ? false
+        : CHAT_POLL_INTERVAL,
+    refetchIntervalInBackground: false,
   });
 }
 

@@ -1,4 +1,5 @@
 import {
+  CHAT_POLL_INTERVAL,
   getErrorMessage,
   getOcClient,
   messageKeys,
@@ -29,6 +30,8 @@ export function useSession({
       return result.data;
     },
     enabled: !!sessionId,
+    refetchInterval: CHAT_POLL_INTERVAL,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -68,6 +71,8 @@ export function useSessionChildren({
       return result.data ?? [];
     },
     enabled: !!sessionId,
+    refetchInterval: CHAT_POLL_INTERVAL,
+    refetchIntervalInBackground: false,
   });
 }
 
@@ -84,6 +89,8 @@ export function useSessionStatuses({ directory }: { directory?: string }) {
       return result.data ?? {};
     },
     enabled: !!directory,
+    refetchInterval: CHAT_POLL_INTERVAL,
+    refetchIntervalInBackground: false,
   });
 }
 

@@ -45,6 +45,9 @@ export const MessageList = memo(function MessageList({
     (s) => s.removeStreamingMessage,
   );
   const { data: statuses } = useSessionStatuses({ directory });
+  const sessionStatus = selectedSessionId
+    ? statuses?.[selectedSessionId]
+    : undefined;
   const {
     data,
     isLoading,
@@ -55,6 +58,7 @@ export const MessageList = memo(function MessageList({
     isFetchingNextPage,
   } = useMessages({
     sessionId: selectedSessionId ?? "",
+    statusType: sessionStatus?.type,
   });
 
   const remoteMessages = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);
@@ -106,10 +110,6 @@ export const MessageList = memo(function MessageList({
       }
     }
   }, [streamingIds, remoteIdSet, selectedSessionId, removeStreamingMessage]);
-
-  const sessionStatus = selectedSessionId
-    ? statuses?.[selectedSessionId]
-    : undefined;
 
   const isStreaming =
     sessionStatus?.type === "busy" || sessionStatus?.type === "retry";

@@ -1,5 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getOcClient, getErrorMessage, permissionKeys, type SdkError } from "@/lib/opencode";
+import {
+  CHAT_POLL_INTERVAL,
+  getOcClient,
+  getErrorMessage,
+  permissionKeys,
+  type SdkError,
+} from "@/lib/opencode";
 import type { PermissionRequest } from "@opencode-ai/sdk/v2";
 
 export function usePermissions({
@@ -18,6 +24,8 @@ export function usePermissions({
       return result.data ?? [];
     },
     enabled: !!directory,
+    refetchInterval: CHAT_POLL_INTERVAL,
+    refetchIntervalInBackground: false,
   });
 }
 
