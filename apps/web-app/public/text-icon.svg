@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="512"
+   height="160"
+   viewBox="0 0 135.46666 42.333334"
+   version="1.1"
+   id="svg1"
+   inkscape:version="1.4.2 (ebf0e940, 2025-05-08)"
+   sodipodi:docname="text-icon.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="1.0116647"
+     inkscape:cx="329.65468"
+     inkscape:cy="256.50791"
+     inkscape:window-width="1920"
+     inkscape:window-height="952"
+     inkscape:window-x="1080"
+     inkscape:window-y="30"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="font-size:35.2778px;font-family:'Porto Buena';-inkscape-font-specification:'Porto Buena';stroke-width:1.764"
+       d="m 12.611771,10.142353 v 4.409725 h 17.6389 v -4.409725 z m 0,4.409725 H 8.2020454 v 13.229176 h 4.4097256 z m 0,13.229176 v 4.409725 h 17.6389 V 27.781254 Z M 34.660397,5.7326279 V 32.190979 h 4.409725 V 5.7326279 Z m 13.229175,4.4097251 v 4.409725 h 8.819451 v -4.409725 z m 8.819451,4.409725 v 13.229176 h 4.409725 V 14.552078 Z m 0,13.229176 h -8.819451 v 4.409725 h 8.819451 z m -8.819451,0 V 14.552078 H 43.479847 V 27.781254 Z M 65.528473,10.142353 v 17.638901 h 4.409725 V 10.142353 Z m 4.409725,17.638901 v 4.409725 h 8.81945 v -4.409725 z m 8.81945,0 h 4.409726 V 10.142353 H 78.757648 Z M 100.80627,5.7326279 v 8.8194501 h -4.409721 v 4.409725 h 4.409721 v 8.819451 h -8.819446 v 4.409725 H 105.216 V 5.7326279 Z M 91.986824,27.781254 V 14.552078 h -4.409725 v 13.229176 z m 0,-13.229176 h 4.409725 v -4.409725 h -4.409725 z m 17.638896,-4.409725 v 8.81945 h 4.40973 v -8.81945 z m 4.40973,8.81945 v 4.409726 h 4.40972 v 4.409725 h 4.40973 v -8.819451 z m 8.81945,0 h 4.40972 v -8.81945 h -4.40972 z m -4.40973,8.819451 h -4.40972 v 8.81945 h 4.40972 z"
+       id="text1"
+       aria-label="Cloudy" />
+  </g>
+</svg>
