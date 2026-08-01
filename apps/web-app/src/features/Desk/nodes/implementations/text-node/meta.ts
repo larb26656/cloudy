@@ -6,5 +6,6 @@ export const textNodeTemplate: NodeTemplate = {
   id: "text",
   label: "Text",
   icon: Type,
+  size: { width: 240, height: 140 },
   component: TextNode,
 };
