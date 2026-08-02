@@ -21,6 +21,7 @@ import {
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PlusIcon } from "lucide-react";
+import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
 import { NodeDrawerSidebar } from "./NodeDrawerSidebar";
 import { useFlowStore } from "@/stores/flowStore";
@@ -41,6 +42,8 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
   const [isNodeDrawerOpen, setNodeDrawerOpen] = useState(false);
 
   const { screenToFlowPosition, setViewport } = useReactFlow();
+  const { resolvedTheme } = useTheme();
+  const colorMode = resolvedTheme === "dark" ? "dark" : "light";
   const saveFlow = useFlowStore((s) => s.saveFlow);
   const getFlow = useFlowStore((s) => s.getFlow);
 
@@ -160,6 +163,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
         fitView
         panOnScroll
         panOnScrollMode={PanOnScrollMode.Free}
+        colorMode={colorMode}
         className="h-full w-full"
       >
         <Background />
