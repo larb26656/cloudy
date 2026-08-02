@@ -166,7 +166,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
         colorMode={colorMode}
         className="h-full w-full"
       >
-        <Background />
+        <Background id={`desk-${tabId}`} />
         <Controls />
         <Panel position="top-left">
           <DeskName name={name} onNameChange={onNameChange}></DeskName>
