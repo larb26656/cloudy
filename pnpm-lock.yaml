@@ -26,6 +26,13 @@ importers:
         version: 5.9.2
 
   apps/server:
+    dependencies:
+      '@lydell/node-pty':
+        specifier: ^1.2.0-beta.14
+        version: 1.2.0-beta.14
+      ws:
+        specifier: ^8.21.1
+        version: 8.21.1
     devDependencies:
       '@repo/eslint-config':
         specifier: workspace:*
@@ -486,6 +493,9 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.8.0
         version: 0.8.0(hono@4.12.27)(zod@4.4.3)
+      '@lydell/node-pty':
+        specifier: ^1.2.0-beta.14
+        version: 1.2.0-beta.14
       '@scalar/hono-api-reference':
         specifier: ^0.10.16
         version: 0.10.20(hono@4.12.27)
@@ -501,6 +511,9 @@ importers:
       node-cron:
         specifier: ^3.0.3
         version: 3.0.3
+      ws:
+        specifier: ^8.21.1
+        version: 8.21.1
       zod:
         specifier: ^4.4.3
         version: 4.4.3
@@ -517,6 +530,9 @@ importers:
       '@types/node-cron':
         specifier: ^3.0.11
         version: 3.0.11
+      '@types/ws':
+        specifier: ^8.5.13
+        version: 8.18.1
       eslint:
         specifier: ^9.39.1
         version: 9.39.1(jiti@2.7.0)
@@ -1632,6 +1648,39 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@lydell/node-pty-darwin-arm64@1.2.0-beta.14':
+    resolution: {integrity: sha512-C0Zxnl8rTrW/ngu1CKb1NoIiBxoCDL+9SpFSkOaV5MytE7pFN/qTVDFtuIOruE1SL6v17A71jI9bpUIBHn6jJA==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@lydell/node-pty-darwin-x64@1.2.0-beta.14':
+    resolution: {integrity: sha512-P77aRx2TzjmlX6D3XUjTEi4rxvjkJA8VIBwUwe23pphg5DKdc9/g5Y+IsN3KX3lmNmKFVTBIbKcNkl+n8Cgwiw==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@lydell/node-pty-linux-arm64@1.2.0-beta.14':
+    resolution: {integrity: sha512-xZclf3acgWmHi7VMZeVBUJRyJQf78pjCkeBf3ofT/5Xvn5QkRICCZJXtcg1f2lJoCtdF1OWHkeddmJgVDOSv6Q==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@lydell/node-pty-linux-x64@1.2.0-beta.14':
+    resolution: {integrity: sha512-ijTyPgkECpLkrBqs/uuasaXgjv/lQf+5am19ywF6SQ6PsreHZgT36h2j5cdFTN551KHFEDMl6fCgMPDxEEyqxg==}
+    cpu: [x64]
+    os: [linux]
+
+  '@lydell/node-pty-win32-arm64@1.2.0-beta.14':
+    resolution: {integrity: sha512-yw1R4qPtspu0w2p4YhoYuznfQQsdHrVtQnKVDKYTjyuqzF720JZyIdfTRQ0Fl8ChcNesLIrq1kIBfkDPy7CXgg==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@lydell/node-pty-win32-x64@1.2.0-beta.14':
+    resolution: {integrity: sha512-aenTbinERVvWgCQkFwqj9SOR+t/1ZVJ8RqMAk6nB9Lh7oiuRCDzVfs0fNhHRw7JtURZ4jG4i51jou0uXg2yrIw==}
+    cpu: [x64]
+    os: [win32]
+
+  '@lydell/node-pty@1.2.0-beta.14':
+    resolution: {integrity: sha512-RjQis46eBwL9xyDvfXqVsNS2JZ5zQQK/QAYsNE5j8sYPTf4/OpG5Ghm92WGn+w4Rsk3LTpj2adpaZM9Cb8rzDA==}
 
   '@mdx-js/react@3.1.1':
     resolution: {integrity: sha512-f++rKLQgUVYDAtECQ6fn/is15GkEH9+nZPM3MS0RcxVqoTfawHvDlSCH7JbMhAM6uJ32v3eXLvLmLvjGu7PTQw==}
@@ -3912,6 +3961,9 @@ packages:
 
   '@types/validate-npm-package-name@4.0.2':
     resolution: {integrity: sha512-lrpDziQipxCEeK5kWxvljWYhUvOiB2A9izZd9B2AFarYAkqZshb4lPbRs7zKEic6eGtH8V/2qJW+dPp9OtF6bw==}
+
+  '@types/ws@8.18.1':
+    resolution: {integrity: sha512-ThVF6DCVhA8kUGy+aazFQ4kXQ7E1Ty7A3ypFOe0IcJV8O/M511G99AW24irKrW56Wt44yG9+ij8FaqoBGkuBXg==}
 
   '@types/yauzl@2.10.3':
     resolution: {integrity: sha512-oJoftv0LSuaDZE3Le4DbKX+KS9G36NzOeSap90UIK0yMA/NhKJhqlSGtNDORNRaIbQfzjXDrQa0ytJ6mNRGz/Q==}
@@ -9367,6 +9419,33 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
+  '@lydell/node-pty-darwin-arm64@1.2.0-beta.14':
+    optional: true
+
+  '@lydell/node-pty-darwin-x64@1.2.0-beta.14':
+    optional: true
+
+  '@lydell/node-pty-linux-arm64@1.2.0-beta.14':
+    optional: true
+
+  '@lydell/node-pty-linux-x64@1.2.0-beta.14':
+    optional: true
+
+  '@lydell/node-pty-win32-arm64@1.2.0-beta.14':
+    optional: true
+
+  '@lydell/node-pty-win32-x64@1.2.0-beta.14':
+    optional: true
+
+  '@lydell/node-pty@1.2.0-beta.14':
+    optionalDependencies:
+      '@lydell/node-pty-darwin-arm64': 1.2.0-beta.14
+      '@lydell/node-pty-darwin-x64': 1.2.0-beta.14
+      '@lydell/node-pty-linux-arm64': 1.2.0-beta.14
+      '@lydell/node-pty-linux-x64': 1.2.0-beta.14
+      '@lydell/node-pty-win32-arm64': 1.2.0-beta.14
+      '@lydell/node-pty-win32-x64': 1.2.0-beta.14
+
   '@mdx-js/react@3.1.1(@types/react@19.2.2)(react@19.2.7)':
     dependencies:
       '@types/mdx': 2.0.14
@@ -11598,6 +11677,10 @@ snapshots:
   '@types/use-sync-external-store@0.0.6': {}
 
   '@types/validate-npm-package-name@4.0.2': {}
+
+  '@types/ws@8.18.1':
+    dependencies:
+      '@types/node': 24.13.2
 
   '@types/yauzl@2.10.3':
     dependencies:

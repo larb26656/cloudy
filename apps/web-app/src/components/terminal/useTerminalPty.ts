@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { getOcClient, getOcInstanceUrl } from "@/lib/opencode";
+import { env } from "@/config/env";
+import {
+  useCreatePtySession,
+  useKillPtySession,
+  useResizePtySession,
+  usePtySession,
+} from "@/hooks/queries";
 
 export type TerminalStatus =
   | "idle"
@@ -12,7 +18,7 @@ export type TerminalStatus =
   | "error";
 
 export interface UseTerminalPtyOptions {
-  /** Working directory the shell starts in (and opencode project scope). */
+  /** Working directory the shell starts in. */
   directory: string;
   /** Current PTY id, or `null` when none is allocated yet. */
   ptyId: string | null;
@@ -28,13 +34,15 @@ export interface UseTerminalPtyResult {
 }
 
 /**
- * Owns the full lifecycle of a terminal session backed by the opencode PTY
- * API. Shared by both the terminal tab and the terminal desk node so they
- * behave identically: spawn (if needed) → open xterm → request a connect
- * ticket → open a WebSocket → pipe stdin/stdout → resize sync. The PTY is
- * NOT removed on unmount so it can be transferred between a node and a tab
- * ("Open in tab"); final cleanup is the caller's responsibility (tab/node
- * `onClose`).
+ * Owns the full lifecycle of a terminal session backed by the cloudy PTY
+ * RPC API (via React Query mutations/queries) plus a WebSocket stream.
+ * Shared by both the terminal tab and the terminal desk node so they
+ * behave identically: spawn (if needed) → open xterm → open WebSocket →
+ * pipe stdin/stdout → resize sync.
+ *
+ * The PTY is NOT removed on unmount so it can be transferred between a
+ * node and a tab ("Open in tab"); final cleanup is the caller's
+ * responsibility (tab/node `onClose`).
  */
 export function useTerminalPty({
   directory,
@@ -46,20 +54,25 @@ export function useTerminalPty({
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Keep the latest callback without re-running the spawn effect.
   const onPtyChangeRef = useRef(onPtyChange);
   onPtyChangeRef.current = onPtyChange;
 
+  const createPty = useCreatePtySession();
+  const killPty = useKillPtySession();
+  const resizePty = useResizePtySession();
+
+  // Poll session status only while the WebSocket is connected — gives us
+  // exitCode through React Query instead of relying solely on WS onclose
+  // (which fires for both clean exit and network drop).
+  const sessionQuery = usePtySession(ptyId, { poll: status === "connected" });
+
   const reconnect = useCallback(() => {
-    // Clean up the previous (e.g. exited) PTY before allocating a new one.
     if (ptyId) {
-      void getOcClient()
-        .pty.remove({ ptyID: ptyId, directory })
-        .catch(() => {});
+      void killPty.mutateAsync({ id: ptyId }).catch(() => {});
     }
     setReloadKey((k) => k + 1);
     onPtyChangeRef.current(null);
-  }, [ptyId, directory]);
+  }, [ptyId, killPty]);
 
   // 1. Spawn a PTY when we don't yet have one.
   useEffect(() => {
@@ -71,29 +84,13 @@ export function useTerminalPty({
 
     (async () => {
       try {
-        const oc = getOcClient();
-        const shellsRes = await oc.pty.shells({ directory });
-        const shells = shellsRes.data ?? [];
-        const acceptable =
-          shells.find((s) => s.acceptable) ?? shells[0] ?? undefined;
-
-        const created = await oc.pty.create({
-          cwd: directory,
-          directory,
-          command: acceptable?.path,
-        });
-        if (created.error) throw created.error;
-        const newId = created.data?.id;
+        const { id } = await createPty.mutateAsync({ directory });
         if (cancelled) {
-          if (newId) {
-            await oc.pty
-              .remove({ ptyID: newId, directory })
-              .catch(() => {});
-          }
+          // Best-effort cleanup of the now-orphaned session.
+          void killPty.mutateAsync({ id }).catch(() => {});
           return;
         }
-        if (!newId) throw new Error("PTY create returned no id");
-        onPtyChangeRef.current(newId);
+        onPtyChangeRef.current(id);
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof Error ? e.message : String(e));
@@ -104,6 +101,7 @@ export function useTerminalPty({
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [directory, ptyId, reloadKey]);
 
   // 2. Attach xterm + WebSocket once a ptyId exists.
@@ -153,8 +151,8 @@ export function useTerminalPty({
       if (cols < 1 || rows < 1) return;
       lastSentCols = cols;
       lastSentRows = rows;
-      getOcClient()
-        .pty.update({ ptyID: ptyId, size: { cols, rows } })
+      void resizePty
+        .mutateAsync({ id: ptyId, cols, rows })
         .catch(() => {});
     };
 
@@ -165,53 +163,37 @@ export function useTerminalPty({
       if (ws?.readyState === WebSocket.OPEN) ws.send(data);
     });
 
-    (async () => {
-      try {
-        const oc = getOcClient();
-        const tokenRes = await oc.pty.connectToken({
-          ptyID: ptyId,
-          directory,
-        });
-        if (disposed) return;
-        if (tokenRes.error) throw tokenRes.error;
-        const ticket = tokenRes.data?.ticket;
-        if (!ticket) throw new Error("PTY connectToken returned no ticket");
+    ws = new WebSocket(buildPtyWsUrl(ptyId));
+    ws.binaryType = "arraybuffer";
 
-        ws = new WebSocket(buildPtyWsUrl(ptyId, ticket, directory));
-        ws.binaryType = "arraybuffer";
-
-        ws.onopen = () => {
-          if (disposed) return;
-          setStatus("connected");
-          syncSize();
-        };
-        ws.onmessage = async (e) => {
-          if (disposed) return;
-          let text: string;
-          if (typeof e.data === "string") {
-            text = e.data;
-          } else if (e.data instanceof ArrayBuffer) {
-            text = new TextDecoder().decode(e.data);
-          } else {
-            text = await (e.data as Blob).text();
-          }
-          term.write(text);
-        };
-        ws.onerror = () => {
-          if (disposed) return;
-          setError("Terminal connection error");
-          setStatus("error");
-        };
-        ws.onclose = () => {
-          if (disposed) return;
-          setStatus("exited");
-        };
-      } catch (e) {
-        if (disposed) return;
-        setError(e instanceof Error ? e.message : String(e));
-        setStatus("error");
+    ws.onopen = () => {
+      if (disposed) return;
+      setStatus("connected");
+      syncSize();
+    };
+    ws.onmessage = async (e) => {
+      if (disposed) return;
+      let text: string;
+      if (typeof e.data === "string") {
+        text = e.data;
+      } else if (e.data instanceof ArrayBuffer) {
+        text = new TextDecoder().decode(e.data);
+      } else {
+        text = await (e.data as Blob).text();
       }
-    })();
+      term.write(text);
+    };
+    ws.onerror = () => {
+      if (disposed) return;
+      setError("Terminal connection error");
+      setStatus("error");
+    };
+    ws.onclose = () => {
+      if (disposed) return;
+      // Only flip to exited if not already in an error state — preserves
+      // the more specific error message set by onerror.
+      setStatus((prev) => (prev === "error" ? prev : "exited"));
+    };
 
     return () => {
       disposed = true;
@@ -226,24 +208,30 @@ export function useTerminalPty({
       }
       term.dispose();
     };
-  }, [ptyId, directory]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ptyId]);
+
+  // 3. Reflect a known exitCode (from the polled session query) onto the
+  // status, overriding the looser "connected"/"exited" detection. This
+  // fires after the WS-driven setStatus, so a true process exit wins.
+  useEffect(() => {
+    if (!ptyId) return;
+    const data = sessionQuery.data;
+    if (!data) return;
+    if (data.exitCode !== null) {
+      setStatus((prev) => (prev === "error" ? prev : "exited"));
+    }
+  }, [ptyId, sessionQuery.data]);
 
   return { containerRef, status, error, reconnect };
 }
 
 /**
- * Build the PTY WebSocket URL against the opencode instance directly (not the
- * cloudy HTTP proxy, which cannot carry a WS upgrade). Swaps the scheme to
- * ws/wss and appends the ticket + directory query params.
+ * Build the PTY WebSocket URL against the cloudy server (same origin as
+ * the API client). Swaps scheme to ws/wss.
  */
-function buildPtyWsUrl(
-  ptyId: string,
-  ticket: string,
-  directory: string,
-): string {
-  const base = getOcInstanceUrl().replace(/\/$/, "");
+function buildPtyWsUrl(ptyId: string): string {
+  const base = env.getApiUrl().replace(/\/$/, "");
   const wsBase = base.replace(/^http:/i, "ws:").replace(/^https:/i, "wss:");
-  const params = new URLSearchParams({ ticket });
-  if (directory) params.set("directory", directory);
-  return `${wsBase}/pty/${encodeURIComponent(ptyId)}/connect?${params.toString()}`;
+  return `${wsBase}/api/pty/sessions/${encodeURIComponent(ptyId)}/stream`;
 }

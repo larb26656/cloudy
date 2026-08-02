@@ -5,3 +5,4 @@ export * from "./useMessages";
 export * from "./usePermissions";
 export * from "./useQuestions";
 export * from "./useFiles";
+export * from "./usePty";

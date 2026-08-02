@@ -1,7 +1,9 @@
 import { serve, type ServerType } from '@hono/node-server';
+import type { Server } from 'node:http';
 import { createApp } from '../server';
-import { initContainer } from '../container';
+import { initContainer, ptyService } from '../container';
 import { loadConfig } from '../config/config';
+import { attachPtyWebSockets } from '../features/pty';
 
 export interface ServerOptions {
   host?: string;
@@ -39,6 +41,13 @@ export function createServer(options: ServerOptions) {
       port: config.port,
       hostname: config.host,
     });
+
+    // Wire the PTY WebSocket on the underlying Node http.Server. Done after
+    // `serve()` returns because @hono/node-server 1.19 has no built-in WS
+    // bridge; raw `ws` handles the `upgrade` event for /api/pty/sessions/:id/stream.
+    // Cast: ServerType is a union of HTTP/HTTPS/HTTP2 servers; we only ever
+    // start plain HTTP1 so the runtime type is `Server`.
+    attachPtyWebSockets(server as Server, ptyService);
 
     const url = `http://${config.host}:${config.port}`;
     return { url };

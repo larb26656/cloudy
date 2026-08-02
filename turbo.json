@@ -13,7 +13,8 @@
       "outputs": ["dist/drizzle/**", "dist/public/**"]
     },
     "lint": {
-      "dependsOn": ["^lint"]
+      "dependsOn": ["^lint"],
+      "env": ["SHELL", "PATH"]
     },
     "check-types": {
       "dependsOn": ["^check-types"]
