@@ -33,6 +33,10 @@ export const useFlowStore = create<FlowState>()(
         });
       },
     }),
-    { name: "flow-storage" },
+    {
+      name: "flow-storage",
+      version: 1,
+      migrate: (persistedState) => persistedState,
+    },
   ),
 );

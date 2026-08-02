@@ -13,6 +13,6 @@ export const useDefaultModelStore = create<DefaultModelStore>()(
       defaultModel: null,
       setDefaultModel: (model) => set({ defaultModel: model }),
     }),
-    { name: "default-model" }
+    { name: "default-model", version: 1 }
   )
 );

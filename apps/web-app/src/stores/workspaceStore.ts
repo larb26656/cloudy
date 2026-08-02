@@ -26,7 +26,6 @@ type WorkspaceStore = {
   workspaces: Workspace[];
   selectedWorkspaceId: string | null;
   selectWorkspace: (id: string) => void;
-  clearSelectedWorkspace: () => void;
   getWorkspace: (id: string) => Workspace | undefined;
   getWorkspaceByDirectory: (directory: string) => Workspace | undefined;
   createWorkspace: (
@@ -46,8 +45,6 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
       selectedWorkspaceId: null,
 
       selectWorkspace: (id) => set({ selectedWorkspaceId: id }),
-
-      clearSelectedWorkspace: () => set({ selectedWorkspaceId: null }),
 
       getWorkspace: (id) => {
         return get().workspaces.find((w) => w.id === id);
@@ -115,6 +112,6 @@ export const useWorkspaceStore = create<WorkspaceStore>()(
         }));
       },
     }),
-    { name: "workspaces" },
+    { name: "workspaces", version: 1 },
   ),
 );

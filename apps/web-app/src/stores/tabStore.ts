@@ -8,7 +8,6 @@ interface TabStore {
   tabs: Tab[];
   activeTabId: string;
   addTab: <T extends Tab["type"]>(type: T, data: TabDataMap[T]) => string;
-  getTab: (id: string) => Tab;
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
   reorderTabs: (activeId: string, overId: string) => void;
@@ -16,7 +15,6 @@ interface TabStore {
     tabId: string,
     data: Partial<T["data"]>,
   ) => void;
-  clearAll: () => void;
 }
 
 export const useTabStore = create<TabStore>()(
@@ -32,12 +30,6 @@ export const useTabStore = create<TabStore>()(
           activeTabId: id,
         }));
         return id;
-      },
-
-      getTab: (id) => {
-        const tab = get().tabs.find((t: Tab) => t.id === id);
-        if (!tab) throw new Error(`Tab ${id} not found`);
-        return tab;
       },
 
       removeTab: (id) => {
@@ -76,8 +68,6 @@ export const useTabStore = create<TabStore>()(
           }),
         }));
       },
-
-      clearAll: () => set({ tabs: [], activeTabId: "home" }),
     }),
     {
       name: "tabs",
