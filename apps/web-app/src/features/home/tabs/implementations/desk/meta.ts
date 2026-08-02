@@ -17,7 +17,7 @@ export const deskTemplate: TabTemplate<DeskData> = {
   defaultData: {
     name: "New desk",
   },
-  onClose: (tabId) => {
-    useFlowStore.getState().deleteFlow(tabId);
+  onClose: (tab) => {
+    useFlowStore.getState().deleteFlow(tab.id);
   },
 };

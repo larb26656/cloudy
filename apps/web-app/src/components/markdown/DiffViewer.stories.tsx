@@ -32,6 +32,20 @@ const meta = preview.meta({
       control: "boolean",
       description: "Controlled line numbers — hides the toggle button when set",
     },
+    headless: {
+      control: "boolean",
+      description: "Render without the CodeFrame wrapper",
+    },
+    maxHeight: {
+      control: "number",
+      description:
+        "Headless mode only. Number = px, or CSS string. Optional cap — omit to size via className/parent",
+    },
+    className: {
+      control: "text",
+      description:
+        "Headless mode only. Merged onto the scroll container (e.g. 'min-h-0 flex-1' to fill a flex parent)",
+    },
   },
 });
 
@@ -104,6 +118,43 @@ index 1111111..2222222 100644
 +    greet("Alice", greeting="Hi")
 +
 +main()`;
+
+const longDiff = `diff --git a/src/server.ts b/src/server.ts
+index 1111111..2222222 100644
+--- a/src/server.ts
++++ b/src/server.ts
+@@ -1,40 +1,55 @@
+-import { Hono } from "hono";
+-import { logger } from "hono/logger";
++import { Hono } from "hono";
++import { logger } from "hono/logger";
++import { cors } from "hono/cors";
++import { HTTPException } from "hono/http-exception";
+ 
+-const app = new Hono();
++export function createApp() {
++  const app = new Hono();
++  app.use("*", logger());
++  app.use("*", cors());
+ 
+-app.get("/", (c) => c.text("Hello"));
++  app.get("/", (c) => c.json({ ok: true }));
++  app.get("/health", (c) => c.json({ status: "healthy" }));
+ 
+-app.listen(3000);
++  app.onError((err, c) => {
++    if (err instanceof HTTPException) {
++      return c.json({ error: err.message }, err.status);
++    }
++    return c.json({ error: "Internal Server Error" }, 500);
++  });
++
++  return app;
++}
++
++const port = Number(process.env.PORT ?? 3000);
++createApp().listen({ port });
++console.log(\`Server running on http://localhost:\${port}\`);`;
 
 // ---------------------------------------------------------------------------
 // Uncontrolled — toggle buttons visible
@@ -228,4 +279,45 @@ index 1234567..0000000 100644
 -`,
     filePath: "src/old.ts",
   },
+});
+
+// ---------------------------------------------------------------------------
+// Headless — internal vertical & horizontal scroll
+// ---------------------------------------------------------------------------
+
+export const HeadlessWithMaxHeight = meta.story({
+  args: {
+    diff: longDiff,
+    filePath: "src/server.ts",
+    headless: true,
+    maxHeight: 240,
+    showLineNumbers: true,
+    viewMode: "line-by-line",
+  },
+});
+
+export const HeadlessSideBySide = meta.story({
+  args: {
+    diff: longDiff,
+    filePath: "src/server.ts",
+    headless: true,
+    maxHeight: 300,
+    viewMode: "side-by-side",
+  },
+});
+
+export const HeadlessFillParent = meta.story({
+  args: {
+    diff: longDiff,
+    filePath: "src/server.ts",
+    headless: true,
+    className: "min-h-0 flex-1",
+    showLineNumbers: true,
+    viewMode: "line-by-line",
+  },
+  render: (args) => (
+    <div className="flex h-[400px] w-full flex-col rounded-md border border-[#404040] bg-[#1e1e1e] p-2">
+      <DiffViewer {...args} />
+    </div>
+  ),
 });

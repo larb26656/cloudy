@@ -53,7 +53,7 @@ export const useTabStore = create<TabStore>()(
           return { tabs, activeTabId };
         });
         if (tab) {
-          tabTypeMap[tab.type]?.onClose?.(id);
+          tabTypeMap[tab.type]?.onClose?.(tab);
         }
       },
 
@@ -81,7 +81,7 @@ export const useTabStore = create<TabStore>()(
     }),
     {
       name: "tabs",
-      version: 2,
+      version: 3,
       migrate: (persistedState, version) => {
         // Persisted shapes may predate the current `Tab` union, so read them
         // through a looser type. Old versions stored `type: "session"` which
@@ -97,6 +97,23 @@ export const useTabStore = create<TabStore>()(
         if (version < 2) {
           tabs = tabs.map((t) =>
             t.type === "session" ? { ...t, type: "chat" } : t,
+          );
+        }
+
+        // v2 -> v3: terminal PTY ids are runtime-only (the opencode server
+        // owns the PTY lifecycle); strip any stale id so a fresh one is
+        // spawned on load instead of connecting to a dead session.
+        if (version < 3) {
+          tabs = tabs.map((t) =>
+            t.type === "terminal"
+              ? {
+                  ...t,
+                  data: {
+                    ...(t.data as Record<string, unknown>),
+                    ptyId: null,
+                  },
+                }
+              : t,
           );
         }
 

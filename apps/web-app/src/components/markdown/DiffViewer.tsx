@@ -7,6 +7,7 @@ import { Check, Copy, Columns, AlignJustify, Hash } from "lucide-react";
 import { ColorSchemeType } from "diff2html/lib/types";
 import { CodeFrame } from "./CodeFrame";
 import { detectLanguage } from "@/lib/highlight";
+import { cn } from "@/lib/utils";
 
 interface DiffViewerProps {
   diff: string;
@@ -16,6 +17,8 @@ interface DiffViewerProps {
   defaultViewMode?: "side-by-side" | "line-by-line";
   showLineNumbers?: boolean;
   headless?: boolean;
+  maxHeight?: number | string;
+  className?: string;
 }
 
 export function DiffViewer({
@@ -26,6 +29,8 @@ export function DiffViewer({
   defaultViewMode = "side-by-side",
   showLineNumbers: controlledShowLineNumbers,
   headless = false,
+  maxHeight,
+  className,
 }: DiffViewerProps) {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState(defaultViewMode);
@@ -205,7 +210,16 @@ export function DiffViewer({
   );
 
   if (headless) {
-    return <div className="relative">{diffContent}</div>;
+    const maxHeightStyle =
+      typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight;
+    return (
+      <div
+        className={cn("relative overflow-auto", className)}
+        style={maxHeightStyle ? { maxHeight: maxHeightStyle } : undefined}
+      >
+        {diffContent}
+      </div>
+    );
   }
 
   return (

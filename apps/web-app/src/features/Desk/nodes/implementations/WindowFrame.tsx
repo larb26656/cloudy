@@ -27,6 +27,9 @@ interface WindowFrameProps {
   headerAction?: React.ReactNode;
   actions?: WindowFrameAction[];
   workspaceId?: string;
+  /** Override the default close (delete-node) behavior, e.g. to clean up
+   * external resources before removing the node. */
+  onCloseOverride?: () => void;
 }
 
 export function WindowFrame({
@@ -44,8 +47,10 @@ export function WindowFrame({
   headerAction,
   actions,
   workspaceId,
+  onCloseOverride,
 }: WindowFrameProps) {
-  const handleClose = useDeleteNode(nodeId);
+  const defaultClose = useDeleteNode(nodeId);
+  const handleClose = onCloseOverride ?? defaultClose;
 
   return (
     <>

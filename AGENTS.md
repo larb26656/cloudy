@@ -10,8 +10,7 @@ sharing a Drizzle/PGlite database and type-safe API contracts.
 ```
 apps/
   server/        `cloudy` CLI binary — bundles @repo/server via tsup (host 4122)
-  web-app/       React 19 + Vite frontend (dev port 3001) — current web UI
-  web-app-next/  Next-gen React 19 + Vite + TanStack Router frontend (dev port 3002)
+  web-app/       React 19 + Vite + TanStack Router frontend (dev port 3001) — the web UI
 packages/
   contracts/     Type-only facade re-exporting @repo/server types for the browser
   database/      Drizzle ORM + PGlite (WASM Postgres); schema, migrations, test-utils
@@ -33,7 +32,7 @@ All commands run from the repo root unless noted. Turborepo orchestrates and cac
 
 ```sh
 pnpm install
-pnpm run dev              # dev all apps concurrently (server 4122, web-app 3001, web-app-next 3002)
+pnpm run dev              # dev all apps concurrently (server 4122, web-app 3001)
 pnpm run build            # turbo run build (all)
 pnpm build:full           # build + copy-assets (drizzle migrations + web assets into dist/)
 pnpm run lint             # turbo run lint (all packages)
@@ -73,9 +72,9 @@ explicitly anyway). Mocking: `vitest-mock-extended` (`mock<T>()`, `MockProxy<T>`
 
 ### Frontend tests
 
-`apps/web-app-next` has co-located `*.test.ts` files under `src/lib/` (command, message helpers).
-They use vitest globals. Run from that app: `pnpm --filter web-app-next exec vitest run src/lib/command.test.ts`.
-(The web apps' `tsconfig.json` excludes `*.test.ts(x)` from the build typegraph.)
+`apps/web-app` has co-located `*.test.ts` files under `src/lib/` (command, message helpers).
+They use vitest globals. Run from that app: `pnpm --filter web-app exec vitest run src/lib/command.test.ts`.
+(The app's `tsconfig.json` excludes `*.test.ts(x)` from the build typegraph.)
 
 ### Database migrations
 
@@ -90,7 +89,7 @@ pnpm --filter @repo/database db:studio     # drizzle-kit studio (inspect data)
 ## Code Style
 
 - **Language:** TypeScript strict mode everywhere (`packages/typescript-config/base.json`):
-  `strict`, `noUncheckedIndexedAccess` (server/db; disabled in `web-app-next`), `noUnusedLocals`,
+  `strict`, `noUncheckedIndexedAccess` (server/db; disabled in `web-app`), `noUnusedLocals`,
   `noUnusedParameters`. Target ES2022/ES2023, `module: ESNext`, `moduleResolution: Bundler`.
 - **Modules:** ESM only (`"type": "module"`). Use ESM `import`/`export`, no `require`/CommonJS.
 - **Type-only imports:** `verbatimModuleSyntax` is on for the frontend; always use
@@ -126,7 +125,7 @@ all DB client + repositories + services as module-level singletons. Compose rout
 
 **Frontend ↔ backend contract:** `@repo/contracts` re-exports `AppType` **type-only** so the browser
 never bundles Node-only server code. Frontend calls the API via `hono/client`:
-`hc<AppType>(url)` (see `apps/web-app-next/src/lib/api.ts`). **Never** add a value (runtime) export
+`hc<AppType>(url)` (see `apps/web-app/src/lib/api.ts`). **Never** add a value (runtime) export
 to `@repo/contracts` — only `export type`.
 
 ## Database conventions (`packages/database`)
@@ -138,7 +137,7 @@ to `@repo/contracts` — only `export type`.
 - Tests use `createTestDb()` / `closeTestDb(db)` from `src/test-utils.ts` (in-memory PGlite +
   migrations applied). Import via `import { createTestDb } from "@repo/database"`.
 
-## Frontend conventions (`apps/web-app-next`)
+## Frontend conventions (`apps/web-app`)
 
 - **Stack:** React 19, TanStack Router (file-based routes in `src/routes/`; route tree is
   auto-generated into `src/routeTree.gen.ts` — **never edit by hand**), TanStack Query, Zustand
@@ -158,7 +157,8 @@ to `@repo/contracts` — only `export type`.
 - **Styling helper:** `cn(...)` from `src/lib/utils.ts` (`clsx` + `tailwind-merge`). Prefer it for
   conditional class composition; use `class-variance-authority` (`cva`) for component variants.
 - **API client:** import `cloudyClient` from `src/lib/api.ts`; all endpoints are type-inferred.
-- **Dev server proxy:** `/service/*` is proxied to `http://127.0.0.1:4122` (the API) in `vite.config.ts`.
+- **API base URL:** in dev the app talks to the server at `http://127.0.0.1:4122` (no Vite proxy is
+  configured in `vite.config.ts` — requests go directly to the API origin).
 
 ## Desk conventions (`apps/web-app`)
 
@@ -168,11 +168,11 @@ Desk is a tab type (`"desk"`) that provides a React Flow canvas for building nod
 
 - **Tab type** — defined in `src/stores/tabStore.ts` as `type: "desk"` with `DeskData = Record<string, never>`
 - **Flow persistence** — `src/stores/flowStore.ts` stores flows keyed as `desk-${tabId}`: `{ nodes, edges, viewport }`
-- **Canvas** — `src/features/Desk/DeskCanvas.tsx` uses `@xyflow/react` (`ReactFlow`, `NodeResizer`, etc.)
+- **Canvas** — `src/features/desk/DeskCanvas.tsx` uses `@xyflow/react` (`ReactFlow`, `NodeResizer`, etc.)
 
 ### Adding a new node type
 
-Create a new folder under `src/features/Desk/nodes/implementations/<node-name>/`:
+Create a new folder under `src/features/desk/nodes/implementations/<node-name>/`:
 
 ```
 <node-name>/
@@ -210,7 +210,7 @@ export const myNodeTemplate: NodeTemplate = {
 };
 ```
 
-**3. Register** in `src/features/Desk/nodes/template/index.ts`:
+**3. Register** in `src/features/desk/nodes/template/index.ts`:
 ```ts
 import { myNodeTemplate } from "../implementations/my-node";
 export const nodeTemplates: NodeTemplate[] = [
@@ -234,6 +234,76 @@ export const nodeTypes = nodeTemplates.reduce((acc, t) => {
 | `configDialog` | `ComponentType<ConfigDialogProps>` | Optional dialog before adding |
 | `defaultData` | `Record<string, unknown>` | Optional initial node data |
 | `component` | `ComponentType` | React Flow node component |
+
+## Storybook conventions (`apps/web-app`)
+
+`web-app` uses Storybook 10 with the **`@storybook/tanstack-react` framework**. This framework exposes
+a type-safe authoring API — stories are written with `preview.meta(...)` / `meta.story(...)`, **not** the
+classic `Meta` / `StoryObj` pattern.
+
+### Config layout
+
+| File                       | Role                                                                                                                                                              |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.storybook/main.ts`       | Framework = `@storybook/tanstack-react`. Story globs: `../src/**/*.mdx` and `../src/**/*.stories.@(js\|jsx\|mjs\|ts\|tsx)`. Addons: chromatic, vitest, a11y, docs. |
+| `.storybook/preview.tsx`   | `definePreview(...)` — wires `addonDocs()`, MSW loader (`msw-storybook-addon`), and a11y config (`test: "todo"` — violations surface in UI but don't fail CI).     |
+| `src/storybook/preview.ts` | One-line shim: `export { default } from "../../.storybook/preview"`. Exists so stories can import the preview via the `@/` alias.                                  |
+
+### Authoring a story
+
+Co-locate `<Component>.stories.tsx` next to the component. Import the preview facade via the `@/storybook/preview`
+alias (preferred over a deep relative path to `.storybook/preview.tsx`):
+
+```tsx
+import preview from "@/storybook/preview";
+import { MyComponent } from "./MyComponent";
+
+const meta = preview.meta({
+  title: "Category/Subcategory/MyComponent", // hierarchical; mirrors folder structure
+  component: MyComponent,
+  tags: ["autodocs"],
+  parameters: { layout: "centered" },
+  argTypes: {
+    variant: { control: "select", options: ["default", "outline"] },
+  },
+});
+
+export default meta;
+
+export const Default = meta.story({ args: { variant: "default" } });
+export const Outline = meta.story({ args: { variant: "outline" } });
+```
+
+Conventions:
+
+- **Story naming:** use `meta.story({ args })` — one named export per visual state (e.g. `Default`, `Running`,
+  `Error`, `Disabled`). Export names become the story titles in the sidebar.
+- **`title`** is hierarchical and slash-separated, mirroring the component's location under `src/` (e.g.
+  `Chat/Message/Parts/ToolComponents/BashTool`, `Permission/PermissionBanner`, `UI/ColorPicker`).
+- **Controlled components** (need `value`/`onChange`, react-hook-form, etc.): wrap them in a small `XxxDemo`
+  component that owns the internal state, then pass that demo as `meta.component`. See
+  `src/components/ui/color-picker/ColorPicker.stories.tsx` for the pattern (a `ColorPickerDemo` wraps
+  `ColorPicker` with `useState`, plus a `WithReactHookForm` story that uses a custom `render`).
+- **Complex SDK/external props** (e.g. tool `state` from the opencode SDK): cast with `as any` in story `args`
+  rather than building the full type — stories are for visual review, not type-checking.
+- **Mocking API calls:** use the MSW loader (already wired globally). Add handlers per-story via the `msw`
+  parameter; no per-story loader import needed.
+
+### Running Storybook
+
+```sh
+pnpm --filter web-app storybook          # dev server on http://localhost:6006
+pnpm --filter web-app build-storybook    # static build into storybook-static/
+```
+
+### Storybook as a test target
+
+`apps/web-app/vitest.config.ts` defines **three** vitest projects — `node` (`*.test.ts`),
+`jsdom` (`*.component.test.tsx`), and a `storybook` project. The storybook project uses
+`@storybook/addon-vitest`'s `storybookTest` plugin and runs each story's interaction tests through a headless
+Playwright chromium instance. So `pnpm --filter web-app test` runs storybook interaction tests too. To exercise
+interactions inside a story, use `await expect(canvas).toBeInTheDocument(...)` style play functions
+(documented under Storybook's interaction testing).
 
 ## Error handling
 
