@@ -106,6 +106,7 @@ export function ModelSelector() {
               placeholder="Search models..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={(e) => e.stopPropagation()}
               className="pl-8"
             />
           </div>
