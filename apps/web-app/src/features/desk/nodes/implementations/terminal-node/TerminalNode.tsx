@@ -5,7 +5,7 @@ import { useReactFlow } from "@xyflow/react";
 import { TerminalView } from "@/components/terminal";
 import { ErrorState } from "@/components/ui/error-state";
 import { useTabStore } from "@/stores/tabStore";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useWorkspace } from "@/hooks/queries";
 import { useKillPtySession } from "@/hooks/queries";
 import { useDeleteNode } from "../useDeleteNode";
 import { WindowFrame } from "../WindowFrame";
@@ -28,9 +28,7 @@ export function TerminalNode({
   const addTab = useTabStore((s) => s.addTab);
   const killPty = useKillPtySession();
   const deleteNode = useDeleteNode(id);
-  const workspace = useWorkspaceStore((s) =>
-    s.getWorkspace(data.workspaceId),
-  );
+  const { data: workspace } = useWorkspace(data.workspaceId);
 
   const directory = workspace?.directory ?? data.directory;
   const title = workspace?.name ?? "Terminal";

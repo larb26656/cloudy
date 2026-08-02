@@ -6,6 +6,7 @@ import type { CloudyConfig } from "../../config";
 const baseConfig: CloudyConfig = {
   configDir: "/tmp",
   dataDir: "/tmp",
+  dbPath: "/tmp/cloudy-test.db",
   ui: false,
   host: "localhost",
   port: 4122,

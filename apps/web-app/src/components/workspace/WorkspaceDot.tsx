@@ -1,4 +1,4 @@
-import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useWorkspace } from "@/hooks/queries";
 import { cn } from "@/lib/utils";
 
 interface WorkspaceDotProps {
@@ -7,9 +7,8 @@ interface WorkspaceDotProps {
 }
 
 export function WorkspaceDot({ workspaceId, className }: WorkspaceDotProps) {
-  const color = useWorkspaceStore((s) =>
-    workspaceId ? s.getWorkspace(workspaceId)?.color : undefined,
-  );
+  const { data: workspace } = useWorkspace(workspaceId ?? null);
+  const color = workspace?.color;
 
   if (!color) return null;
 

@@ -81,11 +81,11 @@ scripts/
 
 The `cloudy` CLI is bundled into a single file (`apps/server/dist/cli.js`, ~1.4 MB) via tsup:
 
-- **Bundled:** `@repo/server`, `@repo/database`, `hono`, `zod`, `drizzle-orm`, and all other pure-JS dependencies
-- **External:** `@electric-sql/pglite` (WASM Postgres — installed as a runtime dependency, resolves its own `.wasm` assets from `node_modules`)
+- **Bundled:** `@repo/server`, `hono`, `zod`, `drizzle-orm`, and all other pure-JS dependencies
+- **External:** `better-sqlite3` (native SQLite — installed as a runtime dependency)
 - **Assets in `dist/`:** `drizzle/` (migration SQL), `public/` (web UI)
 
-This keeps the package lean (~3.4 MB tarball) while PGlite handles its own ~16 MB of WASM binaries separately.
+This keeps the package lean (~3.4 MB tarball) while better-sqlite3 handles SQLite persistence locally.
 
 ## Commands
 

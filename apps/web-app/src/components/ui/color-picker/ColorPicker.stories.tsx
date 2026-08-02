@@ -1,15 +1,15 @@
-import preview from "@/storybook/preview"
-import { useState } from "react"
-import { Controller, useForm } from "react-hook-form"
-import { ColorPicker } from "./ColorPicker"
-import { WORKSPACE_COLORS } from "@/stores/workspaceStore"
+import preview from "@/storybook/preview";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { ColorPicker } from "./ColorPicker";
+import { WORKSPACE_COLORS } from "@/lib/cloudy/workspaces";
 
 interface ColorPickerDemoProps {
-  colors: readonly string[]
-  columns?: 2 | 3 | 4 | 6
-  size?: "sm" | "md" | "lg"
-  label?: string
-  disabled?: boolean
+  colors: readonly string[];
+  columns?: 2 | 3 | 4 | 6;
+  size?: "sm" | "md" | "lg";
+  label?: string;
+  disabled?: boolean;
 }
 
 function ColorPickerDemo({
@@ -19,7 +19,7 @@ function ColorPickerDemo({
   label,
   disabled,
 }: ColorPickerDemoProps) {
-  const [value, setValue] = useState<string>(colors[0] ?? "")
+  const [value, setValue] = useState<string>(colors[0] ?? "");
   return (
     <ColorPicker
       colors={colors}
@@ -30,7 +30,7 @@ function ColorPickerDemo({
       value={value}
       onChange={setValue}
     />
-  )
+  );
 }
 
 const meta = preview.meta({
@@ -53,9 +53,9 @@ const meta = preview.meta({
       options: ["sm", "md", "lg"],
     },
   },
-})
+});
 
-export default meta
+export default meta;
 
 export const Default = meta.story({
   args: {
@@ -63,7 +63,7 @@ export const Default = meta.story({
     columns: 4,
     size: "md",
   },
-})
+});
 
 export const Small = meta.story({
   args: {
@@ -71,7 +71,7 @@ export const Small = meta.story({
     columns: 4,
     size: "sm",
   },
-})
+});
 
 export const Large = meta.story({
   args: {
@@ -79,7 +79,7 @@ export const Large = meta.story({
     columns: 4,
     size: "lg",
   },
-})
+});
 
 export const SixColumns = meta.story({
   args: {
@@ -87,7 +87,7 @@ export const SixColumns = meta.story({
     columns: 6,
     size: "md",
   },
-})
+});
 
 export const WithLabel = meta.story({
   args: {
@@ -96,7 +96,7 @@ export const WithLabel = meta.story({
     size: "md",
     label: "Workspace Color",
   },
-})
+});
 
 export const Disabled = meta.story({
   args: {
@@ -105,7 +105,7 @@ export const Disabled = meta.story({
     size: "md",
     disabled: true,
   },
-})
+});
 
 export const CustomColors = meta.story({
   args: {
@@ -113,7 +113,7 @@ export const CustomColors = meta.story({
     columns: 3,
     size: "md",
   },
-})
+});
 
 export const WithReactHookForm = meta.story({
   args: {
@@ -125,8 +125,8 @@ export const WithReactHookForm = meta.story({
   render: () => {
     const { control, watch } = useForm({
       defaultValues: { color: WORKSPACE_COLORS[0] },
-    })
-    const selectedColor = watch("color")
+    });
+    const selectedColor = watch("color");
 
     return (
       <div className="space-y-4">
@@ -148,6 +148,6 @@ export const WithReactHookForm = meta.story({
           Selected: <span style={{ color: selectedColor }}>{selectedColor}</span>
         </p>
       </div>
-    )
+    );
   },
-})
+});

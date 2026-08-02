@@ -1,7 +1,7 @@
 import { Terminal } from "lucide-react";
 import type { Tab } from "@/features/home/tabs/template";
 import { TabItemShell } from "@/features/home/components/TabItemShell";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useWorkspace } from "@/hooks/queries";
 
 interface TerminalTabItemProps {
   tab: Extract<Tab, { type: "terminal" }>;
@@ -16,9 +16,7 @@ export function TerminalTabItem({
   onClick,
   onClose,
 }: TerminalTabItemProps) {
-  const workspace = useWorkspaceStore((s) =>
-    s.getWorkspace(tab.data.workspaceId),
-  );
+  const { data: workspace } = useWorkspace(tab.data.workspaceId);
   const label = workspace?.name ?? "Terminal";
 
   return (

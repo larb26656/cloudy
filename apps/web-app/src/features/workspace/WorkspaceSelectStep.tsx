@@ -2,7 +2,9 @@ import { FolderOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { WorkspaceItem } from "@/components/ui/WorkspaceItem";
-import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
+import { LoadingState } from "@/components/ui/loading-state";
+import { useWorkspaces } from "@/hooks/queries";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 
 interface WorkspaceSelectStepProps {
   onSelect: (workspace: Workspace) => void;
@@ -13,7 +15,15 @@ export function WorkspaceSelectStep({
   onSelect,
   onGoToWorkspaces,
 }: WorkspaceSelectStepProps) {
-  const workspaces = useWorkspaceStore((s) => s.workspaces);
+  const { data: workspaces = [], isLoading } = useWorkspaces();
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center gap-4 py-8 text-center">
+        <LoadingState title="Loading workspaces" />
+      </div>
+    );
+  }
 
   if (workspaces.length === 0) {
     return (

@@ -7,6 +7,7 @@ import { Scalar } from "@scalar/hono-api-reference";
 
 import { createProxyController } from "./features/proxy";
 import { createPtyController } from "./features/pty";
+import { createWorkspacesController } from "./features/workspaces";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
 
@@ -49,7 +50,8 @@ export function createApp({
     .onError(domainErrorHandler)
     .get("/api/health", (c) => c.json({ status: "ok" }))
     .route("/oc", createProxyController(container.proxyService))
-    .route("/api/pty", createPtyController(container.ptyService));
+    .route("/api/pty", createPtyController(container.ptyService))
+    .route("/api/workspaces", createWorkspacesController(container.workspacesService));
 
   app.get(
     "/openapi",

@@ -13,5 +13,5 @@ export default defineConfig({
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);`,
   },
-  external: ["@electric-sql/pglite", "@lydell/node-pty"],
+  external: ["better-sqlite3", "@lydell/node-pty"],
 });

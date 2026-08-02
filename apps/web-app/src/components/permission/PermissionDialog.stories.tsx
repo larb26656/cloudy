@@ -59,7 +59,7 @@ const initialRequests: Record<string, PermissionRequest[]> = {
     buildRequest({
       id: "per_full_1",
       permission: "write",
-      patterns: ["packages/database/src/schema/permission.ts"],
+      patterns: ["packages/server/src/db/schema/permission.ts"],
       always: ["edit", "write"],
       tool: {
         messageID: "msg_demo_full",

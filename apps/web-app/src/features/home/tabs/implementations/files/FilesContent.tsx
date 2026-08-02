@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useWorkspace } from "@/hooks/queries";
 import { useVcsDiff } from "@/hooks/queries/useFiles";
 import { useDeviceType } from "@/hooks";
 import { ErrorState } from "@/components/ui/error-state";
@@ -31,8 +31,8 @@ interface FilesContentProps {
 }
 
 export function FilesContent({ tab }: FilesContentProps) {
-  const workspace = useWorkspaceStore((s) =>
-    s.getWorkspace(tab.data.workspaceId),
+  const { data: workspace, isLoading: workspaceLoading } = useWorkspace(
+    tab.data.workspaceId,
   );
 
   const directory = workspace?.directory;
@@ -62,6 +62,14 @@ export function FilesContent({ tab }: FilesContentProps) {
       setIsSidebarOpen(false);
     }
   };
+
+  if (workspaceLoading) {
+    return (
+      <div className="h-full flex justify-center">
+        <LoadingState title="Loading workspace" />
+      </div>
+    );
+  }
 
   if (!workspace || !directory) {
     return (

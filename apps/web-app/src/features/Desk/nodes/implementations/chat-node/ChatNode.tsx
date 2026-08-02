@@ -2,11 +2,10 @@ import { ChatContainer } from "@/components/chat/ChatContainer";
 import type { Node, NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
-import { useSession } from "@/hooks/queries";
+import { useSession, useWorkspace } from "@/hooks/queries";
 import { WindowFrame } from "../WindowFrame";
 import { ExternalLink } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
 import { ErrorState } from "@/components/ui/error-state";
 
 type ChatNodeProps = Node<
@@ -21,9 +20,7 @@ type ChatNodeProps = Node<
 export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const { updateNodeData } = useReactFlow();
   const addTab = useTabStore((s) => s.addTab);
-  const workspace = useWorkspaceStore((s) =>
-    s.getWorkspace(data.workspaceId),
-  );
+  const { data: workspace } = useWorkspace(data.workspaceId);
 
   const { data: session } = useSession({ sessionId: data.sessionId });
   const title = session?.title ?? "Chat";

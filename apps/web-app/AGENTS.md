@@ -154,18 +154,17 @@ change):
 
 ```ts
 // ❌ Bad — causes re-render when ANY store state changes
-const { workspaces, getWorkspace } = useWorkspaceStore();
+const { streamingMessages } = useStreamingMessagesStore();
 
-// ✅ Good — only re-renders when `workspaces` or `getWorkspace` changes
-const workspaces = useWorkspaceStore((s) => s.workspaces);
-const getWorkspace = useWorkspaceStore((s) => s.getWorkspace);
+// ✅ Good — only re-renders when the specific slice changes
+const streamingMessages = useStreamingMessagesStore((s) => s.streamingMessages);
 ```
 
 | Store | Persistence | Purpose |
 | --- | --- | --- |
 | `tabStore.ts` | `localStorage` "tabs" v3 | Tabs + active tab + reorder (`@dnd-kit/sortable`). Calls `tabTypeMap[type].onClose` on removal. |
 | `flowStore.ts` | `localStorage` "flow-storage" v1 | Desk canvas state keyed `desk-${tabId}` → `{ nodes, edges, viewport }`. Deleted when the owning desk tab closes. |
-| `workspaceStore.ts` | persisted | Workspace list (id, instanceId, name, color, directory). CRUD with `{ success, error }` return shape. |
+| `selectedWorkspaceStore.ts` | none | Single `selectedWorkspaceId` — ephemeral UI selection. |
 | `sessionStore.ts` | none | Single `selectedSessionId` — ephemeral UI selection. |
 | `chatSettingsStore.ts` | — | Per-chat settings (model, agent, etc.). |
 | `defaultAgentStore.ts` / `defaultModelStore.ts` | — | Default agent/model pickers. |
@@ -226,9 +225,11 @@ so future schema changes have a hook point.
 
 - Client + `QueryProvider` in `src/providers/QueryProvider.tsx`.
 - Hooks live in `src/hooks/queries/` (`useAgents`, `useSessions`, `useMessages`,
-  `useModels`, `useFiles`, `usePermissions`, `useQuestions`, `useCommand`).
-- Query keys centralized in `src/lib/opencode/query-keys.ts` — keep them there so the
-  global event handler can invalidate by key.
+  `useModels`, `useFiles`, `usePermissions`, `useQuestions`, `useCommand`, `useWorkspaces`,
+  `useWorkspace`, `useCreateWorkspace`, `useUpdateWorkspace`, `useDeleteWorkspace`).
+- Query keys for cloudy-backed resources live in `src/lib/cloudy/query-keys.ts`
+  (`ptyKeys`, `workspaceKeys`).
+- Query keys for opencode-backed resources live in `src/lib/opencode/query-keys.ts`.
 - Use TanStack Query for **all server state**. Do not mirror server data into Zustand —
   Zustand is for *client-only* state (tabs, flows, sidebar, selection).
 

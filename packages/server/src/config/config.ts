@@ -6,6 +6,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 const ConfigurableSchema = z.object({
     configDir: z.string().default('~/.config/cloudy'),
     dataDir: z.string().default('~/.config/cloudy/data'),
+    dbPath: z.string().default('~/.config/cloudy/data/sqlite'),
     ui: z.union([z.boolean(), z.string()]).transform((val) => val === true || val === "true").default(false),
     host: z.string().default('localhost'),
     port: z.string().default('4122').transform(Number),
@@ -82,10 +83,12 @@ export function parseConfig(input: {
     const mergedInput = { ...defaults, ...fileConfig, ...envConfig, ...filteredCliFlags };
     const merged = ConfigurableSchema.parse(mergedInput);
     const dataDir = expanduser(merged.dataDir);
+    const dbPath = expanduser(merged.dbPath);
 
     return {
         ...merged,
         dataDir,
+        dbPath,
     };
 }
 

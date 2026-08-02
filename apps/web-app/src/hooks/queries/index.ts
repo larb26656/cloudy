@@ -6,3 +6,4 @@ export * from "./usePermissions";
 export * from "./useQuestions";
 export * from "./useFiles";
 export * from "./usePty";
+export * from "./useWorkspaces";

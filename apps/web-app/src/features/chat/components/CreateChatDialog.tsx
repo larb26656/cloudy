@@ -12,7 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { SessionItem } from "@/components/ui/SessionItem";
 import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
-import type { Workspace } from "@/stores/workspaceStore";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 import { useSessions } from "@/hooks/queries";
 
 interface CreateChatDialogProps {

@@ -6,7 +6,7 @@
  *
  * @exports
  * - `AppType`: The Hono application type for RPC client
- * - Model types: IdeaModel, MemoryModel, ArtifactModel, ServeModel
+ * - Model types (e.g. `PtyModel`, `WorkspacesModel`) via `./features`
  *
  * @security
  * - Uses `export type` to guarantee no runtime code leaks
@@ -14,7 +14,7 @@
  * @usage
  * External packages should import via @cloudy/contracts, which re-exports these types:
  * ```ts
- * import type { AppType, IdeaModel } from "@cloudy/contracts";
+ * import type { AppType } from "@cloudy/contracts";
  * ```
  */
 

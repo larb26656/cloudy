@@ -5,3 +5,13 @@ export {
   type PtyService,
   attachPtyWebSockets,
 } from "./pty";
+export {
+  createWorkspacesController,
+  createWorkspacesService,
+  type WorkspacesService,
+  type WorkspacesRepository,
+  createWorkspacesRepository,
+  WorkspacesModel,
+  WorkspaceNotFoundError,
+  WorkspaceConflictError,
+} from "./workspaces";

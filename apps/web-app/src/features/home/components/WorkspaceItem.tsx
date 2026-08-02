@@ -7,7 +7,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import type { Workspace } from "@/stores/workspaceStore";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 
 interface WorkspaceItemProps {
   workspace: Workspace;

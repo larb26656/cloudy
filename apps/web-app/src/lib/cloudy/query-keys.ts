@@ -13,3 +13,9 @@ export const ptyKeys = {
   shells: () => ["pty", "shells"] as const,
   detail: (id: string) => ["pty", "sessions", id] as const,
 };
+
+export const workspaceKeys = {
+  root: () => ["workspaces"] as const,
+  list: () => [...workspaceKeys.root(), "list"] as const,
+  detail: (id: string) => [...workspaceKeys.root(), "detail", id] as const,
+};

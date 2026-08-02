@@ -18,7 +18,7 @@ tsup.config.ts    bundler config — produces dist/cli.js
 ```
 
 If you find yourself adding routes, services, repositories, schema, or validation here,
-**stop** — that work belongs in `packages/server` or `packages/database`. This app should
+**stop** — that work belongs in `packages/server`. This app should
 almost never grow.
 
 ## Mental model: request flow
@@ -85,8 +85,8 @@ details — understand them before touching it:
 
 1. **`entry: ["src/cli.ts"]`** + **`format: ["esm"]`** + **`platform: "node"`** — produces a
    single self-contained `dist/cli.js` (~1.4 MB). All workspace packages
-   (`@repo/server`, `@repo/database`, `@repo/contracts`) and most npm deps are **inlined**.
-2. **`external: ["@electric-sql/pglite"]`** — PGlite (WASM Postgres) cannot be bundled by
+   (`@repo/server`, `@repo/contracts`) and most npm deps are **inlined**.
+2. **`external: ["better-sqlite3"]`** — better-sqlite3 (native SQLite) cannot be bundled by
    tsup; it must remain a real `require`/`import` at runtime. This is why the banner injects
    `createRequire` (see #3). If you add another native/WASM dep, you almost certainly need
    to `external` it too.
@@ -100,7 +100,7 @@ the runtime directory:
 ```
 apps/server/dist/
    cli.js            ← tsup output (the binary entry, `bin.cloudy`)
-   drizzle/          ← copied from packages/database/drizzle  (migration SQL)
+   drizzle/          ← copied from packages/server/drizzle  (migration SQL)
    public/           ← copied from apps/web-app/dist          (web UI assets, only if built)
 ```
 
@@ -132,7 +132,7 @@ by tsup, not tsc, so a clean `check-types` does not guarantee a clean bundle. Al
 | You want to... | Go to |
 | --- | --- |
 | Add an HTTP route | `packages/server/src/features/<feature>/index.ts` |
-| Add a DB table / migration | `packages/database/src/schema/*.ts` + `db:generate` |
+| Add a DB table / migration | `packages/server/src/db/schema/*.ts` + `db:generate` |
 | Change how config is loaded | `packages/server/src/container.ts` |
 | Change the OpenAPI docs wiring | `packages/server/src/server.ts` |
 | Change the web UI | `apps/web-app/` |

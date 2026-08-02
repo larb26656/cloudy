@@ -16,14 +16,16 @@ import { Button } from "@/components/ui/button";
 import { ModelSelector } from "@/components/chat/ModelSelector";
 import { SidebarToggle } from "@/components/layout/SidebarToggle";
 import { useSessionStore } from "@/stores/sessionStore";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useWorkspace } from "@/hooks/queries";
+import { useSelectedWorkspaceStore } from "@/stores/selectedWorkspaceStore";
 
 export default function ChatPage() {
   const { isMobile } = useDeviceType();
   const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
-  const selectedWorkspace = useWorkspaceStore((s) =>
-    s.selectedWorkspaceId ? s.getWorkspace(s.selectedWorkspaceId) : undefined,
+  const selectedWorkspaceId = useSelectedWorkspaceStore(
+    (s) => s.selectedWorkspaceId,
   );
+  const { data: selectedWorkspace } = useWorkspace(selectedWorkspaceId);
   const [showMinimap, setShowMinimap] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";

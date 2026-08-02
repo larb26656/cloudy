@@ -1,11 +1,20 @@
-import { useEffect, useState } from "react";
 import { ReactFlowProvider } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { Bell, Copy, Maximize2, Settings, Star } from "lucide-react";
+import { http, HttpResponse } from "msw";
 import preview from "@/storybook/preview";
-import { useWorkspaceStore, WORKSPACE_COLORS } from "@/stores/workspaceStore";
+import { WORKSPACE_COLORS } from "@/lib/cloudy/workspaces";
 import type { WindowFrameAction } from "./WindowFrame";
 import { WindowFrame } from "./WindowFrame";
+
+const STORY_WORKSPACE = {
+  id: "story-workspace-1",
+  name: "Personal",
+  color: WORKSPACE_COLORS[0],
+  directory: "/storybook/personal",
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
 
 const meta = preview.meta({
   title: "Desk/WindowFrame",
@@ -13,6 +22,16 @@ const meta = preview.meta({
   tags: ["autodocs"],
   parameters: {
     layout: "centered",
+    msw: {
+      handlers: [
+        http.get("/api/workspaces", () =>
+          HttpResponse.json([STORY_WORKSPACE]),
+        ),
+        http.get("/api/workspaces/:id", () =>
+          HttpResponse.json(STORY_WORKSPACE),
+        ),
+      ],
+    },
   },
   decorators: [
     (Story) => (
@@ -129,44 +148,13 @@ export const LongTitle = meta.story({
   ),
 });
 
-function WorkspaceStorySetup({
-  children,
-}: {
-  children: (workspaceId: string) => React.ReactNode;
-}) {
-  const createWorkspace = useWorkspaceStore((s) => s.createWorkspace);
-  const workspaces = useWorkspaceStore((s) => s.workspaces);
-  const [id, setId] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (workspaces.length > 0) {
-      setId(workspaces[0].id);
-      return;
-    }
-    const result = createWorkspace({
-      instanceId: "storybook",
-      name: "Personal",
-      color: WORKSPACE_COLORS[0],
-      directory: "/storybook/personal",
-    });
-    if (result.success) setId(result.data.id);
-  }, [createWorkspace, workspaces]);
-
-  if (!id) return null;
-  return <>{children(id)}</>;
-}
-
 export const WithWorkspaceDot = meta.story({
   render: () => (
-    <WorkspaceStorySetup>
-      {(workspaceId) => (
-        <WindowFrame nodeId="story-node" title="Workspace Node" workspaceId={workspaceId}>
-          <p className="p-4 text-sm text-muted-foreground">
-            A colored dot representing the node&apos;s workspace is shown next
-            to the title.
-          </p>
-        </WindowFrame>
-      )}
-    </WorkspaceStorySetup>
+    <WindowFrame nodeId="story-node" title="Workspace Node" workspaceId={STORY_WORKSPACE.id}>
+      <p className="p-4 text-sm text-muted-foreground">
+        A colored dot representing the node&apos;s workspace is shown next
+        to the title.
+      </p>
+    </WindowFrame>
   ),
 });

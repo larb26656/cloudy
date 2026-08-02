@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
-import type { Workspace } from "@/stores/workspaceStore";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 
 interface TerminalWorkspaceDialogProps {
   open: boolean;

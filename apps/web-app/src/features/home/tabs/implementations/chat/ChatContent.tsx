@@ -2,7 +2,7 @@ import { ChatContainer } from "@/components/chat/ChatContainer";
 import { ErrorState } from "@/components/ui/error-state";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
-import { useWorkspaceStore } from "@/stores/workspaceStore";
+import { useWorkspace } from "@/hooks/queries";
 
 interface ChatContentProps {
   tab: Extract<Tab, { type: "chat" }>;
@@ -10,7 +10,15 @@ interface ChatContentProps {
 
 export function ChatContent({ tab }: ChatContentProps) {
   const updateTabData = useTabStore((s) => s.updateTabData);
-  const workspace = useWorkspaceStore((s) => s.getWorkspace(tab.data.workspaceId));
+  const { data: workspace, isLoading } = useWorkspace(tab.data.workspaceId);
+
+  if (isLoading) {
+    return (
+      <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
+        Loading workspace...
+      </div>
+    );
+  }
 
   if (!workspace) {
     return (

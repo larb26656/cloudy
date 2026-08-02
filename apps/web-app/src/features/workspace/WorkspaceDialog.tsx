@@ -21,12 +21,14 @@ import {
 } from "@/components/ui/field";
 import { ColorPicker } from "@/components/ui/color-picker/ColorPicker";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
-import { toast } from "@/components/ui/sonner";
+import { WORKSPACE_COLORS } from "@/lib/cloudy/workspaces";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 import {
-  WORKSPACE_COLORS,
-  useWorkspaceStore,
-  type Workspace,
-} from "@/stores/workspaceStore";
+  useCreateWorkspace,
+  useUpdateWorkspace,
+  useDeleteWorkspace,
+} from "@/hooks/queries";
+import { generateId } from "@/lib/id";
 
 interface WorkspaceDialogProps {
   open: boolean;
@@ -40,12 +42,9 @@ export function WorkspaceDialog({
   workspace,
 }: WorkspaceDialogProps) {
   const isEditMode = !!workspace;
-  const createWorkspace = useWorkspaceStore((s) => s.createWorkspace);
-  const updateWorkspace = useWorkspaceStore((s) => s.updateWorkspace);
-  const deleteWorkspace = useWorkspaceStore((s) => s.deleteWorkspace);
-  const getWorkspaceByDirectory = useWorkspaceStore(
-    (s) => s.getWorkspaceByDirectory,
-  );
+  const createWorkspace = useCreateWorkspace();
+  const updateWorkspace = useUpdateWorkspace();
+  const deleteWorkspace = useDeleteWorkspace();
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;
@@ -58,15 +57,7 @@ export function WorkspaceDialog({
     directory: z
       .string()
       .trim()
-      .min(1, "Directory is required")
-      .refine(
-        (value) => {
-          if (!value.trim()) return true;
-          const existing = getWorkspaceByDirectory(value);
-          return !existing || existing.id === workspace?.id;
-        },
-        { message: "Directory is already used" },
-      ),
+      .min(1, "Directory is required"),
     color: z.enum(WORKSPACE_COLORS),
   });
 
@@ -81,7 +72,7 @@ export function WorkspaceDialog({
     handleSubmit,
     reset,
     trigger,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<WorkspaceFormValues>({
     resolver: zodResolver(workspaceSchema),
     defaultValues: {
@@ -97,7 +88,7 @@ export function WorkspaceDialog({
     const timeout = setTimeout(() => {
       if (watchedDirectory !== dirRef.current && watchedDirectory.trim()) {
         dirRef.current = watchedDirectory;
-        trigger("directory");
+        void trigger("directory");
       }
     }, 300);
     return () => clearTimeout(timeout);
@@ -109,7 +100,7 @@ export function WorkspaceDialog({
         reset({
           name: workspace.name,
           directory: workspace.directory,
-          color: workspace.color,
+          color: workspace.color as (typeof WORKSPACE_COLORS)[number],
         });
         dirRef.current = workspace.directory;
       } else {
@@ -125,30 +116,29 @@ export function WorkspaceDialog({
 
   const onSubmit = (data: WorkspaceFormValues) => {
     if (isEditMode && workspace) {
-      const result = updateWorkspace(workspace.id, {
-        name: data.name,
-        directory: data.directory,
-        color: data.color,
-      });
-
-      if (result.success) {
-        onOpenChange(false);
-      } else {
-        toast.error(result.error);
-      }
+      updateWorkspace.mutate(
+        {
+          id: workspace.id,
+          name: data.name,
+          directory: data.directory,
+          color: data.color,
+        },
+        {
+          onSuccess: () => onOpenChange(false),
+        },
+      );
     } else {
-      const result = createWorkspace({
-        name: data.name,
-        directory: data.directory,
-        color: data.color,
-        instanceId: "default",
-      });
-
-      if (result.success) {
-        onOpenChange(false);
-      } else {
-        toast.error(result.error);
-      }
+      createWorkspace.mutate(
+        {
+          id: `workspace-${generateId()}`,
+          name: data.name,
+          directory: data.directory,
+          color: data.color,
+        },
+        {
+          onSuccess: () => onOpenChange(false),
+        },
+      );
     }
   };
 
@@ -159,9 +149,12 @@ export function WorkspaceDialog({
 
   const handleDeleteConfirm = () => {
     if (deleteTarget) {
-      deleteWorkspace(deleteTarget.id);
-      setDeleteTarget(null);
-      onOpenChange(false);
+      deleteWorkspace.mutate(deleteTarget.id, {
+        onSuccess: () => {
+          setDeleteTarget(null);
+          onOpenChange(false);
+        },
+      });
     }
   };
 
@@ -232,6 +225,7 @@ export function WorkspaceDialog({
                   variant="destructive"
                   onClick={handleDelete}
                   className="mr-auto"
+                  disabled={deleteWorkspace.isPending}
                 >
                   Delete
                 </Button>
@@ -243,7 +237,9 @@ export function WorkspaceDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit">{isEditMode ? "Save" : "Create"}</Button>
+              <Button type="submit" disabled={isSubmitting || createWorkspace.isPending || updateWorkspace.isPending}>
+                {isEditMode ? "Save" : "Create"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

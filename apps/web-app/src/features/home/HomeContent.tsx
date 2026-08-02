@@ -5,17 +5,21 @@ import { FolderOpen, Plus, Settings } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
 import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
-import { useWorkspaceStore, type Workspace } from "@/stores/workspaceStore";
 import { WorkspaceItem } from "./components/WorkspaceItem";
 import { SessionList } from "./components/SessionList";
 import { Separator } from "@/components/ui/separator";
+import { LoadingState } from "@/components/ui/loading-state";
+import { useWorkspaces, useDeleteWorkspace } from "@/hooks/queries";
+import { useSelectedWorkspaceStore } from "@/stores/selectedWorkspaceStore";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 
 export function HomeContent() {
-  const workspaces = useWorkspaceStore((s) => s.workspaces);
-  const selectedWorkspaceId = useWorkspaceStore((s) => s.selectedWorkspaceId);
-  const selectWorkspace = useWorkspaceStore((s) => s.selectWorkspace);
-  const getWorkspace = useWorkspaceStore((s) => s.getWorkspace);
-  const deleteWorkspace = useWorkspaceStore((s) => s.deleteWorkspace);
+  const { data: workspaces = [], isLoading } = useWorkspaces();
+  const deleteWorkspace = useDeleteWorkspace();
+  const selectedWorkspaceId = useSelectedWorkspaceStore(
+    (s) => s.selectedWorkspaceId,
+  );
+  const selectWorkspace = useSelectedWorkspaceStore((s) => s.selectWorkspace);
 
   const [workspaceDialogOpen, setWorkspaceDialogOpen] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(
@@ -25,9 +29,7 @@ export function HomeContent() {
     null,
   );
 
-  const selectedWorkspace = selectedWorkspaceId
-    ? getWorkspace(selectedWorkspaceId)
-    : undefined;
+  const selectedWorkspace = workspaces.find((w) => w.id === selectedWorkspaceId);
 
   return (
     <div className="flex flex-1 flex-col md:flex-row h-full overflow-hidden">
@@ -49,21 +51,24 @@ export function HomeContent() {
         </div>
 
         <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto -mr-4 pr-4">
-          {workspaces.map((w) => (
-            <WorkspaceItem
-              key={w.id}
-              workspace={w}
-              selected={selectedWorkspaceId === w.id}
-              onSelect={selectWorkspace}
-              onEdit={(workspace) => {
-                setEditingWorkspace(workspace);
-                setWorkspaceDialogOpen(true);
-              }}
-              onDelete={setDeletingWorkspace}
-            />
-          ))}
-          {workspaces.length === 0 && (
+          {isLoading ? (
+            <LoadingState title="Loading workspaces" />
+          ) : workspaces.length === 0 ? (
             <EmptyState icon={Plus} title="No workspaces" />
+          ) : (
+            workspaces.map((w) => (
+              <WorkspaceItem
+                key={w.id}
+                workspace={w}
+                selected={selectedWorkspaceId === w.id}
+                onSelect={(id) => selectWorkspace(id)}
+                onEdit={(workspace) => {
+                  setEditingWorkspace(workspace);
+                  setWorkspaceDialogOpen(true);
+                }}
+                onDelete={setDeletingWorkspace}
+              />
+            ))
           )}
         </div>
 
@@ -110,8 +115,9 @@ export function HomeContent() {
         }
         onConfirm={() => {
           if (deletingWorkspace) {
-            deleteWorkspace(deletingWorkspace.id);
-            setDeletingWorkspace(null);
+            deleteWorkspace.mutate(deletingWorkspace.id, {
+              onSuccess: () => setDeletingWorkspace(null),
+            });
           }
         }}
         onCancel={() => setDeletingWorkspace(null)}

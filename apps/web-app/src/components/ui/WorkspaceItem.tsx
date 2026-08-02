@@ -1,4 +1,4 @@
-import type { Workspace } from "@/stores/workspaceStore";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 
 interface WorkspaceItemProps {
   workspace: Workspace;

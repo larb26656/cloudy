@@ -63,7 +63,7 @@ export const Insertion = meta.story({
     state: {
       status: "completed",
       input: {
-        filePath: "packages/database/src/schema/index.ts",
+        filePath: "packages/server/src/db/schema/index.ts",
         oldString: "",
         newString: "export * from \"./workspace\";\n",
       },

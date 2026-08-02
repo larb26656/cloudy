@@ -7,7 +7,7 @@ const serverDist = join(root, "apps", "server", "dist");
 
 const sources = {
   public: join(root, "apps", "web-app", "dist"),
-  drizzle: join(root, "packages", "database", "drizzle"),
+  drizzle: join(root, "packages", "server", "drizzle"),
 };
 
 const targets = {

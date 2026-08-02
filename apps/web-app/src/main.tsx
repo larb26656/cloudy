@@ -21,6 +21,7 @@ declare module "@tanstack/react-router" {
 }
 
 const rootElement = document.getElementById("root")!;
+localStorage.removeItem("workspaces");
 if (!rootElement.innerHTML) {
   ReactDOM.createRoot(rootElement).render(
     <StrictMode>

@@ -27,6 +27,7 @@ sequence number automatically.
 
 | ID | Title | Status | Date |
 | --- | --- | --- | --- |
+| 0002 | [Use ChatProvider context for per-session agent/model selection](0002-per-session-agent-model-via-chat-provider.md) | Accepted | 2026-08-02 |
 | 0001 | [Adopt 3-tier layered architecture with DI for @repo/server](0001-adopt-3-tier-layered-architecture-with-di-for-repo-server.md) | Accepted | 2026-08-02 |
 
 <!-- New rows go on top of the table (highest ID first) so the latest decisions are     -->

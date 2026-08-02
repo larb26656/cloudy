@@ -2,7 +2,7 @@
  * @repo/contracts
  *
  * Type-only facade for frontend apps to consume API types from `@repo/server`
- * WITHOUT pulling Node.js runtime code (PGlite, fs, commander, etc.) into
+ * WITHOUT pulling Node.js runtime code (better-sqlite3, fs, commander, etc.) into
  * browser bundles.
  *
  * ## Why this package exists
@@ -38,3 +38,9 @@
  */
 
 export type { AppType, ServerOptions } from "@repo/server";
+export type {
+  WorkspaceDto,
+  WorkspaceNotFoundError,
+  WorkspaceConflictError,
+} from "@repo/server";
+export { WorkspacesModel } from "@repo/server";
