@@ -1,13 +1,13 @@
 ---
 name: plan-generator
-description: Generate a markdown implementation plan to <repo>/plans/ from the current conversation, so a fresh AI session with zero context can pick it up and execute it. Use this whenever the user wants to capture a coding task as a plan for handoff to another session, mentions "plan", "สร้าง plan", "แผน", "implementation plan", "handoff plan", "write this up as a plan", "/plan", "save this as a plan", "document the approach", or "write this up so another agent can do it". The plan covers single-file (or 1-2 tightly-coupled files) edit scope; for larger work, help the user split into multiple plans.
+description: Generate a markdown implementation plan to <repo>/docs/plan/ from the current conversation, so a fresh AI session with zero context can pick it up and execute it. Use this whenever the user wants to capture a coding task as a plan for handoff to another session, mentions "plan", "สร้าง plan", "แผน", "implementation plan", "handoff plan", "write this up as a plan", "/plan", "save this as a plan", "document the approach", or "write this up so another agent can do it". The plan covers single-file (or 1-2 tightly-coupled files) edit scope; for larger work, help the user split into multiple plans.
 ---
 
 # Generate a handoff plan
 
 This skill turns the current conversation into a structured markdown plan that a fresh AI
 session — one with zero context about how we got here — can pick up and execute. The plan
-lives in the repo at `plans/<YYYYMMDD-slug>.md`, so it's tracked in git, sortable by date,
+lives in the repo at `docs/plan/<YYYYMMDD-slug>.md`, so it's tracked in git, sortable by date,
 and easy to mention by slug.
 
 The scope is deliberately **small**: a single target file (or 1-2 tightly-coupled files).
@@ -40,7 +40,7 @@ matched when the user later says "implement plan 'add-soft-delete'". Example:
 Kebab-case of `title`: lowercase letters/digits/hyphens only. Strip punctuation, collapse
 spaces. Example: `Add soft-delete to Memory domain!` → `add-soft-delete-to-memory-domain`.
 Truncate to ~60 chars if longer. If the slug would collide with an existing file in
-`plans/`, ask the user to disambiguate the title.
+`docs/plan/`, ask the user to disambiguate the title.
 
 #### `target` (required)
 
@@ -109,14 +109,14 @@ fail at handoff — go back and fill it.
 
 ### 4. Write the plan
 
-Write to `<repo-root>/plans/<YYYYMMDD>-<slug>.md`, where `YYYYMMDD` is today's date. If the
-`plans/` directory doesn't exist, create it.
+Write to `<repo-root>/docs/plan/<YYYYMMDD>-<slug>.md`, where `YYYYMMDD` is today's date. If the
+`docs/plan/` directory doesn't exist, create it.
 
 After writing, give the user the path and the exact phrase to paste into a fresh session:
 
-> Plan written: `plans/20260802-add-soft-delete-memory.md`
+> Plan written: `docs/plan/20260802-add-soft-delete-memory.md`
 > To hand off, open a new session and paste:
-> `read plans/20260802-add-soft-delete-memory.md and implement it`
+> `read docs/plan/20260802-add-soft-delete-memory.md and implement it`
 
 That's the whole handoff mechanism — no automation, no registry, no index to maintain. The
 slug in the filename is the handle.

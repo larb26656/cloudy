@@ -41,5 +41,5 @@ error out, it just flails and produces bad work. These gates catch the common fl
 
 ## File
 
-- [ ] Path is `<repo-root>/plans/<YYYYMMDD>-<slug>.md`
+- [ ] Path is `<repo-root>/docs/plan/<YYYYMMDD>-<slug>.md`
 - [ ] No `.bak` file written — git covers rollback
