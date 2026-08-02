@@ -43,4 +43,3 @@ export type {
   WorkspaceNotFoundError,
   WorkspaceConflictError,
 } from "@repo/server";
-export { WorkspacesModel } from "@repo/server";

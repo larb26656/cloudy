@@ -2,8 +2,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cloudyClient } from "@/lib/api";
 import { workspaceKeys } from "@/lib/cloudy/query-keys";
-import { WorkspacesModel } from "@repo/contracts";
-import type { Workspace } from "@/lib/cloudy/workspaces";
+import { workspaceDtoSchema, type Workspace } from "@/lib/cloudy/workspaces";
 
 export function useWorkspaces() {
   return useQuery({
@@ -12,7 +11,7 @@ export function useWorkspaces() {
       const res = await cloudyClient.api.workspaces.$get();
       if (!res.ok) throw new Error(`Failed to list workspaces (${res.status})`);
       const data = await res.json();
-      return WorkspacesModel.workspaceDtoSchema.array().parse(data);
+      return workspaceDtoSchema.array().parse(data);
     },
   });
 }
@@ -26,7 +25,7 @@ export function useWorkspace(id: string | null) {
         await cloudyClient.api.workspaces[":id"].$get({ param: { id } });
       if (!res.ok) throw new Error(`Failed to fetch workspace (${res.status})`);
       const data = await res.json();
-      return WorkspacesModel.workspaceDtoSchema.parse(data);
+      return workspaceDtoSchema.parse(data);
     },
     enabled: !!id,
   });
@@ -49,7 +48,7 @@ export function useCreateWorkspace() {
         throw new Error(`Failed to create workspace (${res.status})`);
       }
       const data = await res.json();
-      return WorkspacesModel.workspaceDtoSchema.parse(data);
+      return workspaceDtoSchema.parse(data);
     },
     onSuccess: (data) => {
       void queryClient.setQueryData(workspaceKeys.list(), (old: unknown) => {
@@ -64,7 +63,7 @@ export function useCreateWorkspace() {
           });
           if (!res.ok) throw new Error("prefetch failed");
           const d = await res.json();
-          return WorkspacesModel.workspaceDtoSchema.parse(d);
+          return workspaceDtoSchema.parse(d);
         },
       });
     },
@@ -98,7 +97,7 @@ export function useUpdateWorkspace() {
         throw new Error(`Failed to update workspace (${res.status})`);
       }
       const data = await res.json();
-      return WorkspacesModel.workspaceDtoSchema.parse(data);
+      return workspaceDtoSchema.parse(data);
     },
     onSuccess: (data) => {
       void queryClient.setQueryData(workspaceKeys.list(), (old: unknown) => {

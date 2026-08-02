@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useModels } from "@/hooks/queries/useModels";
-import { useDefaultModelStore } from "@/stores/defaultModelStore";
+import { useChat } from "./ChatProvider";
 
 const providerIcons: Record<string, React.ReactNode> = {
   openai: <Cloud className="size-4" />,
@@ -55,16 +55,10 @@ const FALLBACK_PROVIDERS: ModelProvider[] = [
 export function ModelSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedModel, setSelectedModel] = useState<ModelConfig | null>(() => useDefaultModelStore.getState().defaultModel);
+  const { effectiveModel, setModel } = useChat();
   const inputRef = useRef<HTMLInputElement>(null);
   const { data, isLoading, error } = useModels();
   const providers = data ?? FALLBACK_PROVIDERS;
-
-  useEffect(() => {
-    if (!selectedModel && providers.length > 0 && providers[0].models.length > 0) {
-      setSelectedModel(providers[0].models[0]);
-    }
-  }, [providers, selectedModel]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -86,13 +80,12 @@ export function ModelSelector() {
     : providers;
 
   const getDisplayName = () => {
-    if (!selectedModel) return "Default";
-    return selectedModel.name;
+    if (!effectiveModel) return "Default";
+    return effectiveModel.name;
   };
 
   const handleSelectModel = (model: ModelConfig | null) => {
-    setSelectedModel(model);
-    useDefaultModelStore.getState().setDefaultModel(model);
+    setModel(model);
     setIsOpen(false);
     setSearchQuery("");
   };

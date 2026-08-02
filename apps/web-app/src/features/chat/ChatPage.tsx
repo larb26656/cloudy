@@ -8,19 +8,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useDeviceType } from "@/hooks";
 import { useState } from "react";
 import { useTheme } from "next-themes";
 import { RefreshCw, Sun, Moon, PanelRight, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ModelSelector } from "@/components/chat/ModelSelector";
 import { SidebarToggle } from "@/components/layout/SidebarToggle";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useWorkspace } from "@/hooks/queries";
 import { useSelectedWorkspaceStore } from "@/stores/selectedWorkspaceStore";
 
 export default function ChatPage() {
-  const { isMobile } = useDeviceType();
   const selectedSessionId = useSessionStore((s) => s.selectedSessionId);
   const selectedWorkspaceId = useSelectedWorkspaceStore(
     (s) => s.selectedWorkspaceId,
@@ -45,7 +42,6 @@ export default function ChatPage() {
     <>
       <Header
         prefixActions={[<SidebarToggle key="sidebar-toggle" />]}
-        centerSlot={isMobile ? <ModelSelector /> : undefined}
         actions={[
           <TokenUsageIndicator key="token" sessionId={selectedSessionId} />,
           <DropdownMenu key="menu">
@@ -79,6 +75,7 @@ export default function ChatPage() {
         ]}
       />
       <ChatContainer
+        workspace={selectedWorkspace}
         directory={selectedWorkspace.directory}
         sessionId={selectedSessionId}
       />

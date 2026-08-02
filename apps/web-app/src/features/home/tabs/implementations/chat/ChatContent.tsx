@@ -31,6 +31,7 @@ export function ChatContent({ tab }: ChatContentProps) {
 
   return (
     <ChatContainer
+      workspace={workspace}
       directory={workspace.directory}
       sessionId={tab.data.sessionId}
       onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}

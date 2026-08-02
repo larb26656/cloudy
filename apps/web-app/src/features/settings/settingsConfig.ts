@@ -1,4 +1,4 @@
-import { Palette, type LucideIcon } from "lucide-react";
+import { Bot, Palette, type LucideIcon } from "lucide-react";
 
 export interface SettingsSection {
   id: string;
@@ -9,6 +9,13 @@ export interface SettingsSection {
 }
 
 export const settingsSections: SettingsSection[] = [
+  {
+    id: "agent-model",
+    label: "Agent & Model",
+    description: "Choose the defaults for new chat sessions.",
+    to: "/settings/agent-model",
+    icon: Bot,
+  },
   {
     id: "appearance",
     label: "Appearance",

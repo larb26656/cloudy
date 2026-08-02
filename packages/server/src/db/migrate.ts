@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url";
  * Resolve the drizzle migrations folder across runtime layouts:
  * - tsx/source: `packages/server/src/db/` → `../../drizzle` lands at
  *   `packages/server/drizzle/`.
- * - Built library: `packages/server/dist/db/` → `../../drizzle` lands at
+ * - Built library: `packages/server/dist/index.js` → `../drizzle` lands at
  *   `packages/server/drizzle/`.
  * - Bundled CLI: `apps/server/dist/cli.js` → `drizzle` lands at
  *   `apps/server/dist/drizzle/` (where `copy-assets` copies it).
@@ -21,6 +21,7 @@ function resolveMigrationsDir(): string {
   const here = dirname(fileURLToPath(import.meta.url));
   const candidates = [
     join(here, "../../drizzle"),
+    join(here, "../drizzle"),
     join(here, "drizzle"),
   ];
   for (const candidate of candidates) {

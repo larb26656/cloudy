@@ -92,6 +92,9 @@ describe("proxy integration", () => {
       "https://app.test",
     );
     expect(res.headers.get("access-control-allow-methods")).toMatch(/GET/);
+    expect(res.headers.get("access-control-allow-headers")).toContain(
+      "x-opencode-directory",
+    );
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

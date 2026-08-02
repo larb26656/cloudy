@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef, memo } from "react";
 import { ArrowUp, Square } from "lucide-react";
 import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
@@ -7,8 +6,8 @@ import { Button } from "@/components/ui/button";
 import { type ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "./ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
-import { useDefaultModelStore } from "@/stores/defaultModelStore";
-import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
+import { useChat } from "../ChatProvider";
+import { memo, useEffect, useRef, useState } from "react";
 
 interface ChatInputProps {
   onSend: (
@@ -20,7 +19,6 @@ interface ChatInputProps {
   onAbort?: () => void;
   isLoading?: boolean;
   placeholder?: string;
-  directory: string;
   initialValue?: string;
 }
 
@@ -32,7 +30,6 @@ export const ChatInput = memo(function ChatInput({
   onAbort,
   isLoading,
   placeholder = "Type a message...",
-  directory,
   initialValue,
 }: ChatInputProps) {
   const [historyIndex, setHistoryIndex] = useState(-1);
@@ -41,8 +38,7 @@ export const ChatInput = memo(function ChatInput({
     mentions: [],
   });
 
-  const defaultModel = useDefaultModelStore((s) => s.defaultModel);
-  const defaultAgent = useDefaultAgentStore((s) => s.defaultAgent);
+  const { effectiveModel, effectiveAgent, directory } = useChat();
 
   const [isListening, setIsListening] = useState(false);
   const [speechDraft, setSpeechDraft] = useState("");
@@ -95,8 +91,8 @@ export const ChatInput = memo(function ChatInput({
     if (finalText && !isLoading) {
       onSend(
         { ...chatInputContent, text: finalText },
-        defaultModel,
-        defaultAgent,
+        effectiveModel,
+        effectiveAgent,
       );
       setChatInputContent({ text: "", mentions: [] });
       setSpeechDraft("");

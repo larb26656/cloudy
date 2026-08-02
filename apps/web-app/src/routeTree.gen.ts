@@ -14,6 +14,7 @@ import { Route as DiffDebugRouteImport } from './routes/diff-debug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
+import { Route as SettingsAgentModelRouteImport } from './routes/settings/agent-model'
 
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
@@ -40,17 +41,24 @@ const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   path: '/appearance',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsAgentModelRoute = SettingsAgentModelRouteImport.update({
+  id: '/agent-model',
+  path: '/agent-model',
+  getParentRoute: () => SettingsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/diff-debug': typeof DiffDebugRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/': typeof SettingsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/diff-debug': typeof DiffDebugRoute
+  '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings': typeof SettingsIndexRoute
 }
@@ -59,6 +67,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/diff-debug': typeof DiffDebugRoute
   '/settings': typeof SettingsRouteWithChildren
+  '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/': typeof SettingsIndexRoute
 }
@@ -68,15 +77,22 @@ export interface FileRouteTypes {
     | '/'
     | '/diff-debug'
     | '/settings'
+    | '/settings/agent-model'
     | '/settings/appearance'
     | '/settings/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/diff-debug' | '/settings/appearance' | '/settings'
+  to:
+    | '/'
+    | '/diff-debug'
+    | '/settings/agent-model'
+    | '/settings/appearance'
+    | '/settings'
   id:
     | '__root__'
     | '/'
     | '/diff-debug'
     | '/settings'
+    | '/settings/agent-model'
     | '/settings/appearance'
     | '/settings/'
   fileRoutesById: FileRoutesById
@@ -124,15 +140,24 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsAppearanceRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/agent-model': {
+      id: '/settings/agent-model'
+      path: '/agent-model'
+      fullPath: '/settings/agent-model'
+      preLoaderRoute: typeof SettingsAgentModelRouteImport
+      parentRoute: typeof SettingsRoute
+    }
   }
 }
 
 interface SettingsRouteChildren {
+  SettingsAgentModelRoute: typeof SettingsAgentModelRoute
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
+  SettingsAgentModelRoute: SettingsAgentModelRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }

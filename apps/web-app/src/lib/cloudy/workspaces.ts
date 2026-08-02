@@ -1,4 +1,4 @@
-import type { WorkspaceDto } from "@repo/contracts";
+import { z } from "zod";
 
 export const WORKSPACE_COLORS = [
   "#3B82F6",
@@ -11,4 +11,13 @@ export const WORKSPACE_COLORS = [
   "#84CC16",
 ] as const;
 
-export type Workspace = WorkspaceDto;
+export const workspaceDtoSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  color: z.string(),
+  directory: z.string(),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date(),
+});
+
+export type Workspace = z.infer<typeof workspaceDtoSchema>;

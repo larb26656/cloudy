@@ -43,6 +43,7 @@ export function createApp({
           "Origin",
           "X-Requested-With",
           "x-opencode-api-base",
+          "x-opencode-directory",
         ],
         credentials: true,
       }),

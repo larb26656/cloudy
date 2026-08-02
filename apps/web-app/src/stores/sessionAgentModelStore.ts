@@ -3,12 +3,11 @@ import { persist } from "zustand/middleware";
 import type { ModelConfig } from "@/types";
 
 type SessionAgentModel = {
-  agent: string | null;
-  model: ModelConfig | null;
+  agent?: string;
+  model?: ModelConfig;
 };
 
 type SessionAgentModelStore = {
-  // keyed by sessionId
   sessions: Record<string, SessionAgentModel>;
   setSessionAgent: (sessionId: string, agent: string | null) => void;
   setSessionModel: (sessionId: string, model: ModelConfig | null) => void;
@@ -54,18 +53,36 @@ export const useSessionAgentModelStore =
 
         clearSessionAgent: (sessionId) =>
           set((state) => {
-            if (!state.sessions[sessionId]) return state;
-            const { [sessionId]: _, ...rest } = state.sessions;
-            return { sessions: rest };
+            const session = state.sessions[sessionId];
+            if (!session) return state;
+            const { agent: _, ...restSession } = session;
+            if (!Object.keys(restSession).length) {
+              const { [sessionId]: __, ...restSessions } = state.sessions;
+              return { sessions: restSessions };
+            }
+            return {
+              sessions: { ...state.sessions, [sessionId]: restSession },
+            };
           }),
 
         clearSessionModel: (sessionId) =>
           set((state) => {
-            if (!state.sessions[sessionId]) return state;
-            const { [sessionId]: _, ...rest } = state.sessions;
-            return { sessions: rest };
+            const session = state.sessions[sessionId];
+            if (!session) return state;
+            const { model: _, ...restSession } = session;
+            if (!Object.keys(restSession).length) {
+              const { [sessionId]: __, ...restSessions } = state.sessions;
+              return { sessions: restSessions };
+            }
+            return {
+              sessions: { ...state.sessions, [sessionId]: restSession },
+            };
           }),
       }),
-      { name: "session-agent-model", version: 1 },
+      {
+        name: "session-agent-model",
+        version: 1,
+        migrate: (persistedState) => persistedState,
+      },
     ),
   );

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { Agent } from "@/types/agent";
 import { useAgents } from "@/hooks/queries/useAgents";
-import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
+import { useChat } from "./ChatProvider";
 
 const agentModeLabels: Record<string, string> = {
   primary: "Primary",
@@ -26,16 +26,10 @@ const FALLBACK_AGENTS: Agent[] = [
 export function AgentSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedAgent, setSelectedAgent] = useState<string | null>(() => useDefaultAgentStore.getState().defaultAgent);
+  const { effectiveAgent, setAgent } = useChat();
   const inputRef = useRef<HTMLInputElement>(null);
   const { data, isLoading, error } = useAgents();
   const agents = data ?? FALLBACK_AGENTS;
-
-  useEffect(() => {
-    if (!selectedAgent && agents.length > 0) {
-      setSelectedAgent(agents[0].name);
-    }
-  }, [agents, selectedAgent]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -53,14 +47,13 @@ export function AgentSelector() {
     : agents;
 
   const getDisplayName = () => {
-    if (!selectedAgent) return "Default Agent";
-    const agent = agents.find((a) => a.name === selectedAgent);
-    return agent?.name || selectedAgent;
+    if (!effectiveAgent) return "Default Agent";
+    const agent = agents.find((a) => a.name === effectiveAgent);
+    return agent?.name || effectiveAgent;
   };
 
   const handleSelectAgent = (agentName: string | null) => {
-    setSelectedAgent(agentName);
-    useDefaultAgentStore.getState().setDefaultAgent(agentName);
+    setAgent(agentName);
     setIsOpen(false);
     setSearchQuery("");
   };

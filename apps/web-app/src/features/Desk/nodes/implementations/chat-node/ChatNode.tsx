@@ -60,6 +60,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
     >
       {directory ? (
         <ChatContainer
+          workspace={workspace}
           sessionId={data.sessionId}
           directory={directory}
           onSessionChange={handleSessionChange}

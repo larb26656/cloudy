@@ -18,16 +18,20 @@ import { useSystemCommands, findSystemCommand } from "@/lib/commands";
 import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
 import { toast } from "@/components/ui/sonner";
 import type { ModelConfig } from "@/types";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
+import { ChatProvider } from "./ChatProvider";
 
 interface ChatContainerProps {
+  workspace?: Workspace | null;
   directory: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
 }
 
 export function ChatContainer({
+  workspace = null,
   directory,
   sessionId,
   onSessionChange,
@@ -54,12 +58,19 @@ export function ChatContainer({
     currentPermission,
   } = useSessionData({ directory, sessionId });
 
-  const ensureSessionId = useCallback(async (): Promise<string> => {
+  const ensureSessionId = useCallback(async (
+    agent?: string | null,
+    model?: ModelConfig | null,
+  ): Promise<string> => {
     if (sessionId) {
       return sessionId;
     }
 
-    const newSession = await createSessionAsync({ directory });
+    const newSession = await createSessionAsync({
+      directory,
+      agent: agent ?? undefined,
+      model: model ?? undefined,
+    });
 
     onSessionChange?.(newSession.id);
 
@@ -79,7 +90,7 @@ export function ChatContainer({
         const parsed = parseCommand(text);
         if (!parsed) return;
 
-        const commandSessionId = await ensureSessionId();
+        const commandSessionId = await ensureSessionId(agent, model);
 
         if (findSystemCommand(parsed.command)) {
           systemCommandsRef.current.execute(parsed.command, parsed.arguments, {
@@ -104,7 +115,7 @@ export function ChatContainer({
       }
 
       try {
-        const messageSessionId = await ensureSessionId();
+        const messageSessionId = await ensureSessionId(agent, model);
         await sendMessageAsync({
           sessionId: messageSessionId,
           content: content,
@@ -159,69 +170,69 @@ export function ChatContainer({
   );
 
   return (
-    <div
-      className="relative flex-1 flex flex-col bg-background overflow-hidden h-full"
-      tabIndex={-1}
-      onKeyDown={handleContainerKeyDown}
-    >
-      {/*Notify bar*/}
-      <div className="absolute z-50 top-0 left-0 right-0 flex justify-end gap-2 p-2">
-        {!!sessionQuestions.length && !questionOpen && (
-          <QuestionBanner
-            onOpenDialog={() => setQuestionOpen(true)}
-            count={sessionQuestions.reduce(
-              (sum, q) => sum + q.questions.length,
-              0,
-            )}
+    <ChatProvider workspace={workspace} directory={directory} sessionId={sessionId}>
+      <div
+        className="relative flex-1 flex flex-col bg-background overflow-hidden h-full"
+        tabIndex={-1}
+        onKeyDown={handleContainerKeyDown}
+      >
+        <div className="absolute z-50 top-0 left-0 right-0 flex justify-end gap-2 p-2">
+          {!!sessionQuestions.length && !questionOpen && (
+            <QuestionBanner
+              onOpenDialog={() => setQuestionOpen(true)}
+              count={sessionQuestions.reduce(
+                (sum, q) => sum + q.questions.length,
+                0,
+              )}
+            />
+          )}
+
+          {!!sessionPermissions.length && !permissionOpen && (
+            <PermissionBanner
+              onOpenDialog={() => setPermissionOpen(true)}
+              count={sessionPermissions.length}
+            />
+          )}
+        </div>
+
+        <MessageList selectedSessionId={sessionId} directory={directory} />
+
+        <ChatInput
+          onSend={handleSend}
+          onImmediateCommand={handleImmediateCommand}
+          onAbort={handleAbort}
+          isLoading={isSending || isAborting}
+          placeholder={chatplaceholder}
+        />
+
+        <SessionStatusBar sessionId={sessionId} directory={directory} />
+
+        {currentQuestion && (
+          <QuestionSheet
+            open={questionOpen}
+            onOpenChange={setQuestionOpen}
+            question={currentQuestion}
+            directory={directory}
           />
         )}
 
-        {!!sessionPermissions.length && !permissionOpen && (
-          <PermissionBanner
-            onOpenDialog={() => setPermissionOpen(true)}
-            count={sessionPermissions.length}
+        {currentPermission && (
+          <PermissionDialog
+            open={permissionOpen}
+            onOpenChange={setPermissionOpen}
+            permission={currentPermission}
+            directory={directory}
           />
         )}
+
+        <SessionPickerDialog
+          open={sessionPickerOpen}
+          onOpenChange={setSessionPickerOpen}
+          directory={directory}
+          sessionId={sessionId}
+          onSessionChange={(id) => onSessionChange?.(id)}
+        />
       </div>
-
-      <MessageList selectedSessionId={sessionId} directory={directory} />
-
-      <ChatInput
-        onSend={handleSend}
-        onImmediateCommand={handleImmediateCommand}
-        onAbort={handleAbort}
-        isLoading={isSending || isAborting}
-        placeholder={chatplaceholder}
-        directory={directory}
-      />
-
-      <SessionStatusBar sessionId={sessionId} directory={directory} />
-
-      {currentQuestion && (
-        <QuestionSheet
-          open={questionOpen}
-          onOpenChange={setQuestionOpen}
-          question={currentQuestion}
-          directory={directory}
-        />
-      )}
-
-      {currentPermission && (
-        <PermissionDialog
-          open={permissionOpen}
-          onOpenChange={setPermissionOpen}
-          permission={currentPermission}
-          directory={directory}
-        />
-      )}
-
-      <SessionPickerDialog
-        open={sessionPickerOpen}
-        onOpenChange={setSessionPickerOpen}
-        directory={directory}
-        sessionId={sessionId}
-        onSessionChange={(id) => onSessionChange?.(id)}
-      />
-    </div>
+    </ChatProvider>
   );
 }
