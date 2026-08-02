@@ -25,8 +25,9 @@ interface WorkspaceStripProps {
 
 export function WorkspaceStrip({ instanceId, className }: WorkspaceStripProps) {
   void instanceId;
-  const { workspaces, selectedWorkspaceId, selectWorkspace } =
-    useWorkspaceStore();
+  const workspaces = useWorkspaceStore((s) => s.workspaces);
+  const selectedWorkspaceId = useWorkspaceStore((s) => s.selectedWorkspaceId);
+  const selectWorkspace = useWorkspaceStore((s) => s.selectWorkspace);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingWorkspace, setEditingWorkspace] = useState<Workspace | null>(
     null,

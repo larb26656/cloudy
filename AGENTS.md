@@ -182,11 +182,12 @@ Create a new folder under `src/features/desk/nodes/implementations/<node-name>/`
 ```
 
 **1. Component** (`<NodeName>.tsx`):
+
 ```tsx
 import { NodeResizer, useReactFlow } from "@xyflow/react";
 import type { Node, NodeProps } from "@xyflow/react";
 
-type MyNodeProps = Node<{ label?: string; /* custom fields */ }, "my-node">;
+type MyNodeProps = Node<{ label?: string /* custom fields */ }, "my-node">;
 
 export function MyNode({ data, id, selected }: NodeProps<MyNodeProps>) {
   const { deleteElements, updateNodeData } = useReactFlow();
@@ -195,6 +196,7 @@ export function MyNode({ data, id, selected }: NodeProps<MyNodeProps>) {
 ```
 
 **2. Template** (`meta.ts`):
+
 ```ts
 import { SomeIcon } from "lucide-react";
 import type { NodeTemplate } from "../../template";
@@ -204,17 +206,21 @@ export const myNodeTemplate: NodeTemplate = {
   id: "my-node",
   label: "My Node",
   icon: SomeIcon,
-  size: { width: 200, height: 150 },   // optional default size
-  defaultData: { label: "Hello" },       // optional initial data
+  size: { width: 200, height: 150 }, // optional default size
+  defaultData: { label: "Hello" }, // optional initial data
   component: MyNode,
 };
 ```
 
 **3. Register** in `src/features/desk/nodes/template/index.ts`:
+
 ```ts
 import { myNodeTemplate } from "../implementations/my-node";
 export const nodeTemplates: NodeTemplate[] = [
-  chatTemplate, stickyNoteTemplate, mermaidTemplate, myNodeTemplate,
+  chatTemplate,
+  stickyNoteTemplate,
+  mermaidTemplate,
+  myNodeTemplate,
 ];
 export const nodeTypes = nodeTemplates.reduce((acc, t) => {
   acc[t.id] = t.component;
@@ -243,8 +249,8 @@ classic `Meta` / `StoryObj` pattern.
 
 ### Config layout
 
-| File                       | Role                                                                                                                                                              |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| File                       | Role                                                                                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `.storybook/main.ts`       | Framework = `@storybook/tanstack-react`. Story globs: `../src/**/*.mdx` and `../src/**/*.stories.@(js\|jsx\|mjs\|ts\|tsx)`. Addons: chromatic, vitest, a11y, docs. |
 | `.storybook/preview.tsx`   | `definePreview(...)` — wires `addonDocs()`, MSW loader (`msw-storybook-addon`), and a11y config (`test: "todo"` — violations surface in UI but don't fail CI).     |
 | `src/storybook/preview.ts` | One-line shim: `export { default } from "../../.storybook/preview"`. Exists so stories can import the preview via the `@/` alias.                                  |

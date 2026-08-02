@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useDeviceType } from "@/hooks";
 import { useState } from "react";
+import { useTheme } from "next-themes";
 import { RefreshCw, Sun, Moon, PanelRight, MoreHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModelSelector } from "@/components/chat/ModelSelector";
@@ -24,8 +25,9 @@ export default function ChatPage() {
     s.selectedWorkspaceId ? s.getWorkspace(s.selectedWorkspaceId) : undefined,
   );
   const [showMinimap, setShowMinimap] = useState(false);
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const toggleTheme = () => setIsDarkMode((v) => !v);
+  const { resolvedTheme, setTheme } = useTheme();
+  const isDarkMode = resolvedTheme === "dark";
+  const toggleTheme = () => setTheme(isDarkMode ? "light" : "dark");
 
   if (!selectedWorkspace) {
     return (

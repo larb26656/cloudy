@@ -40,12 +40,12 @@ export function WorkspaceDialog({
   workspace,
 }: WorkspaceDialogProps) {
   const isEditMode = !!workspace;
-  const {
-    createWorkspace,
-    updateWorkspace,
-    deleteWorkspace,
-    getWorkspaceByDirectory,
-  } = useWorkspaceStore();
+  const createWorkspace = useWorkspaceStore((s) => s.createWorkspace);
+  const updateWorkspace = useWorkspaceStore((s) => s.updateWorkspace);
+  const deleteWorkspace = useWorkspaceStore((s) => s.deleteWorkspace);
+  const getWorkspaceByDirectory = useWorkspaceStore(
+    (s) => s.getWorkspaceByDirectory,
+  );
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;

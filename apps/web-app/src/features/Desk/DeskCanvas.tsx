@@ -41,7 +41,8 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
   const [isNodeDrawerOpen, setNodeDrawerOpen] = useState(false);
 
   const { screenToFlowPosition, setViewport } = useReactFlow();
-  const { saveFlow, getFlow } = useFlowStore();
+  const saveFlow = useFlowStore((s) => s.saveFlow);
+  const getFlow = useFlowStore((s) => s.getFlow);
 
   const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
   rfInstanceRef.current = rfInstance;

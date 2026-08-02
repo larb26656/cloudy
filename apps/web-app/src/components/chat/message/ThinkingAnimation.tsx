@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useTheme } from "next-themes";
 import { Sprite } from "../../Sprite";
 
 const thinkingDarkUrl = "/sprite/thinking-dark.png";
 const thinkingUrl = "/sprite/thinking.png";
 
 export default function ThinkingAnimation() {
-  const [isDarkMode] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const isDarkMode = resolvedTheme === "dark";
 
   return (
     <Sprite
