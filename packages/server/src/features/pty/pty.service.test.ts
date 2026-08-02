@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
-import { PtyService } from "./service";
-import { PtyRepository, type PtySession } from "./repository";
+import { mock } from "vitest-mock-extended";
+import { createPtyService } from "./pty.service";
+import type { PtyRepository, PtySession } from "./pty.repository";
+import { SessionNotFoundError } from "./pty.errors";
 
 function makeFakePty() {
   const dataCbs = new Set<(d: string) => void>();
@@ -25,7 +27,7 @@ function makeFakePty() {
 
 function makeServiceWithSession(
   overrides: Partial<PtySession> = {},
-): { service: PtyService; pty: ReturnType<typeof makeFakePty>; id: string } {
+): { service: ReturnType<typeof createPtyService>; pty: ReturnType<typeof makeFakePty>; id: string } {
   const pty = makeFakePty();
   const id = "test-id";
   const session: PtySession = {
@@ -37,26 +39,25 @@ function makeServiceWithSession(
     ...overrides,
   };
 
-  const repo = {
-    spawn: vi.fn(() => session),
-    get: vi.fn((lookupId: string) => (lookupId === id ? session : null)),
-    resize: vi.fn(),
-    write: vi.fn(),
-    kill: vi.fn(),
-    onData: vi.fn((lookupId: string, fn: (d: string) => void) => {
-      if (lookupId !== id) return () => {};
-      pty.onData(fn);
-      return () => pty.onData.length;
-    }),
-    onExit: vi.fn((lookupId: string, fn: (code: number, signal?: number) => void) => {
-      if (lookupId !== id) return () => {};
-      pty.onExit(fn);
-      return () => pty.onExit.length;
-    }),
-    cleanup: vi.fn(),
-  } as unknown as PtyRepository;
+  const repo = mock<PtyRepository>();
+  repo.spawn.mockReturnValue(session);
+  repo.get.mockImplementation((lookupId: string) =>
+    lookupId === id ? session : null,
+  );
 
-  return { service: new PtyService(repo), pty, id };
+  // Forward onData/onExit through the fake pty so listener wiring is exercised.
+  repo.onData.mockImplementation((lookupId: string, fn) => {
+    if (lookupId !== id) return () => {};
+    pty.onData(fn);
+    return () => {};
+  });
+  repo.onExit.mockImplementation((lookupId: string, fn) => {
+    if (lookupId !== id) return () => {};
+    pty.onExit(fn);
+    return () => {};
+  });
+
+  return { service: createPtyService(repo), pty, id };
 }
 
 describe("PtyService", () => {
@@ -81,10 +82,12 @@ describe("PtyService", () => {
     });
   });
 
-  it("getSession throws 404 when missing", () => {
+  it("getSession throws SessionNotFoundError when missing", () => {
     const { service } = makeServiceWithSession();
-    expect(() => service.getSession("nope")).toThrow(/not found/);
-    expect(() => service.getSession("nope")).toThrow(expect.objectContaining({ status: 404 }));
+    expect(() => service.getSession("nope")).toThrow(SessionNotFoundError);
+    expect(() => service.getSession("nope")).toThrow(
+      expect.objectContaining({ status: 404 }),
+    );
   });
 
   it("resize throws 404 when missing", () => {
@@ -104,7 +107,6 @@ describe("PtyService", () => {
   it("write forwards bytes to repository", () => {
     const { service, id } = makeServiceWithSession();
     service.write(id, "ls\n");
-    // repository.write was called via service -> repo (spy chain)
     expect(() => service.write(id, "x")).not.toThrow();
   });
 

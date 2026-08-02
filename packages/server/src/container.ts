@@ -1,13 +1,18 @@
-import type { CloudyConfig } from './config';
-import { ProxyService } from './features/proxy/service';
-import { PtyRepository } from './features/pty/repository';
-import { PtyService } from './features/pty/service';
+import type { CloudyConfig } from "./config";
+import { createProxyService } from "./features/proxy/proxy.service";
+import { createInMemoryPtyRepository } from "./features/pty/in-memory-pty.repository";
+import { createPtyService } from "./features/pty/pty.service";
 
-export let proxyService: ProxyService;
-export let ptyService: PtyService;
-
-export function initContainer(config: CloudyConfig) {
-    proxyService = new ProxyService(config.opencodeApiBase);
-    const ptyRepository = new PtyRepository();
-    ptyService = new PtyService(ptyRepository);
+/**
+ * Build all wired services for the application. Manual DI: repositories →
+ * services → controllers. Both features are factory-based after Phase 2. The
+ * returned object is consumed by `createApp` / `createServer`.
+ */
+export function createContainer(config: CloudyConfig) {
+  const ptyRepository = createInMemoryPtyRepository();
+  const ptyService = createPtyService(ptyRepository);
+  const proxyService = createProxyService(config.opencodeApiBase);
+  return { ptyService, proxyService };
 }
+
+export type Container = ReturnType<typeof createContainer>;

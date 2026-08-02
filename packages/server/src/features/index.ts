@@ -1,1 +1,7 @@
-export type { ProxyResult } from './proxy/model';
+export { createProxyController, createProxyService, type ProxyService } from "./proxy";
+export {
+  createPtyController,
+  createPtyService,
+  type PtyService,
+  attachPtyWebSockets,
+} from "./pty";

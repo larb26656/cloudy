@@ -5,18 +5,21 @@ import { relative } from "node:path";
 import { openAPIRouteHandler } from "hono-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
 
-import { createProxyApp } from "./features/proxy";
-import { createPtyApp } from "./features/pty";
-import { proxyService, ptyService } from "./container";
+import { createProxyController } from "./features/proxy";
+import { createPtyController } from "./features/pty";
+import type { Container } from "./container";
+import { onError as domainErrorHandler } from "./presentation/error-middleware";
 
 export function createApp({
   corsOrigins = [] as string[] | "*",
   enableUI = false,
   publicDir,
+  container,
 }: {
   corsOrigins?: string[] | "*";
   enableUI?: boolean;
   publicDir?: string;
+  container: Container;
 }) {
   const allowedOrigins = corsOrigins === "*" ? [] : corsOrigins;
   const app = new Hono()
@@ -43,9 +46,10 @@ export function createApp({
         credentials: true,
       }),
     )
+    .onError(domainErrorHandler)
     .get("/api/health", (c) => c.json({ status: "ok" }))
-    .route("/oc", createProxyApp({ proxyService }))
-    .route("/api/pty", createPtyApp({ ptyService }));
+    .route("/oc", createProxyController(container.proxyService))
+    .route("/api/pty", createPtyController(container.ptyService));
 
   app.get(
     "/openapi",

@@ -38,7 +38,7 @@ export function getEnvConfig(): Partial<AppConfig> {
     ) as Partial<AppConfig>;
 }
 
-function resolveConfigDir(overrideConfigDir?: string): string {
+export function resolveConfigDir(overrideConfigDir?: string): string {
     if (overrideConfigDir) {
         return expanduser(overrideConfigDir);
     }
@@ -46,31 +46,38 @@ function resolveConfigDir(overrideConfigDir?: string): string {
     return expanduser('~/.config/cloudy');
 }
 
-function createInitConfig(configDir: string, defaults: object) {
+/**
+ * Side effect: make sure `config.json` exists in `configDir`, writing a small
+ * default file on first run. Returns the absolute path of the config file the
+ * caller should subsequently read with {@link parseConfig}.
+ *
+ * Split out of {@link parseConfig} so the pure parse stays side-effect-free.
+ */
+export function ensureConfigFile(configDir: string, defaults: object = { host: 'localhost', port: '4122' }): string {
     const configPath = resolve(configDir, 'config.json');
     if (!existsSync(configPath)) {
         mkdirSync(configDir, { recursive: true });
         writeFileSync(configPath, JSON.stringify(defaults, null, 2));
     }
-
-    return {
-        configPath
-    }
+    return configPath;
 }
 
-export function loadConfig(cliFlags: Partial<AppConfig> = {}): CloudyConfig {
+/**
+ * Pure config merge + parse. Layered resolution order (later wins):
+ * schema defaults → config file → env (`CLOUDY_*`) → explicit CLI flags.
+ * Does not touch the filesystem — call {@link ensureConfigFile} first to
+ * materialise the config file path.
+ */
+export function parseConfig(input: {
+    configPath: string;
+    configDir: string;
+    cliFlags?: Partial<AppConfig>;
+}): CloudyConfig {
     const defaults = ConfigurableSchema.parse({});
-
-    const configDir = resolveConfigDir(cliFlags.configDir as string | undefined);
-    const { configPath } = createInitConfig(configDir, {
-        host: 'localhost',
-        port: '4122',
-    });
-
-    const fileConfig = ConfigurableSchema.partial().parse(JSON.parse(readFileSync(configPath, 'utf8')));
+    const fileConfig = ConfigurableSchema.partial().parse(JSON.parse(readFileSync(input.configPath, 'utf8')));
     const envConfig = getEnvConfig();
     const filteredCliFlags = Object.fromEntries(
-        Object.entries(cliFlags).filter(([, v]) => v !== undefined)
+        Object.entries(input.cliFlags ?? {}).filter(([, v]) => v !== undefined)
     );
     const mergedInput = { ...defaults, ...fileConfig, ...envConfig, ...filteredCliFlags };
     const merged = ConfigurableSchema.parse(mergedInput);
@@ -80,4 +87,15 @@ export function loadConfig(cliFlags: Partial<AppConfig> = {}): CloudyConfig {
         ...merged,
         dataDir,
     };
+}
+
+/**
+ * Convenience: ensure the config file exists, then parse it. Kept for callers
+ * that don't need to inspect the file path; new code should prefer
+ * `ensureConfigFile` + `parseConfig` directly.
+ */
+export function loadConfig(cliFlags: Partial<AppConfig> = {}): CloudyConfig {
+    const configDir = resolveConfigDir(cliFlags.configDir as string | undefined);
+    const configPath = ensureConfigFile(configDir);
+    return parseConfig({ configPath, configDir, cliFlags });
 }
