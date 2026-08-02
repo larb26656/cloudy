@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import { ChatContainer } from "./ChatContainer";
+import { useChat } from "./ChatProvider";
 import type { QuestionV2Request, PermissionRequest } from "@opencode-ai/sdk/v2";
 
 const mockToastError = vi.fn();
@@ -29,32 +30,50 @@ vi.mock("@/components/chat/message/MessageList", () => ({
 }));
 
 vi.mock("@/components/chat/chat-input", () => ({
-  ChatInput: ({
-    onSend,
-    onImmediateCommand,
-    isLoading,
-  }: {
-    onSend: (content: { text: string; mentions: unknown[] }) => void;
-    onImmediateCommand?: (commandName: string) => void;
-    isLoading: boolean;
-  }) => (
-    <div data-testid="chat-input">
-      <button
-        data-testid="trigger-send"
-        onClick={() => onSend({ text: "hello", mentions: [] })}
-        disabled={isLoading}
-      >
-        {isLoading ? "loading" : "send"}
-      </button>
-      <button
-        data-testid="trigger-immediate-command"
-        onClick={() => onImmediateCommand?.("test-command")}
-      >
-        trigger command
-      </button>
-      <span data-testid="loading-state">{isLoading ? "true" : "false"}</span>
-    </div>
-  ),
+  ChatInput: () => {
+    const {
+      sendMessage,
+      abortGeneration,
+      executeImmediateCommand,
+      isGenerating,
+    } = useChat();
+
+    return (
+      <div data-testid="chat-input">
+        <button
+          data-testid="trigger-send"
+          onClick={() => void sendMessage({ text: "hello", mentions: [] })}
+          disabled={isGenerating}
+        >
+          {isGenerating ? "loading" : "send"}
+        </button>
+        <button
+          data-testid="trigger-abort"
+          onClick={abortGeneration}
+          disabled={!isGenerating}
+        >
+          abort
+        </button>
+        <button
+          data-testid="trigger-immediate-command"
+          onClick={() => void executeImmediateCommand("test-command")}
+        >
+          trigger command
+        </button>
+        <button
+          data-testid="trigger-slash-command"
+          onClick={() =>
+            void sendMessage({ text: "/test-command", mentions: [] })
+          }
+        >
+          trigger slash command
+        </button>
+        <span data-testid="loading-state">
+          {isGenerating ? "true" : "false"}
+        </span>
+      </div>
+    );
+  },
 }));
 
 vi.mock("@/components/permission/PermissionBanner", () => ({
@@ -379,7 +398,7 @@ describe("ChatCoatainer", () => {
       });
     });
 
-    test("passes isLoading=true to ChatInput while sending", async () => {
+    test("exposes generation state to ChatInput while sending", async () => {
       const pendingPromise = new Promise<Response>(() => {});
 
       server.use(
@@ -398,9 +417,36 @@ describe("ChatCoatainer", () => {
         expect(screen.getByTestId("loading-state")).toHaveTextContent("true");
       });
     });
+
+    test("aborts a pending generation through the chat context", async () => {
+      const pendingPromise = new Promise<Response>(() => {});
+      const abortGeneration = vi.fn();
+
+      server.use(
+        http.post(/\/oc\/session\/[^/]+\/prompt_async/, async () => {
+          await pendingPromise;
+          return HttpResponse.json(null, { status: 200 });
+        }),
+        http.post(/\/oc\/session\/[^/]+\/abort/, () => {
+          abortGeneration();
+          return HttpResponse.json(null, { status: 200 });
+        }),
+      );
+
+      renderChat(SESSION_ID);
+
+      const send = await screen.findByTestId("trigger-send");
+      send.click();
+
+      const abort = await screen.findByTestId("trigger-abort");
+      await waitFor(() => expect(abort).toBeEnabled());
+      abort.click();
+
+      await waitFor(() => expect(abortGeneration).toHaveBeenCalledOnce());
+    });
   });
 
-  describe("command execution via onImmediateCommand", () => {
+  describe("command execution via chat context", () => {
     beforeEach(() => {
       mockExecute.mockClear();
       server.use(
@@ -410,7 +456,7 @@ describe("ChatCoatainer", () => {
       );
     });
 
-    test("executes system command when onImmediateCommand is called", async () => {
+    test("executes system command when context action is called", async () => {
       renderChat("test-session");
 
       const trigger = await screen.findByTestId("trigger-immediate-command");
@@ -443,6 +489,36 @@ describe("ChatCoatainer", () => {
       await waitFor(() => {
         const dialog = screen.getByTestId("session-picker-dialog");
         expect(dialog).toHaveAttribute("data-open", "true");
+      });
+    });
+
+    test("shows a toast when a slash command fails", async () => {
+      mockExecute.mockRejectedValueOnce(new Error("Command exploded"));
+
+      renderChat("test-session");
+
+      const trigger = await screen.findByTestId("trigger-slash-command");
+      trigger.click();
+
+      await waitFor(() => {
+        expect(mockToastError).toHaveBeenCalledWith("Command exploded");
+      });
+    });
+
+    test("shows a toast when an immediate command fails", async () => {
+      mockExecute.mockRejectedValueOnce(
+        new Error("Immediate command exploded"),
+      );
+
+      renderChat("test-session");
+
+      const trigger = await screen.findByTestId("trigger-immediate-command");
+      trigger.click();
+
+      await waitFor(() => {
+        expect(mockToastError).toHaveBeenCalledWith(
+          "Immediate command exploded",
+        );
       });
     });
   });

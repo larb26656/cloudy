@@ -3,25 +3,14 @@ import { ChatInput } from "./chat-input";
 import { SessionStatusBar } from "./SessionStatusBar";
 import { PermissionBanner } from "@/components/permission/PermissionBanner";
 import { PermissionDialog } from "@/components/permission/PermissionDialog";
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { generatePlaceholder } from "@/lib/greeting-generator";
-import {
-  useSendMessage,
-  useAbortGeneration,
-} from "@/hooks/queries/useMessages";
-import { useExecuteCommand } from "@/hooks/queries/useCommand";
-import { useCreateSession } from "@/hooks/queries/useSessions";
 import { useSessionData } from "@/hooks/session/useSessionHumanApprove";
-import { type ChatInputContent } from "@/lib/opencode";
-import { isCommand, parseCommand } from "@/lib/command";
-import { useSystemCommands, findSystemCommand } from "@/lib/commands";
 import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
-import { toast } from "@/components/ui/sonner";
-import type { ModelConfig } from "@/types";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
-import { ChatProvider } from "./ChatProvider";
+import { ChatProvider, useChat } from "./ChatProvider";
 
 interface ChatContainerProps {
   workspace?: Workspace | null;
@@ -37,20 +26,35 @@ export function ChatContainer({
   onSessionChange,
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
-  const { mutateAsync: sendMessageAsync, isPending: isSending } =
-    useSendMessage();
-  const { mutate: executeCmd } = useExecuteCommand();
-  const { mutate: abortMutate, isPending: isAborting } = useAbortGeneration();
-  const { mutateAsync: createSessionAsync } = useCreateSession();
-  const systemCommands = useSystemCommands();
 
-  const systemCommandsRef = useRef(systemCommands);
-  systemCommandsRef.current = systemCommands;
+  return (
+    <ChatProvider
+      workspace={workspace}
+      directory={directory}
+      sessionId={sessionId}
+      onSessionChange={onSessionChange}
+    >
+      <ChatContainerContent chatplaceholder={chatplaceholder} />
+    </ChatProvider>
+  );
+}
 
+type ChatContainerContentProps = {
+  chatplaceholder: string;
+};
+
+function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
   const [questionOpen, setQuestionOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
-  const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
-
+  const {
+    abortGeneration,
+    isGenerating,
+    directory,
+    sessionId,
+    changeSession,
+    sessionPickerOpen,
+    setSessionPickerOpen,
+  } = useChat();
   const {
     sessionQuestions,
     currentQuestion,
@@ -58,181 +62,70 @@ export function ChatContainer({
     currentPermission,
   } = useSessionData({ directory, sessionId });
 
-  const ensureSessionId = useCallback(async (
-    agent?: string | null,
-    model?: ModelConfig | null,
-  ): Promise<string> => {
-    if (sessionId) {
-      return sessionId;
-    }
-
-    const newSession = await createSessionAsync({
-      directory,
-      agent: agent ?? undefined,
-      model: model ?? undefined,
-    });
-
-    onSessionChange?.(newSession.id);
-
-    return newSession.id;
-  }, [sessionId, createSessionAsync, directory, onSessionChange]);
-
-  const handleSend = useCallback(
-    async (
-      content: ChatInputContent,
-      model?: ModelConfig | null,
-      agent?: string | null,
-    ) => {
-      const text = content.text.trim();
-      if (!text) return;
-
-      if (isCommand(text)) {
-        const parsed = parseCommand(text);
-        if (!parsed) return;
-
-        const commandSessionId = await ensureSessionId(agent, model);
-
-        if (findSystemCommand(parsed.command)) {
-          systemCommandsRef.current.execute(parsed.command, parsed.arguments, {
-            directory,
-            sessionId: commandSessionId,
-            onSessionChange,
-            openSessionPicker: () => setSessionPickerOpen(true),
-            model,
-            agent,
-          });
-          return;
-        }
-
-        executeCmd({
-          sessionId: commandSessionId,
-          command: parsed.command,
-          args: parsed.arguments,
-          directory,
-        });
-
-        return;
-      }
-
-      try {
-        const messageSessionId = await ensureSessionId(agent, model);
-        await sendMessageAsync({
-          sessionId: messageSessionId,
-          content: content,
-          directory: directory,
-          model,
-          agent,
-        });
-      } catch (err) {
-        toast.error(
-          err instanceof Error ? err.message : "Failed to send message",
-        );
-      }
-    },
-    [
-      ensureSessionId,
-      executeCmd,
-      sendMessageAsync,
-      directory,
-      onSessionChange,
-    ],
-  );
-
-  const handleAbort = useCallback(() => {
-    if (sessionId && !isAborting) {
-      abortMutate({ sessionId, directory });
-    }
-  }, [sessionId, isAborting, abortMutate, directory]);
-
   const handleContainerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Escape") return;
-    if (questionOpen || permissionOpen) return;
-    if (isAborting) return;
+    if (questionOpen || permissionOpen || !isGenerating) return;
 
     e.preventDefault();
-    handleAbort();
+    abortGeneration();
   };
 
-  const handleImmediateCommand = useCallback(
-    (commandName: string) => {
-      if (findSystemCommand(commandName)) {
-        systemCommandsRef.current.execute(commandName, "", {
-          directory,
-          sessionId,
-          onSessionChange,
-          openSessionPicker: () => setSessionPickerOpen(true),
-          model: null,
-          agent: null,
-        });
-      }
-    },
-    [directory, sessionId, onSessionChange],
-  );
-
   return (
-    <ChatProvider workspace={workspace} directory={directory} sessionId={sessionId}>
-      <div
-        className="relative flex-1 flex flex-col bg-background overflow-hidden h-full"
-        tabIndex={-1}
-        onKeyDown={handleContainerKeyDown}
-      >
-        <div className="absolute z-50 top-0 left-0 right-0 flex justify-end gap-2 p-2">
-          {!!sessionQuestions.length && !questionOpen && (
-            <QuestionBanner
-              onOpenDialog={() => setQuestionOpen(true)}
-              count={sessionQuestions.reduce(
-                (sum, q) => sum + q.questions.length,
-                0,
-              )}
-            />
-          )}
-
-          {!!sessionPermissions.length && !permissionOpen && (
-            <PermissionBanner
-              onOpenDialog={() => setPermissionOpen(true)}
-              count={sessionPermissions.length}
-            />
-          )}
-        </div>
-
-        <MessageList selectedSessionId={sessionId} directory={directory} />
-
-        <ChatInput
-          onSend={handleSend}
-          onImmediateCommand={handleImmediateCommand}
-          onAbort={handleAbort}
-          isLoading={isSending || isAborting}
-          placeholder={chatplaceholder}
-        />
-
-        <SessionStatusBar sessionId={sessionId} directory={directory} />
-
-        {currentQuestion && (
-          <QuestionSheet
-            open={questionOpen}
-            onOpenChange={setQuestionOpen}
-            question={currentQuestion}
-            directory={directory}
+    <div
+      className="relative flex-1 flex flex-col bg-background overflow-hidden h-full"
+      tabIndex={-1}
+      onKeyDown={handleContainerKeyDown}
+    >
+      <div className="absolute z-50 top-0 left-0 right-0 flex justify-end gap-2 p-2">
+        {!!sessionQuestions.length && !questionOpen && (
+          <QuestionBanner
+            onOpenDialog={() => setQuestionOpen(true)}
+            count={sessionQuestions.reduce(
+              (sum, q) => sum + q.questions.length,
+              0,
+            )}
           />
         )}
 
-        {currentPermission && (
-          <PermissionDialog
-            open={permissionOpen}
-            onOpenChange={setPermissionOpen}
-            permission={currentPermission}
-            directory={directory}
+        {!!sessionPermissions.length && !permissionOpen && (
+          <PermissionBanner
+            onOpenDialog={() => setPermissionOpen(true)}
+            count={sessionPermissions.length}
           />
         )}
-
-        <SessionPickerDialog
-          open={sessionPickerOpen}
-          onOpenChange={setSessionPickerOpen}
-          directory={directory}
-          sessionId={sessionId}
-          onSessionChange={(id) => onSessionChange?.(id)}
-        />
       </div>
-    </ChatProvider>
+
+      <MessageList selectedSessionId={sessionId} directory={directory} />
+
+      <ChatInput placeholder={chatplaceholder} />
+
+      <SessionStatusBar sessionId={sessionId} directory={directory} />
+
+      {currentQuestion && (
+        <QuestionSheet
+          open={questionOpen}
+          onOpenChange={setQuestionOpen}
+          question={currentQuestion}
+          directory={directory}
+        />
+      )}
+
+      {currentPermission && (
+        <PermissionDialog
+          open={permissionOpen}
+          onOpenChange={setPermissionOpen}
+          permission={currentPermission}
+          directory={directory}
+        />
+      )}
+
+      <SessionPickerDialog
+        open={sessionPickerOpen}
+        onOpenChange={setSessionPickerOpen}
+        directory={directory}
+        sessionId={sessionId}
+        onSessionChange={changeSession}
+      />
+    </div>
   );
 }

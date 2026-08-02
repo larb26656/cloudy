@@ -1,7 +1,6 @@
 import { ArrowUp, Square } from "lucide-react";
 import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
-import type { ModelConfig } from "../../../types";
 import { Button } from "@/components/ui/button";
 import { type ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "./ChatInputEditor";
@@ -10,14 +9,6 @@ import { useChat } from "../ChatProvider";
 import { memo, useEffect, useRef, useState } from "react";
 
 interface ChatInputProps {
-  onSend: (
-    content: ChatInputContent,
-    model?: ModelConfig | null,
-    agent?: string | null,
-  ) => void;
-  onImmediateCommand?: (commandName: string) => void;
-  onAbort?: () => void;
-  isLoading?: boolean;
   placeholder?: string;
   initialValue?: string;
 }
@@ -25,10 +16,6 @@ interface ChatInputProps {
 const MOCK_HISTORY: string[] = [];
 
 export const ChatInput = memo(function ChatInput({
-  onSend,
-  onImmediateCommand,
-  onAbort,
-  isLoading,
   placeholder = "Type a message...",
   initialValue,
 }: ChatInputProps) {
@@ -38,7 +25,15 @@ export const ChatInput = memo(function ChatInput({
     mentions: [],
   });
 
-  const { effectiveModel, effectiveAgent, directory } = useChat();
+  const {
+    effectiveModel,
+    effectiveAgent,
+    directory,
+    sendMessage,
+    abortGeneration,
+    executeImmediateCommand,
+    isGenerating,
+  } = useChat();
 
   const [isListening, setIsListening] = useState(false);
   const [speechDraft, setSpeechDraft] = useState("");
@@ -82,14 +77,14 @@ export const ChatInput = memo(function ChatInput({
     : chatInputContent.text;
 
   const handleImmediateExecute = (commandName: string) => {
-    onImmediateCommand?.(commandName);
+    void executeImmediateCommand(commandName);
     setChatInputContent({ text: "", mentions: [] });
   };
 
   const handleSubmit = () => {
     const finalText = displayText.trim();
-    if (finalText && !isLoading) {
-      onSend(
+    if (finalText && !isGenerating) {
+      void sendMessage(
         { ...chatInputContent, text: finalText },
         effectiveModel,
         effectiveAgent,
@@ -144,7 +139,7 @@ export const ChatInput = memo(function ChatInput({
                 onKeyDown={handleKeyDown}
                 onImmediateExecute={handleImmediateExecute}
                 placeholder={placeholder}
-                disabled={isLoading}
+                disabled={isGenerating}
                 directory={directory}
               />
             </div>
@@ -161,11 +156,11 @@ export const ChatInput = memo(function ChatInput({
                   onListeningChange={setIsListening}
                 />
 
-                {isLoading ? (
+                {isGenerating ? (
                   <Button
                     size="icon"
                     className="rounded-full p-4"
-                    onClick={onAbort}
+                    onClick={abortGeneration}
                     title="Stop generating"
                   >
                     <Square className="size-5" />
