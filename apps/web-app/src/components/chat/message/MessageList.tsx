@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useMessages, useAbortGeneration } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
+import { pickFresher } from "@/lib/message";
 import { IsVisible } from "@/components/utils/IsVisible";
 import { RetryMessage } from "./RetryMessage";
 import {
@@ -63,53 +64,73 @@ export const MessageList = memo(function MessageList({
 
   const remoteMessages = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);
 
-  const remoteIdSet = useMemo(
-    () => new Set(remoteMessages.map((m) => m.info.id)),
-    [remoteMessages],
-  );
+  // `streamingIds` is shallow-stable across text-only deltas (it only changes
+  // when a message id is added/removed), so selecting just the ids keeps this
+  // component from re-rendering on every token — the per-id `StreamingMessageBubble`
+  // subscribes to the store itself and handles its own live updates.
+  // The freshness decision below reads the streaming `Message` objects via
+  // `getState()` inside the memo; that is correct because the decision only
+  // needs to refresh when the structure (streamingIds) or the remote cache
+  // changes, both of which are memo deps. Between those events the winner
+  // cannot flip: a streaming copy that is currently fresher only keeps growing.
 
-  const activeStreamingIds = useMemo(
-    () => streamingIds.filter((id) => !remoteIdSet.has(id)),
-    [streamingIds, remoteIdSet],
-  );
-
-  // Unified, deduped list of message ids to render. A message id is either
-  // present in the remote cache (source of truth once streaming ends) or in the
-  // streaming store, never both (activeStreamingIds already excludes ids that
-  // landed in remoteIdSet). Rendering them as a single keyed list keeps the
-  // same `MessageScrollerItem` DOM node alive across the streaming -> remote
-  // transition, so the scroller's content childList does not mutate on swap and
-  // its anchor-detection logic (which would otherwise treat the user message's
-  // freshly-enabled scrollAnchor as a brand-new anchor and jump to it) never
-  // fires.
+  // Unified, deduped list of message ids to render. For each id we pick the
+  // fresher of (remote cache, streaming store) via `pickFresher` so that a
+  // mid-stream `useMessages` refetch returning a partial server snapshot of an
+  // assistant message never freezes the bubble on stale content. Rendering the
+  // remote and streaming copies as a single keyed list (keyed by message id,
+  // regardless of `kind`) keeps the same `MessageScrollerItem` DOM node alive
+  // across the streaming -> remote transition, so the scroller's content
+  // childList does not mutate on swap and its anchor-detection logic never
+  // misfires.
   const displayItems = useMemo(() => {
+    const sessionId = selectedSessionId ?? "";
+    const streamMap = useStreamingMessagesStore.getState().streamingMessages.get(
+      sessionId,
+    );
+
     const items: Array<
       | { id: string; kind: "remote"; message: Message }
       | { id: string; kind: "streaming" }
-    > = remoteMessages.map((m) => ({
-      id: m.info.id,
-      kind: "remote" as const,
-      message: m,
-    }));
-    for (const id of activeStreamingIds) {
-      items.push({ id, kind: "streaming" as const });
-    }
-    return items;
-  }, [remoteMessages, activeStreamingIds]);
+    > = [];
 
-  // Evict stale streaming entries: if a message id is present in both the
-  // streaming store and the remote data, the stream is done but wasn't cleared
-  // (e.g. session.idle never fired). Remove it from the store so remote — the
-  // source of truth — is shown and the store doesn't leak. Runs in an effect
-  // to avoid mutating zustand during render.
+    for (const m of remoteMessages) {
+      const stream = streamMap?.get(m.info.id);
+      if (stream && pickFresher(m, stream) === "streaming") {
+        items.push({ id: m.info.id, kind: "streaming" });
+      } else {
+        items.push({ id: m.info.id, kind: "remote", message: m });
+      }
+    }
+
+    // Append ids that only exist in the streaming store (not yet in remote).
+    for (const id of streamingIds) {
+      if (!remoteMessages.some((m) => m.info.id === id)) {
+        items.push({ id, kind: "streaming" });
+      }
+    }
+
+    return items;
+  }, [remoteMessages, streamingIds, selectedSessionId]);
+
+  // Evict streaming entries that remote has definitively won (finalized, or
+  // strictly fresher content). This is the safety net for a `session.idle`
+  // event that was missed — under normal flow, `takeSessionStreaming` in the
+  // idle handler already clears the store. Runs in an effect to avoid mutating
+  // zustand during render.
   useEffect(() => {
     if (!selectedSessionId) return;
-    for (const id of streamingIds) {
-      if (remoteIdSet.has(id)) {
+    const sessionMap = useStreamingMessagesStore.getState().streamingMessages.get(
+      selectedSessionId,
+    );
+    if (!sessionMap) return;
+    for (const [id, streamMsg] of sessionMap) {
+      const remoteMsg = remoteMessages.find((m) => m.info.id === id);
+      if (remoteMsg && pickFresher(remoteMsg, streamMsg) === "remote") {
         removeStreamingMessage(selectedSessionId, id);
       }
     }
-  }, [streamingIds, remoteIdSet, selectedSessionId, removeStreamingMessage]);
+  }, [remoteMessages, streamingIds, selectedSessionId, removeStreamingMessage]);
 
   const isStreaming =
     sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
@@ -143,7 +164,7 @@ export const MessageList = memo(function MessageList({
 
   if (
     remoteMessages.length === 0 &&
-    activeStreamingIds.length === 0 &&
+    streamingIds.length === 0 &&
     isShowEmptyState
   ) {
     return (
