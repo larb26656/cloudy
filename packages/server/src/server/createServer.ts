@@ -2,47 +2,20 @@ import { serve, type ServerType } from "@hono/node-server";
 import type { Server } from "node:http";
 import { createApp } from "../server";
 import { createContainer } from "../container";
-import {
-  ensureConfigFile,
-  parseConfig,
-  resolveConfigDir,
-} from "../config/config";
+import { AppOption, loadConfig } from "../config/config";
 import { attachPtyWebSockets } from "../features/pty";
 
-export interface ServerOptions {
-  host?: string;
-  port?: number;
-  dataDir?: string;
-  configDir?: string;
-  corsOrigins?: string[];
-  enableUI?: boolean;
-  publicDir?: string;
-}
-
-export function createServer(options: ServerOptions) {
+export function createServer(option: AppOption) {
   let server: ServerType | null = null;
 
   const start = async () => {
-    const resolvedConfigDir = resolveConfigDir(options.configDir);
-    const configPath = ensureConfigFile(resolvedConfigDir);
-    const config = parseConfig({
-      configPath,
-      configDir: resolvedConfigDir,
-      cliFlags: {
-        configDir: options.configDir,
-        ui: options.enableUI,
-        host: options.host?.toString(),
-        port: options.port?.toString(),
-        cors: options.corsOrigins?.join(",") ?? "",
-      },
-    });
-
+    const config = loadConfig(option);
     const container = createContainer(config);
 
     const app = createApp({
       corsOrigins: config.cors,
       enableUI: config.ui,
-      publicDir: options.publicDir,
+      publicDir: config.publicDir,
       container,
     });
 

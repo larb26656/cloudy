@@ -27,8 +27,11 @@ almost never grow.
 user runs `cloudy serve --ui`
         │
         ▼
-src/cli.ts  ──► createServer({ configDir, dataDir, enableUI, publicDir, host, port, corsOrigins })
-        │           (from @repo/server)
+src/cli.ts  ──► loadConfig({ configDir, ui, host, port, cors, publicDir })  ← from @repo/server
+        │           (merges schema defaults + config.json + env + overrides)
+        ▼
+        └─► createServer(config)  ← resolved CloudyConfig only
+        │
         ▼
 Hono app starts on http://<host>:<port>
    ├── /api/<feature>   ← @repo/server route sub-apps
@@ -46,23 +49,24 @@ Defined in `src/cli.ts`. Currently a single subcommand:
 | --- | --- |
 | `cloudy serve` | Start the Hono server. All flags below belong to it. |
 
-`serve` flags (mirrored 1:1 to `createServer` options — keep them in sync):
+`serve` flags (forwarded 1:1 into `loadConfig({ ... })` as the highest-priority `overrides` layer — keep them in sync):
 
 | Flag | Maps to | Notes |
 | --- | --- | --- |
-| `--ui` | `enableUI` | Serve static UI from `publicDir` |
-| `--ui-dir <path>` | `publicDir` | Defaults to `./public` next to `cli.js` |
-| `-h, --host <addr>` | `host` | Default `localhost` |
+| `--ui` | `ui` | Serve static UI from `publicDir` |
+| `--ui-dir <path>` | `publicDir` | Defaults to `./public` next to `cli.js`; computed in cli.ts, then passed via overrides |
+| `-h, --host <address>` | `host` | Default `localhost` |
 | `-p, --port <num>` | `port` | Default `4122` |
-| `--cors <origins>` | `corsOrigins` | Comma-separated; split + trimmed in `cli.ts` |
+| `--cors <origins>` | `cors` | Comma-separated; split + trimmed in cli.ts |
 | `--config <path>` | `configDir` | Default `~/.config/cloudy` |
-| `--dataDir <path>` | `dataDir` | Default `~/.config/cloudy/data` |
+| `--dataDir <path>` | _no-op_ | Currently unforwarded; reserved. |
 
 When adding a flag: (1) add `.option(...)` to the commander chain, (2) add it to the
-`serveCommand` options type, (3) forward it to `createServer`, (4) update this table and
+`serveCommand` options type, (3) forward it into the `loadConfig({...})` call as an
+override key that matches the `CloudyConfig` field name, (4) update this table and
 `README.md`. Do **not** parse the flag's value beyond what `cli.ts` already does
-(string splitting for `--cors`, `Number.parseInt` for `--port`) — all deeper validation
-lives in `@repo/server`.
+(string splitting for `--cors`, `Number.parseInt` for `--port`) — all deeper
+validation lives in `@repo/server`'s Zod schema.
 
 ## Dev modes (note the non-default ports)
 
@@ -117,8 +121,8 @@ apps/server/dist/
 ```
 
 `cli.ts` does **not** read this file directly — it exists for the dev scripts
-(`--config=config`). The actual config/file-loading happens inside `@repo/server`'s
-`initContainer`. Don't add config parsing here.
+(`--config=config`). The actual config/file-loading happens inside
+`@repo/server`'s `loadConfig`, which `cli.ts` calls before `createServer`.
 
 ## TypeScript
 
@@ -133,7 +137,7 @@ by tsup, not tsc, so a clean `check-types` does not guarantee a clean bundle. Al
 | --- | --- |
 | Add an HTTP route | `packages/server/src/features/<feature>/index.ts` |
 | Add a DB table / migration | `packages/server/src/db/schema/*.ts` + `db:generate` |
-| Change how config is loaded | `packages/server/src/container.ts` |
+| Change how config is loaded | `packages/server/src/config/config.ts` (`loadConfig` / `parseConfig`) |
 | Change the OpenAPI docs wiring | `packages/server/src/server.ts` |
 | Change the web UI | `apps/web-app/` |
 | Change the binary's flags / banner / bundle | you're in the right place |

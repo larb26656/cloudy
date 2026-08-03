@@ -38,14 +38,11 @@ async function serveCommand(options: {
 
   const server = createServer({
     configDir: options.config,
-    dataDir: options.dataDir,
-    enableUI: options.ui,
-    publicDir,
+    ui: options.ui,
     host: options.host,
-    port: options.port ? Number.parseInt(options.port, 10) : undefined,
-    corsOrigins: options.cors
-      ? options.cors.split(",").map((o) => o.trim())
-      : undefined,
+    port: options.port,
+    cors: options.cors,
+    publicDir,
   });
 
   console.log(makeText());
@@ -57,23 +54,20 @@ async function serveCommand(options: {
 
 const program = new Command();
 
-program
-  .name("cloudy")
-  .description("Cloudy AI agent CLI")
-  .version("1.0.0");
+program.name("cloudy").description("Cloudy AI agent CLI").version("1.0.0");
 
 program
   .command("serve")
   .description("Start Cloudy server")
   .option("--ui", "Serve static UI from public/")
-  .option("--ui-dir <path>", "Directory containing UI static assets (default: ./public next to CLI)")
+  .option(
+    "--ui-dir <path>",
+    "Directory containing UI static assets (default: ./public next to CLI)",
+  )
   .option("-h, --host <address>", "Host to bind")
   .option("-p, --port <number>", "Port number")
   .option("--cors <origins>", "Allowed CORS origins (comma-separated)")
-  .option(
-    "--config <path>",
-    "Config directory (default: ~/.config/cloudy)",
-  )
+  .option("--config <path>", "Config directory (default: ~/.config/cloudy)")
   .option(
     "--dataDir <path>",
     "Config data directory (default: ~/.config/cloudy/data)",

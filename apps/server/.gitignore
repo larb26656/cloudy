@@ -34,5 +34,5 @@ dist/
 public/
 
 # runtime data (SQLite database, idea files, artifact files)
-config/data/
+config/
 data/

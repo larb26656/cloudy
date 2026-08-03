@@ -17,7 +17,7 @@ afterAll(() => {
 function makeConfig(): CloudyConfig {
   return {
     configDir: "/tmp",
-    dataDir: "/tmp",
+    configPath: "/tmp/config.json",
     dbPath: "/tmp/cloudy-test.db",
     ui: false,
     host: "localhost",

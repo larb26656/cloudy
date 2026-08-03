@@ -37,9 +37,4 @@
  * browser bundles.
  */
 
-export type { AppType, ServerOptions } from "@repo/server";
-export type {
-  WorkspaceDto,
-  WorkspaceNotFoundError,
-  WorkspaceConflictError,
-} from "@repo/server";
+export type { AppType } from "@repo/server";
