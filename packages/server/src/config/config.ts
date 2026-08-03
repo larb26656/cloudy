@@ -1,17 +1,26 @@
 import z from "zod";
 import { homedir } from "node:os";
-import { resolve } from 'node:path';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import { resolve } from "node:path";
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import path from "node:path";
 
-const ConfigurableSchema = z.object({
-    configDir: z.string().default('~/.config/cloudy'),
-    dataDir: z.string().default('~/.config/cloudy/data'),
-    dbPath: z.string().default('~/.config/cloudy/data/sqlite'),
-    ui: z.union([z.boolean(), z.string()]).transform((val) => val === true || val === "true").default(false),
-    host: z.string().default('localhost'),
-    port: z.string().default('4122').transform(Number),
-    cors: z.string().default('').transform((val) => val ? val.split(",").map((o) => o.trim()) : []),
-    opencodeApiBase: z.string().default('http://localhost:4096'),
+const BASE_CONFIG_DIR = "~/.config/cloudy";
+
+export const ConfigurableSchema = z.object({
+  configDir: z.string(),
+  configPath: z.string(),
+  dbPath: z.string(),
+  ui: z
+    .union([z.boolean(), z.string()])
+    .transform((val) => val === true || val === "true")
+    .default(false),
+  host: z.string().default("localhost"),
+  port: z.coerce.number().default(4122),
+  cors: z
+    .string()
+    .default("")
+    .transform((val) => (val ? val.split(",").map((o) => o.trim()) : [])),
+  opencodeApiBase: z.string().default("http://localhost:4096"),
 });
 
 export type CloudyConfig = z.infer<typeof ConfigurableSchema>;
@@ -19,32 +28,34 @@ export type CloudyConfig = z.infer<typeof ConfigurableSchema>;
 type AppConfig = z.input<typeof ConfigurableSchema>;
 
 function expanduser(path: string): string {
-    if (path.startsWith("~/") || path === "~") {
-        return path.replace("~", homedir());
-    }
+  if (path.startsWith("~/") || path === "~") {
+    return path.replace("~", homedir());
+  }
 
-    return path;
+  return path;
 }
 
 export function camelToSnake(str: string): string {
-    return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`).toUpperCase();
+  return str
+    .replace(/[A-Z]/g, (letter) => `_${letter.toLowerCase()}`)
+    .toUpperCase();
 }
 
 export function getEnvConfig(): Partial<AppConfig> {
-    return Object.fromEntries(
-        Object.entries(ConfigurableSchema.shape).map(([key]) => {
-            const envKey = `CLOUDY_${camelToSnake(key)}`;
-            return [key, process.env[envKey]];
-        })
-    ) as Partial<AppConfig>;
+  return Object.fromEntries(
+    Object.entries(ConfigurableSchema.shape).map(([key]) => {
+      const envKey = `CLOUDY_${camelToSnake(key)}`;
+      return [key, process.env[envKey]];
+    }),
+  ) as Partial<AppConfig>;
 }
 
 export function resolveConfigDir(overrideConfigDir?: string): string {
-    if (overrideConfigDir) {
-        return expanduser(overrideConfigDir);
-    }
+  if (overrideConfigDir) {
+    return expanduser(overrideConfigDir);
+  }
 
-    return expanduser('~/.config/cloudy');
+  return expanduser(BASE_CONFIG_DIR);
 }
 
 /**
@@ -54,13 +65,23 @@ export function resolveConfigDir(overrideConfigDir?: string): string {
  *
  * Split out of {@link parseConfig} so the pure parse stays side-effect-free.
  */
-export function ensureConfigFile(configDir: string, defaults: object = { host: 'localhost', port: '4122' }): string {
-    const configPath = resolve(configDir, 'config.json');
-    if (!existsSync(configPath)) {
-        mkdirSync(configDir, { recursive: true });
-        writeFileSync(configPath, JSON.stringify(defaults, null, 2));
-    }
-    return configPath;
+export function ensureConfigFile(
+  configDir: string,
+  defaults: object = { host: "localhost", port: "4122" },
+): string {
+  const configPath = resolve(configDir, "config.json");
+  if (!existsSync(configPath)) {
+    mkdirSync(configDir, { recursive: true });
+    writeFileSync(configPath, JSON.stringify(defaults, null, 2));
+  }
+  return configPath;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function stripUndefined(obj: any) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined),
+  );
 }
 
 /**
@@ -70,26 +91,37 @@ export function ensureConfigFile(configDir: string, defaults: object = { host: '
  * materialise the config file path.
  */
 export function parseConfig(input: {
-    configPath: string;
-    configDir: string;
-    cliFlags?: Partial<AppConfig>;
+  configPath: string;
+  configDir: string;
+  cliFlags?: Partial<AppConfig>;
 }): CloudyConfig {
-    const defaults = ConfigurableSchema.parse({});
-    const fileConfig = ConfigurableSchema.partial().parse(JSON.parse(readFileSync(input.configPath, 'utf8')));
-    const envConfig = getEnvConfig();
-    const filteredCliFlags = Object.fromEntries(
-        Object.entries(input.cliFlags ?? {}).filter(([, v]) => v !== undefined)
-    );
-    const mergedInput = { ...defaults, ...fileConfig, ...envConfig, ...filteredCliFlags };
-    const merged = ConfigurableSchema.parse(mergedInput);
-    const dataDir = expanduser(merged.dataDir);
-    const dbPath = expanduser(merged.dbPath);
+  const dbPath =
+    input?.cliFlags?.dbPath != null
+      ? expanduser(input?.cliFlags?.dbPath)
+      : path.join(input.configDir, "cloud.db");
 
-    return {
-        ...merged,
-        dataDir,
-        dbPath,
-    };
+  const defaults = ConfigurableSchema.parse({
+    configDir: input.configDir,
+    configPath: input.configPath,
+    dbPath,
+  });
+  const fileConfig = ConfigurableSchema.partial().parse(
+    JSON.parse(readFileSync(input.configPath, "utf8")),
+  );
+  const envConfig = getEnvConfig();
+  const filteredCliFlags = Object.fromEntries(
+    Object.entries(input.cliFlags ?? {}).filter(([, v]) => v !== undefined),
+  );
+  const mergedInput = {
+    ...defaults,
+    ...stripUndefined(fileConfig),
+    ...stripUndefined(envConfig),
+    ...stripUndefined(filteredCliFlags),
+  };
+
+  const merged = ConfigurableSchema.parse(mergedInput);
+
+  return merged;
 }
 
 /**
@@ -98,7 +130,7 @@ export function parseConfig(input: {
  * `ensureConfigFile` + `parseConfig` directly.
  */
 export function loadConfig(cliFlags: Partial<AppConfig> = {}): CloudyConfig {
-    const configDir = resolveConfigDir(cliFlags.configDir as string | undefined);
-    const configPath = ensureConfigFile(configDir);
-    return parseConfig({ configPath, configDir, cliFlags });
+  const configDir = resolveConfigDir(cliFlags.configDir as string | undefined);
+  const configPath = ensureConfigFile(configDir);
+  return parseConfig({ configPath, configDir, cliFlags });
 }

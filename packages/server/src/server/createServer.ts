@@ -1,9 +1,13 @@
-import { serve, type ServerType } from '@hono/node-server';
-import type { Server } from 'node:http';
-import { createApp } from '../server';
-import { createContainer } from '../container';
-import { ensureConfigFile, parseConfig, resolveConfigDir } from '../config/config';
-import { attachPtyWebSockets } from '../features/pty';
+import { serve, type ServerType } from "@hono/node-server";
+import type { Server } from "node:http";
+import { createApp } from "../server";
+import { createContainer } from "../container";
+import {
+  ensureConfigFile,
+  parseConfig,
+  resolveConfigDir,
+} from "../config/config";
+import { attachPtyWebSockets } from "../features/pty";
 
 export interface ServerOptions {
   host?: string;
@@ -26,11 +30,10 @@ export function createServer(options: ServerOptions) {
       configDir: resolvedConfigDir,
       cliFlags: {
         configDir: options.configDir,
-        dataDir: options.dataDir,
         ui: options.enableUI,
         host: options.host?.toString(),
         port: options.port?.toString(),
-        cors: options.corsOrigins?.join(','),
+        cors: options.corsOrigins?.join(",") ?? "",
       },
     });
 

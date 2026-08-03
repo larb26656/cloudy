@@ -21,13 +21,13 @@ import type { DbClient } from "./client";
  */
 export type TestDb = { db: DbClient; close: () => void };
 
-export function createTestDb(migrationsDir?: string): TestDb {
+export function createTestDb(): TestDb {
   const sqlite = new Database(":memory:");
   sqlite.pragma("foreign_keys = ON");
   const db = drizzle(sqlite, { schema }) as DbClient;
 
   const __dirname = dirname(fileURLToPath(import.meta.url));
-  const migrationsFolder = migrationsDir ?? join(__dirname, "../../drizzle");
+  const migrationsFolder = join(__dirname, "../../drizzle");
 
   migrate(db, { migrationsFolder });
 

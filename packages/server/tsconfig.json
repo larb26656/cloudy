@@ -4,8 +4,8 @@
     "outDir": "dist",
     "types": ["node"],
     "jsx": "react-jsx",
-    "jsxImportSource": "hono/jsx"
+    "jsxImportSource": "hono/jsx",
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src", "*.config.ts"],
+  "exclude": ["node_modules", "dist"],
 }

@@ -9,7 +9,11 @@
     },
     "copy-assets": {
       "dependsOn": ["web-app#build", "build"],
-      "inputs": ["../web-app/dist/**", "../../packages/server/drizzle/**", "../../scripts/copy-assets.ts"],
+      "inputs": [
+        "../web-app/dist/**",
+        "../../packages/server/dist/drizzle/**",
+        "../../scripts/copy-assets.ts"
+      ],
       "outputs": ["dist/drizzle/**", "dist/public/**"]
     },
     "lint": {

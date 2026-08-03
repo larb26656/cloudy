@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { createApp } from "../../server";
 import { createContainer } from "../../container";
+import { closeTestDb, createTestDb, type TestDb } from "../../db";
 import type { CloudyConfig } from "../../config";
 
 const baseConfig: CloudyConfig = {
@@ -16,12 +17,15 @@ const baseConfig: CloudyConfig = {
 
 describe("proxy integration", () => {
   const originalFetch = globalThis.fetch;
+  let db: TestDb;
 
   beforeEach(() => {
     vi.stubEnv("SHELL", "/bin/sh");
+    db = createTestDb();
   });
 
   afterEach(() => {
+    closeTestDb(db);
     globalThis.fetch = originalFetch;
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
@@ -39,7 +43,7 @@ describe("proxy integration", () => {
     );
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
 
-    const container = createContainer(baseConfig);
+    const container = createContainer(baseConfig, db.db);
     const app = createApp({ container });
 
     const res = await app.request("/oc/foo?bar=baz", {
@@ -60,7 +64,10 @@ describe("proxy integration", () => {
   });
 
   it("returns 400 when opencodeApiBase is empty", async () => {
-    const container = createContainer({ ...baseConfig, opencodeApiBase: "" });
+    const container = createContainer(
+      { ...baseConfig, opencodeApiBase: "" },
+      db.db,
+    );
     const app = createApp({ container });
 
     const res = await app.request("/oc/foo", {
@@ -76,7 +83,7 @@ describe("proxy integration", () => {
     const fetchMock = vi.fn();
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
 
-    const container = createContainer(baseConfig);
+    const container = createContainer(baseConfig, db.db);
     const app = createApp({ container });
 
     // The Hono `cors` middleware intercepts OPTIONS and short-circuits to 204
