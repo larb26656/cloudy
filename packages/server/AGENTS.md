@@ -17,16 +17,34 @@ Each feature lives in `packages/server/src/features/<feature>/`:
 
 ## Wiring
 
-- **DI:** manual via `packages/server/src/container.ts` — `initContainer(config)` constructs all DB client + repositories + services as module-level singletons
+- **DI:** manual via `packages/server/src/container.ts` — `createContainer(config, overrideDb?)` is a factory that constructs the DB client + repositories + services and returns a `Container` object (no module-level singletons; `overrideDb` is used by tests to inject an in-memory db)
+- **Server bootstrap:** `packages/server/src/server/createServer.ts` — `createServer(option)` calls `loadConfig(option)` then `createContainer(config)` then `createApp({ container, ... })` and binds `@hono/node-server`
 - **Route composition:** in `packages/server/src/server.ts` (`createApp`) under `/api/<feature>`
 - **AppType:** `export type AppType = ReturnType<typeof createApp>`
+
+## Configuration
+
+Lives in `src/config/`. Layered load with later layers winning (see `loadConfig` in `config.ts`):
+
+| Layer | Source | Handled by |
+| --- | --- | --- |
+| 1. defaults | Zod schema `.default(...)` | `config.ts` |
+| 2. file | `<configDir>/config.json` (auto-created if missing) | `file-loader.ts` |
+| 3. env | `CLOUDY_<UPPER_SNAKE>` for each schema key | `env-loader.ts` |
+| 4. overrides | `AppOption` passed by caller (CLI flags) | `config.ts` |
+
+- `ConfigurableSchema` (Zod) → `AppConfig` (resolved) + `AppOption` (input incl. `configDir`)
+- `BASE_CONFIG_DIR = "~/.config/cloudy"` (expanded via `expanduser` in `file-loader.ts`)
+- `AppConfig` fields: `dbPath`, `ui`, `host`, `port`, `cors`, `opencodeApiBase`, `publicDir?`
+- Transforms in schema: `ui` coerces `"true"`/`true` → boolean, `port` coerces number, `cors` splits comma-string → `string[]` (or `"*"` / `undefined`)
+- To add a setting: add a field to `ConfigurableSchema` (with `.default(...)`); it is then auto-pickable from `config.json` and `CLOUDY_*` env for free
 
 ## Database
 
 - Tables: Drizzle's `sqliteTable` in `src/db/schema/<entity>.ts`; re-export from `src/db/schema/index.ts`
 - Export `type FooRecord = typeof foo.$inferSelect` and `type NewFoo`
 - `better-sqlite3` (synchronous) — `DbClient` (`src/db/client.ts`) owns the connection
-- `runMigrations(dbPath)` applies SQL from `packages/server/drizzle/`
+- `runMigrations(dbPath)` opens its own `better-sqlite3` connection, applies SQL from the bundled `dist/drizzle/` (resolved via `import.meta.url`), then closes — callers then open a fresh `createDb` for live queries. The `tsup.config.ts` `onSuccess` hook copies `drizzle/` → `dist/drizzle/` so migrations ship inside the bundle
 - Timestamps: `integer("created_at", { mode: "timestamp" })` with `.default(sql`(unixepoch())`)`
 - Tests: `createTestDb()` / `closeTestDb(db)` from `src/db/test-utils.ts`
 

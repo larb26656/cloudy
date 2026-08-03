@@ -13,7 +13,6 @@ its migrations and (optionally) the built web UI, and bundle them into a single
 
 ```
 src/cli.ts        ← the ENTIRE app. One file. ~80 lines.
-config/config.json  default host/port used by `pnpm dev`
 tsup.config.ts    bundler config — produces dist/cli.js
 ```
 
@@ -27,16 +26,19 @@ almost never grow.
 user runs `cloudy serve --ui`
         │
         ▼
-src/cli.ts  ──► loadConfig({ configDir, ui, host, port, cors, publicDir })  ← from @repo/server
-        │           (merges schema defaults + config.json + env + overrides)
+src/cli.ts  ──► createServer({ configDir, ui, host, port, cors, publicDir })  ← from @repo/server
+        │
         ▼
-        └─► createServer(config)  ← resolved CloudyConfig only
+createServer ──► loadConfig(option)  ← merges defaults + config.json + CLOUDY_* env + overrides
+        │           (resolved AppConfig)
+        ▼
+createContainer(config) ──► createApp({ container, ... })
         │
         ▼
 Hono app starts on http://<host>:<port>
    ├── /api/<feature>   ← @repo/server route sub-apps
    ├── /api/health
-   ├── /api/oc/*        ← opencode proxy
+   ├── /oc/*            ← opencode proxy
    ├── /openapi, /docs  ← generated API docs
    └── /*               ← static UI assets from publicDir (only when --ui)
 ```
@@ -49,7 +51,7 @@ Defined in `src/cli.ts`. Currently a single subcommand:
 | --- | --- |
 | `cloudy serve` | Start the Hono server. All flags below belong to it. |
 
-`serve` flags (forwarded 1:1 into `loadConfig({ ... })` as the highest-priority `overrides` layer — keep them in sync):
+`serve` flags (forwarded 1:1 into `createServer({ ... })`, which calls `loadConfig` internally with them as the highest-priority `overrides` layer — keep them in sync):
 
 | Flag | Maps to | Notes |
 | --- | --- | --- |
@@ -57,13 +59,13 @@ Defined in `src/cli.ts`. Currently a single subcommand:
 | `--ui-dir <path>` | `publicDir` | Defaults to `./public` next to `cli.js`; computed in cli.ts, then passed via overrides |
 | `-h, --host <address>` | `host` | Default `localhost` |
 | `-p, --port <num>` | `port` | Default `4122` |
-| `--cors <origins>` | `cors` | Comma-separated; split + trimmed in cli.ts |
+| `--cors <origins>` | `cors` | Comma-separated; split + trimmed in `@repo/server`'s Zod schema |
 | `--config <path>` | `configDir` | Default `~/.config/cloudy` |
 | `--dataDir <path>` | _no-op_ | Currently unforwarded; reserved. |
 
 When adding a flag: (1) add `.option(...)` to the commander chain, (2) add it to the
-`serveCommand` options type, (3) forward it into the `loadConfig({...})` call as an
-override key that matches the `CloudyConfig` field name, (4) update this table and
+`serveCommand` options type, (3) forward it into the `createServer({...})` call as an
+override key that matches the `AppConfig` field name, (4) update this table and
 `README.md`. Do **not** parse the flag's value beyond what `cli.ts` already does
 (string splitting for `--cors`, `Number.parseInt` for `--port`) — all deeper
 validation lives in `@repo/server`'s Zod schema.
@@ -112,17 +114,16 @@ apps/server/dist/
 `public/` with a warning if `apps/web-app/dist` doesn't exist yet; it will **error** if
 `apps/server/dist` doesn't exist (run `pnpm build` first).
 
-## Config file
+## Config directory
 
-`config/config.json` is a tiny default for local dev:
+The entire `apps/server/config/` directory is gitignored — nothing config-related
+is committed. At runtime `@repo/server`'s `loadFileConfig` auto-creates
+`config.json` on first run (via `ensureConfigFile`) with defaults
+`{ host, port }`, and the SQLite `cloud.db` lives there too.
 
-```json
-{ "host": "localhost", "port": "4122" }
-```
-
-`cli.ts` does **not** read this file directly — it exists for the dev scripts
-(`--config=config`). The actual config/file-loading happens inside
-`@repo/server`'s `loadConfig`, which `cli.ts` calls before `createServer`.
+Dev scripts pass `--config=config` so the local `apps/server/config/` is used as
+the `configDir`; production defaults to `~/.config/cloudy`. `cli.ts` itself never
+reads config files — all file/env loading lives in `@repo/server`'s `loadConfig`.
 
 ## TypeScript
 
@@ -137,7 +138,7 @@ by tsup, not tsc, so a clean `check-types` does not guarantee a clean bundle. Al
 | --- | --- |
 | Add an HTTP route | `packages/server/src/features/<feature>/index.ts` |
 | Add a DB table / migration | `packages/server/src/db/schema/*.ts` + `db:generate` |
-| Change how config is loaded | `packages/server/src/config/config.ts` (`loadConfig` / `parseConfig`) |
+| Change how config is loaded | `packages/server/src/config/config.ts` (`loadConfig` / `ConfigurableSchema`) |
 | Change the OpenAPI docs wiring | `packages/server/src/server.ts` |
 | Change the web UI | `apps/web-app/` |
 | Change the binary's flags / banner / bundle | you're in the right place |

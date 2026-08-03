@@ -10,7 +10,8 @@ sharing a Drizzle/SQLite database and type-safe API contracts.
 
 ```
 apps/
-  server/        `cloudy` CLI binary — bundles @repo/server via tsup (host 4122)
+  server/        `cloudy` CLI binary — bundles @repo/server via tsup (host 4122). Config dir
+                 ~/.config/cloudy; override any setting via CLOUDY_* env vars.
   web-app/       React 19 + Vite + TanStack Router frontend (dev port 3001) — the web UI
 packages/
   contracts/     Type-only facade re-exporting @repo/server types for the browser

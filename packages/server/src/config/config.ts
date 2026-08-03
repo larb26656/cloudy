@@ -1,4 +1,4 @@
-import z from "zod";
+import z, { prettifyError } from "zod";
 import path from "node:path";
 import { loadEnvConfig } from "./env-loader";
 import { stripUndefined } from "../lib/utils/object";
@@ -44,12 +44,18 @@ export function loadConfig(option?: AppOption): AppConfig {
   const fileConfig = loadFileConfig(configDir);
   const envConfig = loadEnvConfig();
 
-  const merged = ConfigurableSchema.parse({
+  const result = ConfigurableSchema.safeParse({
     dbPath: path.join(configDir, "cloud.db"),
     ...stripUndefined(fileConfig),
     ...stripUndefined(envConfig),
     ...stripUndefined(option ?? {}),
   });
 
-  return merged;
+  if (!result.success) {
+    throw new Error(
+      `Invalid configuration:\n${prettifyError(result.error)}`,
+    );
+  }
+
+  return result.data;
 }

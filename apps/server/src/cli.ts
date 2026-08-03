@@ -48,8 +48,13 @@ async function serveCommand(options: {
   console.log(makeText());
   console.log("");
 
-  const { url } = await server.start();
-  console.log(`Starting server on ${url}...`);
+  try {
+    const { url } = await server.start();
+    console.log(`Starting server on ${url}...`);
+  } catch (err) {
+    console.error(pc.red(err instanceof Error ? err.message : String(err)));
+    process.exit(1);
+  }
 }
 
 const program = new Command();
