@@ -1,48 +1,27 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { createApp } from "../../server";
-import { createContainer } from "../../container";
-import type { CloudyConfig } from "../../config";
-import { createTestDb, closeTestDb, type TestDb } from "../../db";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { createTestApp } from "../../test-utils";
 
-let db: TestDb;
+type TestEnv = ReturnType<typeof createTestApp>;
 
-beforeAll(() => {
-  db = createTestDb();
+let env: TestEnv;
+
+beforeEach(() => {
+  env = createTestApp();
 });
 
-afterAll(() => {
-  closeTestDb(db);
+afterEach(() => {
+  env.close();
 });
-
-function makeConfig(): CloudyConfig {
-  return {
-    configDir: "/tmp",
-    configPath: "/tmp/config.json",
-    dbPath: "/tmp/cloudy-test.db",
-    ui: false,
-    host: "localhost",
-    port: 4122,
-    cors: [],
-    opencodeApiBase: "http://opencode.test",
-  };
-}
-
-function makeApp() {
-  const container = createContainer(makeConfig(), db.db);
-  return createApp({ container });
-}
 
 describe("workspaces integration", () => {
   it("GET /api/workspaces returns [] on fresh db", async () => {
-    const app = makeApp();
-    const res = await app.request("/api/workspaces");
+    const res = await env.app.request("/api/workspaces");
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual([]);
   });
 
   it("POST creates a workspace and returns 201", async () => {
-    const app = makeApp();
-    const res = await app.request("/api/workspaces", {
+    const res = await env.app.request("/api/workspaces", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -64,8 +43,7 @@ describe("workspaces integration", () => {
   });
 
   it("POST returns 409 on duplicate directory", async () => {
-    const app = makeApp();
-    await app.request("/api/workspaces", {
+    await env.app.request("/api/workspaces", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -75,7 +53,7 @@ describe("workspaces integration", () => {
         directory: "/tmp/dup",
       }),
     });
-    const res = await app.request("/api/workspaces", {
+    const res = await env.app.request("/api/workspaces", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -89,8 +67,7 @@ describe("workspaces integration", () => {
   });
 
   it("GET /:id returns the workspace after create", async () => {
-    const app = makeApp();
-    await app.request("/api/workspaces", {
+    await env.app.request("/api/workspaces", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -100,21 +77,19 @@ describe("workspaces integration", () => {
         directory: "/tmp/get",
       }),
     });
-    const res = await app.request("/api/workspaces/ws-get");
+    const res = await env.app.request("/api/workspaces/ws-get");
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.id).toBe("ws-get");
   });
 
   it("GET /:id returns 404 when missing", async () => {
-    const app = makeApp();
-    const res = await app.request("/api/workspaces/nope");
+    const res = await env.app.request("/api/workspaces/nope");
     expect(res.status).toBe(404);
   });
 
   it("PATCH updates fields", async () => {
-    const app = makeApp();
-    await app.request("/api/workspaces", {
+    await env.app.request("/api/workspaces", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -124,7 +99,7 @@ describe("workspaces integration", () => {
         directory: "/tmp/patch",
       }),
     });
-    const res = await app.request("/api/workspaces/ws-patch", {
+    const res = await env.app.request("/api/workspaces/ws-patch", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ name: "New" }),
@@ -135,8 +110,7 @@ describe("workspaces integration", () => {
   });
 
   it("PATCH returns 404 when missing", async () => {
-    const app = makeApp();
-    const res = await app.request("/api/workspaces/nope", {
+    const res = await env.app.request("/api/workspaces/nope", {
       method: "PATCH",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({ name: "x" }),
@@ -145,8 +119,7 @@ describe("workspaces integration", () => {
   });
 
   it("DELETE removes the workspace", async () => {
-    const app = makeApp();
-    await app.request("/api/workspaces", {
+    await env.app.request("/api/workspaces", {
       method: "POST",
       headers: { "content-type": "application/json" },
       body: JSON.stringify({
@@ -156,15 +129,14 @@ describe("workspaces integration", () => {
         directory: "/tmp/del",
       }),
     });
-    const del = await app.request("/api/workspaces/ws-del", { method: "DELETE" });
+    const del = await env.app.request("/api/workspaces/ws-del", { method: "DELETE" });
     expect(del.status).toBe(204);
-    const after = await app.request("/api/workspaces/ws-del");
+    const after = await env.app.request("/api/workspaces/ws-del");
     expect(after.status).toBe(404);
   });
 
   it("DELETE returns 404 when missing", async () => {
-    const app = makeApp();
-    const res = await app.request("/api/workspaces/nope", { method: "DELETE" });
+    const res = await env.app.request("/api/workspaces/nope", { method: "DELETE" });
     expect(res.status).toBe(404);
   });
 });

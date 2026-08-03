@@ -1,31 +1,19 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
-import { createApp } from "../../server";
-import { createContainer } from "../../container";
-import { closeTestDb, createTestDb, type TestDb } from "../../db";
-import type { CloudyConfig } from "../../config";
+import { createTestApp } from "../../test-utils";
 
-const baseConfig: CloudyConfig = {
-  configDir: "/tmp",
-  configPath: "/tmp/config.json",
-  dbPath: "/tmp/cloudy-test.db",
-  ui: false,
-  host: "localhost",
-  port: 4122,
-  cors: [],
-  opencodeApiBase: "http://opencode.test",
-};
+type TestEnv = ReturnType<typeof createTestApp>;
 
 describe("proxy integration", () => {
   const originalFetch = globalThis.fetch;
-  let db: TestDb;
+  let env: TestEnv;
 
   beforeEach(() => {
     vi.stubEnv("SHELL", "/bin/sh");
-    db = createTestDb();
+    env = createTestApp();
   });
 
   afterEach(() => {
-    closeTestDb(db);
+    env.close();
     globalThis.fetch = originalFetch;
     vi.unstubAllEnvs();
     vi.restoreAllMocks();
@@ -43,10 +31,7 @@ describe("proxy integration", () => {
     );
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
 
-    const container = createContainer(baseConfig, db.db);
-    const app = createApp({ container });
-
-    const res = await app.request("/oc/foo?bar=baz", {
+    const res = await env.app.request("/oc/foo?bar=baz", {
       headers: { host: "cloudy.test" },
     });
 
@@ -64,40 +49,32 @@ describe("proxy integration", () => {
   });
 
   it("returns 400 when opencodeApiBase is empty", async () => {
-    const container = createContainer(
-      { ...baseConfig, opencodeApiBase: "" },
-      db.db,
-    );
-    const app = createApp({ container });
+    const local = createTestApp({ opencodeApiBase: "" });
 
-    const res = await app.request("/oc/foo", {
+    const res = await local.app.request("/oc/foo", {
       headers: { host: "cloudy.test" },
     });
 
     expect(res.status).toBe(400);
     const body = await res.json();
     expect(body).toMatchObject({ error: expect.stringMatching(/opencodeApiBase/) });
+    local.close();
   });
 
   it("responds to OPTIONS preflight with 204 and does not call upstream", async () => {
     const fetchMock = vi.fn();
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
 
-    const container = createContainer(baseConfig, db.db);
-    const app = createApp({ container });
-
     // The Hono `cors` middleware intercepts OPTIONS and short-circuits to 204
     // before any feature route runs. Send an Origin so the echoed CORS header
     // is set, mirroring real preflight requests.
-    const res = await app.request("/oc/anything", {
+    const res = await env.app.request("/oc/anything", {
       method: "OPTIONS",
       headers: { origin: "https://app.test", host: "cloudy.test" },
     });
 
     expect(res.status).toBe(204);
-    expect(res.headers.get("access-control-allow-origin")).toBe(
-      "https://app.test",
-    );
+    expect(res.headers.get("access-control-allow-origin")).toBe("https://app.test");
     expect(res.headers.get("access-control-allow-methods")).toMatch(/GET/);
     expect(res.headers.get("access-control-allow-headers")).toContain(
       "x-opencode-directory",
