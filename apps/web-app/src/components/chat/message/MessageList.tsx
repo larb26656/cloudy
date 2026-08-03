@@ -1,14 +1,12 @@
-import { useMemo, memo, useEffect, useCallback } from "react";
+import { useMemo, memo, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { Square } from "lucide-react";
 import { MessageBubble } from "./MessageBubble";
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
 import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
 import ThinkingAnimation from "./ThinkingAnimation";
 import { ErrorState } from "@/components/ui/error-state";
-import { Button } from "@/components/ui/button";
-import { useMessages, useAbortGeneration } from "@/hooks/queries/useMessages";
+import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { pickFresher } from "@/lib/message";
@@ -85,9 +83,9 @@ export const MessageList = memo(function MessageList({
   // misfires.
   const displayItems = useMemo(() => {
     const sessionId = selectedSessionId ?? "";
-    const streamMap = useStreamingMessagesStore.getState().streamingMessages.get(
-      sessionId,
-    );
+    const streamMap = useStreamingMessagesStore
+      .getState()
+      .streamingMessages.get(sessionId);
 
     const items: Array<
       | { id: string; kind: "remote"; message: Message }
@@ -120,9 +118,9 @@ export const MessageList = memo(function MessageList({
   // zustand during render.
   useEffect(() => {
     if (!selectedSessionId) return;
-    const sessionMap = useStreamingMessagesStore.getState().streamingMessages.get(
-      selectedSessionId,
-    );
+    const sessionMap = useStreamingMessagesStore
+      .getState()
+      .streamingMessages.get(selectedSessionId);
     if (!sessionMap) return;
     for (const [id, streamMsg] of sessionMap) {
       const remoteMsg = remoteMessages.find((m) => m.info.id === id);
@@ -134,14 +132,6 @@ export const MessageList = memo(function MessageList({
 
   const isStreaming =
     sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
-
-  const { mutate: abortMutate, isPending: isAborting } = useAbortGeneration();
-
-  const handleAbort = useCallback(() => {
-    if (selectedSessionId && directory && !isAborting) {
-      abortMutate({ sessionId: selectedSessionId, directory });
-    }
-  }, [selectedSessionId, directory, isAborting, abortMutate]);
 
   if (isLoading) {
     return (
@@ -226,17 +216,8 @@ export const MessageList = memo(function MessageList({
 
               {isStreaming && (
                 <MessageScrollerItem messageId="__thinking">
-                  <div className="mt-2 flex items-center justify-between gap-2">
+                  <div className="mt-2">
                     <ThinkingAnimation />
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAbort}
-                      disabled={isAborting}
-                      title="Stop generating"
-                    >
-                      <Square className="size-4" />
-                    </Button>
                   </div>
                 </MessageScrollerItem>
               )}

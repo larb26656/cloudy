@@ -1,0 +1,16 @@
+pre-commit:
+  piped: true
+  commands:
+    format:
+      glob: "*.{ts,tsx,js,jsx,json,md,yml,yaml}"
+      run: pnpm exec prettier --write --ignore-unknown {staged_files}
+      stage_fixed: true
+    lint:
+      run: pnpm run lint
+    typecheck:
+      run: pnpm run check-types
+
+pre-push:
+  commands:
+    test:
+      run: pnpm turbo run test

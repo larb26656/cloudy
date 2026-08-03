@@ -10,12 +10,18 @@
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "check-types": "turbo run check-types",
+    "prepare": "lefthook install",
+    "hooks:run": "lefthook run pre-commit --all-files --force",
+    "hooks:ci": "lefthook run pre-commit --all-files --force --no-stage-fixed --fail-on-changes",
+    "hooks:validate": "lefthook validate",
+    "hooks:install": "lefthook install",
     "generate:package": "npx tsx scripts/generate-package.ts",
     "dev:web-app": "turbo run dev --filter=web-app",
     "build:web-app": "turbo run build --filter=web-app",
     "check-types:web-app": "turbo run check-types --filter=web-app"
   },
   "devDependencies": {
+    "lefthook": "^2.1.10",
     "prettier": "^3.7.4",
     "turbo": "^2.10.2",
     "typescript": "5.9.2"

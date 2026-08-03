@@ -13,7 +13,10 @@ import {
   useSendMessage,
 } from "@/hooks/queries/useMessages";
 import { useExecuteCommand } from "@/hooks/queries/useCommand";
-import { useCreateSession } from "@/hooks/queries/useSessions";
+import {
+  useCreateSession,
+  useSessionStatuses,
+} from "@/hooks/queries/useSessions";
 import type { ChatInputContent } from "@/lib/opencode";
 import { isCommand, parseCommand } from "@/lib/command";
 import { findSystemCommand, useSystemCommands } from "@/lib/commands";
@@ -38,6 +41,8 @@ type ChatContextValue = {
   abortGeneration: () => void;
   executeImmediateCommand: (commandName: string) => Promise<void>;
   isGenerating: boolean;
+  isSending: boolean;
+  isStreaming: boolean;
   changeSession: (sessionId: string | null) => void;
   sessionPickerOpen: boolean;
   openSessionPicker: () => void;
@@ -76,6 +81,13 @@ export function ChatProvider({
   const { mutate: abortMutate, isPending: isAborting } = useAbortGeneration();
   const { mutateAsync: createSessionAsync } = useCreateSession();
   const systemCommands = useSystemCommands();
+
+  const { data: sessionStatuses } = useSessionStatuses({ directory });
+  const isStreaming = useMemo(() => {
+    if (!sessionId) return false;
+    const status = sessionStatuses?.[sessionId];
+    return status?.type === "busy" || status?.type === "retry";
+  }, [sessionStatuses, sessionId]);
 
   const changeSession = useCallback(
     (nextSessionId: string | null) => onSessionChange?.(nextSessionId),
@@ -242,6 +254,8 @@ export function ChatProvider({
       abortGeneration,
       executeImmediateCommand,
       isGenerating: isSending || isAborting,
+      isSending,
+      isStreaming,
       changeSession,
       sessionPickerOpen,
       openSessionPicker,
@@ -260,6 +274,7 @@ export function ChatProvider({
       executeImmediateCommand,
       isSending,
       isAborting,
+      isStreaming,
       changeSession,
       sessionPickerOpen,
       openSessionPicker,

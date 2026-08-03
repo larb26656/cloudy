@@ -17,72 +17,69 @@ type SessionAgentModelStore = {
   clearSessionModel: (sessionId: string) => void;
 };
 
-export const useSessionAgentModelStore =
-  create<SessionAgentModelStore>()(
-    persist(
-      (set, get) => ({
-        sessions: {},
+export const useSessionAgentModelStore = create<SessionAgentModelStore>()(
+  persist(
+    (set, get) => ({
+      sessions: {},
 
-        setSessionAgent: (sessionId, agent) =>
-          set((state) => ({
-            sessions: {
-              ...state.sessions,
-              [sessionId]: {
-                ...state.sessions[sessionId],
-                agent,
-              },
+      setSessionAgent: (sessionId, agent) =>
+        set((state) => ({
+          sessions: {
+            ...state.sessions,
+            [sessionId]: {
+              ...state.sessions[sessionId],
+              agent: agent ?? undefined,
             },
-          })),
+          },
+        })),
 
-        setSessionModel: (sessionId, model) =>
-          set((state) => ({
-            sessions: {
-              ...state.sessions,
-              [sessionId]: {
-                ...state.sessions[sessionId],
-                model,
-              },
+      setSessionModel: (sessionId, model) =>
+        set((state) => ({
+          sessions: {
+            ...state.sessions,
+            [sessionId]: {
+              ...state.sessions[sessionId],
+              model: model ?? undefined,
             },
-          })),
+          },
+        })),
 
-        getSessionAgent: (sessionId) =>
-          get().sessions[sessionId]?.agent ?? null,
+      getSessionAgent: (sessionId) => get().sessions[sessionId]?.agent ?? null,
 
-        getSessionModel: (sessionId) =>
-          get().sessions[sessionId]?.model ?? null,
+      getSessionModel: (sessionId) => get().sessions[sessionId]?.model ?? null,
 
-        clearSessionAgent: (sessionId) =>
-          set((state) => {
-            const session = state.sessions[sessionId];
-            if (!session) return state;
-            const { agent: _, ...restSession } = session;
-            if (!Object.keys(restSession).length) {
-              const { [sessionId]: __, ...restSessions } = state.sessions;
-              return { sessions: restSessions };
-            }
-            return {
-              sessions: { ...state.sessions, [sessionId]: restSession },
-            };
-          }),
+      clearSessionAgent: (sessionId) =>
+        set((state) => {
+          const session = state.sessions[sessionId];
+          if (!session) return state;
+          const { agent: _, ...restSession } = session;
+          if (!Object.keys(restSession).length) {
+            const { [sessionId]: __, ...restSessions } = state.sessions;
+            return { sessions: restSessions };
+          }
+          return {
+            sessions: { ...state.sessions, [sessionId]: restSession },
+          };
+        }),
 
-        clearSessionModel: (sessionId) =>
-          set((state) => {
-            const session = state.sessions[sessionId];
-            if (!session) return state;
-            const { model: _, ...restSession } = session;
-            if (!Object.keys(restSession).length) {
-              const { [sessionId]: __, ...restSessions } = state.sessions;
-              return { sessions: restSessions };
-            }
-            return {
-              sessions: { ...state.sessions, [sessionId]: restSession },
-            };
-          }),
-      }),
-      {
-        name: "session-agent-model",
-        version: 1,
-        migrate: (persistedState) => persistedState,
-      },
-    ),
-  );
+      clearSessionModel: (sessionId) =>
+        set((state) => {
+          const session = state.sessions[sessionId];
+          if (!session) return state;
+          const { model: _, ...restSession } = session;
+          if (!Object.keys(restSession).length) {
+            const { [sessionId]: __, ...restSessions } = state.sessions;
+            return { sessions: restSessions };
+          }
+          return {
+            sessions: { ...state.sessions, [sessionId]: restSession },
+          };
+        }),
+    }),
+    {
+      name: "session-agent-model",
+      version: 1,
+      migrate: (persistedState) => persistedState,
+    },
+  ),
+);

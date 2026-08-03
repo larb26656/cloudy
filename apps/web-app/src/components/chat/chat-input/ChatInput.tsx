@@ -32,7 +32,8 @@ export const ChatInput = memo(function ChatInput({
     sendMessage,
     abortGeneration,
     executeImmediateCommand,
-    isGenerating,
+    isSending,
+    isStreaming,
   } = useChat();
 
   const [isListening, setIsListening] = useState(false);
@@ -83,7 +84,7 @@ export const ChatInput = memo(function ChatInput({
 
   const handleSubmit = () => {
     const finalText = displayText.trim();
-    if (finalText && !isGenerating) {
+    if (finalText && !isSending) {
       void sendMessage(
         { ...chatInputContent, text: finalText },
         effectiveModel,
@@ -139,7 +140,7 @@ export const ChatInput = memo(function ChatInput({
                 onKeyDown={handleKeyDown}
                 onImmediateExecute={handleImmediateExecute}
                 placeholder={placeholder}
-                disabled={isGenerating}
+                disabled={isSending}
                 directory={directory}
               />
             </div>
@@ -156,7 +157,7 @@ export const ChatInput = memo(function ChatInput({
                   onListeningChange={setIsListening}
                 />
 
-                {isGenerating ? (
+                {isListening ? null : isStreaming && !displayText.trim() ? (
                   <Button
                     size="icon"
                     className="rounded-full p-4"
@@ -165,7 +166,7 @@ export const ChatInput = memo(function ChatInput({
                   >
                     <Square className="size-5" />
                   </Button>
-                ) : !isListening ? (
+                ) : (
                   <Button
                     size="icon"
                     className="rounded-full p-4"
@@ -175,7 +176,7 @@ export const ChatInput = memo(function ChatInput({
                   >
                     <ArrowUp className="size-5" />
                   </Button>
-                ) : null}
+                )}
               </div>
             </div>
           </div>
