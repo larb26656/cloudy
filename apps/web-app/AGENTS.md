@@ -80,7 +80,7 @@ The router is registered globally via the `Register` interface augmentation
 - Routes today: `__root.tsx`, `index.tsx` (home), `settings.tsx` + `settings/` (nested).
 
 Most of the UI is **not** routed — it lives inside the tab system below. Routes are only
-used for top-level pages (home, settings, diff-debug).
+used for top-level pages (home, settings).
 
 ## The Tab abstraction (central concept)
 
@@ -389,6 +389,59 @@ text-only state), `image?: string` (replaces the badge), `description?: string`,
 <EmptyState   size="inline" title="No tasks yet" />
 ```
 
+### Shared wrapper across state branches
+
+When the loading / error / empty / success branches all sit inside the **same outer
+container** (e.g. a `<section>` with a heading, or a scroll `<div>`), do **not** copy that
+wrapper into every early `return`. The wrapper and its header drift apart the moment
+someone tweaks a className, and any wrapper edit must be repeated N times. Instead compute
+a single `content` node via an `if/else` chain and return **one** wrapper:
+
+```tsx
+// ✅ One wrapper, one return — header lives in exactly one place
+let content: ReactNode;
+if (isLoading)
+  content = <LoadingState size="inline" title="Loading..." spinner={false} />;
+else if (error)
+  content = <ErrorState size="inline" bare message="Failed to load" />;
+else if (!items.length)
+  content = <EmptyState size="inline" title="Nothing yet" />;
+else content = <div className="flex flex-col gap-1.5">{/* rows */}</div>;
+
+return (
+  <section className="mb-9">
+    <h2 className="mb-3.5 text-sm font-bold">Recent sessions</h2>
+    {content}
+  </section>
+);
+```
+
+```tsx
+// ❌ Wrapper + header duplicated across 3-4 early returns
+if (isLoading) {
+  return (
+    <section className="mb-9">
+      <h2 className="mb-3.5 text-sm font-bold">Recent sessions</h2>
+      <LoadingState ... />
+    </section>
+  );
+}
+if (error)  { return (<section className="mb-9"><h2 ...>Recent sessions</h2><ErrorState .../></section>); }
+// ...again for empty, again for the list
+```
+
+Canonical in-repo example: `TerminalView.tsx`'s `renderOverlay` helper returns the inner
+content and the component keeps a single wrapper return. The inline-ternary recipes above
+are fine **only when there is no shared header/wrapper** — e.g. a bare state row inside a
+dropdown body.
+
+When the branches genuinely don't share a container (each returns a bare state component,
+or a different wrapper), early returns are fine — see `SessionList.tsx`, whose loading/error
+returns are bare and intentionally hide the header while loading.
+
+Type note: declare `let content: ReactNode` with `import type { ReactNode } from "react"`.
+No namespace `React` import — this codebase doesn't use one.
+
 ### When NOT to migrate
 
 A few inline-JSX cases are deliberate and should stay inline:
@@ -635,6 +688,9 @@ Other scripts:
 - Hand-roll inline loading / error / empty JSX — use `EmptyState` / `ErrorState` /
   `LoadingState` (see [State components](#state-components-emptystate--errorstate--loadingstate)).
   The only exceptions are documented in [When NOT to migrate](#when-not-to-migrate).
+- Duplicate a shared wrapper/header across multiple state-branch `return`s — extract a
+  `content` variable and return one wrapper (see
+  [Shared wrapper across state branches](#shared-wrapper-across-state-branches)).
 
 ## Checklist before finishing
 
