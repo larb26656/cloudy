@@ -116,6 +116,14 @@ export const ChatInput = memo(function ChatInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Escape") {
+      if (isStreaming && !displayText.trim()) {
+        e.preventDefault();
+        abortGeneration();
+      }
+      return;
+    }
+
     if (e.key === "@" || e.key === "/") {
       if (directory) return;
     }
