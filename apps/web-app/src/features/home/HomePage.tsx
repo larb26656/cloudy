@@ -17,11 +17,7 @@ export default function HomePage() {
       <MainTabBar />
       {status === "DISCONNECTED" && <ErrorConnectionNotify />}
       <div className="flex-1 overflow-hidden">
-        <div
-          className={
-            activeTabId === "home" ? "h-full overflow-y-auto" : "hidden"
-          }
-        >
+        <div className={activeTabId === "home" ? "h-full" : "hidden"}>
           <HomeContent />
         </div>
         {tabs.map((tab) => {

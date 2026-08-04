@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { useRecentSessions } from "@/hooks/queries";
 import { useTabStore } from "@/stores/tabStore";
 import type { Workspace } from "@/lib/cloudy/workspaces";
@@ -19,30 +20,52 @@ export function HomeContent() {
     null,
   );
 
+  // The scroll container lives here so the component that owns the
+  // selectedWorkspace state also owns the scroll position. On open we save
+  // the current offset and jump to top; on Back we restore it.
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const savedScrollRef = useRef(0);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    if (selectedWorkspace) {
+      savedScrollRef.current = el.scrollTop;
+      el.scrollTo({ top: 0 });
+    } else {
+      el.scrollTo({ top: savedScrollRef.current });
+    }
+  }, [selectedWorkspace]);
+
   const desksToday = tabs.filter(
     (t) => t.type === "desk" && Date.now() - t.updatedAt < 24 * 60 * 60 * 1000,
   ).length;
 
+  let content: ReactNode;
   if (selectedWorkspace) {
-    return (
-      <div className="mx-auto w-full max-w-3xl px-6 py-10">
-        <WorkspaceDetail
-          workspace={selectedWorkspace}
-          onBack={() => setSelectedWorkspace(null)}
+    content = (
+      <WorkspaceDetail
+        workspace={selectedWorkspace}
+        onBack={() => setSelectedWorkspace(null)}
+      />
+    );
+  } else {
+    content = (
+      <>
+        <HomeGreeting
+          desksToday={desksToday}
+          recentSessions={recentSessions.length}
         />
-      </div>
+        <RecentDesksSection />
+        <RecentSessionsSection />
+        <WorkspacesSection onSelectWorkspace={setSelectedWorkspace} />
+      </>
     );
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-6 py-10">
-      <HomeGreeting
-        desksToday={desksToday}
-        recentSessions={recentSessions.length}
-      />
-      <RecentDesksSection />
-      <RecentSessionsSection />
-      <WorkspacesSection onSelectWorkspace={setSelectedWorkspace} />
+    <div className="h-full overflow-y-auto" ref={scrollRef}>
+      <div className="mx-auto w-full max-w-3xl px-6 py-10">{content}</div>
     </div>
   );
 }
