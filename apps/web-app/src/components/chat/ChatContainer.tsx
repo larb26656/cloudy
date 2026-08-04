@@ -11,6 +11,7 @@ import type { Workspace } from "@/lib/cloudy/workspaces";
 import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
 import { ChatProvider, useChat } from "./ChatProvider";
+import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 
 interface ChatContainerProps {
   workspace?: Workspace | null;
@@ -95,9 +96,11 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
         )}
       </div>
 
-      <MessageList selectedSessionId={sessionId} directory={directory} />
+      <MessageScrollerProvider autoScroll>
+        <MessageList selectedSessionId={sessionId} directory={directory} />
 
-      <ChatInput placeholder={chatplaceholder} />
+        <ChatInput placeholder={chatplaceholder} />
+      </MessageScrollerProvider>
 
       <SessionStatusBar sessionId={sessionId} directory={directory} />
 

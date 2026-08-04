@@ -6,6 +6,7 @@ import {
 } from "@/components/ui/dialog";
 import { useSession } from "@/hooks/queries/useSessions";
 import { MessageList } from "../message/MessageList";
+import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
 import { cn } from "@/lib/utils";
 
@@ -31,11 +32,13 @@ export function SessionViewDialog({
           <DialogTitle>{session?.title ?? "New Chat"}</DialogTitle>
         </DialogHeader>
         <div className="flex h-full flex-col overflow-hidden">
-          <MessageList
-            selectedSessionId={sessionId}
-            directory={directory}
-            isShowEmptyState={true}
-          />
+          <MessageScrollerProvider autoScroll>
+            <MessageList
+              selectedSessionId={sessionId}
+              directory={directory}
+              isShowEmptyState={true}
+            />
+          </MessageScrollerProvider>
         </div>
       </DialogContent>
     </Dialog>

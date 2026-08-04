@@ -14,6 +14,7 @@ import {
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { MessageList } from "./MessageList";
+import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { sessionKeys } from "@/lib/opencode/query-keys";
 import preview from "../../../../.storybook/preview";
@@ -494,11 +495,13 @@ function StreamingSimulator() {
       </div>
 
       <div className="flex-1 min-h-0 flex">
-        <MessageList
-          selectedSessionId={SESSION_ID}
-          directory={DIRECTORY}
-          isShowEmptyState={false}
-        />
+        <MessageScrollerProvider autoScroll>
+          <MessageList
+            selectedSessionId={SESSION_ID}
+            directory={DIRECTORY}
+            isShowEmptyState={false}
+          />
+        </MessageScrollerProvider>
       </div>
     </div>
   );

@@ -14,7 +14,6 @@ import { pickFresher } from "@/lib/message";
 import { IsVisible } from "@/components/utils/IsVisible";
 import { RetryMessage } from "./RetryMessage";
 import {
-  MessageScrollerProvider,
   MessageScroller,
   MessageScrollerViewport,
   MessageScrollerContent,
@@ -167,66 +166,64 @@ export const MessageList = memo(function MessageList({
 
   return (
     <div className="relative flex-1 min-h-0">
-      <MessageScrollerProvider autoScroll>
-        <MessageScroller className="h-full">
-          <MessageScrollerViewport>
-            <MessageScrollerContent
-              aria-busy={isStreaming}
-              className="mx-auto w-full max-w-4xl gap-0 p-4"
-            >
-              {hasNextPage && (
-                <div className="self-center py-2">
-                  {isFetchingNextPage ? (
-                    <span className="text-sm text-muted-foreground">
-                      Loading…
-                    </span>
-                  ) : (
-                    <IsVisible onVisible={() => fetchNextPage()} />
-                  )}
-                </div>
-              )}
+      <MessageScroller className="h-full">
+        <MessageScrollerViewport>
+          <MessageScrollerContent
+            aria-busy={isStreaming}
+            className="mx-auto w-full max-w-4xl gap-0 p-4"
+          >
+            {hasNextPage && (
+              <div className="self-center py-2">
+                {isFetchingNextPage ? (
+                  <span className="text-sm text-muted-foreground">
+                    Loading…
+                  </span>
+                ) : (
+                  <IsVisible onVisible={() => fetchNextPage()} />
+                )}
+              </div>
+            )}
 
-              {displayItems.map((item) => (
-                <MessageScrollerItem
-                  key={item.id}
-                  messageId={item.id}
-                  scrollAnchor={
-                    item.kind === "remote" && item.message.info.role === "user"
-                  }
-                >
-                  {item.kind === "remote" ? (
-                    <MessageBubble message={item.message} isStreaming={false} />
-                  ) : (
-                    <StreamingMessageBubble
-                      sessionId={selectedSessionId ?? ""}
-                      messageId={item.id}
-                    />
-                  )}
-                </MessageScrollerItem>
-              ))}
-
-              {sessionStatus?.type === "retry" && (
-                <MessageScrollerItem messageId="__retry">
-                  <RetryMessage
-                    attempt={sessionStatus.attempt}
-                    message={sessionStatus.message}
-                    next={sessionStatus.next}
+            {displayItems.map((item) => (
+              <MessageScrollerItem
+                key={item.id}
+                messageId={item.id}
+                scrollAnchor={
+                  item.kind === "remote" && item.message.info.role === "user"
+                }
+              >
+                {item.kind === "remote" ? (
+                  <MessageBubble message={item.message} isStreaming={false} />
+                ) : (
+                  <StreamingMessageBubble
+                    sessionId={selectedSessionId ?? ""}
+                    messageId={item.id}
                   />
-                </MessageScrollerItem>
-              )}
+                )}
+              </MessageScrollerItem>
+            ))}
 
-              {isStreaming && (
-                <MessageScrollerItem messageId="__thinking">
-                  <div className="mt-2">
-                    <ThinkingAnimation />
-                  </div>
-                </MessageScrollerItem>
-              )}
-            </MessageScrollerContent>
-          </MessageScrollerViewport>
-          <MessageScrollerButton />
-        </MessageScroller>
-      </MessageScrollerProvider>
+            {sessionStatus?.type === "retry" && (
+              <MessageScrollerItem messageId="__retry">
+                <RetryMessage
+                  attempt={sessionStatus.attempt}
+                  message={sessionStatus.message}
+                  next={sessionStatus.next}
+                />
+              </MessageScrollerItem>
+            )}
+
+            {isStreaming && (
+              <MessageScrollerItem messageId="__thinking">
+                <div className="mt-2">
+                  <ThinkingAnimation />
+                </div>
+              </MessageScrollerItem>
+            )}
+          </MessageScrollerContent>
+        </MessageScrollerViewport>
+        <MessageScrollerButton />
+      </MessageScroller>
     </div>
   );
 });

@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { SessionStatus } from "@opencode-ai/sdk/v2";
 import { ChatProvider } from "../ChatProvider";
 import { ChatInput } from "./ChatInput";
+import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 
 const mocks = vi.hoisted(() => ({
   sendMessage: vi.fn(),
@@ -92,7 +93,9 @@ function renderInput(initialValue?: string) {
   return render(
     <QueryClientProvider client={queryClient}>
       <ChatProvider workspace={null} directory="/proj" sessionId={SESSION_ID}>
-        <ChatInput initialValue={initialValue} />
+        <MessageScrollerProvider autoScroll>
+          <ChatInput initialValue={initialValue} />
+        </MessageScrollerProvider>
       </ChatProvider>
     </QueryClientProvider>,
   );

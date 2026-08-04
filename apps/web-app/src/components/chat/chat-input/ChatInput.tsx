@@ -6,6 +6,7 @@ import { type ChatInputContent } from "@/lib/opencode";
 import { ChatInputEditor } from "./ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
 import { useChat } from "../ChatProvider";
+import { useMessageScroller } from "@/components/ui/message-scroller";
 import { memo, useEffect, useRef, useState } from "react";
 
 interface ChatInputProps {
@@ -35,6 +36,8 @@ export const ChatInput = memo(function ChatInput({
     isSending,
     isStreaming,
   } = useChat();
+
+  const { scrollToEnd } = useMessageScroller();
 
   const [isListening, setIsListening] = useState(false);
   const [speechDraft, setSpeechDraft] = useState("");
@@ -85,6 +88,7 @@ export const ChatInput = memo(function ChatInput({
   const handleSubmit = () => {
     const finalText = displayText.trim();
     if (finalText && !isSending) {
+      scrollToEnd();
       void sendMessage(
         { ...chatInputContent, text: finalText },
         effectiveModel,
