@@ -41,7 +41,7 @@ export function WorkspacesSection({
       ) : workspaces.length === 0 ? (
         <EmptyState size="inline" title="No workspaces yet" />
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {workspaces.map((w) => (
             <WorkspaceCard
               key={w.id}
