@@ -1,21 +1,15 @@
-import type { Session } from "@opencode-ai/sdk/v2";
+import type { SessionV2Info } from "@opencode-ai/sdk/v2";
 import { Folder } from "lucide-react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface SessionRowProps {
-  session: Session;
+  session: SessionV2Info;
   workspaceName?: string;
   /** Filesystem path of the session. Used to show a fallback indicator when
    * the session has no matching cloudy workspace. */
   directory: string;
   onClick: () => void;
-}
-
-function snippet(session: Session): string | null {
-  const preview = (session.metadata as { preview?: unknown } | undefined)
-    ?.preview;
-  return typeof preview === "string" && preview.length > 0 ? preview : null;
 }
 
 function basename(path: string): string {
@@ -30,8 +24,6 @@ export function SessionRow({
   directory,
   onClick,
 }: SessionRowProps) {
-  const snip = snippet(session);
-
   return (
     <button
       type="button"
@@ -45,11 +37,6 @@ export function SessionRow({
         <span className="truncate text-[13.5px] font-medium">
           {session.title || "New Chat"}
         </span>
-        {snip && (
-          <span className="mt-0.5 truncate text-xs text-muted-foreground/80">
-            {snip}
-          </span>
-        )}
       </span>
       {workspaceName ? (
         <span className="shrink-0 rounded-full border bg-muted px-2 py-0.5 text-[10.5px] text-muted-foreground">

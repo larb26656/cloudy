@@ -7,7 +7,11 @@ import {
   type SdkError,
 } from "@/lib/opencode";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import type { Session, SessionStatus } from "@opencode-ai/sdk/v2";
+import type {
+  Session,
+  SessionStatus,
+  SessionV2Info,
+} from "@opencode-ai/sdk/v2";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { ModelConfig } from "@/types";
 
@@ -61,14 +65,13 @@ export function useSessions({ directory }: { directory: string }) {
 export function useRecentSessions({ limit = 8 }: { limit?: number } = {}) {
   return useQuery({
     queryKey: sessionKeys.recent(limit),
-    queryFn: async (): Promise<Session[]> => {
+    queryFn: async (): Promise<SessionV2Info[]> => {
       const oc = getOcClient();
-      const result = await oc.session.list({ roots: true, limit });
+      const result = await oc.v2.session.list({ limit });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      const data = result.data;
-      return data ?? [];
+      return result.data.data ?? [];
     },
   });
 }
