@@ -1,5 +1,5 @@
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
-import { ErrorState, NotFound } from "@/components/ui/empty-state";
+import { ErrorState, NotFound } from "@/components/ui/route-state";
 import { Button } from "@/components/ui/button";
 
 function RootComponent() {

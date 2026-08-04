@@ -1,6 +1,4 @@
-import { EmptyState } from './base.tsx'
-import { NoData } from './no-data.tsx'
-import { ErrorState } from './error-state.tsx'
-import { NotFound } from './not-found.tsx'
+import { EmptyState } from "./base.tsx";
+import { NoData } from "./no-data.tsx";
 
-export { EmptyState, NoData, ErrorState, NotFound }
+export { EmptyState, NoData };

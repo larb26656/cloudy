@@ -1,4 +1,4 @@
-import { EmptyState } from "./base.tsx";
+import { EmptyState } from "../empty-state/base.tsx";
 import notFoundUrl from "/mascot/404.png?url";
 
 export function NotFound({

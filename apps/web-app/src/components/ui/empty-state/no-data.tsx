@@ -1,5 +1,5 @@
+import { Inbox } from "lucide-react";
 import { EmptyState } from "./base.tsx";
-import noDataUrl from "/mascot/404.png?url";
 
 export function NoData({
   description = "No items found",
@@ -8,7 +8,7 @@ export function NoData({
 }: Omit<Parameters<typeof EmptyState>[0], "icon" | "title">) {
   return (
     <EmptyState
-      image={noDataUrl}
+      icon={Inbox}
       title="No data"
       description={description}
       action={action}
