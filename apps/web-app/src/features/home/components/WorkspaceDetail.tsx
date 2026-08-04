@@ -55,7 +55,7 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3.5">
           <span
-            className="flex size-11 items-center justify-center rounded-xl text-base font-bold text-white"
+            className="flex size-11 items-center justify-center rounded-xl text-base font-bold text-white shrink-0"
             style={{ backgroundColor: workspace.color }}
           >
             {workspace.name.charAt(0).toUpperCase()}
