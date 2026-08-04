@@ -36,6 +36,7 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
     addTab("chat", {
       sessionId: null,
       workspaceId: workspace.id,
+      directory: workspace.directory,
       sessionName: "New Chat",
     });
   };

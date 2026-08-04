@@ -35,12 +35,14 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   );
 
   const handleOpenInTab = useCallback(() => {
+    if (!directory) return;
     addTab("chat", {
       sessionId: data.sessionId,
       workspaceId: data.workspaceId,
+      directory,
       sessionName: title,
     });
-  }, [addTab, data.sessionId, data.workspaceId, title]);
+  }, [addTab, data.sessionId, data.workspaceId, directory, title]);
 
   return (
     <WindowFrame
@@ -55,7 +57,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
           icon: ExternalLink,
           label: "Open in tab",
           onClick: handleOpenInTab,
-          disabled: !data.sessionId,
+          disabled: !data.sessionId || !directory,
         },
       ]}
     >

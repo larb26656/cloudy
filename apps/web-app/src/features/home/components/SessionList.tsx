@@ -26,6 +26,7 @@ function SessionList({ directory, workspaceId, header }: SessionListProps) {
     addTab("chat", {
       sessionId: session.id,
       workspaceId,
+      directory,
       sessionName: session.title || "New Chat",
     });
   };
@@ -34,6 +35,7 @@ function SessionList({ directory, workspaceId, header }: SessionListProps) {
     addTab("chat", {
       sessionId: null,
       workspaceId,
+      directory,
       sessionName: "New Chat",
     });
   };

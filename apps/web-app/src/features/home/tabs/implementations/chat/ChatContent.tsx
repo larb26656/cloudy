@@ -1,6 +1,5 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
 import { useWorkspace } from "@/hooks/queries";
@@ -12,21 +11,16 @@ interface ChatContentProps {
 
 export function ChatContent({ tab }: ChatContentProps) {
   const updateTabData = useTabStore((s) => s.updateTabData);
-  const { data: workspace, isLoading } = useWorkspace(tab.data.workspaceId);
+  // Workspace lookup is cosmetic only — used to surface the workspace
+  // name/color via ChatContainer. The chat itself runs entirely on
+  // `tab.data.directory`, so a missing/ephemeral workspace does not block.
+  const { data: workspace } = useWorkspace(tab.data.workspaceId);
 
-  if (isLoading) {
-    return (
-      <Center className="h-full">
-        <LoadingState title="Loading workspace..." spinner={false} />
-      </Center>
-    );
-  }
-
-  if (!workspace) {
+  if (!tab.data.directory) {
     return (
       <Center className="h-full">
         <ErrorState
-          message="Workspace not found. Please close this tab."
+          message="This chat tab has no directory and can't be opened."
           onRetry={() => useTabStore.getState().removeTab(tab.id)}
         />
       </Center>
@@ -35,8 +29,8 @@ export function ChatContent({ tab }: ChatContentProps) {
 
   return (
     <ChatContainer
-      workspace={workspace}
-      directory={workspace.directory}
+      workspace={workspace ?? null}
+      directory={tab.data.directory}
       sessionId={tab.data.sessionId}
       onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
     />

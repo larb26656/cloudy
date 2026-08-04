@@ -5,7 +5,10 @@ import { FilesContent } from "./FilesContent";
 import { FilesTabItem } from "./FilesTabItem";
 
 export type FilesData = {
-  workspaceId: string;
+  /** Null when the tab is ephemeral (opened with no registered workspace). */
+  workspaceId: string | null;
+  /** Filesystem path used for all opencode calls. Always present. */
+  directory: string;
 };
 
 export const filesTemplate: TabTemplate<FilesData> = {

@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
-import { useWorkspace } from "@/hooks/queries";
 import { useVcsDiff } from "@/hooks/queries/useFiles";
 import { useDeviceType } from "@/hooks";
 import { ErrorState } from "@/components/ui/error-state";
@@ -32,11 +31,7 @@ interface FilesContentProps {
 }
 
 export function FilesContent({ tab }: FilesContentProps) {
-  const { data: workspace, isLoading: workspaceLoading } = useWorkspace(
-    tab.data.workspaceId,
-  );
-
-  const directory = workspace?.directory;
+  const directory = tab.data.directory;
   const { data, isLoading, error, refetch } = useVcsDiff({ directory });
 
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
@@ -64,18 +59,10 @@ export function FilesContent({ tab }: FilesContentProps) {
     }
   };
 
-  if (workspaceLoading) {
-    return (
-      <Center className="h-full">
-        <LoadingState title="Loading workspace" />
-      </Center>
-    );
-  }
-
-  if (!workspace || !directory) {
+  if (!directory) {
     return (
       <ErrorState
-        message="Workspace not found. Please close this tab."
+        message="This files tab has no directory and can't be opened."
         onRetry={() => useTabStore.getState().removeTab(tab.id)}
       />
     );

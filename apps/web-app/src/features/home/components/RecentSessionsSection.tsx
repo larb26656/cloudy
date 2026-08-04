@@ -21,7 +21,8 @@ export function RecentSessionsSection() {
     const workspace = directoryToWorkspace(session.directory);
     addTab("chat", {
       sessionId: session.id,
-      workspaceId: workspace?.id ?? session.directory,
+      workspaceId: workspace?.id ?? null,
+      directory: session.directory,
       sessionName: session.title || "New Chat",
     });
   };
@@ -47,6 +48,7 @@ export function RecentSessionsSection() {
               key={session.id}
               session={session}
               workspaceName={workspace?.name}
+              directory={session.directory}
               onClick={() => handleOpen(session)}
             />
           );

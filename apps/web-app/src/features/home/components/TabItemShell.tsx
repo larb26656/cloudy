@@ -9,7 +9,7 @@ interface TabItemShellProps {
   isActive: boolean;
   onClick: () => void;
   onClose?: () => void;
-  workspaceId?: string;
+  workspaceId?: string | null;
 }
 
 export function TabItemShell({
@@ -33,7 +33,7 @@ export function TabItemShell({
       <span className="[&>svg]:size-4">
         <Icon />
       </span>
-      <WorkspaceDot workspaceId={workspaceId} />
+      <WorkspaceDot workspaceId={workspaceId ?? undefined} />
       {label !== undefined && (
         <span className="text-[13px] max-w-30 truncate">{label}</span>
       )}

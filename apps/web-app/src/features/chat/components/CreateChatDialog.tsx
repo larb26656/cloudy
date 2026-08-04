@@ -22,6 +22,7 @@ interface CreateChatDialogProps {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: {
     workspaceId: string;
+    directory: string;
     sessionId: string | null;
     sessionName: string;
   }) => void;
@@ -53,6 +54,7 @@ export function CreateChatDialog({
     if (!selectedWorkspace) return;
     onSubmit({
       workspaceId: selectedWorkspace.id,
+      directory: selectedWorkspace.directory,
       sessionId,
       sessionName,
     });

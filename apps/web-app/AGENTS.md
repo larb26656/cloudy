@@ -141,12 +141,14 @@ template automatically extends the union types — no manual type edits needed.
 ### Tab persistence
 
 `useTabStore` (see below) is `persist`-ed to `localStorage` under key `"tabs"` with
-**schema versioning** (`version: 5`). When changing the `Tab` shape, bump the version and
+**schema versioning** (`version: 6`). When changing the `Tab` shape, bump the version and
 add a migration branch in the `migrate` function — old tabs in users' storage will be
 upgraded transparently. Existing migrations: v0→v1 (drop stale `files` tabs), v1→v2
 (rename `session` → `chat`), v2→v3 (strip stale terminal `ptyId`s), v3→v4 (backfill
 `updatedAt` timestamp on every tab), v4→v5 (drop the webview hand-rolled history stack
-— `history[]`/`historyIndex` — keeping only the current `url`).
+— `history[]`/`historyIndex` — keeping only the current `url`), v5→v6 (add `directory`
+to `chat`/`files` tabs; promote path-as-workspaceId fallback to ephemeral `directory`,
+null `workspaceId`).
 
 ## State management
 

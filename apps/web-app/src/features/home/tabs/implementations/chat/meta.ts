@@ -6,7 +6,10 @@ import { ChatTabItem } from "./ChatTabItem";
 
 export type ChatData = {
   sessionId: string | null;
-  workspaceId: string;
+  /** Null when the tab is ephemeral (session opened with no registered workspace). */
+  workspaceId: string | null;
+  /** Filesystem path used for all opencode calls. Always present. */
+  directory: string;
   sessionName: string;
 };
 

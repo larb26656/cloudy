@@ -80,7 +80,7 @@ export const useTabStore = create<TabStore>()(
     }),
     {
       name: "tabs",
-      version: 5,
+      version: 6,
       migrate: (persistedState, version) => {
         // Persisted shapes may predate the current `Tab` union, so read them
         // through a looser type. Old versions stored `type: "session"` which
@@ -137,6 +137,35 @@ export const useTabStore = create<TabStore>()(
             if (t.type !== "webview") return t;
             const data = t.data as { url?: string } | undefined;
             return { ...t, data: { url: data?.url ?? "" } };
+          });
+        }
+
+        // v5 -> v6: chat/files tabs now carry an explicit `directory` used for
+        // all opencode calls, and `workspaceId` is nullable (null = ephemeral
+        // session with no registered workspace). Old tabs only have
+        // `workspaceId`. Backfill: if the persisted `workspaceId` looks like a
+        // filesystem path (contains "/"), it was the old broken fallback —
+        // promote it to `directory` and null the workspaceId. Otherwise keep
+        // the workspaceId and leave `directory` empty; ChatContent/FilesContent
+        // fall back to a runtime useWorkspace lookup to recover the directory.
+        if (version < 6) {
+          tabs = tabs.map((t) => {
+            if (t.type !== "chat" && t.type !== "files") return t;
+            const data = t.data as {
+              workspaceId?: string;
+              directory?: string;
+            };
+            if (data.directory) return t;
+            const wid = data.workspaceId;
+            const isPath = !!wid && wid.includes("/");
+            return {
+              ...t,
+              data: {
+                ...data,
+                workspaceId: isPath ? null : (wid ?? null),
+                directory: isPath ? wid : "",
+              },
+            };
           });
         }
 
