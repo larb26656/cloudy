@@ -1,5 +1,6 @@
 import * as React from "react";
 import type { LucideIcon } from "lucide-react";
+import { Center } from "@/components/layout";
 import { cn } from "@/lib/utils";
 
 export type StateSize = "full" | "compact" | "inline";
@@ -25,16 +26,13 @@ export function EmptyState({
 }: EmptyStateProps) {
   if (size === "inline") {
     return (
-      <div
-        className={cn(
-          "flex flex-row items-center justify-center gap-2 py-2 px-2 text-center",
-          className,
-        )}
+      <Center
+        className={cn("gap-2 py-2 px-2 text-center", className)}
         {...props}
       >
         {Icon && <Icon className="size-4 text-muted-foreground" />}
         <span className="text-sm text-muted-foreground">{title}</span>
-      </div>
+      </Center>
     );
   }
 
@@ -62,14 +60,14 @@ export function EmptyState({
       {image ? (
         <img src={image} alt="" className="mb-4 size-24 object-contain" />
       ) : Icon ? (
-        <div
+        <Center
           className={cn(
-            "mb-4 flex items-center justify-center rounded-full bg-muted text-muted-foreground",
+            "mb-4 rounded-full bg-muted text-muted-foreground",
             badgeSize,
           )}
         >
           <Icon className={glyphSize} />
-        </div>
+        </Center>
       ) : null}
       <h3 className={titleClass}>{title}</h3>
       {description && <p className={descClass}>{description}</p>}

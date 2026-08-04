@@ -10,6 +10,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { FilesList } from "./FilesList";
 import { FileDetail } from "./FileDetail";
 import { NoData } from "@/components/ui/empty-state";
+import { Center } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { PathText } from "@/components/ui/path-text";
 import { Button } from "@/components/ui/button";
@@ -65,9 +66,9 @@ export function FilesContent({ tab }: FilesContentProps) {
 
   if (workspaceLoading) {
     return (
-      <div className="h-full flex justify-center">
+      <Center className="h-full">
         <LoadingState title="Loading workspace" />
-      </div>
+      </Center>
     );
   }
 
@@ -82,17 +83,17 @@ export function FilesContent({ tab }: FilesContentProps) {
 
   if (isLoading) {
     return (
-      <div className="h-full flex justify-center">
+      <Center className="h-full">
         <LoadingState title="Loading changes" message={directory} />
-      </div>
+      </Center>
     );
   }
 
   if (error) {
     return (
-      <div className="h-full flex justify-center">
+      <Center className="h-full">
         <ErrorState message={error.message} onRetry={() => refetch()} />
-      </div>
+      </Center>
     );
   }
 

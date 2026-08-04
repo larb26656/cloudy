@@ -1,6 +1,7 @@
 import { AlertCircle, RotateCcw } from "lucide-react";
 import { Button } from "./button";
 import type { StateSize } from "./empty-state/base";
+import { Center } from "@/components/layout";
 import { cn } from "@/lib/utils";
 
 interface ErrorStateProps {
@@ -18,10 +19,10 @@ export function ErrorState({
 }: ErrorStateProps) {
   if (size === "inline") {
     return (
-      <div className="flex flex-row items-center justify-center gap-2 py-2 px-2">
+      <Center className="gap-2 py-2 px-2">
         <AlertCircle className="size-3.5 text-destructive" />
         <span className="text-sm text-destructive">{title}</span>
-      </div>
+      </Center>
     );
   }
 

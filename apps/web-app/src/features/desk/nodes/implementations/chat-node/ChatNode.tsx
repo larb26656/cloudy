@@ -7,6 +7,7 @@ import { WindowFrame } from "../WindowFrame";
 import { ExternalLink } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
 import { ErrorState } from "@/components/ui/error-state";
+import { Center } from "@/components/layout";
 
 type ChatNodeProps = Node<
   {
@@ -66,9 +67,9 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
           onSessionChange={handleSessionChange}
         />
       ) : (
-        <div className="flex-1 flex items-center justify-center">
+        <Center className="flex-1">
           <ErrorState message="Workspace not found" />
-        </div>
+        </Center>
       )}
     </WindowFrame>
   );

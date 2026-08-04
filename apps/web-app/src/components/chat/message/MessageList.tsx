@@ -6,6 +6,7 @@ import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
 import ThinkingAnimation from "./ThinkingAnimation";
 import { ErrorState } from "@/components/ui/error-state";
+import { Center } from "@/components/layout";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
@@ -135,20 +136,20 @@ export const MessageList = memo(function MessageList({
 
   if (isLoading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <Center className="flex-1">
         <div className="animate-pulse flex flex-col items-center gap-3">
           <div className="w-8 h-8 bg-gray-300 dark:bg-gray-700 rounded-full" />
           <div className="w-48 h-4 bg-gray-300 dark:bg-gray-700 rounded" />
         </div>
-      </div>
+      </Center>
     );
   }
 
   if (error) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <Center className="flex-1">
         <ErrorState message={error.message} onRetry={() => refetch()} />
-      </div>
+      </Center>
     );
   }
 
@@ -158,9 +159,9 @@ export const MessageList = memo(function MessageList({
     isShowEmptyState
   ) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <Center className="flex-1">
         <EmptyChatState onSnippetSelect={onSnippetSelect} />
-      </div>
+      </Center>
     );
   }
 

@@ -4,6 +4,7 @@ import type { Node, NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import { TerminalView } from "@/components/terminal";
 import { ErrorState } from "@/components/ui/error-state";
+import { Center } from "@/components/layout";
 import { useTabStore } from "@/stores/tabStore";
 import { useWorkspace } from "@/hooks/queries";
 import { useKillPtySession } from "@/hooks/queries";
@@ -82,9 +83,9 @@ export function TerminalNode({
           className="h-full w-full"
         />
       ) : (
-        <div className="flex-1 flex items-center justify-center">
+        <Center className="flex-1">
           <ErrorState message="Workspace not found" />
-        </div>
+        </Center>
       )}
     </WindowFrame>
   );

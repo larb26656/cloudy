@@ -1,6 +1,7 @@
 import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { ErrorState, NotFound } from "@/components/ui/route-state";
 import { Button } from "@/components/ui/button";
+import { Center } from "@/components/layout";
 
 function RootComponent() {
   return (
@@ -18,7 +19,7 @@ export const Route = createRootRoute({
 
 function NotFoundPage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
+    <Center className="min-h-screen bg-muted/40 px-4">
       <NotFound
         action={
           <Link to="/">
@@ -26,13 +27,13 @@ function NotFoundPage() {
           </Link>
         }
       />
-    </div>
+    </Center>
   );
 }
 
 function ErrorPage({ error }: { error: Error }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
+    <Center className="min-h-screen bg-muted/40 px-4">
       <ErrorState
         description={
           error.message || "An unexpected error occurred. Please try again."
@@ -43,6 +44,6 @@ function ErrorPage({ error }: { error: Error }) {
           </Link>
         }
       />
-    </div>
+    </Center>
   );
 }
