@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Session } from "@opencode-ai/sdk/v2";
 import { useRecentSessions } from "@/hooks/queries/useSessions";
 import { useWorkspaces } from "@/hooks/queries";
@@ -14,7 +15,7 @@ export function RecentSessionsSection() {
   const addTab = useTabStore((s) => s.addTab);
 
   const directoryToWorkspace = (directory: string): Workspace | undefined =>
-    workspaces.find((w) => w.directory === directory);
+    workspaces.find((workspace) => workspace.directory === directory);
 
   const handleOpen = (session: Session) => {
     const workspace = directoryToWorkspace(session.directory);
@@ -25,53 +26,39 @@ export function RecentSessionsSection() {
     });
   };
 
+  let content: ReactNode;
   if (isLoading) {
-    return (
-      <section className="mb-9">
-        <h2 className="mb-3.5 text-sm font-bold">Recent sessions</h2>
-        <LoadingState
-          size="inline"
-          title="Loading sessions..."
-          spinner={false}
-        />
-      </section>
+    content = (
+      <LoadingState size="inline" title="Loading sessions..." spinner={false} />
     );
-  }
-  if (error) {
-    return (
-      <section className="mb-9">
-        <h2 className="mb-3.5 text-sm font-bold">Recent sessions</h2>
-        <ErrorState size="inline" bare message="Failed to load sessions" />
-      </section>
+  } else if (error) {
+    content = (
+      <ErrorState size="inline" bare message="Failed to load sessions" />
     );
-  }
-
-  const list = sessions ?? [];
-  if (list.length === 0) {
-    return (
-      <section className="mb-9">
-        <h2 className="mb-3.5 text-sm font-bold">Recent sessions</h2>
-        <EmptyState size="inline" title="No sessions yet" />
-      </section>
+  } else if (!sessions?.length) {
+    content = <EmptyState size="inline" title="No sessions yet" />;
+  } else {
+    content = (
+      <div className="flex flex-col gap-1.5">
+        {sessions.map((session) => {
+          const workspace = directoryToWorkspace(session.directory);
+          return (
+            <SessionRow
+              key={session.id}
+              session={session}
+              workspaceName={workspace?.name}
+              onClick={() => handleOpen(session)}
+            />
+          );
+        })}
+      </div>
     );
   }
 
   return (
     <section className="mb-9">
       <h2 className="mb-3.5 text-sm font-bold">Recent sessions</h2>
-      <div className="flex flex-col gap-1.5">
-        {list.map((session) => {
-          const ws = directoryToWorkspace(session.directory);
-          return (
-            <SessionRow
-              key={session.id}
-              session={session}
-              workspaceName={ws?.name}
-              onClick={() => handleOpen(session)}
-            />
-          );
-        })}
-      </div>
+      {content}
     </section>
   );
 }
