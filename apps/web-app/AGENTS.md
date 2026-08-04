@@ -108,14 +108,14 @@ src/features/home/tabs/
 
 ```ts
 interface TabTemplate<T = unknown> {
-  type: string;                                // unique key, matches registry key
-  label: string;                               // "New Chat" etc.
+  type: string; // unique key, matches registry key
+  label: string; // "New Chat" etc.
   icon: LucideIcon;
-  TabBarComponent: ComponentType<any>;         // renders the tab chip in the tab bar
-  ContentComponent: ComponentType<any>;        // renders the main-area content
+  TabBarComponent: ComponentType<any>; // renders the tab chip in the tab bar
+  ContentComponent: ComponentType<any>; // renders the main-area content
   CreateDialog?: ComponentType<CreateDialogProps>; // optional "new tab" modal
-  defaultData?: T;                             // initial `data` for newly-created tabs
-  onClose?: (tab: Tab) => void;                // cleanup hook (e.g. desk deletes its flow)
+  defaultData?: T; // initial `data` for newly-created tabs
+  onClose?: (tab: Tab) => void; // cleanup hook (e.g. desk deletes its flow)
 }
 ```
 
@@ -141,10 +141,12 @@ template automatically extends the union types — no manual type edits needed.
 ### Tab persistence
 
 `useTabStore` (see below) is `persist`-ed to `localStorage` under key `"tabs"` with
-**schema versioning** (`version: 3`). When changing the `Tab` shape, bump the version and
+**schema versioning** (`version: 5`). When changing the `Tab` shape, bump the version and
 add a migration branch in the `migrate` function — old tabs in users' storage will be
 upgraded transparently. Existing migrations: v0→v1 (drop stale `files` tabs), v1→v2
-(rename `session` → `chat`), v2→v3 (strip stale terminal `ptyId`s).
+(rename `session` → `chat`), v2→v3 (strip stale terminal `ptyId`s), v3→v4 (backfill
+`updatedAt` timestamp on every tab), v4→v5 (drop the webview hand-rolled history stack
+— `history[]`/`historyIndex` — keeping only the current `url`).
 
 ## State management
 
@@ -160,16 +162,16 @@ const { streamingMessages } = useStreamingMessagesStore();
 const streamingMessages = useStreamingMessagesStore((s) => s.streamingMessages);
 ```
 
-| Store | Persistence | Purpose |
-| --- | --- | --- |
-| `tabStore.ts` | `localStorage` "tabs" v3 | Tabs + active tab + reorder (`@dnd-kit/sortable`). Calls `tabTypeMap[type].onClose` on removal. |
-| `flowStore.ts` | `localStorage` "flow-storage" v1 | Desk canvas state keyed `desk-${tabId}` → `{ nodes, edges, viewport }`. Deleted when the owning desk tab closes. |
-| `selectedWorkspaceStore.ts` | none | Single `selectedWorkspaceId` — ephemeral UI selection. |
-| `sessionStore.ts` | none | Single `selectedSessionId` — ephemeral UI selection. |
-| `chatSettingsStore.ts` | — | Per-chat settings (model, agent, etc.). |
-| `defaultAgentStore.ts` / `defaultModelStore.ts` | — | Default agent/model pickers. |
-| `sidebarStore.ts` | — | Sidebar open/collapse state. |
-| `streamingMessagesStore.ts` | none (+ has `.test.ts`) | In-flight streaming message assembly from opencode events. |
+| Store                                           | Persistence                      | Purpose                                                                                                                                                                  |
+| ----------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tabStore.ts`                                   | `localStorage` "tabs" v5         | Tabs + active tab + reorder (`@dnd-kit/sortable`). Calls `tabTypeMap[type].onClose` on removal. Each tab carries `updatedAt` (ms) used by Home's "Recent" desks section. |
+| `flowStore.ts`                                  | `localStorage` "flow-storage" v1 | Desk canvas state keyed `desk-${tabId}` → `{ nodes, edges, viewport }`. Deleted when the owning desk tab closes.                                                         |
+| `selectedWorkspaceStore.ts`                     | none                             | Single `selectedWorkspaceId` — ephemeral UI selection.                                                                                                                   |
+| `sessionStore.ts`                               | none                             | Single `selectedSessionId` — ephemeral UI selection.                                                                                                                     |
+| `chatSettingsStore.ts`                          | —                                | Per-chat settings (model, agent, etc.).                                                                                                                                  |
+| `defaultAgentStore.ts` / `defaultModelStore.ts` | —                                | Default agent/model pickers.                                                                                                                                             |
+| `sidebarStore.ts`                               | —                                | Sidebar open/collapse state.                                                                                                                                             |
+| `streamingMessagesStore.ts`                     | none (+ has `.test.ts`)          | In-flight streaming message assembly from opencode events.                                                                                                               |
 
 When adding a new store, follow the file-per-store convention and add it to this table.
 For persisted stores, always pass a `version` and a `migrate` function (even if identity)
@@ -231,7 +233,7 @@ so future schema changes have a hook point.
   (`ptyKeys`, `workspaceKeys`).
 - Query keys for opencode-backed resources live in `src/lib/opencode/query-keys.ts`.
 - Use TanStack Query for **all server state**. Do not mirror server data into Zustand —
-  Zustand is for *client-only* state (tabs, flows, sidebar, selection).
+  Zustand is for _client-only_ state (tabs, flows, sidebar, selection).
 
 ### Global SSE event stream
 
@@ -256,14 +258,14 @@ When you add a new event type: extend `handleEvent`, add/invalid­ate a query ke
 Each feature is a self-contained folder; most render inside a tab. Cross-feature imports
 go through barrel `index.ts` files, not deep relative paths.
 
-| Feature | Tab? | Role |
-| --- | --- | --- |
-| `home/` | — | The landing surface: workspace picker + session list. Owns the **tabs/** subsystem (the registry above) and `HomeContent` / `HomePage`. |
-| `chat/` | `chat` | Chat surface: `ChatPage`, create-chat dialog. The heavy lifting (message bubbles, streaming, tool parts) lives in `src/components/chat/`. |
-| `desk/` | `desk` | React Flow canvas. See [Desk canvas](#desk-canvas) below for the node-adding workflow; key files: `DeskCanvas.tsx`, `NodeDrawerSidebar.tsx`, `nodes/template/`, `nodes/implementations/`. |
-| `workspace/` | — | Workspace create/edit dialog + onboarding step. |
-| `settings/` | — | Settings page: `SettingsLayout`, `SettingsNavigation`, `settingsConfig.ts` (section registry). |
-| `app/` | — | App-level chrome, notably `AppNav.tsx`. |
+| Feature      | Tab?   | Role                                                                                                                                                                                      |
+| ------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `home/`      | —      | The landing surface: workspace picker + session list. Owns the **tabs/** subsystem (the registry above) and `HomeContent` / `HomePage`.                                                   |
+| `chat/`      | `chat` | Chat surface: `ChatPage`, create-chat dialog. The heavy lifting (message bubbles, streaming, tool parts) lives in `src/components/chat/`.                                                 |
+| `desk/`      | `desk` | React Flow canvas. See [Desk canvas](#desk-canvas) below for the node-adding workflow; key files: `DeskCanvas.tsx`, `NodeDrawerSidebar.tsx`, `nodes/template/`, `nodes/implementations/`. |
+| `workspace/` | —      | Workspace create/edit dialog + onboarding step.                                                                                                                                           |
+| `settings/`  | —      | Settings page: `SettingsLayout`, `SettingsNavigation`, `settingsConfig.ts` (section registry).                                                                                            |
+| `app/`       | —      | App-level chrome, notably `AppNav.tsx`.                                                                                                                                                   |
 
 ## Component organization: `features/*/components` vs `src/components/`
 
@@ -281,6 +283,127 @@ Rule of thumb: start in `features/*/components/`; promote to `src/components/` o
 second consumer appears. The `chat/` split is the canonical example — the chat UI is shared
 between the chat tab and the desk chat-node, so it lives in `src/components/chat/`.
 
+## State components (`EmptyState` / `ErrorState` / `LoadingState`)
+
+**Never hand-roll inline loading / error / empty JSX.** Always use the three shared state
+components in `src/components/ui/`. They share a `size: "full" | "compact" | "inline"` axis
+(`StateSize` type from `@/components/ui/empty-state/base`) and cover every common layout.
+
+| Component      | Import                          | Required prop          | Use for                                            |
+| -------------- | ------------------------------- | ---------------------- | -------------------------------------------------- |
+| `EmptyState`   | `@/components/ui/empty-state`   | `title: string`        | No-data state ("No sessions yet", "Select a chat") |
+| `ErrorState`   | `@/components/ui/error-state`   | — (`message` optional) | Failure state with optional retry                  |
+| `LoadingState` | `@/components/ui/loading-state` | —                      | Pending state — spinner or text-only               |
+
+### Picking a `size`
+
+| Size             | Density                                   | Use for                                                                 |
+| ---------------- | ----------------------------------------- | ----------------------------------------------------------------------- |
+| `full` (default) | `py-16` / `py-8` column, `text-lg` title  | Main content area, route placeholders, dialog bodies, full-panel states |
+| `compact`        | `py-8` / `py-4` column, `text-base` title | Dropdown menus, popovers, small dialogs, sub-panels                     |
+| `inline`         | `py-2` row, `text-sm`                     | Sidebar lists, list items, desk-node bodies, banners, overlays          |
+
+### Key props (beyond `size`)
+
+**`EmptyState`** — the richest. `icon?: LucideIcon` (renders in a circular badge; omit for a
+text-only state), `image?: string` (replaces the badge), `description?: string`,
+`action?: ReactNode` (e.g. a `<Button>`). Spreads `...HTMLAttributes<HTMLDivElement>`, so
+`className` already merges into the outer container.
+
+**`ErrorState`** — text-first error UI with optional retry. Beyond `title?` (default
+`"Error"`) and `message?`:
+
+- `onRetry?: () => void` — when set, renders `<Button>Try again</Button>` (with `RotateCcw`)
+  in `full`/`compact`; renders the button inline in the `inline` row.
+- `icon?: LucideIcon` — overrides the default `AlertCircle` (e.g. `WifiOff` for network).
+- `retryLabel?: string` — overrides `"Try again"` (e.g. `"Reconnect"`, `"Restart"`).
+- `bare?: boolean` — **text-only mode** for the tight dropdown/sidebar error look: renders
+  just `<div className="p-4 text-sm text-destructive text-center">{message}</div>`, ignoring
+  `size`/`title`/`icon`/`onRetry`.
+- `className?: string` — merges into the outer container of every branch.
+
+**`LoadingState`** — spinner or text-only. Beyond `title?` (default `"Loading"`) and
+`message?`:
+
+- `title?: string | null` — pass `null` (or `""`) for **silent mode**: spinner only, no
+  title row.
+- `spinner?: ReactNode | false` — `undefined` (default) renders the standard
+  `Loader2 animate-spin`. `false` hides the spinner entirely (text-only loading). Any
+  ReactNode overrides the spinner (e.g. a CSS border spinner, a `RotateCw` icon).
+- `className?: string` — merges into the outer container of every branch.
+
+### Common recipes
+
+```tsx
+// Dropdown content (compact, tight): spinner-only / text-only error / text-only empty
+{isLoading ? (
+  <LoadingState size="compact" title={null} />
+) : error ? (
+  <ErrorState size="compact" bare message={(error as Error).message} />
+) : items.length === 0 ? (
+  <EmptyState size="compact" title="No items found" />
+) : (
+  /* list */
+)}
+
+// Sidebar list (inline, text-only)
+{isLoading ? (
+  <LoadingState size="inline" title="Loading sessions..." spinner={false} />
+) : error ? (
+  <ErrorState size="inline" bare message="Failed to load sessions" />
+) : (
+  /* list */
+)}
+
+// Full-panel empty (main content area, dialog body, route placeholder)
+<EmptyState
+  icon={FolderOpen}
+  title="No workspaces yet"
+  description="Create a workspace first"
+  action={<Button onClick={onGoToWorkspaces}>Go to Workspaces</Button>}
+/>
+
+// Text-only full-panel loading (no spinner)
+<LoadingState title="Loading workspace..." spinner={false} className="h-full" />
+
+// Custom-spinner overlay (absolute-positioned, preserves a non-Loader2 spinner)
+<LoadingState
+  title={null}
+  spinner={<RotateCw className="size-6 animate-spin" />}
+  className="absolute inset-0 z-10 bg-background/50"
+/>
+
+// Connection-lost banner (inline row with custom icon + retry button + tinted bg)
+<ErrorState
+  size="inline"
+  icon={WifiOffIcon}
+  title="Connection lost."
+  retryLabel="Reconnect"
+  onRetry={reconnect}
+  className="bg-red-500/10 dark:bg-red-500/20 py-1 px-2 text-xs text-red-700 dark:text-red-300"
+/>
+
+// Desk-node body (small React Flow node — prefer `inline` over `compact`)
+<LoadingState size="inline" title="Rendering..." spinner={false} />
+<ErrorState   size="inline" bare message="Fix errors to see diagram" />
+<EmptyState   size="inline" title="No tasks yet" />
+```
+
+### When NOT to migrate
+
+A few inline-JSX cases are deliberate and should stay inline:
+
+- **Rich, non-string titles** (e.g. `Click <Code /> to add mermaid code` in `MermaidNode`).
+  `EmptyState.title` is a `string` — extending it to `ReactNode` is scope creep.
+- **Tight popover footers** (e.g. `MermaidNode`'s `text-xs border-t bg-destructive/10`
+  error footer inside a `PopoverContent`). Not a state panel — migrating would change the
+  visual significantly.
+- **Status text that isn't an error** (e.g. `TerminalView`'s "Shell exited." branch). If
+  force-fitting it into `ErrorState` would label a non-error as "Error", keep it inline.
+
+When in doubt, prefer the shared component and adjust via `className` / `size`. Only keep
+inline JSX if the migration would visibly regress the visual or semantics.
+
 ## Desk canvas
 
 Desk is a tab type (`"desk"`) that hosts a React Flow canvas for node-based workflows.
@@ -297,15 +420,15 @@ Desk is a tab type (`"desk"`) that hosts a React Flow canvas for node-based work
 
 ### `NodeTemplate` shape
 
-| Field | Type | Description |
-| --- | --- | --- |
-| `id` | `string` | Unique node type identifier |
-| `label` | `string` | Display name in sidebar |
-| `icon` | `LucideIcon` | Sidebar icon |
-| `size` | `CSSProperties` | Optional default `{ width, height }` |
-| `configDialog` | `ComponentType<ConfigDialogProps>` | Optional dialog shown before adding |
-| `defaultData` | `Record<string, unknown>` | Optional initial node data |
-| `component` | `ComponentType` | React Flow node component |
+| Field          | Type                               | Description                          |
+| -------------- | ---------------------------------- | ------------------------------------ |
+| `id`           | `string`                           | Unique node type identifier          |
+| `label`        | `string`                           | Display name in sidebar              |
+| `icon`         | `LucideIcon`                       | Sidebar icon                         |
+| `size`         | `CSSProperties`                    | Optional default `{ width, height }` |
+| `configDialog` | `ComponentType<ConfigDialogProps>` | Optional dialog shown before adding  |
+| `defaultData`  | `Record<string, unknown>`          | Optional initial node data           |
+| `component`    | `ComponentType`                    | React Flow node component            |
 
 ### Adding a new node type
 
@@ -383,11 +506,11 @@ export const nodeTypes = nodeTemplates.reduce((acc, t) => {
 
 There is **no Vite proxy** — requests go directly to the API origin:
 
-| Surface | Dev default | Env override |
-| --- | --- | --- |
-| cloudy API | `window.origin` | `VITE_API_URL` |
-| cloudy opencode proxy | `window.origin + "/api/oc"` | `VITE_OPENCODE_URL` |
-| opencode direct instance | `http://127.0.0.1:4096` | `VITE_OC_INSTANCE_URL` |
+| Surface                  | Dev default                 | Env override           |
+| ------------------------ | --------------------------- | ---------------------- |
+| cloudy API               | `window.origin`             | `VITE_API_URL`         |
+| cloudy opencode proxy    | `window.origin + "/api/oc"` | `VITE_OPENCODE_URL`    |
+| opencode direct instance | `http://127.0.0.1:4096`     | `VITE_OC_INSTANCE_URL` |
 
 For local full-stack dev, run the root `pnpm run dev` (boots cloudy server on 4122 and
 this app on 3001). Because dev origins differ (3001 vs 4122), the cloudy server's CORS
@@ -398,11 +521,11 @@ must allow the web-app origin — use `cloudy serve --cors` if you hit CORS erro
 `vitest.config.ts` defines **three** projects. Pick the right one for the file you're
 writing:
 
-| Project | Env | Matches | Use for |
-| --- | --- | --- | --- |
-| (default) | `node` | `src/**/*.test.ts` | Pure logic, helpers, store reducers. Globals on. |
-| (jsdom) | `jsdom` | `src/**/*.component.test.tsx` | Component render tests. Setup in `src/test/setup.ts`. |
-| `storybook` | headless chromium (Playwright) | story interaction tests | Run via `@storybook/addon-vitest`'s `storybookTest` plugin. |
+| Project     | Env                            | Matches                       | Use for                                                     |
+| ----------- | ------------------------------ | ----------------------------- | ----------------------------------------------------------- |
+| (default)   | `node`                         | `src/**/*.test.ts`            | Pure logic, helpers, store reducers. Globals on.            |
+| (jsdom)     | `jsdom`                        | `src/**/*.component.test.tsx` | Component render tests. Setup in `src/test/setup.ts`.       |
+| `storybook` | headless chromium (Playwright) | story interaction tests       | Run via `@storybook/addon-vitest`'s `storybookTest` plugin. |
 
 Run from this app: `pnpm --filter web-app test` (all three) or
 `pnpm --filter web-app exec vitest run <file>`.
@@ -418,11 +541,11 @@ type-safe authoring API — stories are written with `preview.meta(...)` / `meta
 
 ### Config layout
 
-| File | Role |
-| --- | --- |
-| `.storybook/main.ts` | Framework = `@storybook/tanstack-react`. Story globs: `../src/**/*.mdx` and `../src/**/*.stories.@(js\|jsx\|mjs\|ts\|tsx)`. Addons: chromatic, vitest, a11y, docs. |
-| `.storybook/preview.tsx` | `definePreview(...)` — wires `addonDocs()`, MSW loader (`msw-storybook-addon`), and a11y config (`test: "todo"` — violations surface in UI but don't fail CI). |
-| `src/storybook/preview.ts` | One-line shim: `export { default } from "../../.storybook/preview"`. Exists so stories can import the preview via the `@/` alias. |
+| File                       | Role                                                                                                                                                               |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `.storybook/main.ts`       | Framework = `@storybook/tanstack-react`. Story globs: `../src/**/*.mdx` and `../src/**/*.stories.@(js\|jsx\|mjs\|ts\|tsx)`. Addons: chromatic, vitest, a11y, docs. |
+| `.storybook/preview.tsx`   | `definePreview(...)` — wires `addonDocs()`, MSW loader (`msw-storybook-addon`), and a11y config (`test: "todo"` — violations surface in UI but don't fail CI).     |
+| `src/storybook/preview.ts` | One-line shim: `export { default } from "../../.storybook/preview"`. Exists so stories can import the preview via the `@/` alias.                                  |
 
 ### Authoring a story
 
@@ -494,6 +617,7 @@ up as a missing UI in the bundled CLI — always rebuild `web-app` before
 `pnpm build:full`.
 
 Other scripts:
+
 - `pnpm --filter web-app storybook` — dev server on `http://localhost:6006`.
 - `pnpm --filter web-app build-storybook` — static build to `storybook-static/`.
 - `pnpm --filter web-app generate:splash` — regenerates PWA splash assets from
@@ -508,6 +632,9 @@ Other scripts:
 - Reintroduce CommonJS (`require`) — ESM only.
 - "Fix" the `CONNETED` typo in `GlobalEventProvider` without grepping every consumer.
 - Add a new global event without wiring `handleEvent` + a query key.
+- Hand-roll inline loading / error / empty JSX — use `EmptyState` / `ErrorState` /
+  `LoadingState` (see [State components](#state-components-emptystate--errorstate--loadingstate)).
+  The only exceptions are documented in [When NOT to migrate](#when-not-to-migrate).
 
 ## Checklist before finishing
 

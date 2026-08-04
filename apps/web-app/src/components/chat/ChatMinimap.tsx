@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useMemo, memo, useRef } from "react";
 import type { Message } from "@/types/message";
 import { User, Bot, Search } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 import { cn } from "@/lib/utils";
 
 interface ChatMinimapProps {
@@ -141,7 +142,8 @@ export const ChatMinimap = memo(function ChatMinimap({
     }
 
     const observer = observerRef.current;
-    const messageElements = scrollContainer.querySelectorAll("[data-message-id]");
+    const messageElements =
+      scrollContainer.querySelectorAll("[data-message-id]");
     for (const el of messageElements) {
       observer.observe(el);
     }
@@ -215,9 +217,10 @@ export const ChatMinimap = memo(function ChatMinimap({
 
       <div className="flex-1 overflow-y-auto py-1">
         {filteredItems.length === 0 ? (
-          <div className="px-3 py-2 text-xs text-muted-foreground">
-            {searchQuery ? "No matches found" : "No messages yet"}
-          </div>
+          <EmptyState
+            size="inline"
+            title={searchQuery ? "No matches found" : "No messages yet"}
+          />
         ) : (
           filteredItems.map((item) => {
             const isActive = activeId === item.id;

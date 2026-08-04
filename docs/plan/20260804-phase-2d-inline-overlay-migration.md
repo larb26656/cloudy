@@ -2,7 +2,7 @@
 title: "Phase 2D: Migrate inline-row and overlay state JSX to shared components"
 slug: phase-2d-inline-overlay-migration
 id: 20260804-phase-2d-inline-overlay-migration
-status: ready
+status: done
 created: 2026-08-04
 source: planning session 2026-08-04 (Phase 1 review)
 ---
@@ -152,7 +152,7 @@ onRetry={reconnect} />` and the `ErrorState` will render its default "Error" tit
 
 ## Tasks
 
-- [ ] 1. **Migrate `InfiniteScrollTrigger`**
+- [x] 1. **Migrate `InfiniteScrollTrigger`**
   - Replace lines 18-22 (`{isLoading && (<div className="flex items-center justify-center
 py-2"><div className="size-5 animate-spin rounded-full border-2 border-muted-foreground
 border-t-transparent" /></div>)}`) with `{isLoading && (<LoadingState size="inline"
@@ -163,7 +163,7 @@ from "@/components/ui/loading-state"` at the top.
 ref={sentinelRef}>` is untouched.
   - files: `apps/web-app/src/components/InfiniteScrollTrigger.tsx`
 
-- [ ] 2. **Migrate `ErrorConnectionNotify`**
+- [x] 2. **Migrate `ErrorConnectionNotify`**
   - Replace the whole component body (lines 7-15) with: `return ( <ErrorState size="inline"
 icon={WifiOffIcon} title="Connection lost." retryLabel="Reconnect" onRetry={reconnect}
 className="bg-red-500/10 dark:bg-red-500/20 py-1 px-2 text-xs text-red-700
@@ -173,7 +173,7 @@ dark:text-red-300" /> );`. Add `import { ErrorState } from "@/components/ui/erro
 apps/web-app/src/features/home/components/ErrorConnectionNotify.tsx` returns no matches.
   - files: `apps/web-app/src/features/home/components/ErrorConnectionNotify.tsx`
 
-- [ ] 3. **Migrate `TerminalView.renderOverlay`**
+- [x] 3. **Migrate `TerminalView.renderOverlay`**
   - Rewrite the body of `renderOverlay` (lines 47-88) to return `LoadingState` /
     `ErrorState` / null. The `"connecting"` branch returns `<LoadingState title="Connecting…"
 spinner={false} />`; the `"spawning"` branch returns `<LoadingState title="Starting
@@ -191,7 +191,7 @@ gap-2 bg-black/70 text-center">` is unchanged; (c) the `TerminalStatus` and
     `XTermTerminal` type re-exports at the bottom are preserved.
   - files: `apps/web-app/src/components/terminal/TerminalView.tsx`
 
-- [ ] 4. **Migrate `WebviewContent` iframe overlay**
+- [x] 4. **Migrate `WebviewContent` iframe overlay**
   - Replace lines 94-98 (`{isLoading && (<div className="absolute inset-0 flex items-center
 justify-center bg-background/50 z-10"><RotateCw className="size-6 animate-spin"
 /></div>)}`) with `{isLoading && (<LoadingState title={null} spinner={<RotateCw
@@ -203,27 +203,27 @@ apps/web-app/src/features/home/tabs/implementations/webview/WebviewContent.tsx` 
     at least two matches (toolbar + loading overlay).
   - files: `apps/web-app/src/features/home/tabs/implementations/webview/WebviewContent.tsx`
 
-- [ ] 5. **Full verification**
+- [x] 5. **Full verification**
   - verify: `pnpm --filter web-app lint && pnpm --filter web-app check-types` all green;
     `pnpm --filter web-app exec vitest run` passes.
   - files: —
 
 ## Done when
 
-- [ ] `InfiniteScrollTrigger` renders the CSS border spinner via `LoadingState`'s
+- [x] `InfiniteScrollTrigger` renders the CSS border spinner via `LoadingState`'s
       `spinner` slot (visual identical to before).
-- [ ] `ErrorConnectionNotify` renders via `ErrorState` with `WifiOffIcon`, `retryLabel`,
+- [x] `ErrorConnectionNotify` renders via `ErrorState` with `WifiOffIcon`, `retryLabel`,
       and the red banner `className` (button visual differs — bigger, with `RotateCcw`
       icon).
-- [ ] `TerminalView.renderOverlay` returns `LoadingState` / `ErrorState` instances for all
+- [x] `TerminalView.renderOverlay` returns `LoadingState` / `ErrorState` instances for all
       four status branches; the parent overlay wrapper is unchanged.
-- [ ] `WebviewContent` iframe-loading overlay renders via `LoadingState` with the custom
+- [x] `WebviewContent` iframe-loading overlay renders via `LoadingState` with the custom
       `RotateCw` spinner.
-- [ ] `rg "animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"
-    apps/web-app/src` returns exactly one match (inside the `LoadingState spinner={...}`
+- [x] `rg "animate-spin rounded-full border-2 border-muted-foreground border-t-transparent"
+  apps/web-app/src` returns exactly one match (inside the `LoadingState spinner={...}`
       slot in `InfiniteScrollTrigger`).
-- [ ] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean.
-- [ ] `pnpm --filter web-app exec vitest run` passes.
+- [x] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean.
+- [x] `pnpm --filter web-app exec vitest run` passes.
 
 ## Notes for implementer
 

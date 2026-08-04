@@ -13,7 +13,7 @@ import type { ModelConfig } from "@/types";
 
 export function useSession({
   sessionId,
-  directory
+  directory,
 }: {
   sessionId: string | null;
   directory?: string;
@@ -52,6 +52,27 @@ export function useSessions({ directory }: { directory: string }) {
   });
 }
 
+/**
+ * Global recent sessions across all projects/workspaces, sorted by the
+ * opencode server by most-recently-updated. Each item carries a `directory`
+ * field that callers can map back to a workspace name. Omits the `directory`
+ * parameter so the server returns sessions for every project.
+ */
+export function useRecentSessions({ limit = 8 }: { limit?: number } = {}) {
+  return useQuery({
+    queryKey: sessionKeys.recent(limit),
+    queryFn: async (): Promise<Session[]> => {
+      const oc = getOcClient();
+      const result = await oc.session.list({ roots: true, limit });
+      if (result.error) {
+        throw new Error(getErrorMessage(result.error as SdkError));
+      }
+      const data = result.data;
+      return data ?? [];
+    },
+  });
+}
+
 export function useSessionChildren({
   sessionId,
   directory,
@@ -64,7 +85,10 @@ export function useSessionChildren({
     queryFn: async (): Promise<Session[]> => {
       if (!sessionId) return [];
       const oc = getOcClient();
-      const result = await oc.session.children({ sessionID: sessionId, directory });
+      const result = await oc.session.children({
+        sessionID: sessionId,
+        directory,
+      });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
@@ -213,7 +237,6 @@ export function useDeleteSession() {
           queryKey: sessionKeys.infinite(variables.directory),
         });
       }
-
     },
   });
 }

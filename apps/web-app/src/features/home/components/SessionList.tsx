@@ -1,18 +1,23 @@
+import type { ReactNode } from "react";
 import type { Session } from "@opencode-ai/sdk/v2";
 
 import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/ui/error-state";
+import { LoadingState } from "@/components/ui/loading-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useTabStore } from "@/stores/tabStore";
 import { useSessions, useCreateSession } from "@/hooks/queries";
 import { Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-function SessionList({
-  directory,
-  workspaceId,
-}: {
+interface SessionListProps {
   directory: string;
   workspaceId: string;
-}) {
+  /** Optional custom header rendered above the list. When omitted, the default "New chat" button is shown. */
+  header?: ReactNode;
+}
+
+function SessionList({ directory, workspaceId, header }: SessionListProps) {
   const { data: sessions = [], isLoading, error } = useSessions({ directory });
   const createSession = useCreateSession();
   const addTab = useTabStore((s) => s.addTab);
@@ -34,26 +39,30 @@ function SessionList({
   };
 
   if (isLoading) {
-    return <p className="text-sm text-muted-foreground">Loading sessions...</p>;
+    return (
+      <LoadingState size="inline" title="Loading sessions..." spinner={false} />
+    );
   }
   if (error) {
-    return <p className="text-sm text-destructive">Failed to load sessions</p>;
+    return <ErrorState size="inline" bare message="Failed to load sessions" />;
   }
 
   const rootSessions = sessions.filter((session: Session) => !session.parentID);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto -mr-4 pr-4">
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handleNewChat}
-        disabled={createSession.isPending}
-        className="self-start gap-2"
-      >
-        <Plus data-icon="inline-start" />
-        New chat
-      </Button>
+    <div className="flex min-h-0 flex-1 flex-col gap-1.5">
+      {header ?? (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleNewChat}
+          disabled={createSession.isPending}
+          className="self-start gap-2"
+        >
+          <Plus data-icon="inline-start" />
+          New chat
+        </Button>
+      )}
       {rootSessions.map((session: Session) => (
         <button
           key={session.id}
@@ -67,9 +76,7 @@ function SessionList({
         </button>
       ))}
       {rootSessions.length === 0 && (
-        <p className="px-2 py-1.5 text-sm text-muted-foreground">
-          No sessions yet
-        </p>
+        <EmptyState size="inline" title="No sessions yet" />
       )}
     </div>
   );

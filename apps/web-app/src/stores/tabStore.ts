@@ -2,7 +2,11 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { arrayMove } from "@dnd-kit/sortable";
 import { generateId } from "@/lib/id";
-import { tabTypeMap, type Tab, type TabDataMap } from "@/features/home/tabs/template";
+import {
+  tabTypeMap,
+  type Tab,
+  type TabDataMap,
+} from "@/features/home/tabs/template";
 
 interface TabStore {
   tabs: Tab[];
@@ -25,8 +29,9 @@ export const useTabStore = create<TabStore>()(
 
       addTab: (type, data) => {
         const id = generateId();
+        const now = Date.now();
         set((state) => ({
-          tabs: [...state.tabs, { id, type, data } as Tab],
+          tabs: [...state.tabs, { id, type, data, updatedAt: now } as Tab],
           activeTabId: id,
         }));
         return id;
@@ -64,14 +69,18 @@ export const useTabStore = create<TabStore>()(
         set((state) => ({
           tabs: state.tabs.map((t) => {
             if (t.id !== tabId) return t;
-            return { ...t, data: { ...t.data, ...data } } as Tab;
+            return {
+              ...t,
+              data: { ...t.data, ...data },
+              updatedAt: Date.now(),
+            } as Tab;
           }),
         }));
       },
     }),
     {
       name: "tabs",
-      version: 3,
+      version: 5,
       migrate: (persistedState, version) => {
         // Persisted shapes may predate the current `Tab` union, so read them
         // through a looser type. Old versions stored `type: "session"` which
@@ -105,6 +114,30 @@ export const useTabStore = create<TabStore>()(
                 }
               : t,
           );
+        }
+
+        // v3 -> v4: add `updatedAt` (ms epoch) used by the home "Recent"
+        // section to sort/order desk tabs. Backfill with the current time so
+        // every pre-existing tab has a valid value on first load.
+        if (version < 4) {
+          const now = Date.now();
+          tabs = tabs.map((t) =>
+            (t as { updatedAt?: number }).updatedAt === undefined
+              ? { ...t, updatedAt: now }
+              : t,
+          );
+        }
+
+        // v4 -> v5: webview tabs no longer carry a hand-rolled history stack
+        // (history[], historyIndex) — only the current `url` persists. The old
+        // stack only tracked address-bar entries anyway (cross-origin iframes
+        // can't be inspected), so dropping it loses no real functionality.
+        if (version < 5) {
+          tabs = tabs.map((t) => {
+            if (t.type !== "webview") return t;
+            const data = t.data as { url?: string } | undefined;
+            return { ...t, data: { url: data?.url ?? "" } };
+          });
         }
 
         // v0 -> v1: drop stale "files" tabs missing a workspaceId.

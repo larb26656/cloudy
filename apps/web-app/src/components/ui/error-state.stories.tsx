@@ -1,3 +1,4 @@
+import { WifiOff } from "lucide-react";
 import preview from "@/storybook/preview";
 import { ErrorState } from "./error-state";
 
@@ -60,6 +61,54 @@ export const LongMessage = meta.story({
       <ErrorState
         size="full"
         message="We couldn't complete your request due to a network issue. Please check your connection and try again. If the problem persists, contact support."
+        onRetry={() => undefined}
+      />
+    </div>
+  ),
+});
+
+export const Bare = meta.story({
+  render: () => (
+    <div className="w-96 border rounded">
+      <ErrorState bare message="Something went wrong." />
+    </div>
+  ),
+});
+
+export const CustomIcon = meta.story({
+  render: () => (
+    <div className="w-96 border rounded">
+      <ErrorState
+        size="full"
+        icon={WifiOff}
+        title="Network error"
+        message="You appear to be offline."
+        onRetry={() => undefined}
+      />
+    </div>
+  ),
+});
+
+export const CustomRetryLabel = meta.story({
+  render: () => (
+    <div className="w-96 border rounded">
+      <ErrorState
+        size="full"
+        message="Connection lost."
+        retryLabel="Reconnect"
+        onRetry={() => undefined}
+      />
+    </div>
+  ),
+});
+
+export const WithClassName = meta.story({
+  render: () => (
+    <div className="w-96 border rounded">
+      <ErrorState
+        size="full"
+        message="Failed to load."
+        className="bg-muted/40"
         onRetry={() => undefined}
       />
     </div>

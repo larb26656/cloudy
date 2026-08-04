@@ -2,7 +2,7 @@
 title: "Phase 2A: Extend state components + migrate dropdown/sidebar/minimap consumers"
 slug: phase-2a-shared-props-and-dropdown-sidebar-migration
 id: 20260804-phase-2a-shared-props-and-dropdown-sidebar-migration
-status: ready
+status: done
 created: 2026-08-04
 source: planning session 2026-08-04 (Phase 1 review)
 ---
@@ -188,7 +188,7 @@ pad, className)}>{spinnerEl}</div>` (no title, no message). For `inline` size, t
 
 ## Tasks
 
-- [ ] 1. **Extend `ErrorState` with new optional props**
+- [x] 1. **Extend `ErrorState` with new optional props**
   - Add `className?`, `icon?` (type `LucideIcon`), `retryLabel?`, `bare?` to
     `ErrorStateProps`. Implement the `bare` branch first (early return), then thread
     `icon ?? AlertCircle` and `retryLabel ?? "Try again"` into the existing render. Merge
@@ -198,7 +198,7 @@ pad, className)}>{spinnerEl}</div>` (no title, no message). For `inline` size, t
     in `ErrorStateProps` and the `bare` branch is the first early-return.
   - files: `apps/web-app/src/components/ui/error-state.tsx`
 
-- [ ] 2. **Extend `LoadingState` with new optional props**
+- [x] 2. **Extend `LoadingState` with new optional props**
   - Widen `title?: string | null`. Add `className?`, `spinner?: React.ReactNode | false`.
     Build a `spinnerEl` (false→null, undefined→default Loader2 with size-scaled glyph,
     ReactNode→as-is). Add a silent branch when `title == null || title === ""`. Merge
@@ -208,7 +208,7 @@ pad, className)}>{spinnerEl}</div>` (no title, no message). For `inline` size, t
     callers (no `title`) still render `"Loading"`.
   - files: `apps/web-app/src/components/ui/loading-state.tsx`
 
-- [ ] 3. **Add new stories covering the new props**
+- [x] 3. **Add new stories covering the new props**
   - In `error-state.stories.tsx`, add: `Bare` (renders just destructive message),
     `CustomIcon` (passes `icon={WifiOff}` from `lucide-react`), `CustomRetryLabel`
     (`retryLabel="Reconnect"`), `WithClassName` (`className="bg-muted/40"` so the wrapper
@@ -222,7 +222,7 @@ pad, className)}>{spinnerEl}</div>` (no title, no message). For `inline` size, t
   - files: `apps/web-app/src/components/ui/error-state.stories.tsx`,
     `apps/web-app/src/components/ui/loading-state.stories.tsx`
 
-- [ ] 4. **Migrate `ModelSelector`**
+- [x] 4. **Migrate `ModelSelector`**
   - Replace the three inline branches at lines 116-127 with: loading →
     `<LoadingState size="compact" title={null} />`; error → `<ErrorState size="compact"
 bare message={(error as Error).message} />`; empty → `<EmptyState size="compact"
@@ -232,14 +232,14 @@ title="No models found" />`. Add the three named imports at the top of the file.
 apps/web-app/src/components/chat/ModelSelector.tsx` returns no matches.
   - files: `apps/web-app/src/components/chat/ModelSelector.tsx`
 
-- [ ] 5. **Migrate `AgentSelector`** (mirror of Task 4)
+- [x] 5. **Migrate `AgentSelector`** (mirror of Task 4)
   - Same migration as Task 4 but copy is "No agents found". Add the same three named
     imports. Remove `Loader2` from the `lucide-react` import if no longer used.
   - verify: `pnpm --filter web-app check-types` clean; `rg "Loader2"
 apps/web-app/src/components/chat/AgentSelector.tsx` returns no matches.
   - files: `apps/web-app/src/components/chat/AgentSelector.tsx`
 
-- [ ] 6. **Migrate `SessionList`**
+- [x] 6. **Migrate `SessionList`**
   - Replace loading branch (line 37) with `<LoadingState size="inline" title="Loading
 sessions..." spinner={false} />`. Replace error branch (line 40) with `<ErrorState
 size="inline" bare message="Failed to load sessions" />`. Replace empty fallback
@@ -248,7 +248,7 @@ size="inline" bare message="Failed to load sessions" />`. Replace empty fallback
   - verify: `pnpm --filter web-app check-types` clean.
   - files: `apps/web-app/src/features/home/components/SessionList.tsx`
 
-- [ ] 7. **Migrate `CreateChatDialog` (`SessionStep`)**
+- [x] 7. **Migrate `CreateChatDialog` (`SessionStep`)**
   - In the `SessionStep` helper (around lines 130-134), replace loading `<p>` with
     `<LoadingState size="inline" title="Loading sessions..." spinner={false} />` and empty
     `<p>` with `<EmptyState size="inline" title="No sessions in this workspace" />`. Add
@@ -256,7 +256,7 @@ size="inline" bare message="Failed to load sessions" />`. Replace empty fallback
   - verify: `pnpm --filter web-app check-types` clean.
   - files: `apps/web-app/src/features/chat/components/CreateChatDialog.tsx`
 
-- [ ] 8. **Migrate `ChatMinimap`**
+- [x] 8. **Migrate `ChatMinimap`**
   - Replace lines 217-220 with `<EmptyState size="inline" title={searchQuery ? "No matches
 found" : "No messages yet"} />`. Add the `EmptyState` named import. Note: this changes
     the visual from `text-xs` left-aligned to `text-sm` centered — call this out in the
@@ -264,7 +264,7 @@ found" : "No messages yet"} />`. Add the `EmptyState` named import. Note: this c
   - verify: `pnpm --filter web-app check-types` clean.
   - files: `apps/web-app/src/components/chat/ChatMinimap.tsx`
 
-- [ ] 9. **Full verification**
+- [x] 9. **Full verification**
   - verify: `pnpm --filter web-app lint && pnpm --filter web-app check-types` all green;
     `pnpm --filter web-app exec vitest run` passes; `pnpm --filter web-app storybook`
     boots and the `UI/ErrorState` / `UI/LoadingState` groups show the new stories.
@@ -272,19 +272,19 @@ found" : "No messages yet"} />`. Add the `EmptyState` named import. Note: this c
 
 ## Done when
 
-- [ ] `ErrorState` accepts `className`, `icon`, `retryLabel`, `bare` props and renders the
+- [x] `ErrorState` accepts `className`, `icon`, `retryLabel`, `bare` props and renders the
       `bare` branch as a text-only destructive message.
-- [ ] `LoadingState` accepts `className`, `spinner` props and renders silent mode
+- [x] `LoadingState` accepts `className`, `spinner` props and renders silent mode
       (`title={null}`) as a spinner-only block.
-- [ ] `error-state.stories.tsx` and `loading-state.stories.tsx` each have at least 4 new
+- [x] `error-state.stories.tsx` and `loading-state.stories.tsx` each have at least 4 new
       stories covering the new props.
-- [ ] `ModelSelector`, `AgentSelector`, `SessionList`, `CreateChatDialog`, `ChatMinimap`
+- [x] `ModelSelector`, `AgentSelector`, `SessionList`, `CreateChatDialog`, `ChatMinimap`
       no longer hand-roll inline state JSX — each uses one of `EmptyState` / `ErrorState`
       / `LoadingState`.
-- [ ] `rg "Loader2.*animate-spin" apps/web-app/src/components/chat` returns no matches
+- [x] `rg "Loader2.*animate-spin" apps/web-app/src/components/chat` returns no matches
       (the two selectors no longer hand-roll spinners).
-- [ ] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean.
-- [ ] `pnpm --filter web-app exec vitest run` passes.
+- [x] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean.
+- [x] `pnpm --filter web-app exec vitest run` passes.
 
 ## Notes for implementer
 

@@ -1,3 +1,4 @@
+import { RotateCw } from "lucide-react";
 import preview from "@/storybook/preview";
 import { LoadingState } from "./loading-state";
 
@@ -46,6 +47,42 @@ export const Inline = meta.story({
   render: () => (
     <div className="w-96 border rounded">
       <LoadingState size="inline" />
+    </div>
+  ),
+});
+
+export const Silent = meta.story({
+  render: () => (
+    <div className="w-96 border rounded">
+      <LoadingState size="full" title={null} />
+    </div>
+  ),
+});
+
+export const TextOnly = meta.story({
+  render: () => (
+    <div className="w-96 border rounded">
+      <LoadingState size="full" title="Loading sessions..." spinner={false} />
+    </div>
+  ),
+});
+
+export const CustomSpinner = meta.story({
+  render: () => (
+    <div className="w-96 border rounded">
+      <LoadingState
+        size="full"
+        title={null}
+        spinner={<RotateCw className="size-5 animate-spin" />}
+      />
+    </div>
+  ),
+});
+
+export const WithClassName = meta.story({
+  render: () => (
+    <div className="w-96 border rounded">
+      <LoadingState size="full" className="bg-muted/40" />
     </div>
   ),
 });

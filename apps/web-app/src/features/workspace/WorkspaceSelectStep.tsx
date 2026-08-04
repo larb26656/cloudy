@@ -2,6 +2,7 @@ import { FolderOpen } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { WorkspaceItem } from "@/components/ui/WorkspaceItem";
+import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { useWorkspaces } from "@/hooks/queries";
 import type { Workspace } from "@/lib/cloudy/workspaces";
@@ -27,16 +28,12 @@ export function WorkspaceSelectStep({
 
   if (workspaces.length === 0) {
     return (
-      <div className="flex flex-col items-center gap-4 py-8 text-center">
-        <FolderOpen className="size-12 text-muted-foreground" />
-        <div>
-          <p className="font-medium">No workspaces yet</p>
-          <p className="text-sm text-muted-foreground">
-            Create a workspace first
-          </p>
-        </div>
-        <Button onClick={onGoToWorkspaces}>Go to Workspaces</Button>
-      </div>
+      <EmptyState
+        icon={FolderOpen}
+        title="No workspaces yet"
+        description="Create a workspace first"
+        action={<Button onClick={onGoToWorkspaces}>Go to Workspaces</Button>}
+      />
     );
   }
 

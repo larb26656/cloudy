@@ -81,7 +81,7 @@ export function ChatInputEditor({
     editable: !disabled,
     onUpdate: ({ editor }) => {
       onChange({
-        text: editor.getText(),
+        text: editor.getText({ blockSeparator: "\n" }),
         mentions: getMentions(editor),
       });
     },
@@ -89,7 +89,7 @@ export function ChatInputEditor({
 
   useEffect(() => {
     if (!editor) return;
-    const currentText = editor.getText();
+    const currentText = editor.getText({ blockSeparator: "\n" });
     if (content.text !== currentText) {
       editor.commands.setContent(content.text);
     }

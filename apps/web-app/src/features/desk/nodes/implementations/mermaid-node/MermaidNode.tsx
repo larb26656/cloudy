@@ -1,11 +1,17 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { WindowFrame } from "../WindowFrame";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Code, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ErrorState } from "@/components/ui/error-state";
+import { LoadingState } from "@/components/ui/loading-state";
 
 type MermaidNodeProps = Node<
   {
@@ -17,7 +23,11 @@ type MermaidNodeProps = Node<
 
 const DEFAULT_CODE = "";
 
-export function MermaidNode({ data, id, selected }: NodeProps<MermaidNodeProps>) {
+export function MermaidNode({
+  data,
+  id,
+  selected,
+}: NodeProps<MermaidNodeProps>) {
   const [code, setCode] = useState(data.code ?? DEFAULT_CODE);
   const [svg, setSvg] = useState<string>("");
   const [error, setError] = useState<string>("");
@@ -25,41 +35,47 @@ export function MermaidNode({ data, id, selected }: NodeProps<MermaidNodeProps>)
   const [isGenerating, setIsGenerating] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const renderMermaid = useCallback(async (mermaidCode: string) => {
-    if (!mermaidCode.trim()) {
-      setSvg("");
-      setError("");
-      return;
-    }
+  const renderMermaid = useCallback(
+    async (mermaidCode: string) => {
+      if (!mermaidCode.trim()) {
+        setSvg("");
+        setError("");
+        return;
+      }
 
-    setIsGenerating(true);
-    try {
-      const mermaidModule = await import("mermaid");
-      const mermaid = mermaidModule.default ?? mermaidModule;
+      setIsGenerating(true);
+      try {
+        const mermaidModule = await import("mermaid");
+        const mermaid = mermaidModule.default ?? mermaidModule;
 
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: "base",
-        themeVariables: {
-          primaryColor: "#3b82f6",
-          primaryTextColor: "#1f2937",
-          primaryBorderColor: "#d1d5db",
-          lineColor: "#6b7280",
-          secondaryColor: "#f3f4f6",
-          tertiaryColor: "#e5e7eb",
-        },
-      });
+        mermaid.initialize({
+          startOnLoad: false,
+          theme: "base",
+          themeVariables: {
+            primaryColor: "#3b82f6",
+            primaryTextColor: "#1f2937",
+            primaryBorderColor: "#d1d5db",
+            lineColor: "#6b7280",
+            secondaryColor: "#f3f4f6",
+            tertiaryColor: "#e5e7eb",
+          },
+        });
 
-      const { svg: renderedSvg } = await mermaid.render(`mermaid-${id}`, mermaidCode);
-      setSvg(renderedSvg);
-      setError("");
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to render");
-      setSvg("");
-    } finally {
-      setIsGenerating(false);
-    }
-  }, [id]);
+        const { svg: renderedSvg } = await mermaid.render(
+          `mermaid-${id}`,
+          mermaidCode,
+        );
+        setSvg(renderedSvg);
+        setError("");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to render");
+        setSvg("");
+      } finally {
+        setIsGenerating(false);
+      }
+    },
+    [id],
+  );
 
   useEffect(() => {
     if (debounceRef.current) {
@@ -95,10 +111,7 @@ export function MermaidNode({ data, id, selected }: NodeProps<MermaidNodeProps>)
             <Button
               variant="ghost"
               size="icon-xs"
-              className={cn(
-                "h-6 w-6",
-                open && "bg-muted"
-              )}
+              className={cn("h-6 w-6", open && "bg-muted")}
             >
               <Code className="h-4 w-4" />
             </Button>
@@ -139,14 +152,14 @@ export function MermaidNode({ data, id, selected }: NodeProps<MermaidNodeProps>)
     >
       <div className="h-full w-full flex items-center justify-center overflow-auto p-4 bg-muted/30">
         {isGenerating && code.trim() ? (
-          <div className="text-sm text-muted-foreground">Rendering...</div>
+          <LoadingState size="inline" title="Rendering..." spinner={false} />
         ) : svg ? (
           <div
             className="max-w-full max-h-full"
             dangerouslySetInnerHTML={{ __html: svg }}
           />
         ) : error ? (
-          <div className="text-sm text-destructive">Fix errors to see diagram</div>
+          <ErrorState size="inline" bare message="Fix errors to see diagram" />
         ) : (
           <div className="text-sm text-muted-foreground">
             Click <Code className="inline h-4 w-4" /> to add mermaid code

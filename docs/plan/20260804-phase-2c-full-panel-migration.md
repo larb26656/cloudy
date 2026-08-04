@@ -2,7 +2,7 @@
 title: "Phase 2C: Migrate full-panel state JSX to shared components"
 slug: phase-2c-full-panel-migration
 id: 20260804-phase-2c-full-panel-migration
-status: ready
+status: done
 created: 2026-08-04
 source: planning session 2026-08-04 (Phase 1 review)
 ---
@@ -137,7 +137,7 @@ bg-muted` with `size-8` glyph). This is a deliberate visual alignment — call i
 
 ## Tasks
 
-- [ ] 1. **Migrate `WorkspaceSelectStep` empty branch**
+- [x] 1. **Migrate `WorkspaceSelectStep` empty branch**
   - Replace the JSX at lines 28-41 with: `<EmptyState icon={FolderOpen} title="No
 workspaces yet" description="Create a workspace first" action={<Button
 onClick={onGoToWorkspaces}>Go to Workspaces</Button>} />`. Add `import { EmptyState }
@@ -146,7 +146,7 @@ from "@/components/ui/empty-state"`. Keep the existing `LoadingState` and `Folde
   - verify: `pnpm --filter web-app check-types` clean.
   - files: `apps/web-app/src/features/workspace/WorkspaceSelectStep.tsx`
 
-- [ ] 2. **Migrate `ChatContent` loading branch**
+- [x] 2. **Migrate `ChatContent` loading branch**
   - Replace lines 15-21 with `<LoadingState title="Loading workspace..." spinner={false}
 className="h-full" />` (if Phase 2A's `spinner` prop exists) or `<LoadingState
 title="Loading workspace..." className="h-full" />` (fallback). Add `import {
@@ -156,14 +156,14 @@ LoadingState } from "@/components/ui/loading-state"`. Keep the existing `ErrorSt
     "unknown prop", Phase 2A is not merged — use the fallback.
   - files: `apps/web-app/src/features/home/tabs/implementations/chat/ChatContent.tsx`
 
-- [ ] 3. **Migrate `file-update-viewer` placeholder**
+- [x] 3. **Migrate `file-update-viewer` placeholder**
   - Replace lines 65-71 (`if (!currentFile)` branch's returned JSX) with `<EmptyState
 title="Select a file to view" className="h-full" />`. Add `import { EmptyState } from
 "@/components/ui/empty-state"`.
   - verify: `pnpm --filter web-app check-types` clean.
   - files: `apps/web-app/src/components/file-update-viewer/index.tsx`
 
-- [ ] 4. **Migrate `settings/index.tsx`**
+- [x] 4. **Migrate `settings/index.tsx`**
   - Replace the `SettingsIndexPage` body (lines 5-12) with: `return ( <EmptyState
 icon={Settings} title="Select a setting from the menu on the left." className="hidden
 h-full md:flex" /> );`. Add `import { EmptyState } from "@/components/ui/empty-state"`.
@@ -173,7 +173,7 @@ h-full md:flex" /> );`. Add `import { EmptyState } from "@/components/ui/empty-s
     `createFileRoute("/settings/")` is still called and `Route` is still exported.
   - files: `apps/web-app/src/routes/settings/index.tsx`
 
-- [ ] 5. **Migrate `ChatEmptyState.SelectSessionState`**
+- [x] 5. **Migrate `ChatEmptyState.SelectSessionState`**
   - Replace the `SelectSessionState` function body (lines 124-133) with: `return (
 <EmptyState title="Select a chat" description="Choose a chat from the sidebar to
 start" className="flex-1 bg-muted" /> );`. Add `import { EmptyState } from
@@ -183,25 +183,25 @@ start" className="flex-1 bg-muted" /> );`. Add `import { EmptyState } from
     three exports are unchanged.
   - files: `apps/web-app/src/components/chat/ChatEmptyState.tsx`
 
-- [ ] 6. **Full verification**
+- [x] 6. **Full verification**
   - verify: `pnpm --filter web-app lint && pnpm --filter web-app check-types` all green;
     `pnpm --filter web-app exec vitest run` passes.
   - files: —
 
 ## Done when
 
-- [ ] All five consumers use `EmptyState` or `LoadingState` instead of hand-rolled
+- [x] All five consumers use `EmptyState` or `LoadingState` instead of hand-rolled
       centered JSX.
-- [ ] `rg "Select a file to view|Select a setting from the menu|No workspaces yet|Loading
-    workspace|Select a chat" apps/web-app/src --glob "*.tsx" -l` returns matches only in
+- [x] `rg "Select a file to view|Select a setting from the menu|No workspaces yet|Loading
+  workspace|Select a chat" apps/web-app/src --glob "*.tsx" -l` returns matches only in
       `*.stories.tsx` files or in the shared `EmptyState`/`LoadingState` callsites (not in
       hand-rolled `<p>`/`<div>` blocks).
-- [ ] `routes/settings/index.tsx` still calls `createFileRoute("/settings/")` and exports
+- [x] `routes/settings/index.tsx` still calls `createFileRoute("/settings/")` and exports
       `Route`.
-- [ ] `ChatEmptyState.tsx` still exports `SnippetButtons`, `WelcomeState`,
+- [x] `ChatEmptyState.tsx` still exports `SnippetButtons`, `WelcomeState`,
       `SelectSessionState`, `EmptyChatState`.
-- [ ] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean.
-- [ ] `pnpm --filter web-app exec vitest run` passes.
+- [x] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean.
+- [x] `pnpm --filter web-app exec vitest run` passes.
 
 ## Notes for implementer
 

@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { EmptyState } from "@/components/ui/empty-state";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { WindowFrame } from "../WindowFrame";
@@ -123,9 +124,7 @@ export function TodoNode({ data, id, selected }: NodeProps<TodoNodeProps>) {
 
         <div className="min-h-0 flex-1 space-y-1 overflow-y-auto p-2">
           {items.length === 0 && (
-            <p className="py-4 text-center text-sm text-muted-foreground">
-              No tasks yet
-            </p>
+            <EmptyState size="inline" title="No tasks yet" />
           )}
           {items.map((item) => (
             <div

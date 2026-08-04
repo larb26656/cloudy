@@ -2,7 +2,7 @@
 title: "Phase 2B: Migrate desk-node state JSX to shared components"
 slug: phase-2b-desk-nodes-migration
 id: 20260804-phase-2b-desk-nodes-migration
-status: ready
+status: done
 created: 2026-08-04
 source: planning session 2026-08-04 (Phase 1 review)
 ---
@@ -106,7 +106,7 @@ text-center text-sm text-muted-foreground">` becomes a row-centered `text-sm mut
 
 ## Tasks
 
-- [ ] 1. **Migrate `MermaidNode` body states**
+- [x] 1. **Migrate `MermaidNode` body states**
   - Add `import { LoadingState } from "@/components/ui/loading-state"` and
     `import { ErrorState } from "@/components/ui/error-state"` at the top of
     `MermaidNode.tsx`.
@@ -120,7 +120,7 @@ diagram" />`. Leave the `svg` and empty branches unchanged.
     Popover footer (lines ~130-134) is unchanged and still uses raw `<div>` JSX.
   - files: `apps/web-app/src/features/desk/nodes/implementations/mermaid-node/MermaidNode.tsx`
 
-- [ ] 2. **Migrate `TodoNode` empty state**
+- [x] 2. **Migrate `TodoNode` empty state**
   - Add `import { EmptyState } from "@/components/ui/empty-state"` at the top of
     `TodoNode.tsx`.
   - Replace lines 125-129 (`{items.length === 0 && (<p className="py-4 text-center
@@ -129,22 +129,22 @@ text-sm text-muted-foreground">No tasks yet</p>)}`) with
   - verify: `pnpm --filter web-app check-types` clean.
   - files: `apps/web-app/src/features/desk/nodes/implementations/todo-node/TodoNode.tsx`
 
-- [ ] 3. **Full verification**
+- [x] 3. **Full verification**
   - verify: `pnpm --filter web-app lint && pnpm --filter web-app check-types` all green;
     `pnpm --filter web-app exec vitest run` passes.
   - files: —
 
 ## Done when
 
-- [ ] `MermaidNode` body uses `<LoadingState>` for "Rendering..." and `<ErrorState>` for
+- [x] `MermaidNode` body uses `<LoadingState>` for "Rendering..." and `<ErrorState>` for
       "Fix errors to see diagram"; the success (svg), empty ("Click <Code /> to add..."),
       and Popover error footer branches are unchanged.
-- [ ] `TodoNode` body uses `<EmptyState size="inline" title="No tasks yet" />` instead of
+- [x] `TodoNode` body uses `<EmptyState size="inline" title="No tasks yet" />` instead of
       a hand-rolled `<p>`.
-- [ ] `rg "text-sm text-muted-foreground\">Rendering|text-sm text-destructive\">Fix errors|text-sm text-muted-foreground\">No tasks yet"
-    apps/web-app/src/features/desk/nodes` returns no matches.
-- [ ] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean.
-- [ ] `pnpm --filter web-app exec vitest run` passes.
+- [x] `rg "text-sm text-muted-foreground\">Rendering|text-sm text-destructive\">Fix errors|text-sm text-muted-foreground\">No tasks yet"
+  apps/web-app/src/features/desk/nodes` returns no matches.
+- [x] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean.
+- [x] `pnpm --filter web-app exec vitest run` passes.
 
 ## Notes for implementer
 

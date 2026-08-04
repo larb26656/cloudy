@@ -47,6 +47,7 @@ export type Tab = {
     id: string;
     type: K;
     data: ExtractDataType<(typeof templates)[K]>;
+    updatedAt: number;
   };
 }[keyof typeof templates];
 

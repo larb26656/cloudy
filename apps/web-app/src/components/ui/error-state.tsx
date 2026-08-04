@@ -1,4 +1,5 @@
 import { AlertCircle, RotateCcw } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { Button } from "./button";
 import type { StateSize } from "./empty-state/base";
 import { Center } from "@/components/layout";
@@ -6,9 +7,13 @@ import { cn } from "@/lib/utils";
 
 interface ErrorStateProps {
   title?: string;
-  message: string;
+  message?: string;
   onRetry?: () => void;
   size?: StateSize;
+  className?: string;
+  icon?: LucideIcon;
+  retryLabel?: string;
+  bare?: boolean;
 }
 
 export function ErrorState({
@@ -16,12 +21,35 @@ export function ErrorState({
   message,
   onRetry,
   size = "full",
+  className,
+  icon: Icon,
+  retryLabel = "Try again",
+  bare = false,
 }: ErrorStateProps) {
+  if (bare) {
+    if (!message) return null;
+    return (
+      <div
+        className={cn("p-4 text-sm text-destructive text-center", className)}
+      >
+        {message}
+      </div>
+    );
+  }
+
+  const GlyphIcon = Icon ?? AlertCircle;
+
   if (size === "inline") {
     return (
-      <Center className="gap-2 py-2 px-2">
-        <AlertCircle className="size-3.5 text-destructive" />
+      <Center className={cn("gap-2 py-2 px-2", className)}>
+        <GlyphIcon className="size-3.5 text-destructive" />
         <span className="text-sm text-destructive">{title}</span>
+        {onRetry && (
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            <RotateCcw className="size-4 mr-2" />
+            {retryLabel}
+          </Button>
+        )}
       </Center>
     );
   }
@@ -33,20 +61,31 @@ export function ErrorState({
   const msgMax = isFull ? "max-w-sm" : "max-w-xs";
 
   return (
-    <div className={cn("flex flex-col items-center justify-center", pad)}>
+    <div
+      className={cn(
+        "flex flex-col items-center justify-center",
+        pad,
+        className,
+      )}
+    >
       <div className="flex items-center gap-2 text-destructive mb-2">
-        <AlertCircle className={glyph} />
+        <GlyphIcon className={glyph} />
         <span className={titleClass}>{title}</span>
       </div>
-      <p
-        className={cn("text-sm text-muted-foreground text-center mb-4", msgMax)}
-      >
-        {message}
-      </p>
+      {message && (
+        <p
+          className={cn(
+            "text-sm text-muted-foreground text-center mb-4",
+            msgMax,
+          )}
+        >
+          {message}
+        </p>
+      )}
       {onRetry && (
         <Button variant="outline" size="sm" onClick={onRetry}>
           <RotateCcw className="size-4 mr-2" />
-          Try again
+          {retryLabel}
         </Button>
       )}
     </div>

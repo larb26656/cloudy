@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SessionItem } from "@/components/ui/SessionItem";
+import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@/components/ui/loading-state";
 import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { useSessions } from "@/hooks/queries";
@@ -25,9 +27,15 @@ interface CreateChatDialogProps {
   }) => void;
 }
 
-export function CreateChatDialog({ open, onOpenChange, onSubmit }: CreateChatDialogProps) {
+export function CreateChatDialog({
+  open,
+  onOpenChange,
+  onSubmit,
+}: CreateChatDialogProps) {
   const navigate = useNavigate();
-  const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(null);
+  const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
+    null,
+  );
 
   const { data: sessions = [], isLoading: sessionsLoading } = useSessions({
     directory: selectedWorkspace?.directory ?? "",
@@ -71,7 +79,9 @@ export function CreateChatDialog({ open, onOpenChange, onSubmit }: CreateChatDia
       <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>
-            {selectedWorkspace ? `Sessions in ${selectedWorkspace.name}` : "Select Workspace"}
+            {selectedWorkspace
+              ? `Sessions in ${selectedWorkspace.name}`
+              : "Select Workspace"}
           </DialogTitle>
           <DialogDescription>
             {selectedWorkspace
@@ -106,7 +116,7 @@ function SessionStep({
   isLoading,
   onBack,
   onNewChat,
-  onSelect
+  onSelect,
 }: {
   sessions: Session[];
   isLoading: boolean;
@@ -128,9 +138,13 @@ function SessionStep({
       </Button>
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Loading sessions...</p>
+        <LoadingState
+          size="inline"
+          title="Loading sessions..."
+          spinner={false}
+        />
       ) : rootSessions.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No sessions in this workspace</p>
+        <EmptyState size="inline" title="No sessions in this workspace" />
       ) : (
         <div className="flex flex-col gap-1 flex-1 min-h-0 overflow-y-auto">
           {rootSessions.map((session) => (
@@ -143,7 +157,12 @@ function SessionStep({
         </div>
       )}
 
-      <Button variant="ghost" size="sm" onClick={onBack} className="self-start -ml-2 shrink-0">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onBack}
+        className="self-start -ml-2 shrink-0"
+      >
         Back to workspaces
       </Button>
     </div>

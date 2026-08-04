@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Center } from "@/components/layout";
+import { EmptyState } from "@/components/ui/empty-state";
 import { generateGreeting } from "@/lib/greeting-generator";
 import { Lightbulb, Brain, FileCode } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -124,12 +124,11 @@ export function WelcomeState({
 
 export function SelectSessionState() {
   return (
-    <Center className="flex-1 bg-muted">
-      <div className="text-center text-gray-500 dark:text-gray-400">
-        <p className="text-lg font-medium">Select a chat</p>
-        <p className="text-sm">Choose a chat from the sidebar to start</p>
-      </div>
-    </Center>
+    <EmptyState
+      title="Select a chat"
+      description="Choose a chat from the sidebar to start"
+      className="flex-1 bg-muted"
+    />
   );
 }
 

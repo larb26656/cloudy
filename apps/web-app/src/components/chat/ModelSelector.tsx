@@ -1,13 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Bot,
-  Cloud,
-  Sparkles,
-  Cpu,
-  Loader2,
-  ChevronDown,
-  Search,
-} from "lucide-react";
+import { Bot, Cloud, Sparkles, Cpu, ChevronDown, Search } from "lucide-react";
 import type { ModelConfig, ModelProvider } from "@/types";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,6 +11,9 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ErrorState } from "@/components/ui/error-state";
+import { LoadingState } from "@/components/ui/loading-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import { useModels } from "@/hooks/queries/useModels";
 import { useChat } from "./ChatProvider";
 
@@ -114,17 +109,15 @@ export function ModelSelector() {
         <DropdownMenuSeparator />
         <div className="max-h-80 overflow-y-auto">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="size-5 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState size="compact" title={null} />
           ) : error ? (
-            <div className="p-4 text-sm text-destructive text-center">
-              {(error as Error).message}
-            </div>
+            <ErrorState
+              size="compact"
+              bare
+              message={(error as Error).message}
+            />
           ) : filteredProviders.length === 0 ? (
-            <div className="p-4 text-sm text-muted-foreground text-center">
-              No models found
-            </div>
+            <EmptyState size="compact" title="No models found" />
           ) : (
             filteredProviders.map((provider) => (
               <DropdownMenuGroup key={provider.id}>

@@ -8,29 +8,24 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { normalizeUrl } from "./meta";
 
 interface WebviewCreateDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function WebviewCreateDialog({ open, onOpenChange }: WebviewCreateDialogProps) {
+export function WebviewCreateDialog({
+  open,
+  onOpenChange,
+}: WebviewCreateDialogProps) {
   const addTab = useTabStore((s) => s.addTab);
   const [url, setUrl] = useState("");
 
   const handleOpen = () => {
-    let normalizedUrl = url.trim();
-    if (
-      !normalizedUrl.startsWith("http://") &&
-      !normalizedUrl.startsWith("https://")
-    ) {
-      normalizedUrl = "https://" + normalizedUrl;
-    }
-    addTab("webview", {
-      url: normalizedUrl,
-      history: [normalizedUrl],
-      historyIndex: 0,
-    });
+    const normalized = normalizeUrl(url);
+    if (!normalized) return;
+    addTab("webview", { url: normalized });
     setUrl("");
     onOpenChange(false);
   };
@@ -51,7 +46,9 @@ export function WebviewCreateDialog({ open, onOpenChange }: WebviewCreateDialogP
           <Input
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleOpen()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleOpen();
+            }}
             placeholder="Enter URL (e.g., example.com)"
             autoFocus
           />

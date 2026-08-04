@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Bot, ChevronDown, Search, Loader2 } from "lucide-react";
+import { Bot, ChevronDown, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -9,6 +9,9 @@ import {
   DropdownMenuGroup,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ErrorState } from "@/components/ui/error-state";
+import { LoadingState } from "@/components/ui/loading-state";
+import { EmptyState } from "@/components/ui/empty-state";
 import type { Agent } from "@/types/agent";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { useChat } from "./ChatProvider";
@@ -20,7 +23,12 @@ const agentModeLabels: Record<string, string> = {
 };
 
 const FALLBACK_AGENTS: Agent[] = [
-  { name: "build", description: "Default build agent (offline)", mode: "primary", native: true },
+  {
+    name: "build",
+    description: "Default build agent (offline)",
+    mode: "primary",
+    native: true,
+  },
 ];
 
 export function AgentSelector() {
@@ -82,17 +90,15 @@ export function AgentSelector() {
         <DropdownMenuSeparator />
         <div className="max-h-80 overflow-y-auto">
           {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="size-5 animate-spin text-muted-foreground" />
-            </div>
+            <LoadingState size="compact" title={null} />
           ) : error ? (
-            <div className="p-4 text-sm text-destructive text-center">
-              {(error as Error).message}
-            </div>
+            <ErrorState
+              size="compact"
+              bare
+              message={(error as Error).message}
+            />
           ) : filteredAgents.length === 0 ? (
-            <div className="p-4 text-sm text-muted-foreground text-center">
-              No agents found
-            </div>
+            <EmptyState size="compact" title="No agents found" />
           ) : (
             filteredAgents.map((agent) => (
               <DropdownMenuGroup key={agent.name}>

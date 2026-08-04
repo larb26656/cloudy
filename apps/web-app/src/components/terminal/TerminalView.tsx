@@ -3,10 +3,9 @@ import { Terminal as XTermTerminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import {
-  useTerminalPty,
-  type TerminalStatus,
-} from "./useTerminalPty";
+import { ErrorState } from "@/components/ui/error-state";
+import { LoadingState } from "@/components/ui/loading-state";
+import { useTerminalPty, type TerminalStatus } from "./useTerminalPty";
 
 interface TerminalViewProps {
   /** Working directory the shell starts in (workspace.directory). */
@@ -51,19 +50,19 @@ function renderOverlay(
 ) {
   if (status === "connected" || status === "connecting") {
     if (status === "connecting") {
-      return <p className="text-sm text-muted-foreground">Connecting…</p>;
+      return <LoadingState size="inline" title="Connecting…" spinner={false} />;
     }
     return null;
   }
   if (status === "spawning") {
-    return <p className="text-sm text-muted-foreground">Starting shell…</p>;
+    return (
+      <LoadingState size="inline" title="Starting shell…" spinner={false} />
+    );
   }
   if (status === "exited") {
     return (
       <>
-        <p className="text-sm text-muted-foreground">
-          Shell exited.
-        </p>
+        <p className="text-sm text-muted-foreground">Shell exited.</p>
         <Button variant="outline" size="sm" onClick={reconnect}>
           <RotateCcw className="size-4 mr-2" />
           Restart
@@ -73,15 +72,12 @@ function renderOverlay(
   }
   if (status === "error") {
     return (
-      <>
-        <p className="text-sm text-destructive">
-          {error ?? "Terminal error"}
-        </p>
-        <Button variant="outline" size="sm" onClick={reconnect}>
-          <RotateCcw className="size-4 mr-2" />
-          Retry
-        </Button>
-      </>
+      <ErrorState
+        size="compact"
+        message={error ?? "Terminal error"}
+        retryLabel="Retry"
+        onRetry={reconnect}
+      />
     );
   }
   return null;

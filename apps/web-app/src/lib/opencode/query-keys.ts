@@ -1,10 +1,10 @@
 export const sessionKeys = {
   root: () => ["sessions"] as const,
-  infinite: (directory: string) =>
-    ["sessions", "infinite", directory] as const,
+  infinite: (directory: string) => ["sessions", "infinite", directory] as const,
   detail: (sessionId: string) => ["sessions", "detail", sessionId] as const,
   children: (sessionId: string) => ["sessions", "children", sessionId] as const,
   statuses: (directory: string) => ["sessions", "statuses", directory] as const,
+  recent: (limit: number) => ["sessions", "recent", limit] as const,
 };
 
 export const messageKeys = {
@@ -27,11 +27,13 @@ export const permissionKeys = {
   root: () => ["permissions"] as const,
   request: {
     root: () => ["permissions", "request"] as const,
-    list: (directory: string) => ["permissions", "request", "list", directory] as const,
+    list: (directory: string) =>
+      ["permissions", "request", "list", directory] as const,
   },
   saved: {
     root: () => ["permissions", "saved"] as const,
-    list: (projectId?: string) => ["permissions", "saved", "list", projectId ?? "all"] as const,
+    list: (projectId?: string) =>
+      ["permissions", "saved", "list", projectId ?? "all"] as const,
   },
 };
 

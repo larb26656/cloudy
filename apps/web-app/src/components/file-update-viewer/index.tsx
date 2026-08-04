@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { FileListSidebar } from "./FileListSidebar";
 import { CodeBlock } from "@/components/markdown/CodeBlock";
 import { DiffViewer } from "@/components/markdown/DiffViewer";
@@ -63,11 +64,7 @@ export function FileUpdateViewer({
 
   const renderContent = () => {
     if (!currentFile) {
-      return (
-        <div className="flex items-center justify-center h-full text-muted-foreground">
-          Select a file to view
-        </div>
-      );
+      return <EmptyState title="Select a file to view" className="h-full" />;
     }
 
     const isEditMode = currentFile.originalContent !== undefined;

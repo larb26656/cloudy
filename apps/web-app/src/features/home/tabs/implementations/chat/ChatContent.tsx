@@ -1,5 +1,6 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import { ErrorState } from "@/components/ui/error-state";
+import { LoadingState } from "@/components/ui/loading-state";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
 import { useWorkspace } from "@/hooks/queries";
@@ -14,9 +15,11 @@ export function ChatContent({ tab }: ChatContentProps) {
 
   if (isLoading) {
     return (
-      <div className="h-full flex items-center justify-center text-muted-foreground text-sm">
-        Loading workspace...
-      </div>
+      <LoadingState
+        title="Loading workspace..."
+        spinner={false}
+        className="h-full"
+      />
     );
   }
 
