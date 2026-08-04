@@ -1,4 +1,3 @@
-import "@tldraw/tldraw/tldraw.css";
 import {
   Background,
   ReactFlow,
@@ -15,7 +14,6 @@ import {
   type OnEdgesChange,
   type OnConnect,
   type ReactFlowInstance,
-
   PanOnScrollMode,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
@@ -65,7 +63,6 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
 
   const createNodeId = () => `node-${Date.now()}-${Math.random()}`;
 
-
   // load State
   useEffect(() => {
     if (!rfInstance) return;
@@ -111,7 +108,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
 
     const newNodes = selectedNodes.map((node) => ({
       ...node,
-        id: createNodeId(),
+      id: createNodeId(),
       position: {
         x: node.position.x + 20,
         y: node.position.y + 20,

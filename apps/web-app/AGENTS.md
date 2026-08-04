@@ -213,8 +213,8 @@ so future schema changes have a hook point.
 ### `getOcClient()` — opencode SDK client
 
 - `src/lib/opencode/oc-instance.ts` returns a cached singleton of `OCClient`
-  (`createOpencodeClient` from `@opencode-ai/sdk/v2/client` + a `getEvent` helper that
-  returns an `EventSource`).
+  (`createOpencodeClient` from `@opencode-ai/sdk/v2/client`, configured with the cloudy
+  proxy base URL and the `X-OpenCode-API-Base` header).
 - Two URL surfaces, intentionally distinct:
   - `env.getOpencodeApiUrl()` → `/api/oc` on the cloudy server (the **proxy**). Use for
     normal HTTP/SSE calls — they go through cloudy and inherit its CORS/auth.

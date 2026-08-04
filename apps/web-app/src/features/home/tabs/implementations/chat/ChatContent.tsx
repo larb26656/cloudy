@@ -4,6 +4,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
 import { useWorkspace } from "@/hooks/queries";
+import { Center } from "@/components/layout";
 
 interface ChatContentProps {
   tab: Extract<Tab, { type: "chat" }>;
@@ -15,20 +16,20 @@ export function ChatContent({ tab }: ChatContentProps) {
 
   if (isLoading) {
     return (
-      <LoadingState
-        title="Loading workspace..."
-        spinner={false}
-        className="h-full"
-      />
+      <Center className="h-full">
+        <LoadingState title="Loading workspace..." spinner={false} />
+      </Center>
     );
   }
 
   if (!workspace) {
     return (
-      <ErrorState
-        message="Workspace not found. Please close this tab."
-        onRetry={() => useTabStore.getState().removeTab(tab.id)}
-      />
+      <Center className="h-full">
+        <ErrorState
+          message="Workspace not found. Please close this tab."
+          onRetry={() => useTabStore.getState().removeTab(tab.id)}
+        />
+      </Center>
     );
   }
 
