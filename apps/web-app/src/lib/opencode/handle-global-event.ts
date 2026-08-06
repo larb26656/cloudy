@@ -1,5 +1,6 @@
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
+import { useSessionErrorStore } from "@/stores/sessionErrorStore";
 import {
   messageKeys,
   permissionKeys,
@@ -14,6 +15,7 @@ const KNOWN_EVENT_TYPES = new Set<string>([
   "session.updated",
   "session.idle",
   "session.status",
+  "session.error",
   "message.part.updated",
   "message.part.delta",
   "message.updated",
@@ -64,6 +66,8 @@ export function handleEvent(
         );
       }
 
+      useSessionErrorStore.getState().clearError(sessionId);
+
       if (event.directory) {
         queryClient.invalidateQueries({
           queryKey: sessionKeys.infinite(event.directory),
@@ -78,6 +82,20 @@ export function handleEvent(
         sessionKeys.statuses(event.directory),
         (old) => ({ ...(old ?? {}), [props.sessionID]: props.status }),
       );
+
+      if (props.status.type === "busy" || props.status.type === "idle") {
+        useSessionErrorStore.getState().clearError(props.sessionID);
+      }
+      break;
+    }
+
+    case "session.error": {
+      const props = event.payload.properties;
+      const error = props.error;
+      console.debug("[useStreamingMessages] session.error:", props);
+      if (!error) break;
+      if (!props.sessionID) break;
+      useSessionErrorStore.getState().setError(props.sessionID, error);
       break;
     }
 

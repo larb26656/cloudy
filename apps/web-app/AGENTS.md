@@ -174,6 +174,7 @@ const streamingMessages = useStreamingMessagesStore((s) => s.streamingMessages);
 | `defaultAgentStore.ts` / `defaultModelStore.ts` | —                                | Default agent/model pickers.                                                                                                                                             |
 | `sidebarStore.ts`                               | —                                | Sidebar open/collapse state.                                                                                                                                             |
 | `streamingMessagesStore.ts`                     | none (+ has `.test.ts`)          | In-flight streaming message assembly from opencode events.                                                                                                               |
+| `sessionErrorStore.ts`                          | none                             | Per-session error banner state derived from `session.error` events (set/clear). Read by `MessageList`; mutated by `handle-global-event.ts` and the dismiss button.       |
 
 When adding a new store, follow the file-per-store convention and add it to this table.
 For persisted stores, always pass a `version` and a `migrate` function (even if identity)

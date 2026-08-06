@@ -10,9 +10,11 @@ import { Center } from "@/components/layout";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
+import { useSessionErrorStore } from "@/stores/sessionErrorStore";
 import { pickFresher } from "@/lib/message";
 import { IsVisible } from "@/components/utils/IsVisible";
 import { RetryMessage } from "./RetryMessage";
+import { SessionErrorMessage } from "./SessionErrorMessage";
 import {
   MessageScroller,
   MessageScrollerViewport,
@@ -47,6 +49,10 @@ export const MessageList = memo(function MessageList({
   const sessionStatus = selectedSessionId
     ? statuses?.[selectedSessionId]
     : undefined;
+  const sessionError = useSessionErrorStore((s) =>
+    selectedSessionId ? s.errors.get(selectedSessionId) : undefined,
+  );
+  const clearError = useSessionErrorStore((s) => s.clearError);
   const {
     data,
     isLoading,
@@ -209,6 +215,17 @@ export const MessageList = memo(function MessageList({
                   attempt={sessionStatus.attempt}
                   message={sessionStatus.message}
                   next={sessionStatus.next}
+                />
+              </MessageScrollerItem>
+            )}
+
+            {sessionError && (
+              <MessageScrollerItem messageId="__session-error">
+                <SessionErrorMessage
+                  error={sessionError}
+                  onDismiss={() =>
+                    selectedSessionId && clearError(selectedSessionId)
+                  }
                 />
               </MessageScrollerItem>
             )}
