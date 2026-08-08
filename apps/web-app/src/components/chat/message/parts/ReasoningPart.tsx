@@ -3,6 +3,7 @@ import { Brain } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
 import { useChatSettingsStore } from "@/stores/chatSettingsStore";
+import { useElapsedTime } from "@/hooks/useElapsedTime";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface ReasoningPartProps {
@@ -10,12 +11,18 @@ interface ReasoningPartProps {
 }
 
 export function ReasoningPart({ part }: ReasoningPartProps) {
-  const autoExpandThinking = useChatSettingsStore(
-    (s) => s.autoExpandThinking
-  );
-  const duration = part.time.end
-    ? `${((part.time.end - part.time.start) / 1000).toFixed(2)}s`
+  const autoExpandThinking = useChatSettingsStore((s) => s.autoExpandThinking);
+  const isRunning = !part.time.end;
+  const finalSeconds = part.time.end
+    ? Math.round((part.time.end - part.time.start) / 1000)
     : null;
+  const liveSeconds = useElapsedTime({
+    start: part.time.start,
+    active: isRunning,
+  });
+  const label = isRunning
+    ? `Thinking ${liveSeconds}s`
+    : `Thought for ${finalSeconds}s`;
 
   const header = (
     <div className="flex items-center gap-2 mb-2">
@@ -23,8 +30,8 @@ export function ReasoningPart({ part }: ReasoningPartProps) {
       <span className="text-xs font-medium text-muted-foreground">
         Reasoning
       </span>
-      {duration && (
-        <span className="text-xs text-muted-foreground">{duration}</span>
+      {finalSeconds !== null && (
+        <span className="text-xs text-muted-foreground">{finalSeconds}s</span>
       )}
     </div>
   );
@@ -41,7 +48,7 @@ export function ReasoningPart({ part }: ReasoningPartProps) {
   }
 
   return (
-    <CollapsiblePart label="Thinking" detail={duration || ""}>
+    <CollapsiblePart label={label} running={isRunning}>
       <Card>
         <CardContent>
           {header}

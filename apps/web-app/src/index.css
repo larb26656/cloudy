@@ -78,6 +78,7 @@
   --animate-aura: aura 2s ease-in-out infinite;
   --animate-pulse-shadow: pulse-shadow 2s ease-in-out infinite;
   --animate-glow-pulse: glow-pulse 2s ease-in-out 1;
+  --animate-gradient: gradient 2s linear infinite;
 
   @keyframes aura {
     0%,
@@ -112,6 +113,15 @@
     }
     100% {
       box-shadow: 0 0 0 0 oklch(from var(--color-primary) l c h / 0);
+    }
+  }
+
+  @keyframes gradient {
+    0% {
+      background-position: 0% 50%;
+    }
+    100% {
+      background-position: 200% 50%;
     }
   }
 

@@ -43,6 +43,18 @@ export const WithDuration = meta.story({
   },
 });
 
+export const Running = meta.story({
+  args: {
+    part: {
+      type: "reasoning",
+      text: "Let me analyze this...",
+      time: {
+        start: Date.now(),
+      },
+    } as any,
+  },
+});
+
 export const LongReasoning = meta.story({
   args: {
     part: {
@@ -79,11 +91,13 @@ function AutoExpandedStory() {
   }, []);
   return (
     <ReasoningPart
-      part={{
-        type: "reasoning",
-        text: "Reasoning shown inline with **markdown** support and reduced opacity, no click needed.",
-        time: { start: Date.now() - 5000, end: Date.now() },
-      } as any}
+      part={
+        {
+          type: "reasoning",
+          text: "Reasoning shown inline with **markdown** support and reduced opacity, no click needed.",
+          time: { start: Date.now() - 5000, end: Date.now() },
+        } as any
+      }
     />
   );
 }
