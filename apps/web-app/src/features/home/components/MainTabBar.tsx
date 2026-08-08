@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Home, Plus } from "lucide-react";
+import { Home, Layers, Plus } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -25,6 +25,7 @@ import {
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import { tabTemplates, tabTypeMap } from "../tabs/template";
+import { AllTabsDialog } from "./AllTabsDialog";
 import { SortableTab } from "./SortableTab";
 import { TabItemShell } from "./TabItemShell";
 
@@ -43,6 +44,7 @@ export function MainTabBar() {
     Tab["type"] | null
   >(null);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [allTabsOpen, setAllTabsOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -154,6 +156,16 @@ export function MainTabBar() {
             </div>
           </SortableContext>
 
+          {tabs.length > 0 && (
+            <button
+              onClick={() => setAllTabsOpen(true)}
+              className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <Layers size={16} />
+              <span>{tabs.length}</span>
+            </button>
+          )}
+
           <DropdownMenu>
             <DropdownMenuTrigger
               render={
@@ -201,6 +213,8 @@ export function MainTabBar() {
           />
         );
       })}
+
+      <AllTabsDialog open={allTabsOpen} onOpenChange={setAllTabsOpen} />
     </>
   );
 }
