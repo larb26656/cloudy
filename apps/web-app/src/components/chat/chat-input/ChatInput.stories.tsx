@@ -1,10 +1,15 @@
+import { useEffect, useRef } from "react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ChatProvider } from "../ChatProvider";
+import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import { ChatInput } from "./ChatInput";
+import { useQuickPhrasesStore } from "@/stores/quickPhrasesStore";
 import preview from "@/storybook/preview";
 import type { SessionStatus } from "@opencode-ai/sdk/v2";
+
+const SAMPLE_PHRASES = ["Explain this code", "Write a test", "Fix the bug"];
 
 const SESSION_ID = "ses_story_input";
 const DIRECTORY = "/demo/project";
@@ -31,7 +36,9 @@ const queryClient = new QueryClient({
 function ChatInputStory({ initialValue }: { initialValue?: string }) {
   return (
     <ChatProvider workspace={null} directory={DIRECTORY} sessionId={SESSION_ID}>
-      <ChatInput initialValue={initialValue} />
+      <MessageScrollerProvider autoScroll>
+        <ChatInput initialValue={initialValue} />
+      </MessageScrollerProvider>
     </ChatProvider>
   );
 }
@@ -69,4 +76,37 @@ export const StreamingWithText = meta.story({
     <ChatInputStory initialValue="Follow-up question queued while streaming" />
   ),
   parameters: { msw: { handlers: makeHandlers({ type: "busy" }) } },
+});
+
+export const CollapsedUnfocused = meta.story({
+  render: () => (
+    <div className="w-[380px]">
+      <ChatInputStory />
+    </div>
+  ),
+  parameters: { msw: { handlers: makeHandlers({ type: "idle" }) } },
+});
+
+function ChatInputWithPhrasesStory() {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    useQuickPhrasesStore.setState({ phrases: SAMPLE_PHRASES });
+    const t = setTimeout(() => {
+      ref.current?.querySelector<HTMLElement>(".ProseMirror")?.focus();
+    }, 50);
+    return () => {
+      clearTimeout(t);
+      useQuickPhrasesStore.setState({ phrases: [] });
+    };
+  }, []);
+  return (
+    <div ref={ref}>
+      <ChatInputStory />
+    </div>
+  );
+}
+
+export const WithQuickPhrases = meta.story({
+  render: () => <ChatInputWithPhrasesStory />,
+  parameters: { msw: { handlers: makeHandlers({ type: "idle" }) } },
 });

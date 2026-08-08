@@ -1,3 +1,4 @@
+import { arrayMove } from "@dnd-kit/sortable";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
@@ -8,6 +9,7 @@ type QuickPhrasesStore = {
   addPhrase: (text: string) => void;
   removePhrase: (index: number) => void;
   updatePhrase: (index: number, text: string) => void;
+  reorderPhrases: (from: number, to: number) => void;
   setPhrases: (phrases: string[]) => void;
 };
 
@@ -31,6 +33,19 @@ export const useQuickPhrasesStore = create<QuickPhrasesStore>()(
         set((state) => ({
           phrases: state.phrases.map((p, i) => (i === index ? text : p)),
         })),
+      reorderPhrases: (from, to) =>
+        set((state) => {
+          if (
+            from === to ||
+            from < 0 ||
+            to < 0 ||
+            from >= state.phrases.length ||
+            to >= state.phrases.length
+          ) {
+            return {};
+          }
+          return { phrases: arrayMove(state.phrases, from, to) };
+        }),
       setPhrases: (phrases) => set({ phrases: phrases.slice(0, MAX_PHRASES) }),
     }),
     {

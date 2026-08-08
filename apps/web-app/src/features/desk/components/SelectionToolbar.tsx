@@ -112,7 +112,7 @@ export function SelectionToolbar({
         {selectedCount} selected
       </span>
 
-      <Separator orientation="vertical" className="mx-0.5 h-5" />
+      <Separator orientation="vertical" className="mx-0.5" />
 
       {ALIGN_BUTTONS.map((b) => (
         <ToolButton
@@ -124,7 +124,7 @@ export function SelectionToolbar({
         />
       ))}
 
-      <Separator orientation="vertical" className="mx-0.5 h-5" />
+      <Separator orientation="vertical" className="mx-0.5" />
 
       {DISTRIBUTE_BUTTONS.map((b) => (
         <ToolButton
@@ -136,7 +136,7 @@ export function SelectionToolbar({
         />
       ))}
 
-      <Separator orientation="vertical" className="mx-0.5 h-5" />
+      <Separator orientation="vertical" className="mx-0.5" />
 
       <ToolButton icon={Copy} label="Duplicate (Cmd+D)" onClick={onDuplicate} />
 

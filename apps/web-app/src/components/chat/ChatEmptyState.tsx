@@ -155,7 +155,7 @@ export function EmptyChatState({ onSnippetSelect }: EmptyChatStateProps) {
       <div className="@container"></div>
       <SnippetButtons
         onSelect={handleSnippetClick}
-        className="hidden @[480px]:block"
+        className="hidden @compact:block"
       />
     </div>
   );

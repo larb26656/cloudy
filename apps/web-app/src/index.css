@@ -75,6 +75,8 @@
 }
 
 @theme inline {
+  --container-compact: 30rem;
+
   --animate-aura: aura 2s ease-in-out infinite;
   --animate-pulse-shadow: pulse-shadow 2s ease-in-out infinite;
   --animate-glow-pulse: glow-pulse 2s ease-in-out 1;
@@ -228,6 +230,15 @@
     float: left;
     height: 0;
     pointer-events: none;
+  }
+}
+
+/* keep in sync with --container-compact */
+@container (max-width: 30rem) {
+  .input-chat--single .ProseMirror {
+    min-height: 1.5em;
+    max-height: 1.5em;
+    overflow: hidden;
   }
 }
 

@@ -142,7 +142,10 @@ export const ChatInput = memo(function ChatInput({
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col gap-2">
           <div
-            className="flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full"
+            className={cn(
+              "flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full",
+              !isFocused && "@max-compact:flex-row @max-compact:items-center",
+            )}
             onFocus={() => setIsFocused(true)}
             onBlur={(e) => {
               if (!e.currentTarget.contains(e.relatedTarget)) {
@@ -150,7 +153,12 @@ export const ChatInput = memo(function ChatInput({
               }
             }}
           >
-            <div className="flex gap-2 w-full pt-2">
+            <div
+              className={cn(
+                "flex gap-2 w-full pt-2",
+                !isFocused && "@max-compact:flex-1 @max-compact:pt-0",
+              )}
+            >
               <ChatInputEditor
                 content={{ ...chatInputContent, text: displayText }}
                 onChange={(next) => {
@@ -167,11 +175,16 @@ export const ChatInput = memo(function ChatInput({
               />
             </div>
 
-            <div className="flex justify-between gap-2">
+            <div
+              className={cn(
+                "flex gap-2 justify-between",
+                !isFocused && "@max-compact:shrink-0",
+              )}
+            >
               <div
                 className={cn(
                   "flex gap-2 min-w-0 overflow-x-auto items-center",
-                  !isFocused && "@max-[479px]:hidden",
+                  !isFocused && "@max-compact:hidden",
                 )}
               >
                 <AgentSelector />
@@ -208,7 +221,7 @@ export const ChatInput = memo(function ChatInput({
             </div>
           </div>
 
-          <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden @[480px]:block">
+          <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden @compact:block">
             Press Enter to send, Shift + Enter for new line
             {directory && " • @ or / to mention files"}
             {" • Cmd/Ctrl + M for model"}

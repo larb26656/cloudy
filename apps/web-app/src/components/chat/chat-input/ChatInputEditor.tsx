@@ -11,6 +11,7 @@ import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
 import { useQuickPhrasesStore } from "@/stores/quickPhrasesStore";
 import { QuickPhrasesBar } from "./QuickPhrasesBar";
+import { cn } from "@/lib/utils";
 
 interface ChatInputEditorProps {
   content: ChatInputContent;
@@ -120,7 +121,9 @@ export function ChatInputEditor({
       {isEditorFocused && phrases.length > 0 && (
         <QuickPhrasesBar phrases={phrases} onSelect={handlePhraseSelect} />
       )}
-      <div className="input-chat">
+      <div
+        className={cn("input-chat", !isEditorFocused && "input-chat--single")}
+      >
         <EditorContent editor={editor} onKeyDown={onKeyDown} />
       </div>
     </div>

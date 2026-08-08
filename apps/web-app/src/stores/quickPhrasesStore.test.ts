@@ -45,6 +45,35 @@ describe("quickPhrasesStore", () => {
     expect(useQuickPhrasesStore.getState().phrases).toEqual(["updated", "b"]);
   });
 
+  test("reorderPhrases moves an item from one index to another", () => {
+    useQuickPhrasesStore.getState().setPhrases(["a", "b", "c"]);
+
+    useQuickPhrasesStore.getState().reorderPhrases(0, 2);
+    expect(useQuickPhrasesStore.getState().phrases).toEqual(["b", "c", "a"]);
+  });
+
+  test("reorderPhrases moves an item forward", () => {
+    useQuickPhrasesStore.getState().setPhrases(["a", "b", "c"]);
+
+    useQuickPhrasesStore.getState().reorderPhrases(2, 0);
+    expect(useQuickPhrasesStore.getState().phrases).toEqual(["c", "a", "b"]);
+  });
+
+  test("reorderPhrases is a no-op when from === to", () => {
+    useQuickPhrasesStore.getState().setPhrases(["a", "b", "c"]);
+
+    useQuickPhrasesStore.getState().reorderPhrases(1, 1);
+    expect(useQuickPhrasesStore.getState().phrases).toEqual(["a", "b", "c"]);
+  });
+
+  test("reorderPhrases ignores out-of-bounds indices", () => {
+    useQuickPhrasesStore.getState().setPhrases(["a", "b", "c"]);
+
+    useQuickPhrasesStore.getState().reorderPhrases(-1, 1);
+    useQuickPhrasesStore.getState().reorderPhrases(0, 5);
+    expect(useQuickPhrasesStore.getState().phrases).toEqual(["a", "b", "c"]);
+  });
+
   test("setPhrases truncates to max", () => {
     const many = Array.from({ length: MAX_PHRASES + 5 }, (_, i) => `p${i}`);
     useQuickPhrasesStore.getState().setPhrases(many);
