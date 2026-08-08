@@ -13,8 +13,10 @@ import {
   type OnNodesChange,
   type OnEdgesChange,
   type OnConnect,
+  type OnSelectionChangeFunc,
   type ReactFlowInstance,
   PanOnScrollMode,
+  SelectionMode,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -26,6 +28,8 @@ import { useFlowStore } from "@/stores/flowStore";
 import { type NodeTemplate } from "./nodes/template/nodeTemplates";
 import { nodeTypes } from "./nodes/template";
 import { DeskName } from "./DeskName";
+import { SelectionToolbar } from "./components/SelectionToolbar";
+import { useDeskSelectionActions } from "./hooks/useDeskSelectionActions";
 
 interface DeskCanvasProps {
   tabId: string;
@@ -38,6 +42,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
   const [edges, setEdges] = useState<Edge[]>([]);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const [isNodeDrawerOpen, setNodeDrawerOpen] = useState(false);
+  const [selectedCount, setSelectedCount] = useState(0);
 
   const { screenToFlowPosition, setViewport } = useReactFlow();
   const { resolvedTheme } = useTheme();
@@ -47,6 +52,16 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
 
   const rfInstanceRef = useRef<ReactFlowInstance | null>(null);
   rfInstanceRef.current = rfInstance;
+
+  // Snapshot the flow without transient `selected` flags so reopening a desk
+  // doesn't restore a stale selection.
+  const buildSnapshot = useCallback((instance: ReactFlowInstance) => {
+    const snapshot = instance.toObject();
+    return {
+      ...snapshot,
+      nodes: snapshot.nodes.map((node) => ({ ...node, selected: false })),
+    };
+  }, []);
 
   const onNodesChange: OnNodesChange<Node> = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -81,54 +96,42 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
   useEffect(() => {
     if (!rfInstance) return;
     const timeout = setTimeout(() => {
-      saveFlow(tabId, rfInstance.toObject());
+      saveFlow(tabId, buildSnapshot(rfInstance));
     }, 500);
     return () => clearTimeout(timeout);
-  }, [nodes, edges, rfInstance, saveFlow, tabId]);
+  }, [nodes, edges, rfInstance, saveFlow, tabId, buildSnapshot]);
 
   // save on unmount
   useEffect(() => {
     return () => {
       if (rfInstanceRef.current) {
-        saveFlow(tabId, rfInstanceRef.current.toObject());
+        saveFlow(tabId, buildSnapshot(rfInstanceRef.current));
       }
     };
-  }, [tabId, saveFlow]);
+  }, [tabId, saveFlow, buildSnapshot]);
 
-  const duplicateSelectedNodes = useCallback(() => {
-    const selectedNodes = nodes.filter((n) => n.selected);
-    if (selectedNodes.length === 0) return;
+  const { duplicate, deleteAll, align, distribute } = useDeskSelectionActions({
+    nodes,
+    setNodes,
+  });
 
-    setNodes((nds) =>
-      nds.map((node) => ({
-        ...node,
-        selected: false,
-      })),
-    );
-
-    const newNodes = selectedNodes.map((node) => ({
-      ...node,
-      id: createNodeId(),
-      position: {
-        x: node.position.x + 20,
-        y: node.position.y + 20,
-      },
-      selected: true,
-    }));
-
-    setNodes((nds) => [...nds, ...newNodes]);
-  }, [nodes]);
+  const onSelectionChange: OnSelectionChangeFunc = useCallback(
+    ({ nodes: sel }) => {
+      setSelectedCount(sel.length);
+    },
+    [],
+  );
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "d") {
         e.preventDefault();
-        duplicateSelectedNodes();
+        duplicate();
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [duplicateSelectedNodes]);
+  }, [duplicate]);
 
   const handleAddNode = useCallback(
     (template: NodeTemplate, data?: Record<string, unknown>) => {
@@ -156,10 +159,16 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        onSelectionChange={onSelectionChange}
         onInit={setRfInstance}
         fitView
         panOnScroll
         panOnScrollMode={PanOnScrollMode.Free}
+        selectionOnDrag
+        panOnDrag={false}
+        panActivationKeyCode="Space"
+        selectionMode={SelectionMode.Partial}
+        deleteKeyCode={["Backspace", "Delete"]}
         colorMode={colorMode}
         className="h-full w-full"
       >
@@ -176,6 +185,15 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
           >
             <PlusIcon />
           </Button>
+        </Panel>
+        <Panel position="bottom-center">
+          <SelectionToolbar
+            selectedCount={selectedCount}
+            onDuplicate={duplicate}
+            onDelete={deleteAll}
+            onAlign={align}
+            onDistribute={distribute}
+          />
         </Panel>
       </ReactFlow>
       <NodeDrawerSidebar
