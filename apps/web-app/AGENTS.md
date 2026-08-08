@@ -13,6 +13,12 @@ tabbed workspaces on the left, a chat/canvas/files surface in the middle, and a 
 It talks to **two** backends (see [Data layer](#data-layer)) and is the only app under
 `apps/` that ships with its own test suite, Storybook, and PWA assets.
 
+> **Read [`DESIGN.md`](./DESIGN.md) before implementing any UI.** It is the
+> persistent source of truth for the visual identity — colors, typography,
+> radii, spacing, component atoms, and the do's/don'ts. Tokens there mirror the
+> live CSS variables in `src/index.css`; keep them in sync. Validate with
+> `pnpm --filter web-app design:lint`.
+
 ### Stack
 
 React 19, TanStack Router (file-based, auto code-split) + TanStack Query, Zustand,
@@ -548,6 +554,10 @@ export const nodeTypes = nodeTemplates.reduce((acc, t) => {
 
 - **Tailwind v4** via `@tailwindcss/vite` (no `tailwind.config.js`). Theme tokens are CSS
   variables in `src/index.css`.
+- **DESIGN.md** — the canonical description of the design system: which tokens exist,
+  what they mean, and how to apply them. Read it first when picking colors, radii, or
+  component variants (see [What this app is](#what-this-app-is) for the link). When you
+  change a token in `src/index.css`, update DESIGN.md's YAML front matter to match.
 - **shadcn** config in `components.json`: style `"base-vega"`, baseColor `"neutral"`,
   cssVariables on, iconLibrary `lucide`. Aliases match the path aliases (`@/components`,
   `@/lib`, `@/components/ui`, `@/hooks`).
@@ -704,3 +714,5 @@ Other scripts:
    `pnpm --filter web-app check-types` still passes (the `Tab` union auto-extends).
 5. If you changed persisted store shapes, bump the store's `version` and add a `migrate`
    branch.
+6. If you changed design tokens in `src/index.css` or `DESIGN.md`, run
+   `pnpm --filter web-app design:lint` and keep the two files in sync.

@@ -13,7 +13,8 @@
     "build-storybook": "storybook build",
     "test": "vitest run",
     "test:watch": "vitest",
-    "generate:splash": "pnpm exec pwa-asset-generator public/text-icon.svg public/splash --splash-only -b '#FFFFFF'"
+    "generate:splash": "pnpm exec pwa-asset-generator public/text-icon.svg public/splash --splash-only -b '#FFFFFF'",
+    "design:lint": "npx @google/design.md lint DESIGN.md"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.1",
