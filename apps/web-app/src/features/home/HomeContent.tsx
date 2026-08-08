@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
+import { Link } from "@tanstack/react-router";
+import { Settings } from "lucide-react";
 import { useRecentSessions } from "@/hooks/queries";
 import { useTabStore } from "@/stores/tabStore";
 import type { Workspace } from "@/lib/cloudy/workspaces";
@@ -65,7 +67,17 @@ export function HomeContent() {
 
   return (
     <div className="h-full overflow-y-auto" ref={scrollRef}>
-      <div className="mx-auto w-full max-w-3xl px-6 py-10">{content}</div>
+      <div className="mx-auto w-full max-w-3xl px-6 py-10">
+        <div className="mb-4 flex justify-end">
+          <Link
+            to="/settings"
+            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <Settings size={16} />
+          </Link>
+        </div>
+        {content}
+      </div>
     </div>
   );
 }
