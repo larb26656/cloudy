@@ -8,190 +8,211 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as SettingsRouteImport } from './routes/settings'
-import { Route as DiffDebugRouteImport } from './routes/diff-debug'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as SettingsIndexRouteImport } from './routes/settings/index'
-import { Route as WorkspaceWorkspaceIdRouteImport } from './routes/workspace/$workspaceId'
-import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
-import { Route as SettingsAgentModelRouteImport } from './routes/settings/agent-model'
+import { Route as rootRouteImport } from "./routes/__root";
+import { Route as IndexRouteImport } from "./routes/index";
+import { Route as DiffDebugRouteImport } from "./routes/diff-debug";
+import { Route as SettingsRouteImport } from "./routes/settings";
+import { Route as SettingsIndexRouteImport } from "./routes/settings/index";
+import { Route as SettingsAgentModelRouteImport } from "./routes/settings/agent-model";
+import { Route as SettingsAppearanceRouteImport } from "./routes/settings/appearance";
+import { Route as SettingsQuickPhrasesRouteImport } from "./routes/settings/quick-phrases";
+import { Route as WorkspaceWorkspaceIdRouteImport } from "./routes/workspace/$workspaceId";
 
-const SettingsRoute = SettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DiffDebugRoute = DiffDebugRouteImport.update({
-  id: '/diff-debug',
-  path: '/diff-debug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
+const DiffDebugRoute = DiffDebugRouteImport.update({
+  id: "/diff-debug",
+  path: "/diff-debug",
+  getParentRoute: () => rootRouteImport,
+} as any);
+const SettingsRoute = SettingsRouteImport.update({
+  id: "/settings",
+  path: "/settings",
+  getParentRoute: () => rootRouteImport,
+} as any);
 const SettingsIndexRoute = SettingsIndexRouteImport.update({
-  id: '/',
-  path: '/',
+  id: "/",
+  path: "/",
   getParentRoute: () => SettingsRoute,
-} as any)
-const WorkspaceWorkspaceIdRoute = WorkspaceWorkspaceIdRouteImport.update({
-  id: '/workspace/$workspaceId',
-  path: '/workspace/$workspaceId',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
-  id: '/appearance',
-  path: '/appearance',
-  getParentRoute: () => SettingsRoute,
-} as any)
+} as any);
 const SettingsAgentModelRoute = SettingsAgentModelRouteImport.update({
-  id: '/agent-model',
-  path: '/agent-model',
+  id: "/agent-model",
+  path: "/agent-model",
   getParentRoute: () => SettingsRoute,
-} as any)
+} as any);
+const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
+  id: "/appearance",
+  path: "/appearance",
+  getParentRoute: () => SettingsRoute,
+} as any);
+const SettingsQuickPhrasesRoute = SettingsQuickPhrasesRouteImport.update({
+  id: "/quick-phrases",
+  path: "/quick-phrases",
+  getParentRoute: () => SettingsRoute,
+} as any);
+const WorkspaceWorkspaceIdRoute = WorkspaceWorkspaceIdRouteImport.update({
+  id: "/workspace/$workspaceId",
+  path: "/workspace/$workspaceId",
+  getParentRoute: () => rootRouteImport,
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/diff-debug': typeof DiffDebugRoute
-  '/settings': typeof SettingsRouteWithChildren
-  '/settings/agent-model': typeof SettingsAgentModelRoute
-  '/settings/appearance': typeof SettingsAppearanceRoute
-  '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
-  '/settings/': typeof SettingsIndexRoute
+  "/": typeof IndexRoute;
+  "/diff-debug": typeof DiffDebugRoute;
+  "/settings": typeof SettingsRouteWithChildren;
+  "/settings/agent-model": typeof SettingsAgentModelRoute;
+  "/settings/appearance": typeof SettingsAppearanceRoute;
+  "/settings/quick-phrases": typeof SettingsQuickPhrasesRoute;
+  "/workspace/$workspaceId": typeof WorkspaceWorkspaceIdRoute;
+  "/settings/": typeof SettingsIndexRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/diff-debug': typeof DiffDebugRoute
-  '/settings/agent-model': typeof SettingsAgentModelRoute
-  '/settings/appearance': typeof SettingsAppearanceRoute
-  '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
-  '/settings': typeof SettingsIndexRoute
+  "/": typeof IndexRoute;
+  "/diff-debug": typeof DiffDebugRoute;
+  "/settings/agent-model": typeof SettingsAgentModelRoute;
+  "/settings/appearance": typeof SettingsAppearanceRoute;
+  "/settings/quick-phrases": typeof SettingsQuickPhrasesRoute;
+  "/workspace/$workspaceId": typeof WorkspaceWorkspaceIdRoute;
+  "/settings": typeof SettingsIndexRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/diff-debug': typeof DiffDebugRoute
-  '/settings': typeof SettingsRouteWithChildren
-  '/settings/agent-model': typeof SettingsAgentModelRoute
-  '/settings/appearance': typeof SettingsAppearanceRoute
-  '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
-  '/settings/': typeof SettingsIndexRoute
+  __root__: typeof rootRouteImport;
+  "/": typeof IndexRoute;
+  "/diff-debug": typeof DiffDebugRoute;
+  "/settings": typeof SettingsRouteWithChildren;
+  "/settings/agent-model": typeof SettingsAgentModelRoute;
+  "/settings/appearance": typeof SettingsAppearanceRoute;
+  "/settings/quick-phrases": typeof SettingsQuickPhrasesRoute;
+  "/workspace/$workspaceId": typeof WorkspaceWorkspaceIdRoute;
+  "/settings/": typeof SettingsIndexRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
+  fileRoutesByFullPath: FileRoutesByFullPath;
   fullPaths:
-    | '/'
-    | '/diff-debug'
-    | '/settings'
-    | '/settings/agent-model'
-    | '/settings/appearance'
-    | '/workspace/$workspaceId'
-    | '/settings/'
-  fileRoutesByTo: FileRoutesByTo
+    | "/"
+    | "/diff-debug"
+    | "/settings"
+    | "/settings/agent-model"
+    | "/settings/appearance"
+    | "/settings/quick-phrases"
+    | "/workspace/$workspaceId"
+    | "/settings/";
+  fileRoutesByTo: FileRoutesByTo;
   to:
-    | '/'
-    | '/diff-debug'
-    | '/settings/agent-model'
-    | '/settings/appearance'
-    | '/workspace/$workspaceId'
-    | '/settings'
+    | "/"
+    | "/diff-debug"
+    | "/settings/agent-model"
+    | "/settings/appearance"
+    | "/settings/quick-phrases"
+    | "/workspace/$workspaceId"
+    | "/settings";
   id:
-    | '__root__'
-    | '/'
-    | '/diff-debug'
-    | '/settings'
-    | '/settings/agent-model'
-    | '/settings/appearance'
-    | '/workspace/$workspaceId'
-    | '/settings/'
-  fileRoutesById: FileRoutesById
+    | "__root__"
+    | "/"
+    | "/diff-debug"
+    | "/settings"
+    | "/settings/agent-model"
+    | "/settings/appearance"
+    | "/settings/quick-phrases"
+    | "/workspace/$workspaceId"
+    | "/settings/";
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  DiffDebugRoute: typeof DiffDebugRoute
-  SettingsRoute: typeof SettingsRouteWithChildren
-  WorkspaceWorkspaceIdRoute: typeof WorkspaceWorkspaceIdRoute
+  IndexRoute: typeof IndexRoute;
+  DiffDebugRoute: typeof DiffDebugRoute;
+  SettingsRoute: typeof SettingsRouteWithChildren;
+  WorkspaceWorkspaceIdRoute: typeof WorkspaceWorkspaceIdRoute;
 }
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface FileRoutesByPath {
-    '/settings': {
-      id: '/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof SettingsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/diff-debug': {
-      id: '/diff-debug'
-      path: '/diff-debug'
-      fullPath: '/diff-debug'
-      preLoaderRoute: typeof DiffDebugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/': {
-      id: '/settings/'
-      path: '/'
-      fullPath: '/settings/'
-      preLoaderRoute: typeof SettingsIndexRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/workspace/$workspaceId': {
-      id: '/workspace/$workspaceId'
-      path: '/workspace/$workspaceId'
-      fullPath: '/workspace/$workspaceId'
-      preLoaderRoute: typeof WorkspaceWorkspaceIdRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/settings/appearance': {
-      id: '/settings/appearance'
-      path: '/appearance'
-      fullPath: '/settings/appearance'
-      preLoaderRoute: typeof SettingsAppearanceRouteImport
-      parentRoute: typeof SettingsRoute
-    }
-    '/settings/agent-model': {
-      id: '/settings/agent-model'
-      path: '/agent-model'
-      fullPath: '/settings/agent-model'
-      preLoaderRoute: typeof SettingsAgentModelRouteImport
-      parentRoute: typeof SettingsRoute
-    }
+    "/": {
+      id: "/";
+      path: "/";
+      fullPath: "/";
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/diff-debug": {
+      id: "/diff-debug";
+      path: "/diff-debug";
+      fullPath: "/diff-debug";
+      preLoaderRoute: typeof DiffDebugRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings": {
+      id: "/settings";
+      path: "/settings";
+      fullPath: "/settings";
+      preLoaderRoute: typeof SettingsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    "/settings/": {
+      id: "/settings/";
+      path: "/";
+      fullPath: "/settings/";
+      preLoaderRoute: typeof SettingsIndexRouteImport;
+      parentRoute: typeof SettingsRoute;
+    };
+    "/settings/agent-model": {
+      id: "/settings/agent-model";
+      path: "/agent-model";
+      fullPath: "/settings/agent-model";
+      preLoaderRoute: typeof SettingsAgentModelRouteImport;
+      parentRoute: typeof SettingsRoute;
+    };
+    "/settings/appearance": {
+      id: "/settings/appearance";
+      path: "/appearance";
+      fullPath: "/settings/appearance";
+      preLoaderRoute: typeof SettingsAppearanceRouteImport;
+      parentRoute: typeof SettingsRoute;
+    };
+    "/settings/quick-phrases": {
+      id: "/settings/quick-phrases";
+      path: "/quick-phrases";
+      fullPath: "/settings/quick-phrases";
+      preLoaderRoute: typeof SettingsQuickPhrasesRouteImport;
+      parentRoute: typeof SettingsRoute;
+    };
+    "/workspace/$workspaceId": {
+      id: "/workspace/$workspaceId";
+      path: "/workspace/$workspaceId";
+      fullPath: "/workspace/$workspaceId";
+      preLoaderRoute: typeof WorkspaceWorkspaceIdRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
   }
 }
 
 interface SettingsRouteChildren {
-  SettingsAgentModelRoute: typeof SettingsAgentModelRoute
-  SettingsAppearanceRoute: typeof SettingsAppearanceRoute
-  SettingsIndexRoute: typeof SettingsIndexRoute
+  SettingsAgentModelRoute: typeof SettingsAgentModelRoute;
+  SettingsAppearanceRoute: typeof SettingsAppearanceRoute;
+  SettingsQuickPhrasesRoute: typeof SettingsQuickPhrasesRoute;
+  SettingsIndexRoute: typeof SettingsIndexRoute;
 }
 
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAgentModelRoute: SettingsAgentModelRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
+  SettingsQuickPhrasesRoute: SettingsQuickPhrasesRoute,
   SettingsIndexRoute: SettingsIndexRoute,
-}
+};
 
 const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
   SettingsRouteChildren,
-)
+);
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DiffDebugRoute: DiffDebugRoute,
   SettingsRoute: SettingsRouteWithChildren,
   WorkspaceWorkspaceIdRoute: WorkspaceWorkspaceIdRoute,
-}
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();

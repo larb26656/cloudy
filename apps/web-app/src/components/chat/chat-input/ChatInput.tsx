@@ -3,6 +3,7 @@ import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
 import { Button } from "@/components/ui/button";
 import { type ChatInputContent } from "@/lib/opencode";
+import { cn } from "@/lib/utils";
 import { ChatInputEditor } from "./ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
 import { useChat } from "../ChatProvider";
@@ -41,6 +42,7 @@ export const ChatInput = memo(function ChatInput({
 
   const [isListening, setIsListening] = useState(false);
   const [speechDraft, setSpeechDraft] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
 
   const speechBaseRef = useRef("");
   const prevListeningRef = useRef(false);
@@ -139,7 +141,15 @@ export const ChatInput = memo(function ChatInput({
     <div className="p-4 @container">
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col gap-2">
-          <div className="flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full">
+          <div
+            className="flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full"
+            onFocus={() => setIsFocused(true)}
+            onBlur={(e) => {
+              if (!e.currentTarget.contains(e.relatedTarget)) {
+                setIsFocused(false);
+              }
+            }}
+          >
             <div className="flex gap-2 w-full pt-2">
               <ChatInputEditor
                 content={{ ...chatInputContent, text: displayText }}
@@ -158,7 +168,12 @@ export const ChatInput = memo(function ChatInput({
             </div>
 
             <div className="flex justify-between gap-2">
-              <div className="flex gap-2 min-w-0 overflow-x-auto items-center">
+              <div
+                className={cn(
+                  "flex gap-2 min-w-0 overflow-x-auto items-center",
+                  !isFocused && "@max-[479px]:hidden",
+                )}
+              >
                 <AgentSelector />
                 <ModelSelector />
               </div>

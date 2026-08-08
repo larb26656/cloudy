@@ -6,9 +6,11 @@ import {
   createCommandSuggestion,
 } from "../extensions/suggestion";
 import { shouldShowSlashCommand } from "@/lib/command";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
+import { useQuickPhrasesStore } from "@/stores/quickPhrasesStore";
+import { QuickPhrasesBar } from "./QuickPhrasesBar";
 
 interface ChatInputEditorProps {
   content: ChatInputContent;
@@ -41,6 +43,9 @@ export function ChatInputEditor({
   disabled,
   directory,
 }: ChatInputEditorProps) {
+  const phrases = useQuickPhrasesStore((s) => s.phrases);
+  const [isEditorFocused, setIsEditorFocused] = useState(false);
+
   const extensions = useMemo(() => {
     return [
       StarterKit.configure({
@@ -79,6 +84,8 @@ export function ChatInputEditor({
     extensions,
     content: content.text,
     editable: !disabled,
+    onFocus: () => setIsEditorFocused(true),
+    onBlur: () => setIsEditorFocused(false),
     onUpdate: ({ editor }) => {
       onChange({
         text: editor.getText({ blockSeparator: "\n" }),
@@ -95,9 +102,27 @@ export function ChatInputEditor({
     }
   }, [content.text, editor]);
 
+  const handlePhraseSelect = (phrase: string) => {
+    if (!editor) return;
+    const text = editor.getText({ blockSeparator: "\n" });
+    const separator = text && !text.endsWith(" ") ? " " : "";
+    const endPos = editor.state.doc.content.size;
+    editor
+      .chain()
+      .focus()
+      .setTextSelection(endPos)
+      .insertContent(separator + phrase)
+      .run();
+  };
+
   return (
-    <div className="input-chat">
-      <EditorContent editor={editor} onKeyDown={onKeyDown} />
+    <div className="flex w-full flex-col">
+      {isEditorFocused && phrases.length > 0 && (
+        <QuickPhrasesBar phrases={phrases} onSelect={handlePhraseSelect} />
+      )}
+      <div className="input-chat">
+        <EditorContent editor={editor} onKeyDown={onKeyDown} />
+      </div>
     </div>
   );
 }
