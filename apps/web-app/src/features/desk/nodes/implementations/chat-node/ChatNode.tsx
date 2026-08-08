@@ -51,7 +51,6 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       selected={selected}
       maxWidth={1200}
       maxHeight={1200}
-      workspaceId={data.workspaceId}
       actions={[
         {
           icon: ExternalLink,

@@ -5,15 +5,23 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SessionStatusBar } from "./SessionStatusBar";
 import preview from "../../../.storybook/preview";
 import type { Session } from "@opencode-ai/sdk/v2";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 
 const DEMO_DIRECTORY = "/demo/project";
 const DEMO_SESSION_ID = "ses_demo_status";
 
+const DEMO_WORKSPACE: Workspace = {
+  id: "ws_demo",
+  name: "demo-project",
+  color: "#3B82F6",
+  directory: DEMO_DIRECTORY,
+  createdAt: new Date("2024-01-01"),
+  updatedAt: new Date("2024-01-01"),
+};
+
 type TokenShape = NonNullable<Session["tokens"]>;
 
-function makeTokens(
-  overrides: Partial<TokenShape> = {},
-): TokenShape {
+function makeTokens(overrides: Partial<TokenShape> = {}): TokenShape {
   return {
     input: 0,
     output: 0,
@@ -107,7 +115,13 @@ const meta = preview.meta({
 
 export default meta;
 
-function StatusBarInBox({ width }: { width: string }) {
+function StatusBarInBox({
+  width,
+  workspace = DEMO_WORKSPACE,
+}: {
+  width: string;
+  workspace?: Workspace | null;
+}) {
   return (
     <div className="flex flex-col items-center gap-2 p-8">
       <p className="text-sm text-muted-foreground">
@@ -120,6 +134,7 @@ function StatusBarInBox({ width }: { width: string }) {
         <SessionStatusBar
           sessionId={DEMO_SESSION_ID}
           directory={DEMO_DIRECTORY}
+          workspace={workspace}
         />
       </div>
     </div>
@@ -156,6 +171,11 @@ export const EmptyWhenZero = meta.story({
   render: () => <StatusBarInBox width="700px" />,
 });
 
+export const NoWorkspace = meta.story({
+  parameters: { msw: { handlers: createHandlers(fullSession) } },
+  render: () => <StatusBarInBox width="700px" workspace={null} />,
+});
+
 function ResizableContainer() {
   const [width, setWidth] = useState(320);
   return (
@@ -180,6 +200,7 @@ function ResizableContainer() {
         <SessionStatusBar
           sessionId={DEMO_SESSION_ID}
           directory={DEMO_DIRECTORY}
+          workspace={DEMO_WORKSPACE}
         />
       </div>
     </div>

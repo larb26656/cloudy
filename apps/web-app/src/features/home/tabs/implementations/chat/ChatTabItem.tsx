@@ -25,7 +25,6 @@ export function ChatTabItem({
     <TabItemShell
       icon={MessageCircle}
       label={displayName}
-      workspaceId={tab.data.workspaceId}
       isActive={isActive}
       onClick={onClick}
       onClose={onClose}

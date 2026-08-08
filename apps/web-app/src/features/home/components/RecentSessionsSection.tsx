@@ -50,6 +50,7 @@ export function RecentSessionsSection() {
               key={session.id}
               session={session}
               workspaceName={workspace?.name}
+              workspaceId={workspace?.id}
               directory={dir}
               onClick={() => handleOpen(session)}
             />

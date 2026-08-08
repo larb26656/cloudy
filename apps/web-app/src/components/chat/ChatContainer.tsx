@@ -52,6 +52,7 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
     isGenerating,
     directory,
     sessionId,
+    workspace,
     changeSession,
     sessionPickerOpen,
     setSessionPickerOpen,
@@ -102,7 +103,11 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
         <ChatInput placeholder={chatplaceholder} />
       </MessageScrollerProvider>
 
-      <SessionStatusBar sessionId={sessionId} directory={directory} />
+      <SessionStatusBar
+        sessionId={sessionId}
+        directory={directory}
+        workspace={workspace}
+      />
 
       {currentQuestion && (
         <QuestionSheet

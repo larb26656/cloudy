@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useTabStore } from "@/stores/tabStore";
 import {
   Dialog,
   DialogContent,
@@ -9,25 +8,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { normalizeUrl } from "@/lib/url";
+import type { ConfigDialogProps } from "../../template";
 
-interface WebviewCreateDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export function WebviewCreateDialog({
+export function WebviewNodeCreateDialog({
   open,
   onOpenChange,
-}: WebviewCreateDialogProps) {
-  const addTab = useTabStore((s) => s.addTab);
+  onSubmit,
+}: ConfigDialogProps) {
   const [url, setUrl] = useState("");
 
   const handleOpen = () => {
     const normalized = normalizeUrl(url);
     if (!normalized) return;
-    addTab("webview", { url: normalized });
+    onSubmit({ url: normalized });
     setUrl("");
-    onOpenChange(false);
   };
 
   return (

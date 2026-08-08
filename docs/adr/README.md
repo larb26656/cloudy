@@ -27,6 +27,7 @@ sequence number automatically.
 
 | ID   | Title                                                                                                                           | Status   | Date       |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------- |
+| 0004 | [Keep Workspace in chat context instead of resolving at the leaf](0004-keep-workspace-in-chat-context.md)                       | Accepted | 2026-08-08 |
 | 0003 | [Make ChatProvider own chat actions](0003-make-chatprovider-own-chat-actions.md)                                                | Accepted | 2026-08-03 |
 | 0002 | [Use ChatProvider context for per-session agent/model selection](0002-per-session-agent-model-via-chat-provider.md)             | Accepted | 2026-08-02 |
 | 0001 | [Adopt 3-tier layered architecture with DI for @repo/server](0001-adopt-3-tier-layered-architecture-with-di-for-repo-server.md) | Accepted | 2026-08-02 |

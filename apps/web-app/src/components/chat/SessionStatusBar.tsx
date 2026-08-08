@@ -5,12 +5,16 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { PathText } from "@/components/ui/path-text";
+import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
 import { useSession } from "@/hooks/queries/useSessions";
 import { formatCompact, formatNumber, formatPercentage } from "@/lib/format";
+import type { Workspace } from "@/lib/cloudy/workspaces";
 
 interface SessionStatusBarProps {
   sessionId: string | null;
   directory: string;
+  workspace?: Workspace | null;
 }
 
 interface TokenValues {
@@ -82,6 +86,7 @@ function TooltipDetails({ v }: { v: TokenValues }) {
 export const SessionStatusBar = memo(function SessionStatusBar({
   sessionId,
   directory,
+  workspace = null,
 }: SessionStatusBarProps) {
   const { data: session } = useSession({ sessionId, directory });
 
@@ -96,8 +101,6 @@ export const SessionStatusBar = memo(function SessionStatusBar({
   const cacheWrite = tokens?.cache.write ?? 0;
   const total = input + output + reasoning;
 
-  if (total === 0 && cost === 0) return null;
-
   const v: TokenValues = {
     cost,
     input,
@@ -111,15 +114,28 @@ export const SessionStatusBar = memo(function SessionStatusBar({
   return (
     <div className="@container px-4 pb-1">
       <div className="max-w-4xl mx-auto text-xs text-muted-foreground">
+        {/* Wide (>=40rem container): directory+badge left, cost+tokens right */}
         <div className="hidden @[40rem]:flex items-center gap-2">
-          {/* Wide (>=40rem container): cost left + tokens right */}
-          <div className="hidden @[40rem]:flex items-center gap-1">
-            <Coins className="size-3" />
-            <span>${cost.toFixed(6)}</span>
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            {workspace && (
+              <WorkspaceBadge
+                workspaceName={workspace.name}
+                directory={directory}
+                workspaceId={workspace.id}
+              />
+            )}
+            <PathText path={directory} />
           </div>
 
+          {cost > 0 && (
+            <div className="flex shrink-0 items-center gap-1">
+              <Coins className="size-3" />
+              <span>${cost.toFixed(6)}</span>
+            </div>
+          )}
+
           {total > 0 && (
-            <div className="flex-1 flex justify-end items-center gap-1.5">
+            <div className="flex shrink-0 items-center gap-1.5">
               {input > 0 && (
                 <Tooltip>
                   <TooltipTrigger className="inline-flex items-center gap-0.5 hover:text-foreground transition-colors cursor-pointer">
@@ -187,25 +203,38 @@ export const SessionStatusBar = memo(function SessionStatusBar({
           )}
         </div>
 
-        {/* Narrow (<40rem container): total tokens only, full breakdown in tooltip */}
-        <div className="flex @[40rem]:hidden justify-center">
-          <div className="flex items-center gap-1">
-            <Coins className="size-3" />
-            <span>${cost.toFixed(6)}</span>
+        {/* Narrow (<40rem container): directory+badge left, cost+total right */}
+        <div className="flex @[40rem]:hidden items-center gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            {workspace && (
+              <WorkspaceBadge
+                workspaceName={workspace.name}
+                directory={directory}
+                workspaceId={workspace.id}
+              />
+            )}
+            <PathText path={directory} />
           </div>
-          <div className="flex-1"></div>
-          <Tooltip>
-            <TooltipTrigger className="inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer">
-              {total > 0 && (
+
+          {cost > 0 && (
+            <div className="flex shrink-0 items-center gap-1">
+              <Coins className="size-3" />
+              <span>${cost.toFixed(6)}</span>
+            </div>
+          )}
+
+          {total > 0 && (
+            <Tooltip>
+              <TooltipTrigger className="shrink-0 inline-flex items-center gap-1 hover:text-foreground transition-colors cursor-pointer">
                 <span className="tabular-nums">
                   {formatCompact(total)} tokens
                 </span>
-              )}
-            </TooltipTrigger>
-            <TooltipContent className="w-auto">
-              <TooltipDetails v={v} />
-            </TooltipContent>
-          </Tooltip>
+              </TooltipTrigger>
+              <TooltipContent className="w-auto">
+                <TooltipDetails v={v} />
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
       </div>
     </div>
