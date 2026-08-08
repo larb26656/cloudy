@@ -40,13 +40,9 @@ export default function CollapsiblePart({
           </span>
         )}
         {trailing}
-        {running && (
-          <span className="ml-auto size-1.5 rounded-full bg-current animate-pulse" />
-        )}
         <ChevronDownIcon
           className={cn(
-            "transition-opacity opacity-0 group-hover:opacity-100 group-data-[open]:opacity-100 group-data-[open]:rotate-180",
-            !running && "ml-auto",
+            "ml-auto transition-opacity opacity-0 group-hover:opacity-100 group-data-[open]:opacity-100 group-data-[open]:rotate-180",
           )}
         />
       </CollapsibleTrigger>
