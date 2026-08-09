@@ -15,6 +15,7 @@ import { pickFresher } from "@/lib/message";
 import { IsVisible } from "@/components/utils/IsVisible";
 import { RetryMessage } from "./RetryMessage";
 import { SessionErrorMessage } from "./SessionErrorMessage";
+import { ArrowDownIcon } from "lucide-react";
 import {
   MessageScroller,
   MessageScrollerViewport,
@@ -239,7 +240,10 @@ export const MessageList = memo(function MessageList({
             )}
           </MessageScrollerContent>
         </MessageScrollerViewport>
-        <MessageScrollerButton />
+        <MessageScrollerButton size="icon-lg" className="rounded-full">
+          <ArrowDownIcon className="size-5" />
+          <span className="sr-only">Scroll to end</span>
+        </MessageScrollerButton>
       </MessageScroller>
     </div>
   );
