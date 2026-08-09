@@ -1,29 +1,28 @@
-import { useEffect, useState, useCallback, useMemo, memo, useRef } from "react";
+import { memo, useCallback, useMemo, useState } from "react";
+import { Bot, ListTree, Search, User, X } from "lucide-react";
 import type { Message } from "@/types/message";
-import { User, Bot, Search } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
+import {
+  useMessageScroller,
+  useMessageScrollerVisibility,
+} from "@/components/ui/message-scroller";
 import { cn } from "@/lib/utils";
 
 interface ChatMinimapProps {
   messages: Message[];
-  scrollRef: React.RefObject<HTMLDivElement | null>;
-  isVisible: boolean;
-  onClose?: () => void;
+  onClose: () => void;
 }
 
 interface MinimapItem {
   id: string;
   role: "user" | "assistant";
   preview: string;
-  partTypes: string[];
-  textContent: string;
 }
 
 function extractPreview(message: Message): MinimapItem {
   const role = message.info.role as "user" | "assistant";
   const partTypes: string[] = [];
   let preview = "";
-  let textContent = "";
 
   for (const part of message.parts) {
     partTypes.push(part.type);
@@ -33,7 +32,6 @@ function extractPreview(message: Message): MinimapItem {
       if (textPart.text) {
         const truncated = textPart.text.slice(0, 50);
         if (!preview) preview = truncated;
-        textContent += textPart.text.toLowerCase();
       }
     }
   }
@@ -64,158 +62,79 @@ function extractPreview(message: Message): MinimapItem {
     id: message.info.id,
     role,
     preview,
-    partTypes,
-    textContent,
   };
 }
 
 export const ChatMinimap = memo(function ChatMinimap({
   messages,
-  scrollRef,
-  isVisible,
   onClose,
 }: ChatMinimapProps) {
-  const [activeId, setActiveId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const { scrollToMessage } = useMessageScroller();
+  const { currentAnchorId, visibleMessageIds } = useMessageScrollerVisibility();
 
-  const items: MinimapItem[] = useMemo(
-    () =>
-      messages
-        .map(extractPreview)
-        .filter((item) => item.textContent.length > 0),
-    [messages],
-  );
+  const items = useMemo(() => messages.map(extractPreview), [messages]);
 
   const filteredItems = useMemo(() => {
     if (!searchQuery.trim()) return items;
     const query = searchQuery.toLowerCase();
-    return items.filter(
-      (item) =>
-        item.preview.toLowerCase().includes(query) ||
-        item.textContent.includes(query),
-    );
+    return items.filter((item) => item.preview.toLowerCase().includes(query));
   }, [items, searchQuery]);
 
-  const scrollToMessage = useCallback(
-    (messageId: string) => {
-      if (!scrollRef.current) return;
-
-      const scrollContainer = scrollRef.current;
-      const messageElement = scrollContainer.querySelector(
-        `[data-message-id="${messageId}"]`,
-      );
-
-      if (messageElement) {
-        messageElement.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
-        });
-      }
-    },
-    [scrollRef],
+  const visibleSet = useMemo(
+    () => new Set(visibleMessageIds),
+    [visibleMessageIds],
   );
 
-  const observerRef = useRef<IntersectionObserver | null>(null);
-
-  useEffect(() => {
-    if (!scrollRef.current || !isVisible) return;
-
-    const scrollContainer = scrollRef.current;
-
-    if (!observerRef.current) {
-      observerRef.current = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              const messageId = entry.target.getAttribute("data-message-id");
-              if (messageId) {
-                setActiveId(messageId);
-              }
-            }
-          }
-        },
-        {
-          root: scrollContainer,
-          threshold: 0.5,
-        },
-      );
-    }
-
-    const observer = observerRef.current;
-    const messageElements =
-      scrollContainer.querySelectorAll("[data-message-id]");
-    for (const el of messageElements) {
-      observer.observe(el);
-    }
-
-    return () => observer.disconnect();
-  }, [messages, scrollRef, isVisible]);
-
-  if (!isVisible) return null;
+  const handleClick = useCallback(
+    (messageId: string) => {
+      scrollToMessage(messageId, {
+        align: "center",
+        behavior: "smooth",
+      });
+    },
+    [scrollToMessage],
+  );
 
   return (
-    <div className="fixed right-2 top-20 w-56 h-[calc(100vh-10rem)] bg-background/95 backdrop-blur border rounded-lg shadow-xl flex flex-col z-50">
+    <div className="absolute right-2 top-2 bottom-2 w-56 z-40 bg-background/95 backdrop-blur border rounded-lg shadow-xl flex flex-col">
       <div className="flex items-center justify-between px-3 py-2 border-b">
-        <span className="text-xs font-medium text-muted-foreground">
-          Chat Outline
-        </span>
+        <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <ListTree className="size-3.5" />
+          <span>Chat Outline</span>
+        </div>
         <button
           onClick={onClose}
           className="text-muted-foreground hover:text-foreground transition-colors"
-          disabled={!onClose}
+          aria-label="Close chat outline"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <path d="M18 6 6 18" />
-            <path d="m6 6 12 12" />
-          </svg>
+          <X className="size-3.5" />
         </button>
       </div>
 
       <div className="px-2 py-1.5 border-b">
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-muted-foreground" />
+          <Search className="absolute left-2 top-1/2 -translate-y-1/2 size-3 text-muted-foreground" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search messages..."
-            className="w-full pl-7 pr-2 py-1 text-xs bg-muted/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground"
+            className="w-full pl-7 pr-7 py-1 text-xs bg-muted/50 border rounded-md focus:outline-none focus:ring-1 focus:ring-primary placeholder:text-muted-foreground"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery("")}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              aria-label="Clear search"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="10"
-                height="10"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
+              <X className="size-3" />
             </button>
           )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto py-1">
+      <div className="flex-1 overflow-y-auto py-1 scrollbar-thin">
         {filteredItems.length === 0 ? (
           <EmptyState
             size="inline"
@@ -223,27 +142,25 @@ export const ChatMinimap = memo(function ChatMinimap({
           />
         ) : (
           filteredItems.map((item) => {
-            const isActive = activeId === item.id;
-            const isSearchMatch =
-              searchQuery &&
-              item.textContent.includes(searchQuery.toLowerCase());
+            const isActive =
+              item.id === currentAnchorId || visibleSet.has(item.id);
 
             return (
               <button
                 key={item.id}
-                onClick={() => scrollToMessage(item.id)}
+                onClick={() => handleClick(item.id)}
                 className={cn(
-                  "w-full px-3 py-1.5 text-left text-xs flex items-start gap-2 transition-all",
-                  "hover:bg-muted/50",
-                  isActive && !isSearchMatch && "bg-muted/30",
-                  isSearchMatch && "bg-primary/10",
+                  "w-full px-3 py-1.5 text-left text-xs flex items-start gap-2 transition-colors",
+                  "hover:bg-muted/60",
+                  isActive && "bg-muted/40 text-foreground",
+                  !isActive && "text-muted-foreground",
                 )}
               >
                 <span className="flex-shrink-0 mt-0.5">
                   {item.role === "user" ? (
-                    <User className="w-3 h-3 text-primary" />
+                    <User className="size-3 text-primary" />
                   ) : (
-                    <Bot className="w-3 h-3 text-muted-foreground" />
+                    <Bot className="size-3" />
                   )}
                 </span>
                 <span className="truncate flex-1 leading-tight">

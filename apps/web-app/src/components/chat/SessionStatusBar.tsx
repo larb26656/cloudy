@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Coins } from "lucide-react";
+import { Coins, ListTree } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -8,6 +8,7 @@ import {
 import { PathText } from "@/components/ui/path-text";
 import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
 import { useSession } from "@/hooks/queries/useSessions";
+import { cn } from "@/lib/utils";
 import { formatCompact, formatNumber, formatPercentage } from "@/lib/format";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 
@@ -15,6 +16,8 @@ interface SessionStatusBarProps {
   sessionId: string | null;
   directory: string;
   workspace?: Workspace | null;
+  minimapOpen?: boolean;
+  onToggleMinimap?: () => void;
 }
 
 interface TokenValues {
@@ -87,8 +90,27 @@ export const SessionStatusBar = memo(function SessionStatusBar({
   sessionId,
   directory,
   workspace = null,
+  minimapOpen = false,
+  onToggleMinimap,
 }: SessionStatusBarProps) {
   const { data: session } = useSession({ sessionId, directory });
+
+  const MinimapToggle = onToggleMinimap ? (
+    <Tooltip>
+      <TooltipTrigger
+        onClick={onToggleMinimap}
+        aria-label="Toggle chat outline"
+        data-active={minimapOpen ? "true" : undefined}
+        className={cn(
+          "inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground cursor-pointer",
+          minimapOpen && "bg-muted text-foreground",
+        )}
+      >
+        <ListTree className="size-3" />
+      </TooltipTrigger>
+      <TooltipContent>Toggle chat outline</TooltipContent>
+    </Tooltip>
+  ) : null;
 
   if (!session) return null;
 
@@ -201,6 +223,8 @@ export const SessionStatusBar = memo(function SessionStatusBar({
               )}
             </div>
           )}
+
+          {MinimapToggle}
         </div>
 
         {/* Narrow (<40rem container): directory+badge left, cost+total right */}
@@ -235,6 +259,8 @@ export const SessionStatusBar = memo(function SessionStatusBar({
               </TooltipContent>
             </Tooltip>
           )}
+
+          {MinimapToggle}
         </div>
       </div>
     </div>

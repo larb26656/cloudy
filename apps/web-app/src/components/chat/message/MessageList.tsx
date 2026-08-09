@@ -2,6 +2,7 @@ import { useMemo, memo, useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { MessageBubble } from "./MessageBubble";
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
+import { ChatMinimap } from "../ChatMinimap";
 import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
 import ThinkingAnimation from "./ThinkingAnimation";
@@ -29,6 +30,8 @@ interface MessageListProps {
   directory?: string;
   isShowEmptyState?: boolean;
   onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
+  minimapOpen?: boolean;
+  onCloseMinimap?: () => void;
 }
 
 export const MessageList = memo(function MessageList({
@@ -36,6 +39,8 @@ export const MessageList = memo(function MessageList({
   directory,
   isShowEmptyState = true,
   onSnippetSelect,
+  minimapOpen = false,
+  onCloseMinimap,
 }: MessageListProps) {
   const streamingIds = useStreamingMessagesStore(
     useShallow((s) => {
@@ -245,6 +250,10 @@ export const MessageList = memo(function MessageList({
           <span className="sr-only">Scroll to end</span>
         </MessageScrollerButton>
       </MessageScroller>
+
+      {minimapOpen && onCloseMinimap && remoteMessages.length > 0 && (
+        <ChatMinimap messages={remoteMessages} onClose={onCloseMinimap} />
+      )}
     </div>
   );
 });

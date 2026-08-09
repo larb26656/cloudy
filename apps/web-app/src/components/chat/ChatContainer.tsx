@@ -47,6 +47,7 @@ type ChatContainerContentProps = {
 function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
   const [questionOpen, setQuestionOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
+  const [minimapOpen, setMinimapOpen] = useState(false);
   const {
     abortGeneration,
     isGenerating,
@@ -98,7 +99,12 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
       </div>
 
       <MessageScrollerProvider autoScroll>
-        <MessageList selectedSessionId={sessionId} directory={directory} />
+        <MessageList
+          selectedSessionId={sessionId}
+          directory={directory}
+          minimapOpen={minimapOpen}
+          onCloseMinimap={() => setMinimapOpen(false)}
+        />
 
         <ChatInput placeholder={chatplaceholder} />
       </MessageScrollerProvider>
@@ -107,6 +113,8 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
         sessionId={sessionId}
         directory={directory}
         workspace={workspace}
+        minimapOpen={minimapOpen}
+        onToggleMinimap={() => setMinimapOpen((v) => !v)}
       />
 
       {currentQuestion && (

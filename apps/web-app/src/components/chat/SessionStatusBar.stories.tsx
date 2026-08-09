@@ -211,3 +211,29 @@ export const Resizable = meta.story({
   parameters: { msw: { handlers: createHandlers(fullSession) } },
   render: () => <ResizableContainer />,
 });
+
+function MinimapToggleDemo() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="flex flex-col items-center gap-3 p-8">
+      <p className="text-sm text-muted-foreground">
+        Minimap toggle state:{" "}
+        <code className="text-foreground">{open ? "open" : "closed"}</code>
+      </p>
+      <div className="w-full max-w-2xl border rounded-lg bg-background overflow-hidden">
+        <SessionStatusBar
+          sessionId={DEMO_SESSION_ID}
+          directory={DEMO_DIRECTORY}
+          workspace={DEMO_WORKSPACE}
+          minimapOpen={open}
+          onToggleMinimap={() => setOpen((v) => !v)}
+        />
+      </div>
+    </div>
+  );
+}
+
+export const WithMinimapToggle = meta.story({
+  parameters: { msw: { handlers: createHandlers(fullSession) } },
+  render: () => <MinimapToggleDemo />,
+});
