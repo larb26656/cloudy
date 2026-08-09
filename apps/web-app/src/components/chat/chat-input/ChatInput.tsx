@@ -4,6 +4,8 @@ import { AgentSelector } from "../AgentSelector";
 import { Button } from "@/components/ui/button";
 import { type ChatInputContent } from "@/lib/opencode";
 import { cn } from "@/lib/utils";
+import { getNextName } from "@/lib/cycleName";
+import { useAgents } from "@/hooks/queries/useAgents";
 import { ChatInputEditor } from "./ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
 import { useChat } from "../ChatProvider";
@@ -34,15 +36,19 @@ export const ChatInput = memo(function ChatInput({
     sendMessage,
     abortGeneration,
     executeImmediateCommand,
+    setAgent,
     isSending,
     isStreaming,
   } = useChat();
+
+  const { data: agents } = useAgents();
 
   const { scrollToEnd } = useMessageScroller();
 
   const [isListening, setIsListening] = useState(false);
   const [speechDraft, setSpeechDraft] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [modelOpen, setModelOpen] = useState(false);
 
   const speechBaseRef = useRef("");
   const prevListeningRef = useRef(false);
@@ -118,10 +124,30 @@ export const ChatInput = memo(function ChatInput({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "m") {
+      e.preventDefault();
+      setModelOpen(true);
+      return;
+    }
+
     if (e.key === "Escape") {
       if (isStreaming && !displayText.trim()) {
         e.preventDefault();
         abortGeneration();
+      }
+      return;
+    }
+
+    if (e.key === "Tab") {
+      const names = agents?.map((a) => a.name) ?? [];
+      if (names.length > 0) {
+        e.preventDefault();
+        const next = getNextName(
+          names,
+          effectiveAgent,
+          e.shiftKey ? "prev" : "next",
+        );
+        if (next) setAgent(next);
       }
       return;
     }
@@ -188,7 +214,7 @@ export const ChatInput = memo(function ChatInput({
                 )}
               >
                 <AgentSelector />
-                <ModelSelector />
+                <ModelSelector open={modelOpen} onOpenChange={setModelOpen} />
               </div>
 
               <div className="flex gap-2 shrink-0">
@@ -224,6 +250,7 @@ export const ChatInput = memo(function ChatInput({
           <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden @compact:block">
             Press Enter to send, Shift + Enter for new line
             {directory && " • @ or / to mention files"}
+            {" • Tab to switch agent"}
             {" • Cmd/Ctrl + M for model"}
           </div>
         </div>

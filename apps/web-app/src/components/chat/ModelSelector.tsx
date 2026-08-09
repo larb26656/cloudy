@@ -47,8 +47,15 @@ const FALLBACK_PROVIDERS: ModelProvider[] = [
   },
 ];
 
-export function ModelSelector() {
-  const [isOpen, setIsOpen] = useState(false);
+interface ModelSelectorProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function ModelSelector({ open, onOpenChange }: ModelSelectorProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open ?? internalOpen;
+  const setIsOpen = onOpenChange ?? setInternalOpen;
   const [searchQuery, setSearchQuery] = useState("");
   const { effectiveModel, setModel } = useChat();
   const inputRef = useRef<HTMLInputElement>(null);

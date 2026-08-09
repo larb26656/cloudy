@@ -5,6 +5,8 @@ import type { SessionStatus } from "@opencode-ai/sdk/v2";
 import { ChatProvider } from "../ChatProvider";
 import { ChatInput } from "./ChatInput";
 import { MessageScrollerProvider } from "@/components/ui/message-scroller";
+import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
+import { useSessionAgentModelStore } from "@/stores/sessionAgentModelStore";
 
 const mocks = vi.hoisted(() => ({
   sendMessage: vi.fn(),
@@ -15,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   toastError: vi.fn(),
   sessionStatuses: {} as Record<string, SessionStatus>,
   isSending: false,
+  agents: ["build", "plan", "explore"] as string[],
 }));
 
 vi.mock("@/hooks/queries/useMessages", () => ({
@@ -25,6 +28,10 @@ vi.mock("@/hooks/queries/useMessages", () => ({
       return mocks.isSending;
     },
   }),
+}));
+
+vi.mock("@/hooks/queries/useAgents", () => ({
+  useAgents: () => ({ data: mocks.agents.map((name) => ({ name })) }),
 }));
 
 vi.mock("@/hooks/queries/useCommand", () => ({
@@ -57,6 +64,8 @@ vi.mock("./ChatInputEditor", () => ({
     onKeyDown: (e: {
       key: string;
       shiftKey?: boolean;
+      metaKey?: boolean;
+      ctrlKey?: boolean;
       preventDefault?: () => void;
     }) => void;
     placeholder?: string;
@@ -73,6 +82,8 @@ vi.mock("./ChatInputEditor", () => ({
         onKeyDown({
           key: e.key,
           shiftKey: e.shiftKey,
+          metaKey: e.metaKey,
+          ctrlKey: e.ctrlKey,
           preventDefault: () => e.preventDefault(),
         })
       }
@@ -80,7 +91,11 @@ vi.mock("./ChatInputEditor", () => ({
   ),
 }));
 
-vi.mock("../ModelSelector", () => ({ ModelSelector: () => null }));
+vi.mock("../ModelSelector", () => ({
+  ModelSelector: ({ open }: { open?: boolean }) => (
+    <div data-testid="model-selector" data-open={open ? "true" : "false"} />
+  ),
+}));
 vi.mock("../AgentSelector", () => ({ AgentSelector: () => null }));
 vi.mock("./SpeechBtn", () => ({ default: () => null }));
 
@@ -110,9 +125,12 @@ function typeText(text: string) {
   fireEvent.change(editor, { target: { value: text } });
 }
 
-function pressKey(key: string, shiftKey = false) {
+function pressKey(
+  key: string,
+  opts: { shiftKey?: boolean; metaKey?: boolean; ctrlKey?: boolean } = {},
+) {
   const editor = screen.getByLabelText("chat-editor");
-  fireEvent.keyDown(editor, { key, shiftKey });
+  fireEvent.keyDown(editor, { key, ...opts });
 }
 
 describe("ChatInput — abort/send button behavior", () => {
@@ -223,7 +241,7 @@ describe("ChatInput — abort/send button behavior", () => {
     test("Shift+Enter does not send (new line)", async () => {
       renderInput();
       typeText("queued");
-      pressKey("Enter", true);
+      pressKey("Enter", { shiftKey: true });
       expect(mocks.sendMessage).not.toHaveBeenCalled();
     });
   });
@@ -288,5 +306,122 @@ describe("ChatInput — abort/send button behavior", () => {
         screen.getByRole("button", { name: "Send message" }),
       ).toBeInTheDocument();
     });
+  });
+});
+
+describe("ChatInput — Tab cycles agents", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.isSending = false;
+    mocks.agents = ["build", "plan", "explore"];
+    mocks.sessionStatuses = { [SESSION_ID]: { type: "idle" } };
+    mocks.sendMessage.mockResolvedValue(undefined);
+    useDefaultAgentStore.setState({ defaultAgent: null });
+    useSessionAgentModelStore.setState({ sessions: {} });
+  });
+
+  test("Tab from default (null) selects first agent", () => {
+    renderInput();
+    pressKey("Tab");
+    expect(
+      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
+    ).toBe("build");
+  });
+
+  test("Tab advances to next agent", () => {
+    useSessionAgentModelStore.getState().setSessionAgent(SESSION_ID, "build");
+    renderInput();
+    pressKey("Tab");
+    expect(
+      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
+    ).toBe("plan");
+  });
+
+  test("Tab wraps from last to first", () => {
+    useSessionAgentModelStore.getState().setSessionAgent(SESSION_ID, "explore");
+    renderInput();
+    pressKey("Tab");
+    expect(
+      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
+    ).toBe("build");
+  });
+
+  test("Shift+Tab goes backward", () => {
+    useSessionAgentModelStore.getState().setSessionAgent(SESSION_ID, "plan");
+    renderInput();
+    pressKey("Tab", { shiftKey: true });
+    expect(
+      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
+    ).toBe("build");
+  });
+
+  test("Shift+Tab wraps from first to last", () => {
+    useSessionAgentModelStore.getState().setSessionAgent(SESSION_ID, "build");
+    renderInput();
+    pressKey("Tab", { shiftKey: true });
+    expect(
+      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
+    ).toBe("explore");
+  });
+
+  test("Tab is a no-op when agent list is empty (no setAgent call)", () => {
+    mocks.agents = [];
+    renderInput();
+    pressKey("Tab");
+    expect(
+      useSessionAgentModelStore.getState().sessions[SESSION_ID],
+    ).toBeUndefined();
+  });
+
+  test("Tab does not send a message", async () => {
+    renderInput();
+    typeText("hello");
+    await act(async () => {
+      pressKey("Tab");
+    });
+    expect(mocks.sendMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe("ChatInput — Cmd/Ctrl + M opens model dropdown", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.sessionStatuses = { [SESSION_ID]: { type: "idle" } };
+  });
+
+  test("Cmd+M opens the model selector", () => {
+    renderInput();
+    pressKey("m", { metaKey: true });
+    expect(screen.getByTestId("model-selector")).toHaveAttribute(
+      "data-open",
+      "true",
+    );
+  });
+
+  test("Ctrl+M opens the model selector", () => {
+    renderInput();
+    pressKey("m", { ctrlKey: true });
+    expect(screen.getByTestId("model-selector")).toHaveAttribute(
+      "data-open",
+      "true",
+    );
+  });
+
+  test("plain M does not open the dropdown", () => {
+    renderInput();
+    pressKey("m");
+    expect(screen.getByTestId("model-selector")).toHaveAttribute(
+      "data-open",
+      "false",
+    );
+  });
+
+  test("Cmd+M does not send a message", async () => {
+    renderInput();
+    typeText("hello");
+    await act(async () => {
+      pressKey("m", { metaKey: true });
+    });
+    expect(mocks.sendMessage).not.toHaveBeenCalled();
   });
 });
