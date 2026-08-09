@@ -76,6 +76,7 @@
 
 @theme inline {
   --container-compact: 30rem;
+  --container-files: 40rem;
 
   --animate-aura: aura 2s ease-in-out infinite;
   --animate-pulse-shadow: pulse-shadow 2s ease-in-out infinite;

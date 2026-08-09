@@ -34,7 +34,7 @@ export function FilesContainer({ directory }: FilesContainerProps) {
           </TabsList>
         </Tabs>
       </div>
-      <div className="min-h-0 flex-1">
+      <div className="min-h-0 flex-1 @container">
         {mode === "changes" ? (
           <FilesChanges directory={directory} />
         ) : mode === "explorer" ? (

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { PanelLeft, PanelLeftClose } from "lucide-react";
 import { useVcsDiff } from "@/hooks/queries/useFiles";
-import { useDeviceType } from "@/hooks";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { FilesList } from "./FilesList";
@@ -32,8 +31,6 @@ export function FilesChanges({ directory }: FilesChangesProps) {
   const { data, isLoading, error, refetch } = useVcsDiff({ directory });
 
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const { isMobile, isTablet } = useDeviceType();
-  const isSmallScreen = isMobile || isTablet;
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -51,9 +48,7 @@ export function FilesChanges({ directory }: FilesChangesProps) {
 
   const handleSelect = (file: string) => {
     setSelectedFile(file);
-    if (isSmallScreen) {
-      setIsSidebarOpen(false);
-    }
+    setIsSidebarOpen(false);
   };
 
   if (isLoading) {
@@ -101,33 +96,33 @@ export function FilesChanges({ directory }: FilesChangesProps) {
 
   return (
     <div className="flex h-full">
-      {!isSmallScreen && (
-        <div className="flex w-[300px] shrink-0 flex-col border-r">
-          {sidebarHeader}
-          {sidebarBody}
-        </div>
-      )}
+      <div className="hidden @files:flex w-[300px] shrink-0 flex-col border-r">
+        {sidebarHeader}
+        {sidebarBody}
+      </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        {(selected || isSmallScreen) && (
+        {(selected || isSidebarOpen) && (
           <div className="flex items-center gap-2 border-b px-4 py-2.5">
-            {isSmallScreen && (
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                onClick={() => setIsSidebarOpen((prev) => !prev)}
-                title={isSidebarOpen ? "Hide file list" : "Show file list"}
-              >
-                {isSidebarOpen ? (
-                  <PanelLeftClose className="size-4" />
-                ) : (
-                  <PanelLeft className="size-4" />
-                )}
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="@files:hidden"
+              onClick={() => setIsSidebarOpen((prev) => !prev)}
+              title={isSidebarOpen ? "Hide file list" : "Show file list"}
+            >
+              {isSidebarOpen ? (
+                <PanelLeftClose className="size-4" />
+              ) : (
+                <PanelLeft className="size-4" />
+              )}
+            </Button>
             {selected && selectedMeta && (
               <>
                 <Badge variant={selectedMeta.variant}>
-                  {isSmallScreen ? selectedMeta.short : selectedMeta.label}
+                  <span className="@files:hidden">{selectedMeta.short}</span>
+                  <span className="hidden @files:inline">
+                    {selectedMeta.label}
+                  </span>
                 </Badge>
                 <PathText
                   path={selected.file}
@@ -150,25 +145,19 @@ export function FilesChanges({ directory }: FilesChangesProps) {
         </div>
       </div>
 
-      {isSmallScreen && (
-        <Sheet
-          open={isSidebarOpen}
-          onOpenChange={setIsSidebarOpen}
-          modal={false}
+      <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen} modal={false}>
+        <SheetContent
+          side="left"
+          className="w-[280px] gap-0 p-0 sm:w-[320px]"
+          showCloseButton={false}
         >
-          <SheetContent
-            side="left"
-            className="w-[280px] gap-0 p-0 sm:w-[320px]"
-            showCloseButton={false}
-          >
-            <SheetHeader className="sr-only">
-              <SheetTitle>Changed files</SheetTitle>
-            </SheetHeader>
-            {sidebarHeader}
-            {sidebarBody}
-          </SheetContent>
-        </Sheet>
-      )}
+          <SheetHeader className="sr-only">
+            <SheetTitle>Changed files</SheetTitle>
+          </SheetHeader>
+          {sidebarHeader}
+          {sidebarBody}
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }
