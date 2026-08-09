@@ -1,10 +1,10 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Field, FieldError } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import z from "zod";
+import { DeskPanel } from "./components/DeskPanel";
 
 interface DeskNameProps {
   name: string;
@@ -36,47 +36,46 @@ export function DeskName({ name, onNameChange }: DeskNameProps) {
   };
 
   return (
-    <Card size="sm">
-      <CardContent>
-        {!editMode ? (
-          <button
-            onClick={() => {
-              setEditMode(true);
-            }}
-          >
-            Name: {name}
-          </button>
-        ) : (
-          <Controller
-            name="name"
-            control={form.control}
-            render={({ field, fieldState }) => (
-              <Field data-invalid={fieldState.invalid}>
-                <Input
-                  {...field}
-                  onBlur={() => {
-                    field.onBlur();
+    <DeskPanel>
+      {!editMode ? (
+        <button
+          className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-sm font-medium hover:bg-muted"
+          onClick={() => {
+            setEditMode(true);
+          }}
+        >
+          <span className="text-muted-foreground">Name:</span>
+          <span>{name}</span>
+        </button>
+      ) : (
+        <Controller
+          name="name"
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <Input
+                {...field}
+                className="h-8"
+                onBlur={() => {
+                  field.onBlur();
+                  form.handleSubmit(onSubmit)();
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
                     form.handleSubmit(onSubmit)();
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      form.handleSubmit(onSubmit)();
-                      e.currentTarget.blur();
-                    }
-                  }}
-                  id="desk-name"
-                  aria-invalid={fieldState.invalid}
-                  placeholder="desk name"
-                />
-                {fieldState.invalid && (
-                  <FieldError errors={[fieldState.error]} />
-                )}
-              </Field>
-            )}
-          />
-        )}
-      </CardContent>
-    </Card>
+                    e.currentTarget.blur();
+                  }
+                }}
+                id="desk-name"
+                aria-invalid={fieldState.invalid}
+                placeholder="desk name"
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
+        />
+      )}
+    </DeskPanel>
   );
 }

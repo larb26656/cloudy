@@ -28,8 +28,11 @@ import { useFlowStore } from "@/stores/flowStore";
 import { type NodeTemplate } from "./nodes/template/nodeTemplates";
 import { nodeTypes } from "./nodes/template";
 import { DeskName } from "./DeskName";
+import { DeskPanel } from "./components/DeskPanel";
+import { InteractionToolbar } from "./components/InteractionToolbar";
 import { SelectionToolbar } from "./components/SelectionToolbar";
 import { useDeskSelectionActions } from "./hooks/useDeskSelectionActions";
+import { useInteractionMode } from "./hooks/useInteractionMode";
 
 interface DeskCanvasProps {
   tabId: string;
@@ -47,6 +50,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
   const { screenToFlowPosition, setViewport } = useReactFlow();
   const { resolvedTheme } = useTheme();
   const colorMode = resolvedTheme === "dark" ? "dark" : "light";
+  const { mode, setMode, isHand, spaceHeld } = useInteractionMode();
   const saveFlow = useFlowStore((s) => s.saveFlow);
   const getFlow = useFlowStore((s) => s.getFlow);
 
@@ -164,9 +168,8 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
         fitView
         panOnScroll
         panOnScrollMode={PanOnScrollMode.Free}
-        selectionOnDrag
-        panOnDrag={false}
-        panActivationKeyCode="Space"
+        selectionOnDrag={!isHand}
+        panOnDrag={isHand}
         selectionMode={SelectionMode.Partial}
         deleteKeyCode={["Backspace", "Delete"]}
         colorMode={colorMode}
@@ -178,13 +181,23 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
           <DeskName name={name} onNameChange={onNameChange}></DeskName>
         </Panel>
         <Panel position="top-right">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setNodeDrawerOpen(true)}
-          >
-            <PlusIcon />
-          </Button>
+          <DeskPanel>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setNodeDrawerOpen(true)}
+              aria-label="Add node"
+            >
+              <PlusIcon />
+            </Button>
+          </DeskPanel>
+        </Panel>
+        <Panel position="bottom-right">
+          <InteractionToolbar
+            mode={mode}
+            setMode={setMode}
+            spaceHeld={spaceHeld}
+          />
         </Panel>
         <Panel position="bottom-center">
           <SelectionToolbar

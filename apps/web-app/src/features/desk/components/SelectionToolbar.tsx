@@ -18,6 +18,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { DeskPanel } from "./DeskPanel";
 import type { AlignType, DistributeAxis } from "../utils/selectionOps";
 
 interface SelectionToolbarProps {
@@ -107,7 +108,7 @@ export function SelectionToolbar({
   const distributeEnabled = selectedCount >= 3;
 
   return (
-    <div className="nodrag nopan flex items-center gap-0.5 rounded-lg border bg-background/95 p-1 shadow-md backdrop-blur supports-[backdrop-filter]:bg-background/80">
+    <DeskPanel>
       <span className="px-2 text-xs font-medium tabular-nums text-muted-foreground">
         {selectedCount} selected
       </span>
@@ -141,6 +142,6 @@ export function SelectionToolbar({
       <ToolButton icon={Copy} label="Duplicate (Cmd+D)" onClick={onDuplicate} />
 
       <ToolButton icon={Trash2} label="Delete (Backspace)" onClick={onDelete} />
-    </div>
+    </DeskPanel>
   );
 }
