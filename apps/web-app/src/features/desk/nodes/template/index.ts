@@ -4,6 +4,9 @@ import { mermaidTemplate } from "../implementations/mermaid-node";
 import { textNodeTemplate } from "../implementations/text-node";
 import { todoNodeTemplate } from "../implementations/todo-node";
 import { terminalNodeTemplate } from "../implementations/terminal-node";
+import { pomodoroNodeTemplate } from "../implementations/pomodoro-node";
+import { stopwatchNodeTemplate } from "../implementations/stopwatch-node";
+import { timerNodeTemplate } from "../implementations/timer-node";
 import { webviewNodeTemplate } from "../implementations/webview-node";
 import type { NodeTemplate } from "./nodeTemplates";
 
@@ -17,6 +20,9 @@ export const nodeTemplates: NodeTemplate[] = [
   todoNodeTemplate,
   terminalNodeTemplate,
   webviewNodeTemplate,
+  pomodoroNodeTemplate,
+  stopwatchNodeTemplate,
+  timerNodeTemplate,
 ];
 
 export const nodeTypes = nodeTemplates.reduce<

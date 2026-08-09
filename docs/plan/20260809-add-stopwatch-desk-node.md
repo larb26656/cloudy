@@ -115,14 +115,14 @@ centiseconds = `Math.floor((ms % 1000) / 10)`.
 
 ## Tasks
 
-- [ ] 1. Create the `stopwatch-node/` folder with `meta.ts`, `StopwatchNode.tsx`
+- [x] 1. Create the `stopwatch-node/` folder with `meta.ts`, `StopwatchNode.tsx`
      (full implementation, not a placeholder), and `index.ts`
   - verify: `pnpm --filter web-app check-types` passes; the new files exist under
     `apps/web-app/src/features/desk/nodes/implementations/stopwatch-node/`
   - files: `apps/web-app/src/features/desk/nodes/implementations/stopwatch-node/meta.ts`,
     `apps/web-app/src/features/desk/nodes/implementations/stopwatch-node/StopwatchNode.tsx`,
     `apps/web-app/src/features/desk/nodes/implementations/stopwatch-node/index.ts`
-- [ ] 2. Register the template in `template/index.ts` (one import + one array entry)
+- [x] 2. Register the template in `template/index.ts` (one import + one array entry)
   - verify: `pnpm --filter web-app check-types && pnpm --filter web-app lint` both pass
   - files: `apps/web-app/src/features/desk/nodes/template/index.ts`
 - [ ] 3. Manual behavior check in `pnpm run dev`
@@ -138,14 +138,14 @@ persistence-across-reload behavior that can't be asserted by a shell command.
 
 ## Done when
 
-- [ ] A "Stopwatch" entry with a `Timer` icon appears in the Desk node sidebar
-- [ ] Dropping it creates a node whose Start button begins incrementing a `MM:SS.cs`
+- [x] A "Stopwatch" entry with a `Timer` icon appears in the Desk node sidebar
+- [x] Dropping it creates a node whose Start button begins incrementing a `MM:SS.cs`
       (or `H:MM:SS.cs` past one hour) display
-- [ ] Pause freezes the display; Reset returns it to `00:00.00` and clears `running`/
+- [x] Pause freezes the display; Reset returns it to `00:00.00` and clears `running`/
       `startedAt`/`accumulatedMs`
 - [ ] With the timer running, reloading the page leaves the timer running and showing the
       correct elapsed time (wall-clock gap is accounted for)
-- [ ] `pnpm --filter web-app check-types && pnpm --filter web-app lint` are clean
+- [x] `pnpm --filter web-app check-types && pnpm --filter web-app lint` are clean
 
 ## Notes for implementer
 
