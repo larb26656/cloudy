@@ -1,6 +1,6 @@
 import { useReactFlow } from "@xyflow/react";
 import type { Node, NodeProps } from "@xyflow/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "lodash-es";
 import { cn } from "@/lib/utils";
 import { FramelessNode } from "../FramelessNode";
@@ -30,12 +30,18 @@ const sizeLabels: Record<TextSize, string> = {
 export function TextNode({ data, id, selected }: NodeProps<TextNodeProps>) {
   const { updateNodeData } = useReactFlow();
   const [text, setText] = useState(data.text ?? "");
+  const [isEditing, setIsEditing] = useState(false);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const size = data.size ?? "m";
   const { textClass } = sizeMap[size];
 
   useEffect(() => {
     setText(data.text ?? "");
   }, [data.text]);
+
+  useEffect(() => {
+    if (isEditing) textareaRef.current?.focus();
+  }, [isEditing]);
 
   const debouncedUpdateText = useMemo(
     () => debounce((value: string) => updateNodeData(id, { text: value }), 500),
@@ -63,13 +69,25 @@ export function TextNode({ data, id, selected }: NodeProps<TextNodeProps>) {
 
   const handleBlur = useCallback(() => {
     debouncedUpdateText.flush();
+    setIsEditing(false);
   }, [debouncedUpdateText]);
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+      if (e.key === "Escape" && !e.shiftKey) {
+        e.preventDefault();
+        debouncedUpdateText.flush();
+        setIsEditing(false);
+      }
+    },
+    [debouncedUpdateText],
+  );
+
+  const startEditing = useCallback(() => setIsEditing(true), []);
 
   return (
     <FramelessNode
-      nodeId={id}
       selected={selected}
-      title="Text"
       toolbar={
         <div className="flex items-center gap-1">
           {(Object.keys(sizeMap) as TextSize[]).map((s) => (
@@ -94,9 +112,13 @@ export function TextNode({ data, id, selected }: NodeProps<TextNodeProps>) {
       maxHeight={600}
     >
       <textarea
+        ref={textareaRef}
         value={text}
         onChange={handleChange}
         onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        onDoubleClick={startEditing}
+        readOnly={!isEditing}
         placeholder="Text..."
         spellCheck={false}
         autoComplete="off"
@@ -107,6 +129,9 @@ export function TextNode({ data, id, selected }: NodeProps<TextNodeProps>) {
           "overflow-hidden whitespace-pre-wrap break-words",
           "p-2 placeholder:text-muted-foreground text-foreground",
           textClass,
+          isEditing
+            ? "nodrag cursor-text"
+            : "cursor-grab active:cursor-grabbing select-none caret-transparent",
         )}
       />
     </FramelessNode>

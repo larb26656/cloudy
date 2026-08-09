@@ -28,7 +28,7 @@ export default meta;
 
 export const Default = meta.story({
   render: () => (
-    <FramelessNode nodeId="story-node">
+    <FramelessNode>
       <div className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground">
         Unselected: no background, no border, no title bar — just content.
       </div>
@@ -38,10 +38,11 @@ export const Default = meta.story({
 
 export const Selected = meta.story({
   render: () => (
-    <FramelessNode nodeId="story-node" selected title="Text">
+    <FramelessNode selected>
       <div className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground">
-        While selected, a title bar (drag handle) appears at the top with the
-        node name, plus a delete button and a surrounding border.
+        While selected, a border appears around the node. There is no title bar
+        — the content itself is the drag handle. Delete via Backspace / Delete
+        key or the canvas SelectionToolbar.
       </div>
     </FramelessNode>
   ),
@@ -49,7 +50,7 @@ export const Selected = meta.story({
 
 export const CustomColor = meta.story({
   render: () => (
-    <FramelessNode nodeId="story-node" color="bg-violet-500/10">
+    <FramelessNode color="bg-violet-500/10">
       <div className="flex h-full items-center justify-center p-4 text-sm text-muted-foreground">
         Theme the surface with a Tailwind class via <code>color</code>.
       </div>
@@ -59,7 +60,7 @@ export const CustomColor = meta.story({
 
 export const RichContent = meta.story({
   render: () => (
-    <FramelessNode nodeId="story-node">
+    <FramelessNode>
       <div className="flex h-full flex-col gap-3 p-4">
         <div className="h-20 w-full rounded bg-gradient-to-br from-primary/40 to-primary/10" />
         <div className="space-y-2">
