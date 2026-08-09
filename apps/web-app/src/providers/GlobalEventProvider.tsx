@@ -1,3 +1,4 @@
+import { useWindowFocus } from "@/hooks";
 import { getOcClient, handleEvent } from "@/lib/opencode";
 import type { GlobalEvent } from "@opencode-ai/sdk/v2";
 import { useQueryClient } from "@tanstack/react-query";
@@ -6,6 +7,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -37,6 +39,16 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
     setStatus("PENDING");
     setReconnectTick((t) => t + 1);
   }, []);
+
+  const focused = useWindowFocus();
+  const prevFocused = useRef(focused);
+
+  useEffect(() => {
+    if (!prevFocused.current && focused && status === "DISCONNECTED") {
+      reconnect();
+    }
+    prevFocused.current = focused;
+  }, [focused, status, reconnect]);
 
   const subscribe = async (
     id: number,

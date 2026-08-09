@@ -1,10 +1,10 @@
 import { useTabStore } from "@/stores/tabStore";
 import { MainTabBar } from "./components/MainTabBar";
+import { ConnectionStatusBanner } from "./components/ConnectionStatusBanner";
 import { HomeContent } from "./HomeContent";
 import { tabTypeMap } from "./tabs/template";
 import { ErrorState } from "@/components/ui/error-state";
 import { useGlobalEvent } from "@/providers";
-import { ErrorConnectionNotify } from "./components/ErrorConnectionNotify";
 
 export default function HomePage() {
   const { status } = useGlobalEvent();
@@ -15,7 +15,9 @@ export default function HomePage() {
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-background">
       <MainTabBar />
-      {status === "DISCONNECTED" && <ErrorConnectionNotify />}
+      {(status === "PENDING" || status === "DISCONNECTED") && (
+        <ConnectionStatusBanner />
+      )}
       <div className="flex-1 overflow-hidden">
         <div className={activeTabId === "home" ? "h-full" : "hidden"}>
           <HomeContent />
