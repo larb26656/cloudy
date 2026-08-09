@@ -1,10 +1,5 @@
 import { useState } from "react";
-import {
-  ChevronRight,
-  File as FileIcon,
-  Folder,
-  FolderOpen,
-} from "lucide-react";
+import { ChevronRight, Folder, FolderOpen } from "lucide-react";
 import type { FileNode } from "@opencode-ai/sdk/v2";
 import type { ReactNode } from "react";
 import { useFileList } from "@/hooks/queries/useFiles";
@@ -13,6 +8,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/ui/empty-state";
+import { FileTypeIcon } from "@/components/files/FileTypeIcon";
 
 interface FileTreeProps {
   directory: string;
@@ -129,10 +125,7 @@ function FileTreeNode({
         ) : (
           <>
             <span className="size-3.5 shrink-0" />
-            <FileIcon
-              data-icon
-              className="size-4 shrink-0 text-muted-foreground"
-            />
+            <FileTypeIcon name={node.name} size={16} className="shrink-0" />
           </>
         )}
         <span className="min-w-0 flex-1 truncate font-mono text-xs">
