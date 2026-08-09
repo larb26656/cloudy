@@ -84,7 +84,7 @@ describe("TabTitle", () => {
       />,
     );
 
-    expect(screen.getByText("Changed Files")).toBeInTheDocument();
+    expect(screen.getByText("Files")).toBeInTheDocument();
 
     rerender(
       <TabTitle

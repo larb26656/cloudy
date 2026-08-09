@@ -2,7 +2,7 @@
 title: Add file explorer to combined Files tab
 slug: add-file-explorer-to-files-tab
 id: 20260809-add-file-explorer-to-files-tab
-status: ready
+status: done
 created: 2026-08-09
 source: planning session 2026-08-09
 ---
@@ -88,64 +88,64 @@ content, diff?, patch?, encoding?, mimeType? }`.
 
 ## Tasks
 
-- [ ] 1. Add `fileKeys` to the opencode query-keys file
+- [x] 1. Add `fileKeys` to the opencode query-keys file
   - verify: `pnpm --filter web-app check-types` passes; `fileKeys.list("d","p")` returns
     `["files","list","d","p"]`
   - files: `apps/web-app/src/lib/opencode/query-keys.ts`
-- [ ] 2. Add `useFileList` and `useFileRead` hooks mirroring `useVcsDiff`
+- [x] 2. Add `useFileList` and `useFileRead` hooks mirroring `useVcsDiff`
   - verify: `pnpm --filter web-app check-types` passes; both hooks accept
     `{ directory, path }` and are `enabled: !!directory && !!path`
   - files: `apps/web-app/src/hooks/queries/useFiles.ts`
-- [ ] 3. Create `FileTree.tsx` — lazy-expanding directory tree
+- [x] 3. Create `FileTree.tsx` — lazy-expanding directory tree
   - verify: `pnpm --filter web-app check-types` passes; component renders root via
     `useFileList({ path: "." })` and fetches children on dir expand; uses
     `LoadingState`/`ErrorState`/`EmptyState` (size `inline`) per node
   - files: `apps/web-app/src/features/home/tabs/implementations/files/FileTree.tsx`
-- [ ] 4. Create `FilePreview.tsx` — content viewer for a selected file
+- [x] 4. Create `FilePreview.tsx` — content viewer for a selected file
   - verify: `pnpm --filter web-app check-types` passes; uses `useFileRead`; text →
     `<CodeBlock headless>`, binary → `<EmptyState title="Binary file" />`
   - files: `apps/web-app/src/features/home/tabs/implementations/files/FilePreview.tsx`
-- [ ] 5. Create `FilesExplorer.tsx` — explorer shell composing FileTree + FilePreview
+- [x] 5. Create `FilesExplorer.tsx` — explorer shell composing FileTree + FilePreview
   - verify: `pnpm --filter web-app check-types` passes; mirrors the responsive sidebar +
     `Sheet` layout of the current `FilesContent.tsx`
   - files: `apps/web-app/src/features/home/tabs/implementations/files/FilesExplorer.tsx`
-- [ ] 6. Extract the current Changes body into `FilesChanges.tsx` (no behavior change)
+- [x] 6. Extract the current Changes body into `FilesChanges.tsx` (no behavior change)
   - verify: `pnpm --filter web-app check-types` passes; `FilesChanges` receives
     `{ directory }` and renders `FilesList` + `FileDetail` exactly as before
   - files: `apps/web-app/src/features/home/tabs/implementations/files/FilesChanges.tsx`
-- [ ] 7. Wire the mode toggle into `FilesContent.tsx`: add `mode: "explorer"|"changes"`
+- [x] 7. Wire the mode toggle into `FilesContent.tsx`: add `mode: "explorer"|"changes"`
      state (default `"changes"`), a segmented control at the top, render
      `<FilesExplorer/>` or `<FilesChanges/>` below; keep the directory null-guard and
      shared shell
   - verify: `pnpm --filter web-app check-types` passes; toggling switches the body without
     unmounting the tab
   - files: `apps/web-app/src/features/home/tabs/implementations/files/FilesContent.tsx`
-- [ ] 8. Update tab metadata: `meta.ts` `label` → `"Files"`, `FilesTabTitle` → `"Files"`,
+- [x] 8. Update tab metadata: `meta.ts` `label` → `"Files"`, `FilesTabTitle` → `"Files"`,
      pick an icon (`FolderOpen` or keep `FileDiff`); `FilesCreateDialog.tsx` description
      → "browse files and changes"
   - verify: tab bar shows "Files"; new-tab dialog copy updated
   - files: `apps/web-app/src/features/home/tabs/implementations/files/meta.ts`,
     `apps/web-app/src/features/home/tabs/implementations/files/FilesCreateDialog.tsx`
-- [ ] 9. (Optional) Invalidate `vcsKeys.diff(event.directory)` and `fileKeys.*` in the
+- [x] 9. (Optional) Invalidate `vcsKeys.diff(event.directory)` and `fileKeys.*` in the
      `session.idle` branch of `handle-global-event.ts` so Changes/Explorer refresh after
      AI edits files
   - verify: after a chat session edits files, the Files tab shows fresh data without
     manual reload
   - files: `apps/web-app/src/lib/opencode/handle-global-event.ts`
-- [ ] 10. Full check
+- [x] 10. Full check
   - verify: `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean;
     `pnpm --filter web-app exec vitest run` green
   - files: —
 
 ## Done when
 
-- [ ] Opening the Files tab shows a segmented toggle with "Explorer" and "Changes"
-- [ ] "Changes" mode renders the previous VCS diff view unchanged (sidebar + DiffViewer)
-- [ ] "Explorer" mode shows a lazy-expanding file tree; selecting a text file renders its
+- [x] Opening the Files tab shows a segmented toggle with "Explorer" and "Changes"
+- [x] "Changes" mode renders the previous VCS diff view unchanged (sidebar + DiffViewer)
+- [x] "Explorer" mode shows a lazy-expanding file tree; selecting a text file renders its
       content via `CodeBlock`; binary files show an `EmptyState`
-- [ ] Tab bar label is "Files"; new-tab dialog copy mentions browse + changes
-- [ ] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean
-- [ ] `pnpm --filter web-app exec vitest run` green (no new tests required for v1; the
+- [x] Tab bar label is "Files"; new-tab dialog copy mentions browse + changes
+- [x] `pnpm --filter web-app lint && pnpm --filter web-app check-types` clean
+- [x] `pnpm --filter web-app exec vitest run` green (no new tests required for v1; the
       tab-store shape is unchanged so existing tests stay green)
 
 ## Notes for implementer

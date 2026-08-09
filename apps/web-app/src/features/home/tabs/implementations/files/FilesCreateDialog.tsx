@@ -28,7 +28,7 @@ export function FilesCreateDialog({ open, onOpenChange }: CreateDialogProps) {
         <DialogHeader>
           <DialogTitle>Select Workspace</DialogTitle>
           <DialogDescription>
-            Choose a workspace to view its changed files
+            Choose a workspace to browse its files and changes
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 flex-1 min-h-0 flex flex-col">

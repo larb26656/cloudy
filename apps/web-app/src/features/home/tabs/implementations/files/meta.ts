@@ -1,4 +1,4 @@
-import { FileDiff } from "lucide-react";
+import { FolderOpen } from "lucide-react";
 import type { TabTemplate } from "../../template";
 import { FilesCreateDialog } from "./FilesCreateDialog";
 import { FilesContent } from "./FilesContent";
@@ -11,13 +11,13 @@ export type FilesData = {
 };
 
 function FilesTabTitle() {
-  return "Changed Files";
+  return "Files";
 }
 
 export const filesTemplate: TabTemplate<FilesData> = {
   type: "files",
-  label: "Changed Files",
-  icon: FileDiff,
+  label: "Files",
+  icon: FolderOpen,
   TitleComponent: FilesTabTitle,
   ContentComponent: FilesContent,
   CreateDialog: FilesCreateDialog,

@@ -2,10 +2,12 @@ import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { useSessionErrorStore } from "@/stores/sessionErrorStore";
 import {
+  fileKeys,
   messageKeys,
   permissionKeys,
   questionKeys,
   sessionKeys,
+  vcsKeys,
 } from "@/lib/opencode";
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
 import type { GlobalEvent, Session, SessionStatus } from "@opencode-ai/sdk/v2";
@@ -71,6 +73,12 @@ export function handleEvent(
       if (event.directory) {
         queryClient.invalidateQueries({
           queryKey: sessionKeys.infinite(event.directory),
+        });
+        queryClient.invalidateQueries({
+          queryKey: vcsKeys.diff(event.directory),
+        });
+        queryClient.invalidateQueries({
+          queryKey: fileKeys.root(),
         });
       }
       break;

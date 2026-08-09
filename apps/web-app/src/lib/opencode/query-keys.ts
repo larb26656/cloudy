@@ -46,3 +46,13 @@ export const vcsKeys = {
   root: () => ["vcs"] as const,
   diff: (directory: string) => ["vcs", "diff", directory] as const,
 };
+
+export const fileKeys = {
+  root: () => ["files"] as const,
+  list: (directory: string, path: string) =>
+    ["files", "list", directory, path] as const,
+  read: (directory: string, path: string) =>
+    ["files", "read", directory, path] as const,
+  search: (directory: string, query: string) =>
+    ["files", "search", directory, query] as const,
+};
