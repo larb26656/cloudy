@@ -1,9 +1,9 @@
 import { Terminal } from "lucide-react";
-import type { TabTemplate } from "../../template";
+import type { TabTemplate, TabTitleProps } from "../../template";
+import { useWorkspace } from "@/hooks/queries";
 import { cloudyClient } from "@/lib/api";
 import { TerminalCreateDialog } from "./TerminalCreateDialog";
 import { TerminalContent } from "./TerminalContent";
-import { TerminalTabItem } from "./TerminalTabItem";
 
 export type TerminalData = {
   workspaceId: string;
@@ -11,13 +11,20 @@ export type TerminalData = {
   ptyId: string | null;
 };
 
+function TerminalTabTitle({ data }: TabTitleProps<TerminalData>) {
+  const { data: workspace } = useWorkspace(data.workspaceId);
+
+  return workspace?.name ?? "Terminal";
+}
+
 export const terminalTemplate: TabTemplate<TerminalData> = {
   type: "terminal",
   label: "New Terminal",
   icon: Terminal,
-  TabBarComponent: TerminalTabItem,
+  TitleComponent: TerminalTabTitle,
   ContentComponent: TerminalContent,
   CreateDialog: TerminalCreateDialog,
+  getWorkspaceId: (data) => data.workspaceId,
   onClose: (tab) => {
     if (tab.type !== "terminal") return;
     const ptyId = tab.data.ptyId;

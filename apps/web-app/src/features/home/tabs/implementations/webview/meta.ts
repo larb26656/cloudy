@@ -1,7 +1,6 @@
 import { Globe } from "lucide-react";
-import type { TabTemplate } from "../../template";
+import type { TabTemplate, TabTitleProps } from "../../template";
 import { WebviewContent } from "./WebviewContent";
-import { WebviewTabItem } from "./WebviewTabItem";
 import { WebviewCreateDialog } from "./WebviewCreateDialog";
 
 export type WebviewData = {
@@ -10,11 +9,19 @@ export type WebviewData = {
 
 export { normalizeUrl } from "@/lib/url";
 
+function WebviewTabTitle({ data }: TabTitleProps<WebviewData>) {
+  try {
+    return new URL(data.url).hostname;
+  } catch {
+    return data.url;
+  }
+}
+
 export const webviewTemplate: TabTemplate<WebviewData> = {
   type: "webview",
   label: "New Webview",
   icon: Globe,
-  TabBarComponent: WebviewTabItem,
+  TitleComponent: WebviewTabTitle,
   ContentComponent: WebviewContent,
   CreateDialog: WebviewCreateDialog,
 };

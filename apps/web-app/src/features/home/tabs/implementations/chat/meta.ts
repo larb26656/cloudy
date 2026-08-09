@@ -1,8 +1,8 @@
 import { MessageCircle } from "lucide-react";
-import type { TabTemplate } from "../../template";
+import type { TabTemplate, TabTitleProps } from "../../template";
+import { useSession } from "@/hooks/queries/useSessions";
 import { ChatCreateDialog } from "./ChatCreateDialog";
 import { ChatContent } from "./ChatContent";
-import { ChatTabItem } from "./ChatTabItem";
 
 export type ChatData = {
   sessionId: string | null;
@@ -13,11 +13,21 @@ export type ChatData = {
   sessionName: string;
 };
 
+function ChatTabTitle({ data }: TabTitleProps<ChatData>) {
+  const { data: session } = useSession({
+    sessionId: data.sessionId,
+    directory: data.directory,
+  });
+
+  return session?.title ?? data.sessionName ?? "New Chat";
+}
+
 export const chatTemplate: TabTemplate<ChatData> = {
   type: "chat",
   label: "New Chat",
   icon: MessageCircle,
-  TabBarComponent: ChatTabItem,
+  TitleComponent: ChatTabTitle,
   ContentComponent: ChatContent,
   CreateDialog: ChatCreateDialog,
+  getWorkspaceId: (data) => data.workspaceId,
 };

@@ -11,33 +11,11 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
 import { cn } from "@/lib/utils";
-import { tabTypeMap } from "../tabs/template";
+import { getTabWorkspaceId, TabTitle, tabTypeMap } from "../tabs/template";
 
 interface AllTabsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-}
-
-/** Derive a display title + workspace association for a tab card. */
-function getTabCardMeta(tab: Tab): {
-  title: string;
-  workspaceId?: string | null;
-} {
-  switch (tab.type) {
-    case "chat":
-      return {
-        title: tab.data.sessionName || "New Chat",
-        workspaceId: tab.data.workspaceId,
-      };
-    case "desk":
-      return { title: tab.data.name };
-    case "webview":
-      return { title: tab.data.url || "New Webview" };
-    case "files":
-      return { title: "Changed Files", workspaceId: tab.data.workspaceId };
-    case "terminal":
-      return { title: "New Terminal", workspaceId: tab.data.workspaceId };
-  }
 }
 
 function TabCard({
@@ -54,7 +32,6 @@ function TabCard({
   const template = tabTypeMap[tab.type];
   if (!template) return null;
   const Icon = template.icon;
-  const { title, workspaceId } = getTabCardMeta(tab);
 
   return (
     <button
@@ -77,8 +54,10 @@ function TabCard({
         <Icon />
       </span>
       <div className="flex w-full items-center gap-1.5 pr-5">
-        <WorkspaceDot workspaceId={workspaceId ?? undefined} />
-        <span className="truncate text-sm font-medium">{title}</span>
+        <WorkspaceDot workspaceId={getTabWorkspaceId(tab) ?? undefined} />
+        <span className="truncate text-sm font-medium">
+          <TabTitle tab={tab} />
+        </span>
       </div>
       <span className="text-xs text-muted-foreground">{template.label}</span>
     </button>

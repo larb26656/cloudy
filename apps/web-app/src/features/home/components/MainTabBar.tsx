@@ -24,8 +24,9 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { tabTemplates, tabTypeMap } from "../tabs/template";
+import { tabTemplates } from "../tabs/template";
 import { AllTabsDialog } from "./AllTabsDialog";
+import { TabBarItem } from "./TabBarItem";
 import { SortableTab } from "./SortableTab";
 import { TabItemShell } from "./TabItemShell";
 
@@ -92,11 +93,8 @@ export function MainTabBar() {
   };
 
   const renderTabBar = (tab: Tab, interactive: boolean) => {
-    const template = tabTypeMap[tab.type];
-    if (!template) return null;
-    const TabBar = template.TabBarComponent;
     return (
-      <TabBar
+      <TabBarItem
         tab={tab}
         isActive={activeTabId === tab.id}
         onClick={interactive ? () => setActiveTab(tab.id) : () => {}}

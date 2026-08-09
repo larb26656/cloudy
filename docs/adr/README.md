@@ -27,6 +27,7 @@ sequence number automatically.
 
 | ID   | Title                                                                                                                           | Status   | Date       |
 | ---- | ------------------------------------------------------------------------------------------------------------------------------- | -------- | ---------- |
+| 0005 | [Use tab templates as the single title source](0005-use-tab-templates-as-the-single-title-source.md)                            | Accepted | 2026-08-09 |
 | 0004 | [Keep Workspace in chat context instead of resolving at the leaf](0004-keep-workspace-in-chat-context.md)                       | Accepted | 2026-08-08 |
 | 0003 | [Make ChatProvider own chat actions](0003-make-chatprovider-own-chat-actions.md)                                                | Accepted | 2026-08-03 |
 | 0002 | [Use ChatProvider context for per-session agent/model selection](0002-per-session-agent-model-via-chat-provider.md)             | Accepted | 2026-08-02 |

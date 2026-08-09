@@ -19,18 +19,21 @@ export interface CreateDialogProps {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type TabBarComponent = ComponentType<any>;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type TabContentComponent = ComponentType<any>;
+
+export interface TabTitleProps<T> {
+  data: T;
+}
 
 export interface TabTemplate<T = unknown> {
   type: string;
   label: string;
   icon: LucideIcon;
-  TabBarComponent: TabBarComponent;
+  TitleComponent: ComponentType<TabTitleProps<T>>;
   ContentComponent: TabContentComponent;
   CreateDialog?: ComponentType<CreateDialogProps>;
   defaultData?: T;
+  getWorkspaceId?: (data: T) => string | null;
   onClose?: (tab: Tab) => void;
 }
 

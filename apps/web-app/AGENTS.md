@@ -117,10 +117,11 @@ interface TabTemplate<T = unknown> {
   type: string; // unique key, matches registry key
   label: string; // "New Chat" etc.
   icon: LucideIcon;
-  TabBarComponent: ComponentType<any>; // renders the tab chip in the tab bar
+  TitleComponent: ComponentType<{ data: T }>; // renders the tab title in the tab bar and All Tabs
   ContentComponent: ComponentType<any>; // renders the main-area content
   CreateDialog?: ComponentType<CreateDialogProps>; // optional "new tab" modal
   defaultData?: T; // initial `data` for newly-created tabs
+  getWorkspaceId?: (data: T) => string | null; // workspace dot for the tab chip and All Tabs
   onClose?: (tab: Tab) => void; // cleanup hook (e.g. desk deletes its flow)
 }
 ```
@@ -134,15 +135,15 @@ template automatically extends the union types — no manual type edits needed.
    - `meta.ts` — exports `<name>Template: TabTemplate<<Name>Data>` (define `type NameData`
      here too).
    - `<Name>Content.tsx` — the main-area component (receives `tab`).
-   - `<Name>TabItem.tsx` — the tab-bar chip component.
    - `index.ts` — re-export the template.
-   - Optionally `<Name>CreateDialog.tsx` and reference it via `CreateDialog`.
+   - Optionally `<Name>CreateDialog.tsx`; define `TitleComponent` in `meta.ts` or a sibling file when it needs queries.
 2. Register in `template/registry.ts`:
    ```ts
    import { myTemplate } from "../implementations/my";
    export const templates = { chat: chatTemplate, /*...*/, my: myTemplate } as const;
    ```
-3. That's it — types (`Tab`, `TabDataMap`) and the tab bar UI pick it up automatically.
+3. Set `TitleComponent` (and `getWorkspaceId` when applicable) in the template. Both the tab chip and All Tabs use them.
+4. That's it — types (`Tab`, `TabDataMap`) and the tab bar UI pick it up automatically.
 
 ### Tab persistence
 

@@ -2,7 +2,6 @@ import { FileDiff } from "lucide-react";
 import type { TabTemplate } from "../../template";
 import { FilesCreateDialog } from "./FilesCreateDialog";
 import { FilesContent } from "./FilesContent";
-import { FilesTabItem } from "./FilesTabItem";
 
 export type FilesData = {
   /** Null when the tab is ephemeral (opened with no registered workspace). */
@@ -11,11 +10,16 @@ export type FilesData = {
   directory: string;
 };
 
+function FilesTabTitle() {
+  return "Changed Files";
+}
+
 export const filesTemplate: TabTemplate<FilesData> = {
   type: "files",
   label: "Changed Files",
   icon: FileDiff,
-  TabBarComponent: FilesTabItem,
+  TitleComponent: FilesTabTitle,
   ContentComponent: FilesContent,
   CreateDialog: FilesCreateDialog,
+  getWorkspaceId: (data) => data.workspaceId,
 };
