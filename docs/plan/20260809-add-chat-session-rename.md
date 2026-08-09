@@ -2,7 +2,7 @@
 title: Add inline rename for chat sessions
 slug: add-chat-session-rename
 id: 20260809-add-chat-session-rename
-status: ready
+status: done
 created: 2026-08-09
 source: planning session 2026-08-09
 ---
@@ -120,7 +120,7 @@ session.location.directory` (line 46). `SessionRow` is a presentational componen
 
 ## Tasks
 
-- [ ] 1. **Create `useInlineRename` hook + its unit test.**
+- [x] 1. **Create `useInlineRename` hook + its unit test.**
      The hook signature: `useInlineRename({ sessionId, directory, initialTitle })`
      returns `{ isEditing, value, isPending, start(), commit(), cancel(), setValue(v) }`.
      `start()` seeds `value` from `initialTitle` and sets `isEditing=true`. `commit()`
@@ -134,7 +134,7 @@ sessionID, directory, title })` and clears `isEditing`. `cancel()` reverts `valu
   - files: `apps/web-app/src/hooks/useInlineRename.ts`,
     `apps/web-app/src/hooks/useInlineRename.test.ts`
 
-- [ ] 2. **Create `SessionTitleInput` atom.**
+- [x] 2. **Create `SessionTitleInput` atom.**
      A bare styled `<input>` (auto-focus on mount, commit on blur and Enter, cancel on
      Escape, shows a small spinner when `isPending`). It consumes `useInlineRename`:
      props are `{ sessionId, directory, initialTitle, onDone?: () => void }`. `onDone` is
@@ -144,7 +144,7 @@ sessionID, directory, title })` and clears `isEditing`. `cancel()` reverts `valu
   - verify: `pnpm --filter web-app check-types` passes; the component imports cleanly
   - files: `apps/web-app/src/components/session/SessionTitleInput.tsx`
 
-- [ ] 3. **Wire rename into `SessionList` (sidebar).**
+- [x] 3. **Wire rename into `SessionList` (sidebar).**
      Add `editingId: string | null` state (pattern: `TodoNode.tsx:23`). On the row
      `<button>` (`SessionList.tsx:69-78`), add `onDoubleClick` that calls
      `e.stopPropagation()` then `setEditingId(session.id)`. When `editingId ===
@@ -155,7 +155,7 @@ setEditingId(null)}`. Pass `directory` (already a prop, line 14) and
     sidebar swaps it for an input
   - files: `apps/web-app/src/features/home/components/SessionList.tsx`
 
-- [ ] 4. **Wire rename into `SessionRow` + `RecentSessionsSection` (home).**
+- [x] 4. **Wire rename into `SessionRow` + `RecentSessionsSection` (home).**
      Add optional prop `onRename?: (title: string) => void` to `SessionRow`
      (`SessionRow.tsx:6-15`). When present, the title `<span>` (line 34-36) gets
      `onDoubleClick` that `stopPropagation()`s (so the card's `onClick` open-tab handler
@@ -169,7 +169,7 @@ updateSession.mutate({ sessionID: session.id, directory: dir, title })}` — cal
   - files: `apps/web-app/src/features/home/components/SessionRow.tsx`,
     `apps/web-app/src/features/home/components/RecentSessionsSection.tsx`
 
-- [ ] 5. **Add `onRename` to `WindowFrame` and wire `ChatNode`.**
+- [x] 5. **Add `onRename` to `WindowFrame` and wire `ChatNode`.**
      Extend `WindowFrameProps` (`WindowFrame.tsx:15-33`) with `onRename?: (newTitle:
 string) => void`. When present, the title `<span>` (lines 80-82) becomes
      double-click editable via local `isEditing` state + `<SessionTitleInput>`
@@ -183,7 +183,7 @@ title: t })}` into `<WindowFrame>` (guard when `data.sessionId` is null). `direc
   - files: `apps/web-app/src/features/desk/nodes/implementations/WindowFrame.tsx`,
     `apps/web-app/src/features/desk/nodes/implementations/chat-node/ChatNode.tsx`
 
-- [ ] 6. **Wire rename into the chat tab chip (`ChatTabTitle`).**
+- [x] 6. **Wire rename into the chat tab chip (`ChatTabTitle`).**
      Change `ChatTabTitle` (`meta.ts:16-23`) to return JSX: a `<span onDoubleClick={...}>`
      that toggles a local `isEditing` state and renders `<SessionTitleInput>` when editing,
      otherwise the title text. The interface already allows JSX
@@ -196,7 +196,7 @@ title: t })}` into `<WindowFrame>` (guard when `data.sessionId` is null). `direc
     opens an inline rename input
   - files: `apps/web-app/src/features/home/tabs/implementations/chat/meta.ts`
 
-- [ ] 7. **Full check.**
+- [x] 7. **Full check.**
   - verify: `pnpm --filter web-app lint && pnpm --filter web-app check-types` is clean,
     and `pnpm --filter web-app exec vitest run` passes; then manually exercise rename in
     all four surfaces (sidebar list, home recent row, chat tab chip, desk chat-node) and
@@ -206,13 +206,13 @@ title: t })}` into `<WindowFrame>` (guard when `data.sessionId` is null). `direc
 
 ## Done when
 
-- [ ] Double-clicking a session title in the workspace sidebar swaps it for an input;
+- [x] Double-clicking a session title in the workspace sidebar swaps it for an input;
       committing a non-empty changed name persists and the new name shows across surfaces
-- [ ] Same behavior on the home "Recent sessions" row, the chat tab chip, and the Desk
+- [x] Same behavior on the home "Recent sessions" row, the chat tab chip, and the Desk
       chat-node window header
-- [ ] Empty / unchanged commits perform no network call and revert the field
-- [ ] `pnpm --filter web-app exec vitest run src/hooks/useInlineRename.test.ts` passes
-- [ ] `pnpm --filter web-app lint && pnpm --filter web-app check-types` is clean
+- [x] Empty / unchanged commits perform no network call and revert the field
+- [x] `pnpm --filter web-app exec vitest run src/hooks/useInlineRename.test.ts` passes
+- [x] `pnpm --filter web-app lint && pnpm --filter web-app check-types` is clean
 
 ## Notes for implementer
 

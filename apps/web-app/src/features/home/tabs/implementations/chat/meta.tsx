@@ -1,6 +1,8 @@
 import { MessageCircle } from "lucide-react";
+import { useState } from "react";
 import type { TabTemplate, TabTitleProps } from "../../template";
 import { useSession } from "@/hooks/queries/useSessions";
+import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { ChatCreateDialog } from "./ChatCreateDialog";
 import { ChatContent } from "./ChatContent";
 
@@ -18,8 +20,36 @@ function ChatTabTitle({ data }: TabTitleProps<ChatData>) {
     sessionId: data.sessionId,
     directory: data.directory,
   });
+  const [isEditing, setIsEditing] = useState(false);
 
-  return session?.title ?? data.sessionName ?? "New Chat";
+  const resolvedTitle = session?.title ?? data.sessionName ?? "New Chat";
+
+  if (isEditing && data.sessionId) {
+    return (
+      <SessionTitleInput
+        sessionId={data.sessionId}
+        directory={data.directory}
+        initialTitle={resolvedTitle}
+        onDone={() => setIsEditing(false)}
+      />
+    );
+  }
+
+  return (
+    <span
+      onDoubleClick={
+        data.sessionId
+          ? (e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }
+          : undefined
+      }
+      className="truncate"
+    >
+      {resolvedTitle}
+    </span>
+  );
 }
 
 export const chatTemplate: TabTemplate<ChatData> = {

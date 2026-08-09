@@ -2,7 +2,7 @@ import { ChatContainer } from "@/components/chat/ChatContainer";
 import type { Node, NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
-import { useSession, useWorkspace } from "@/hooks/queries";
+import { useSession, useUpdateSession, useWorkspace } from "@/hooks/queries";
 import { WindowFrame } from "../WindowFrame";
 import { ExternalLink } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
@@ -22,6 +22,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const { updateNodeData } = useReactFlow();
   const addTab = useTabStore((s) => s.addTab);
   const { data: workspace } = useWorkspace(data.workspaceId);
+  const updateSession = useUpdateSession();
 
   const { data: session } = useSession({ sessionId: data.sessionId });
   const title = session?.title ?? "Chat";
@@ -32,6 +33,18 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       updateNodeData(id, { sessionId });
     },
     [id, updateNodeData],
+  );
+
+  const handleRename = useCallback(
+    (newTitle: string) => {
+      if (!data.sessionId) return;
+      updateSession.mutate({
+        sessionID: data.sessionId,
+        directory,
+        title: newTitle,
+      });
+    },
+    [data.sessionId, directory, updateSession],
   );
 
   const handleOpenInTab = useCallback(() => {
@@ -51,6 +64,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       selected={selected}
       maxWidth={1200}
       maxHeight={1200}
+      onRename={data.sessionId ? handleRename : undefined}
       actions={[
         {
           icon: ExternalLink,

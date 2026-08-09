@@ -1,10 +1,12 @@
 import type { ReactNode } from "react";
+import { useState } from "react";
 import type { Session } from "@opencode-ai/sdk/v2";
 
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
 import { EmptyState } from "@/components/ui/empty-state";
+import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { useTabStore } from "@/stores/tabStore";
 import { useSessions, useCreateSession } from "@/hooks/queries";
 import { Plus } from "lucide-react";
@@ -21,6 +23,7 @@ function SessionList({ directory, workspaceId, header }: SessionListProps) {
   const { data: sessions = [], isLoading, error } = useSessions({ directory });
   const createSession = useCreateSession();
   const addTab = useTabStore((s) => s.addTab);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleSelect = (session: Session) => {
     addTab("chat", {
@@ -65,18 +68,33 @@ function SessionList({ directory, workspaceId, header }: SessionListProps) {
           New chat
         </Button>
       )}
-      {rootSessions.map((session: Session) => (
-        <button
-          key={session.id}
-          type="button"
-          onClick={() => handleSelect(session)}
-          className={cn(
-            "shrink-0 truncate rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
-          )}
-        >
-          {session.title || "New Chat"}
-        </button>
-      ))}
+      {rootSessions.map((session: Session) =>
+        editingId === session.id ? (
+          <SessionTitleInput
+            key={session.id}
+            sessionId={session.id}
+            directory={directory}
+            initialTitle={session.title || "New Chat"}
+            onDone={() => setEditingId(null)}
+            className="px-2 py-1.5"
+          />
+        ) : (
+          <button
+            key={session.id}
+            type="button"
+            onClick={() => handleSelect(session)}
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              setEditingId(session.id);
+            }}
+            className={cn(
+              "shrink-0 truncate rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
+            )}
+          >
+            {session.title || "New Chat"}
+          </button>
+        ),
+      )}
       {rootSessions.length === 0 && (
         <EmptyState size="inline" title="No sessions yet" />
       )}

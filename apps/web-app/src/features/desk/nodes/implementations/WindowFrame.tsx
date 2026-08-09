@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -30,6 +31,9 @@ interface WindowFrameProps {
   /** Override the default close (delete-node) behavior, e.g. to clean up
    * external resources before removing the node. */
   onCloseOverride?: () => void;
+  /** When provided, the title becomes double-click editable and committing a
+   * non-empty changed name forwards the new title to this callback. */
+  onRename?: (newTitle: string) => void;
 }
 
 export function WindowFrame({
@@ -48,9 +52,50 @@ export function WindowFrame({
   actions,
   workspaceId,
   onCloseOverride,
+  onRename,
 }: WindowFrameProps) {
   const defaultClose = useDeleteNode(nodeId);
   const handleClose = onCloseOverride ?? defaultClose;
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(title ?? "");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (isEditing) {
+      inputRef.current?.focus();
+      inputRef.current?.select();
+    }
+  }, [isEditing]);
+
+  const startEditing = () => {
+    if (!onRename) return;
+    setDraft(title ?? "");
+    setIsEditing(true);
+  };
+
+  const commitRename = () => {
+    const trimmed = draft.trim();
+    setIsEditing(false);
+    if (trimmed && trimmed !== title && onRename) {
+      onRename(trimmed);
+    }
+  };
+
+  const cancelRename = () => {
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.stopPropagation();
+      commitRename();
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopPropagation();
+      cancelRename();
+    }
+  };
 
   return (
     <>
@@ -77,8 +122,35 @@ export function WindowFrame({
           <div className="flex items-center gap-2 flex-1 min-w-0">
             {headerAction}
             {workspaceId && <WorkspaceDot workspaceId={workspaceId} />}
-            {title && (
-              <span className="text-sm font-medium truncate">{title}</span>
+            {isEditing ? (
+              <input
+                ref={inputRef}
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                onBlur={commitRename}
+                onKeyDown={handleKeyDown}
+                onClick={(e) => e.stopPropagation()}
+                className="nodrag min-w-0 flex-1 rounded border border-input bg-background px-1 py-0.5 text-sm font-medium outline-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/40"
+              />
+            ) : (
+              title && (
+                <span
+                  onDoubleClick={
+                    onRename
+                      ? (e) => {
+                          e.stopPropagation();
+                          startEditing();
+                        }
+                      : undefined
+                  }
+                  className={cn(
+                    "text-sm font-medium truncate",
+                    onRename && "cursor-text",
+                  )}
+                >
+                  {title}
+                </span>
+              )
             )}
           </div>
           <div className="flex items-center gap-1 shrink-0">

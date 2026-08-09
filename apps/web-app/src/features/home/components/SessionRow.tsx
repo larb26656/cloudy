@@ -1,7 +1,9 @@
 import type { SessionV2Info } from "@opencode-ai/sdk/v2";
+import { useState } from "react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
+import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 
 interface SessionRowProps {
   session: SessionV2Info;
@@ -21,6 +23,8 @@ export function SessionRow({
   workspaceId,
   onClick,
 }: SessionRowProps) {
+  const [isEditing, setIsEditing] = useState(false);
+
   return (
     <button
       type="button"
@@ -31,9 +35,24 @@ export function SessionRow({
       )}
     >
       <span className="flex min-w-0 flex-1 flex-col">
-        <span className="truncate text-[13.5px] font-medium">
-          {session.title || "New Chat"}
-        </span>
+        {isEditing ? (
+          <SessionTitleInput
+            sessionId={session.id}
+            directory={directory}
+            initialTitle={session.title || "New Chat"}
+            onDone={() => setIsEditing(false)}
+          />
+        ) : (
+          <span
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }}
+            className="truncate text-[13.5px] font-medium"
+          >
+            {session.title || "New Chat"}
+          </span>
+        )}
       </span>
       <WorkspaceBadge
         workspaceName={workspaceName}
