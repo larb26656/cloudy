@@ -23,6 +23,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { PlusIcon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { NodeDrawerSidebar } from "./NodeDrawerSidebar";
 import { useFlowStore } from "@/stores/flowStore";
 import { type NodeTemplate } from "./nodes/template/nodeTemplates";
@@ -131,6 +136,9 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
       if ((e.metaKey || e.ctrlKey) && e.key === "d") {
         e.preventDefault();
         duplicate();
+      } else if ((e.metaKey || e.ctrlKey) && e.key === "x") {
+        e.preventDefault();
+        setNodeDrawerOpen((v) => !v);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -182,14 +190,21 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
         </Panel>
         <Panel position="top-right">
           <DeskPanel>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => setNodeDrawerOpen(true)}
-              aria-label="Add node"
-            >
-              <PlusIcon />
-            </Button>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => setNodeDrawerOpen(true)}
+                    aria-label="Add node"
+                  >
+                    <PlusIcon />
+                  </Button>
+                }
+              />
+              <TooltipContent>Add node (Cmd+X)</TooltipContent>
+            </Tooltip>
           </DeskPanel>
         </Panel>
         <Panel position="bottom-right">
