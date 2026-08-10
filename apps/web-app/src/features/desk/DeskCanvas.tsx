@@ -136,7 +136,11 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
       if ((e.metaKey || e.ctrlKey) && e.key === "d") {
         e.preventDefault();
         duplicate();
-      } else if ((e.metaKey || e.ctrlKey) && e.key === "x") {
+      } else if (
+        (e.metaKey || e.ctrlKey) &&
+        e.shiftKey &&
+        (e.key === "a" || e.key === "A")
+      ) {
         e.preventDefault();
         setNodeDrawerOpen((v) => !v);
       }
@@ -203,7 +207,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
                   </Button>
                 }
               />
-              <TooltipContent>Add node (Cmd+X)</TooltipContent>
+              <TooltipContent>Add node (Cmd+Shift+A)</TooltipContent>
             </Tooltip>
           </DeskPanel>
         </Panel>
