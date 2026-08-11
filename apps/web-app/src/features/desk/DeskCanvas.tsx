@@ -76,14 +76,22 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
     [],
   );
+
   const onEdgesChange: OnEdgesChange<Edge> = useCallback(
     (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
     [],
   );
+
   const onConnect: OnConnect = useCallback(
     (params) => setEdges((eds) => addEdge(params, eds)),
     [],
   );
+
+  const handleMoveEnd = useCallback(() => {
+    if (!rfInstanceRef.current) return;
+
+    saveFlow(tabId, buildSnapshot(rfInstanceRef.current));
+  }, [tabId, saveFlow, buildSnapshot]);
 
   const createNodeId = () => `node-${Date.now()}-${Math.random()}`;
 
@@ -95,6 +103,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
 
     if (flow) {
       const { x = 0, y = 0, zoom = 1 } = flow.viewport ?? {};
+
       setNodes(flow.nodes ?? []);
       setEdges(flow.edges ?? []);
       setViewport({ x, y, zoom });
@@ -174,10 +183,10 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
         nodeTypes={nodeTypes}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onMoveEnd={handleMoveEnd}
         onConnect={onConnect}
         onSelectionChange={onSelectionChange}
         onInit={setRfInstance}
-        fitView
         panOnScroll
         panOnScrollMode={PanOnScrollMode.Free}
         selectionOnDrag={!isHand}
