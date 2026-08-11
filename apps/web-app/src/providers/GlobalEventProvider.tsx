@@ -60,10 +60,10 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
       sseMaxRetryAttempts: 5,
       sseMaxRetryDelay: 3000,
     });
-    console.log(`[${id}] connected`);
+    console.debug(`[${id}] connected`);
 
     if (isCancelled()) {
-      console.log(`[${id}] cancel because skip`);
+      console.debug(`[${id}] cancel because skip`);
       await stream.return(undefined);
       return;
     }
@@ -97,7 +97,7 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
     })();
 
     return () => {
-      console.log(`[${id}] unsub`);
+      console.debug(`[${id}] unsub`);
       cancelled = true;
       void stream?.return(undefined);
     };
