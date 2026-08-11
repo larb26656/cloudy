@@ -170,7 +170,8 @@ export const ChatInput = memo(function ChatInput({
           <div
             className={cn(
               "flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full",
-              !isFocused && "@max-compact:flex-row @max-compact:items-center",
+              !isFocused &&
+                "@max-compact:flex-row @max-compact:items-center min-w-0",
             )}
             onFocus={() => setIsFocused(true)}
             onBlur={(e) => {
