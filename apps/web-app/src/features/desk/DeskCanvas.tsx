@@ -192,6 +192,7 @@ function DeskCanvasInner({ tabId, name, onNameChange }: DeskCanvasProps) {
         selectionOnDrag={!isHand}
         panOnDrag={isHand}
         selectionMode={SelectionMode.Partial}
+        multiSelectionKeyCode="Shift"
         deleteKeyCode={["Backspace", "Delete"]}
         colorMode={colorMode}
         className="h-full w-full"
