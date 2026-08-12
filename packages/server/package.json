@@ -22,7 +22,7 @@
     "clean": "rm -rf dist"
   },
   "dependencies": {
-    "@hono/node-server": "^1.15.0",
+    "@hono/node-server": "^2.1.0",
     "@hono/standard-validator": "^0.2.2",
     "@hono/zod-validator": "^0.8.0",
     "@lydell/node-pty": "^1.2.0-beta.14",

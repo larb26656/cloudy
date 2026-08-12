@@ -3,7 +3,6 @@ export {
   createPtyController,
   createPtyService,
   type PtyService,
-  attachPtyWebSockets,
 } from "./pty";
 export {
   createWorkspacesController,

@@ -23,30 +23,33 @@ export function createApp({
   container: Container;
 }) {
   const allowedOrigins = corsOrigins === "*" ? [] : corsOrigins;
+  const corsMiddleware = cors({
+    // Browsers reject `Access-Control-Allow-Origin: *` when the request
+    // sends credentials. Echo the request origin if it is in the allow
+    // list; if no list was configured (dev default), allow any origin by
+    // reflecting it back.
+    origin: (origin) => {
+      if (!origin) return null;
+      if (allowedOrigins.length === 0) return origin;
+      return allowedOrigins.includes(origin) ? origin : null;
+    },
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Accept",
+      "Origin",
+      "X-Requested-With",
+      "x-opencode-api-base",
+      "x-opencode-directory",
+    ],
+    credentials: true,
+  });
   const app = new Hono()
-    .use(
-      cors({
-        // Browsers reject `Access-Control-Allow-Origin: *` when the request
-        // sends credentials. Echo the request origin if it is in the allow
-        // list; if no list was configured (dev default), allow any origin by
-        // reflecting it back.
-        origin: (origin) => {
-          if (!origin) return null;
-          if (allowedOrigins.length === 0) return origin;
-          return allowedOrigins.includes(origin) ? origin : null;
-        },
-        allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allowHeaders: [
-          "Content-Type",
-          "Authorization",
-          "Accept",
-          "Origin",
-          "X-Requested-With",
-          "x-opencode-api-base",
-          "x-opencode-directory",
-        ],
-        credentials: true,
-      }),
+    .use((c, next) =>
+      c.req.header("upgrade")?.toLowerCase() === "websocket"
+        ? next()
+        : corsMiddleware(c, next),
     )
     .onError(domainErrorHandler)
     .get("/api/health", (c) => c.json({ status: "ok" }))

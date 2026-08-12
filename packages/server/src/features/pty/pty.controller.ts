@@ -1,9 +1,11 @@
 import { Hono } from "hono";
 import { describeRoute } from "hono-openapi";
+import { upgradeWebSocket } from "@hono/node-server";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
 import { PtyModel } from "./pty.model";
 import type { PtyService } from "./pty.service";
+import { createPtyWebSocketEvents } from "./pty.ws-adapter";
 
 const idParamSchema = z.object({ id: z.string().min(1) });
 
@@ -56,6 +58,15 @@ export function createPtyController(service: PtyService) {
         const { id } = c.req.valid("param");
         return c.json(service.getSession(id));
       },
+    )
+    .get(
+      "/sessions/:id/stream",
+      zValidator("param", idParamSchema),
+      upgradeWebSocket((c) => {
+        const { id } = idParamSchema.parse(c.req.param());
+        service.getSession(id);
+        return createPtyWebSocketEvents(id, service);
+      }),
     )
     .post(
       "/sessions/:id/resize",
