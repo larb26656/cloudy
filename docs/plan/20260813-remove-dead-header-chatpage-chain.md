@@ -2,7 +2,7 @@
 title: Remove dead Header/ChatPage/SidebarToggle chain
 slug: remove-dead-header-chatpage-chain
 id: 20260813-remove-dead-header-chatpage-chain
-status: ready
+status: done
 created: 2026-08-13
 source: planning session 2026-08-13
 ---
@@ -68,49 +68,49 @@ dead code that should be removed.
 Order matters: delete from the leaves of the import graph inward, ending with the barrel
 edit, so the repo compiles after each step.
 
-- [ ] 1. **Re-confirm the dead chain hasn't grown new consumers since the plan was written.**
+- [x] 1. **Re-confirm the dead chain hasn't grown new consumers since the plan was written.**
   - verify: `rg "ChatPage|SidebarToggle|TokenUsageIndicator" apps/web-app/src` returns only
     the four target files (and no new importers). If anything else shows up, STOP and
     re-scope before deleting.
   - files: (read-only verification, no edits)
 
-- [ ] 2. **Delete `apps/web-app/src/features/chat/ChatPage.tsx`.**
+- [x] 2. **Delete `apps/web-app/src/features/chat/ChatPage.tsx`.**
   - verify: `pnpm --filter web-app run check-types` passes. This is the load-bearing delete
     — once it's gone, `Header`, `SidebarToggle`, and `TokenUsageIndicator` lose their only
     consumer and become orphans (but typecheck still passes because nothing imports them
     either).
   - files: `apps/web-app/src/features/chat/ChatPage.tsx`
 
-- [ ] 3. **Delete `apps/web-app/src/components/layout/Header.tsx` and remove its re-export.**
+- [x] 3. **Delete `apps/web-app/src/components/layout/Header.tsx` and remove its re-export.**
   - verify: `pnpm --filter web-app run check-types` passes; `rg "Header" apps/web-app/src/components/layout/index.ts`
     returns nothing.
   - files: `apps/web-app/src/components/layout/Header.tsx` (delete),
     `apps/web-app/src/components/layout/index.ts` (edit — remove line 2)
 
-- [ ] 4. **Delete `apps/web-app/src/components/layout/SidebarToggle.tsx`.**
+- [x] 4. **Delete `apps/web-app/src/components/layout/SidebarToggle.tsx`.**
   - verify: `pnpm --filter web-app run check-types` passes;
     `rg "SidebarToggle" apps/web-app/src` returns nothing.
   - files: `apps/web-app/src/components/layout/SidebarToggle.tsx`
 
-- [ ] 5. **Delete `apps/web-app/src/components/chat/TokenUsageIndicator.tsx`.**
+- [x] 5. **Delete `apps/web-app/src/components/chat/TokenUsageIndicator.tsx`.**
   - verify: `pnpm --filter web-app run check-types` passes;
     `rg "TokenUsageIndicator" apps/web-app/src` returns nothing.
   - files: `apps/web-app/src/components/chat/TokenUsageIndicator.tsx`
 
-- [ ] 6. **Run full lint + typecheck + test suite to confirm nothing regressed.**
+- [x] 6. **Run full lint + typecheck + test suite to confirm nothing regressed.**
   - verify: `pnpm --filter web-app run lint && pnpm --filter web-app run check-types`
     both pass; `pnpm --filter web-app exec vitest run` passes.
   - files: (verification only)
 
 ## Done when
 
-- [ ] `pnpm --filter web-app run check-types` exits 0
-- [ ] `pnpm --filter web-app run lint` exits 0
-- [ ] `pnpm --filter web-app exec vitest run` passes (no new failures vs. baseline)
-- [ ] `rg "from ['\"]@/components/layout/Header['\"]|features/chat/ChatPage|SidebarToggle|TokenUsageIndicator" apps/web-app/src`
+- [x] `pnpm --filter web-app run check-types` exits 0
+- [x] `pnpm --filter web-app run lint` exits 0
+- [x] `pnpm --filter web-app exec vitest run` passes (no new failures vs. baseline)
+- [x] `rg "from ['\"]@/components/layout/Header['\"]|features/chat/ChatPage|SidebarToggle|TokenUsageIndicator" apps/web-app/src`
       returns zero matches
-- [ ] The four deleted files no longer appear in `apps/web-app/src/`
-- [ ] `features/chat/` folder still exists and still contains `components/CreateChatDialog/`
+- [x] The four deleted files no longer appear in `apps/web-app/src/`
+- [x] `features/chat/` folder still exists and still contains `components/CreateChatDialog/`
       (do NOT delete that — it has live consumers)
 
 ## Notes for implementer
