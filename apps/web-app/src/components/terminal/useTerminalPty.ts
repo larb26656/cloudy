@@ -6,7 +6,6 @@ import {
   useCreatePtySession,
   useKillPtySession,
   useResizePtySession,
-  usePtySession,
 } from "@/hooks/queries";
 
 export type TerminalStatus =
@@ -60,11 +59,6 @@ export function useTerminalPty({
   const createPty = useCreatePtySession();
   const killPty = useKillPtySession();
   const resizePty = useResizePtySession();
-
-  // Poll session status only while the WebSocket is connected — gives us
-  // exitCode through React Query instead of relying solely on WS onclose
-  // (which fires for both clean exit and network drop).
-  const sessionQuery = usePtySession(ptyId, { poll: status === "connected" });
 
   const reconnect = useCallback(() => {
     if (ptyId) {
@@ -210,18 +204,6 @@ export function useTerminalPty({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ptyId]);
-
-  // 3. Reflect a known exitCode (from the polled session query) onto the
-  // status, overriding the looser "connected"/"exited" detection. This
-  // fires after the WS-driven setStatus, so a true process exit wins.
-  useEffect(() => {
-    if (!ptyId) return;
-    const data = sessionQuery.data;
-    if (!data) return;
-    if (data.exitCode !== null) {
-      setStatus((prev) => (prev === "error" ? prev : "exited"));
-    }
-  }, [ptyId, sessionQuery.data]);
 
   return { containerRef, status, error, reconnect };
 }

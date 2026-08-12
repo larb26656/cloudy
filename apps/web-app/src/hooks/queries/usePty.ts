@@ -2,8 +2,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { cloudyClient } from "@/lib/api";
 import { ptyKeys } from "@/lib/cloudy/query-keys";
 
-const PTY_POLL_INTERVAL = 2000;
-
 export interface PtyShell {
   path: string;
   acceptable: boolean;
@@ -73,16 +71,7 @@ export function usePtyShells() {
   });
 }
 
-/**
- * Poll the status of a PTY session. Used to surface `exitCode` because
- * the raw WebSocket carries no structured exit event — the orchestrator
- * enables polling only while the WS is connected.
- */
-export function usePtySession(
-  id: string | null,
-  opts: { poll?: boolean } = {},
-) {
-  const { poll = false } = opts;
+export function usePtySession(id: string | null) {
   return useQuery({
     queryKey: ptyKeys.detail(id ?? ""),
     queryFn: async (): Promise<PtySession> => {
@@ -95,8 +84,6 @@ export function usePtySession(
       return res.json();
     },
     enabled: !!id,
-    refetchInterval: poll ? PTY_POLL_INTERVAL : false,
-    refetchIntervalInBackground: false,
   });
 }
 
