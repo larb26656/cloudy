@@ -1,53 +1,31 @@
-import { useEffect, useMemo, useState } from "react";
-import { useVcsDiff } from "@/hooks/queries/useFiles";
+import { useEffect, useState } from "react";
+import { ListTree, PanelLeft } from "lucide-react";
+import { Center } from "@/components/layout";
+import { NoData } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
-import { FilesList } from "./FilesList";
-import { FileDetail } from "./FileDetail";
-import { NoData } from "@/components/ui/empty-state";
-import { Center } from "@/components/layout";
-import { Badge } from "@/components/ui/badge";
-import { PathText } from "@/components/ui/path-text";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet";
-import { FilesResponsiveHeader } from "./FilesResponsiveHeader";
-
-const STATUS_META = {
-  added: { variant: "default", short: "A", label: "added" },
-  modified: { variant: "secondary", short: "M", label: "modified" },
-  deleted: { variant: "destructive", short: "D", label: "deleted" },
-} as const;
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useVcsDiff } from "@/hooks/queries/useFiles";
+import { AllFilesChangesView } from "./AllFilesChangesView";
+import { SingleFileChangesView } from "./SingleFileChangesView";
 
 interface FilesChangesProps {
   directory: string;
 }
 
+type ChangesViewMode = "all-files" | "single-file";
+
 export function FilesChanges({ directory }: FilesChangesProps) {
   const { data, isLoading, error, refetch } = useVcsDiff({ directory });
-
-  const [selectedFile, setSelectedFile] = useState<string | null>(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<ChangesViewMode>("all-files");
 
   useEffect(() => {
-    setSelectedFile(null);
+    setViewMode("all-files");
   }, [directory]);
 
-  const selected = useMemo(
-    () => (data ?? []).find((f) => f.file === selectedFile) ?? null,
-    [data, selectedFile],
-  );
-
-  const selectedMeta = selected
-    ? (STATUS_META[selected.status ?? "modified"] ?? STATUS_META.modified)
-    : null;
-
-  const handleSelect = (file: string) => {
-    setSelectedFile(file);
-    setIsSidebarOpen(false);
+  const handleViewModeChange = (values: string[]) => {
+    const nextMode = values[0] as ChangesViewMode | undefined;
+    if (nextMode) setViewMode(nextMode);
   };
 
   if (isLoading) {
@@ -77,77 +55,42 @@ export function FilesChanges({ directory }: FilesChangesProps) {
     );
   }
 
-  const sidebarHeader = (
-    <div className="border-b px-3 py-2 text-xs font-medium text-muted-foreground">
-      {files.length} file{files.length === 1 ? "" : "s"} changed
-    </div>
-  );
-
-  const sidebarBody = (
-    <div className="min-h-0 flex-1">
-      <FilesList
-        files={files}
-        selectedFile={selectedFile}
-        onSelect={handleSelect}
-      />
-    </div>
-  );
-
   return (
-    <div className="flex h-full">
-      <div className="hidden @files:flex w-[300px] shrink-0 flex-col border-r">
-        {sidebarHeader}
-        {sidebarBody}
-      </div>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <FilesResponsiveHeader
-          hasSelection={Boolean(selected)}
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
-          openTitle="Show file list"
-          closeTitle="Hide file list"
+    <div className="flex h-full flex-col">
+      <div className="flex shrink-0 items-center justify-between border-b px-3 py-2">
+        <span className="text-xs font-medium text-muted-foreground">
+          {files.length} file{files.length === 1 ? "" : "s"} changed
+        </span>
+        <ToggleGroup
+          value={[viewMode]}
+          onValueChange={handleViewModeChange}
+          variant="outline"
+          size="sm"
+          aria-label="Changes view"
         >
-          {selected && selectedMeta && (
-            <>
-              <Badge variant={selectedMeta.variant}>
-                <span className="@files:hidden">{selectedMeta.short}</span>
-                <span className="hidden @files:inline">
-                  {selectedMeta.label}
-                </span>
-              </Badge>
-              <PathText
-                path={selected.file}
-                className="min-w-0 flex-1 font-mono text-sm"
-              />
-              <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums">
-                <span className="text-green-600 dark:text-green-400">
-                  +{selected.additions}
-                </span>
-                <span className="text-red-600 dark:text-red-400">
-                  −{selected.deletions}
-                </span>
-              </span>
-            </>
-          )}
-        </FilesResponsiveHeader>
-        <div className="min-h-0 min-w-0 flex-1">
-          <FileDetail file={selected} />
-        </div>
+          <ToggleGroupItem value="all-files" aria-label="All files">
+            <ListTree data-icon="inline-start" />
+            All files
+          </ToggleGroupItem>
+          <ToggleGroupItem value="single-file" aria-label="Single file">
+            <PanelLeft data-icon="inline-start" />
+            Single file
+          </ToggleGroupItem>
+        </ToggleGroup>
       </div>
 
-      <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen} modal={false}>
-        <SheetContent
-          side="left"
-          className="w-[280px] gap-0 p-0 sm:w-[320px]"
-          showCloseButton={false}
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Changed files</SheetTitle>
-          </SheetHeader>
-          {sidebarHeader}
-          {sidebarBody}
-        </SheetContent>
-      </Sheet>
+      <div className="min-h-0 flex-1">
+        <AllFilesChangesView
+          directory={directory}
+          files={files}
+          active={viewMode === "all-files"}
+        />
+        <SingleFileChangesView
+          directory={directory}
+          files={files}
+          active={viewMode === "single-file"}
+        />
+      </div>
     </div>
   );
 }
