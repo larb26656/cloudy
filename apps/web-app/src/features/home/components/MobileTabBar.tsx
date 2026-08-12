@@ -1,4 +1,4 @@
-import { Menu } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
 import { AppBar } from "@/components/layout";
 import { TabTitle, tabTypeMap } from "../tabs/template";
@@ -10,6 +10,7 @@ interface MobileTabBarProps {
 export function MobileTabBar({ onOpenDrawer }: MobileTabBarProps) {
   const tabs = useTabStore((s) => s.tabs);
   const activeTabId = useTabStore((s) => s.activeTabId);
+  const removeTab = useTabStore((s) => s.removeTab);
 
   const activeTab =
     activeTabId && activeTabId !== "home"
@@ -32,9 +33,14 @@ export function MobileTabBar({ onOpenDrawer }: MobileTabBarProps) {
       <AppBar.Title>
         {activeTab ? <TabTitle tab={activeTab} /> : "Home"}
       </AppBar.Title>
-      {activeTab && Actions && (
+      {activeTab && (
         <AppBar.Actions>
-          <Actions tab={activeTab} />
+          {Actions && <Actions tab={activeTab} />}
+          <AppBar.ActionIcon
+            icon={X}
+            label="Close tab"
+            onClick={() => removeTab(activeTab.id)}
+          />
         </AppBar.Actions>
       )}
     </AppBar>

@@ -1,6 +1,20 @@
-import type { ReactNode } from "react";
-import { Home, Plus, X } from "lucide-react";
+import type { CSSProperties, ReactNode, Ref } from "react";
+import { GripVertical, Home, Plus, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import {
+  DndContext,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useTabStore } from "@/stores/tabStore";
 import {
   Sheet,
@@ -38,10 +52,22 @@ export function MobileTabDrawer({
   const activeTabId = useTabStore((s) => s.activeTabId);
   const setActiveTab = useTabStore((s) => s.setActiveTab);
   const removeTab = useTabStore((s) => s.removeTab);
+  const reorderTabs = useTabStore((s) => s.reorderTabs);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+  );
 
   const handleSelect = (id: string) => {
     setActiveTab(id);
     onOpenChange(false);
+  };
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (over && active.id !== over.id) {
+      reorderTabs(active.id as string, over.id as string);
+    }
   };
 
   return (
@@ -83,29 +109,41 @@ export function MobileTabDrawer({
           </DropdownMenu>
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto p-2">
-          <DrawerRow
-            icon={Home}
-            label="Home"
-            isActive={activeTabId === "home"}
-            onClick={() => handleSelect("home")}
-          />
-          {tabs.map((tab) => {
-            const template = tabTypeMap[tab.type];
-            if (!template) return null;
-            return (
-              <DrawerRow
-                key={tab.id}
-                icon={template.icon}
-                label={<TabTitle tab={tab} />}
-                workspaceId={getTabWorkspaceId(tab)}
-                isActive={activeTabId === tab.id}
-                onClick={() => handleSelect(tab.id)}
-                onClose={() => removeTab(tab.id)}
-              />
-            );
-          })}
-        </div>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <div className="flex-1 overflow-y-auto p-2">
+            <DrawerRow
+              icon={Home}
+              label="Home"
+              isActive={activeTabId === "home"}
+              onClick={() => handleSelect("home")}
+            />
+            <SortableContext
+              items={tabs.map((t) => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {tabs.map((tab) => {
+                const template = tabTypeMap[tab.type];
+                if (!template) return null;
+                return (
+                  <SortableDrawerRow
+                    key={tab.id}
+                    tabId={tab.id}
+                    icon={template.icon}
+                    label={<TabTitle tab={tab} />}
+                    workspaceId={getTabWorkspaceId(tab)}
+                    isActive={activeTabId === tab.id}
+                    onClick={() => handleSelect(tab.id)}
+                    onClose={() => removeTab(tab.id)}
+                  />
+                );
+              })}
+            </SortableContext>
+          </div>
+        </DndContext>
       </SheetContent>
     </Sheet>
   );
@@ -118,6 +156,9 @@ interface DrawerRowProps {
   onClick: () => void;
   onClose?: () => void;
   workspaceId?: string | null;
+  dragHandle?: ReactNode;
+  ref?: Ref<HTMLDivElement>;
+  style?: CSSProperties;
 }
 
 function DrawerRow({
@@ -127,9 +168,14 @@ function DrawerRow({
   onClick,
   onClose,
   workspaceId,
+  dragHandle,
+  ref,
+  style,
 }: DrawerRowProps) {
   return (
     <div
+      ref={ref}
+      style={style}
       className={cn(
         "group flex items-center gap-1 rounded-md pr-1 transition-colors",
         isActive
@@ -137,6 +183,7 @@ function DrawerRow({
           : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
       )}
     >
+      {dragHandle}
       <button
         onClick={onClick}
         className="flex flex-1 items-center gap-2 px-3 py-2 text-left text-sm font-medium"
@@ -157,5 +204,46 @@ function DrawerRow({
         </button>
       )}
     </div>
+  );
+}
+
+interface SortableDrawerRowProps extends Omit<DrawerRowProps, "ref" | "style"> {
+  tabId: string;
+}
+
+function SortableDrawerRow({ tabId, ...props }: SortableDrawerRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    setActivatorNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: tabId });
+
+  const style: CSSProperties = {
+    transform: CSS.Translate.toString(transform),
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+  };
+
+  return (
+    <DrawerRow
+      {...props}
+      ref={setNodeRef}
+      style={style}
+      dragHandle={
+        <button
+          ref={setActivatorNodeRef}
+          aria-label="Drag to reorder"
+          {...attributes}
+          {...listeners}
+          className="flex shrink-0 cursor-grab touch-none items-center px-1 text-muted-foreground/60 transition-colors hover:text-muted-foreground active:cursor-grabbing"
+        >
+          <GripVertical size={16} />
+        </button>
+      }
+    />
   );
 }
