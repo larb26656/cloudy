@@ -1,6 +1,6 @@
 import { Menu } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
-import { Button } from "@/components/ui/button";
+import { AppBar } from "@/components/layout";
 import { TabTitle, tabTypeMap } from "../tabs/template";
 
 interface MobileTabBarProps {
@@ -21,26 +21,22 @@ export function MobileTabBar({ onOpenDrawer }: MobileTabBarProps) {
     : null;
 
   return (
-    <div className="flex h-14 items-center border-b md:hidden">
-      <Button
-        variant="ghost"
-        size="icon-lg"
-        onClick={onOpenDrawer}
-        aria-label="Open tabs"
-        className="h-full aspect-auto text-muted-foreground hover:text-foreground"
-      >
-        <Menu size={24} />
-      </Button>
-      <div className="flex h-full flex-1 items-center gap-2.5 px-4 text-left">
-        <span className="truncate text-base font-semibold">
-          {activeTab ? <TabTitle tab={activeTab} /> : "Home"}
-        </span>
-      </div>
+    <AppBar className="md:hidden">
+      <AppBar.Leading>
+        <AppBar.ActionIcon
+          icon={Menu}
+          label="Open tabs"
+          onClick={onOpenDrawer}
+        />
+      </AppBar.Leading>
+      <AppBar.Title>
+        {activeTab ? <TabTitle tab={activeTab} /> : "Home"}
+      </AppBar.Title>
       {activeTab && Actions && (
-        <div className="flex h-full items-center pr-3">
+        <AppBar.Actions>
           <Actions tab={activeTab} />
-        </div>
+        </AppBar.Actions>
       )}
-    </div>
+    </AppBar>
   );
 }

@@ -1,6 +1,6 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { AppBar } from "@/components/layout";
 
 interface SettingsDetailHeaderProps {
   title: string;
@@ -10,16 +10,15 @@ export function SettingsDetailHeader({ title }: SettingsDetailHeaderProps) {
   const navigate = useNavigate();
 
   return (
-    <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b bg-background px-4 md:hidden">
-      <Button
-        variant="ghost"
-        size="icon-sm"
-        aria-label="Back to settings"
-        onClick={() => navigate({ to: "/settings" })}
-      >
-        <ArrowLeft className="size-5" />
-      </Button>
-      <h2 className="font-semibold">{title}</h2>
-    </header>
+    <AppBar sticky className="md:hidden">
+      <AppBar.Leading>
+        <AppBar.ActionIcon
+          icon={ArrowLeft}
+          label="Back to settings"
+          onClick={() => navigate({ to: "/settings" })}
+        />
+      </AppBar.Leading>
+      <AppBar.Title>{title}</AppBar.Title>
+    </AppBar>
   );
 }
