@@ -285,7 +285,7 @@ Two layers, deliberately split:
   by Storybook as a standalone showcase belongs here. Subfolders: `ui/` (shadcn
   primitives), `chat/` (the entire chat surface, because it's used by both the `chat` tab
   and the `chat-node` desk node), `markdown/`, `terminal/`, `permission/`, `question/`,
-  `layout/`, `workspace/`, `file-update-viewer/`, `utils/`.
+  `layout/`, `workspace/`, `utils/`.
 - **`src/features/<feature>/components/`** — **feature-private** UI. If only one feature
   uses it, keep it local to avoid premature promotion.
 
