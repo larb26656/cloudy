@@ -25,6 +25,10 @@ export interface TabTitleProps<T> {
   data: T;
 }
 
+export interface TabHeaderActionsProps<T = Tab> {
+  tab: T;
+}
+
 export interface TabTemplate<T = unknown> {
   type: string;
   label: string;
@@ -35,6 +39,12 @@ export interface TabTemplate<T = unknown> {
   defaultData?: T;
   getWorkspaceId?: (data: T) => string | null;
   onClose?: (tab: Tab) => void;
+  /**
+   * Bare action buttons rendered into the active-tab header bar (desktop)
+   * and the trailing slot of the mobile tab bar. The component is wrapped by
+   * the host bars — render only icon buttons, no outer bar/border.
+   */
+  HeaderActionsComponent?: ComponentType<TabHeaderActionsProps>;
 }
 
 type ExtractDataType<T> = T extends TabTemplate<infer Data> ? Data : never;

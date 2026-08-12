@@ -1,5 +1,6 @@
 import { useTabStore } from "@/stores/tabStore";
 import { MainTabBar } from "./components/MainTabBar";
+import { TabHeaderBar } from "./components/TabHeaderBar";
 import { ConnectionStatusBanner } from "./components/ConnectionStatusBanner";
 import { HomeContent } from "./HomeContent";
 import { tabTypeMap } from "./tabs/template";
@@ -18,6 +19,7 @@ export default function HomePage() {
       {(status === "PENDING" || status === "DISCONNECTED") && (
         <ConnectionStatusBanner />
       )}
+      <TabHeaderBar />
       <div className="flex-1 overflow-hidden">
         <div className={activeTabId === "home" ? "h-full" : "hidden"}>
           <HomeContent />
