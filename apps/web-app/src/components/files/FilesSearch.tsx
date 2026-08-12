@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react";
-import { PanelLeft, PanelLeftClose } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { PathText } from "@/components/ui/path-text";
 import {
   Sheet,
@@ -11,6 +9,7 @@ import {
 import { FileSearchInput } from "./FileSearchInput";
 import { FileSearchResults } from "./FileSearchResults";
 import { FilePreview } from "./FilePreview";
+import { FilesResponsiveHeader } from "./FilesResponsiveHeader";
 
 interface FilesSearchProps {
   directory: string;
@@ -51,29 +50,20 @@ export function FilesSearch({ directory }: FilesSearchProps) {
         {sidebarBody}
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        {(selectedPath || isSidebarOpen) && (
-          <div className="flex items-center gap-2 border-b px-4 py-2.5">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="@files:hidden"
-              onClick={() => setIsSidebarOpen((prev) => !prev)}
-              title={isSidebarOpen ? "Hide search" : "Show search"}
-            >
-              {isSidebarOpen ? (
-                <PanelLeftClose className="size-4" />
-              ) : (
-                <PanelLeft className="size-4" />
-              )}
-            </Button>
-            {selectedPath && (
-              <PathText
-                path={selectedPath}
-                className="min-w-0 flex-1 font-mono text-sm"
-              />
-            )}
-          </div>
-        )}
+        <FilesResponsiveHeader
+          hasSelection={Boolean(selectedPath)}
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          openTitle="Show search"
+          closeTitle="Hide search"
+        >
+          {selectedPath && (
+            <PathText
+              path={selectedPath}
+              className="min-w-0 flex-1 font-mono text-sm"
+            />
+          )}
+        </FilesResponsiveHeader>
         <div className="min-h-0 min-w-0 flex-1">
           <FilePreview directory={directory} path={selectedPath} />
         </div>

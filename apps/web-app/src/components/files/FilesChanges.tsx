@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from "react";
-import { PanelLeft, PanelLeftClose } from "lucide-react";
 import { useVcsDiff } from "@/hooks/queries/useFiles";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -9,13 +8,13 @@ import { NoData } from "@/components/ui/empty-state";
 import { Center } from "@/components/layout";
 import { Badge } from "@/components/ui/badge";
 import { PathText } from "@/components/ui/path-text";
-import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { FilesResponsiveHeader } from "./FilesResponsiveHeader";
 
 const STATUS_META = {
   added: { variant: "default", short: "A", label: "added" },
@@ -101,45 +100,36 @@ export function FilesChanges({ directory }: FilesChangesProps) {
         {sidebarBody}
       </div>
       <div className="flex min-w-0 flex-1 flex-col">
-        {(selected || isSidebarOpen) && (
-          <div className="flex items-center gap-2 border-b px-4 py-2.5">
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              className="@files:hidden"
-              onClick={() => setIsSidebarOpen((prev) => !prev)}
-              title={isSidebarOpen ? "Hide file list" : "Show file list"}
-            >
-              {isSidebarOpen ? (
-                <PanelLeftClose className="size-4" />
-              ) : (
-                <PanelLeft className="size-4" />
-              )}
-            </Button>
-            {selected && selectedMeta && (
-              <>
-                <Badge variant={selectedMeta.variant}>
-                  <span className="@files:hidden">{selectedMeta.short}</span>
-                  <span className="hidden @files:inline">
-                    {selectedMeta.label}
-                  </span>
-                </Badge>
-                <PathText
-                  path={selected.file}
-                  className="min-w-0 flex-1 font-mono text-sm"
-                />
-                <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums">
-                  <span className="text-green-600 dark:text-green-400">
-                    +{selected.additions}
-                  </span>
-                  <span className="text-red-600 dark:text-red-400">
-                    −{selected.deletions}
-                  </span>
+        <FilesResponsiveHeader
+          hasSelection={Boolean(selected)}
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+          openTitle="Show file list"
+          closeTitle="Hide file list"
+        >
+          {selected && selectedMeta && (
+            <>
+              <Badge variant={selectedMeta.variant}>
+                <span className="@files:hidden">{selectedMeta.short}</span>
+                <span className="hidden @files:inline">
+                  {selectedMeta.label}
                 </span>
-              </>
-            )}
-          </div>
-        )}
+              </Badge>
+              <PathText
+                path={selected.file}
+                className="min-w-0 flex-1 font-mono text-sm"
+              />
+              <span className="flex shrink-0 items-center gap-2 text-xs tabular-nums">
+                <span className="text-green-600 dark:text-green-400">
+                  +{selected.additions}
+                </span>
+                <span className="text-red-600 dark:text-red-400">
+                  −{selected.deletions}
+                </span>
+              </span>
+            </>
+          )}
+        </FilesResponsiveHeader>
         <div className="min-h-0 min-w-0 flex-1">
           <FileDetail file={selected} />
         </div>
