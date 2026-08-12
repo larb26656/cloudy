@@ -1,13 +1,8 @@
-import { useMemo, useState, useEffect, useRef } from "react";
-import { html as diff2html } from "diff2html";
-import "diff2html/bundles/css/diff2html.min.css";
-import hljs from "highlight.js";
-import "highlight.js/styles/github-dark-dimmed.css";
-import { Check, Copy, Columns, AlignJustify, Hash } from "lucide-react";
-import { ColorSchemeType } from "diff2html/lib/types";
-import { CodeFrame } from "./CodeFrame";
+import { useState } from "react";
+import { AlignJustify, Check, Columns, Copy, Hash } from "lucide-react";
 import { detectLanguage } from "@/lib/highlight";
-import { cn } from "@/lib/utils";
+import { CodeFrame } from "./CodeFrame";
+import { DiffView } from "./DiffView";
 
 interface DiffViewerProps {
   diff: string;
@@ -16,9 +11,6 @@ interface DiffViewerProps {
   filePath: string;
   defaultViewMode?: "side-by-side" | "line-by-line";
   showLineNumbers?: boolean;
-  headless?: boolean;
-  maxHeight?: number | string;
-  className?: string;
 }
 
 export function DiffViewer({
@@ -28,9 +20,6 @@ export function DiffViewer({
   filePath,
   defaultViewMode = "side-by-side",
   showLineNumbers: controlledShowLineNumbers,
-  headless = false,
-  maxHeight,
-  className,
 }: DiffViewerProps) {
   const [copied, setCopied] = useState(false);
   const [viewMode, setViewMode] = useState(defaultViewMode);
@@ -38,99 +27,11 @@ export function DiffViewer({
 
   const isControlled = initialViewMode !== undefined;
   const isLineNumbersControlled = controlledShowLineNumbers !== undefined;
-
   const showLineNumbers = isLineNumbersControlled
     ? controlledShowLineNumbers
     : showLineNumbersState;
-
   const currentViewMode = isControlled ? initialViewMode : viewMode;
-
-  const diffHtml = useMemo(() => {
-    return diff2html(diff, {
-      drawFileList: false,
-      matching: "lines",
-      outputFormat:
-        currentViewMode === "side-by-side" ? "side-by-side" : "line-by-line",
-      renderNothingWhenEmpty: false,
-      colorScheme: ColorSchemeType.DARK,
-    });
-  }, [diff, currentViewMode]);
-
-  const containerRef = useRef<HTMLDivElement>(null);
-
   const language = detectLanguage(filePath);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-
-    const applyHighlight = () => {
-      const codeLines = container.querySelectorAll(
-        ".d2h-code-line, .d2h-code-side-line",
-      );
-      codeLines.forEach((line) => {
-        const contentSpan = line.querySelector(".d2h-code-line-ctn");
-
-        if (!contentSpan) return;
-
-        const text = contentSpan.textContent ?? "";
-
-        if (!text.trim()) return;
-
-        try {
-          const highlighted =
-            language && language !== "plaintext" && hljs.getLanguage(language)
-              ? hljs.highlight(text, { language }).value
-              : hljs.highlightAuto(text).value;
-
-          contentSpan.innerHTML = highlighted;
-        } catch {
-          // Keep original text if highlighting fails
-        }
-      });
-    };
-
-    applyHighlight();
-  });
-
-  useEffect(() => {
-    const style = document.createElement("style");
-    style.id = "diff2html-custom-styles";
-    style.textContent = `
-      .d2h-file-header {
-        display: none;
-      }
-
-      ${
-        showLineNumbers
-          ? ""
-          : `
-      .d2h-code-side-linenumber,
-      .d2h-code-linenumber {
-        display: none;
-      }
-
-      .d2h-code-side-line,
-      .d2h-code-line {
-        padding-left: 0 !important;
-      }
-
-      .d2h-code-side-linenumber {
-        border: none;
-      }
-      `
-      }
-    `;
-    if (!document.getElementById("diff2html-custom-styles")) {
-      document.head.appendChild(style);
-    }
-    return () => {
-      const existing = document.getElementById("diff2html-custom-styles");
-      if (existing) {
-        existing.remove();
-      }
-    };
-  }, [showLineNumbers]);
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(diff);
@@ -139,8 +40,8 @@ export function DiffViewer({
   };
 
   const toggleViewMode = () => {
-    setViewMode((prev) =>
-      prev === "side-by-side" ? "line-by-line" : "side-by-side",
+    setViewMode((previous) =>
+      previous === "side-by-side" ? "line-by-line" : "side-by-side",
     );
   };
 
@@ -178,7 +79,7 @@ export function DiffViewer({
       )}
       {!isLineNumbersControlled && (
         <button
-          onClick={() => setShowLineNumbersState((prev) => !prev)}
+          onClick={() => setShowLineNumbersState((previous) => !previous)}
           className="flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-white transition-colors rounded hover:bg-[#404040]"
           title={showLineNumbers ? "Hide line numbers" : "Show line numbers"}
         >
@@ -205,26 +106,14 @@ export function DiffViewer({
     </>
   );
 
-  const diffContent = (
-    <div ref={containerRef} dangerouslySetInnerHTML={{ __html: diffHtml }} />
-  );
-
-  if (headless) {
-    const maxHeightStyle =
-      typeof maxHeight === "number" ? `${maxHeight}px` : maxHeight;
-    return (
-      <div
-        className={cn("relative overflow-auto", className)}
-        style={maxHeightStyle ? { maxHeight: maxHeightStyle } : undefined}
-      >
-        {diffContent}
-      </div>
-    );
-  }
-
   return (
     <CodeFrame header={header} actions={actions}>
-      {diffContent}
+      <DiffView
+        diff={diff}
+        filePath={filePath}
+        viewMode={currentViewMode}
+        showLineNumbers={showLineNumbers}
+      />
     </CodeFrame>
   );
 }

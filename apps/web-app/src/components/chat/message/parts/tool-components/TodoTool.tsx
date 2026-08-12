@@ -19,11 +19,31 @@ function TodoItems({
   maxItems?: number;
   showBadges?: boolean;
 }) {
-  const visible = todos.slice(0, maxItems);
-  const remaining = todos.length - visible.length;
+  let hiddenDoneTop = 0;
+  let visible: TodoItem[] = todos;
+  let remaining = 0;
+
+  if (todos.length > maxItems) {
+    const toHide = todos.length - maxItems;
+    const doneIdx: number[] = [];
+    todos.forEach((t, i) => {
+      if (t.status === "completed") doneIdx.push(i);
+    });
+    hiddenDoneTop = Math.min(doneIdx.length, toHide);
+    const hideSet = new Set(doneIdx.slice(0, hiddenDoneTop));
+    const afterHidden = todos.filter((_, i) => !hideSet.has(i));
+    visible = afterHidden.slice(0, maxItems);
+    remaining = afterHidden.length - visible.length;
+  }
 
   return (
     <div className="space-y-0.5">
+      {hiddenDoneTop > 0 && (
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Check className="size-3 text-green-500" />
+          <span>+{hiddenDoneTop} done</span>
+        </div>
+      )}
       {visible.map((todo, idx) => {
         const done = todo.status === "completed";
         const cancelled = todo.status === "cancelled";

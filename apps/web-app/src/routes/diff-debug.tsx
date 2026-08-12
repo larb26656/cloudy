@@ -6,21 +6,29 @@ const MOCK_DIFF = `--- a/src/components/markdown/DiffViewer.tsx
 +++ b/src/components/markdown/DiffViewer.tsx
 @@ -1,5 +1,6 @@
  import { useMemo, useState, useEffect, useRef } from "react";
- import { html as diff2html } from "diff2html";
-+import hljs from "highlight.js";
+-import { html as diff2html } from "diff2html";
++import { Diff, Hunk, parseDiff } from "react-diff-view";
++import "react-diff-view/style/index.css";
  import "diff2html/bundles/css/diff2html.min.css";
 
  interface Props {
 @@ -20,6 +21,10 @@
  export function DiffViewer({ diff, filePath }: Props) {
-   const diffHtml = diff2html(diff);
+-  const diffHtml = diff2html(diff);
++  const files = parseDiff(diff);
++  const { hunks } = files[0];
 
-+  useEffect(() => {
-+    // Apply syntax highlighting
-+  }, [diffHtml]);
-+
-   return <div dangerouslySetInnerHTML={{ __html: diffHtml }} />;
- }
+-  useEffect(() => {
+-    // Apply syntax highlighting
+-  }, [diffHtml]);
+-
+-  return <div dangerouslySetInnerHTML={{ __html: diffHtml }} />;
++  return (
++    <Diff viewType="split" diffType="modify" hunks={hunks}>
++      {(h) => h.map((hk) => <Hunk key={hk.content} hunk={hk} />)}
++    </Diff>
++  );
+}
 `;
 
 export const Route = createFileRoute("/diff-debug")({
@@ -40,8 +48,8 @@ function DiffDebugPage() {
         Force Re-render ({Math.random()})
       </button>
       <div className="max-w-6xl mx-auto">
-        { counter }
-        <div className="flex flex-col gap 2">
+        {counter}
+        <div className="flex flex-col gap-2">
           <DiffViewer
             diff={MOCK_DIFF}
             filePath="src/components/markdown/DiffViewer.tsx"
@@ -49,7 +57,6 @@ function DiffDebugPage() {
             showLineNumbers={true}
           />
         </div>
-
       </div>
       <div className="mt-8 p-4 bg-gray-900 rounded text-white">
         <h2 className="text-lg font-bold mb-2">Debug Info</h2>

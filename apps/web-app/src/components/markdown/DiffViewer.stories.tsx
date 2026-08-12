@@ -1,4 +1,5 @@
 import preview from "@/storybook/preview";
+import { DiffView } from "./DiffView";
 import { DiffViewer } from "./DiffViewer";
 
 const meta = preview.meta({
@@ -16,7 +17,8 @@ const meta = preview.meta({
     },
     title: {
       control: "text",
-      description: "Optional title shown in the header (falls back to filePath)",
+      description:
+        "Optional title shown in the header (falls back to filePath)",
     },
     viewMode: {
       control: "select",
@@ -26,25 +28,12 @@ const meta = preview.meta({
     defaultViewMode: {
       control: "select",
       options: ["side-by-side", "line-by-line"],
-      description: "Initial view mode when uncontrolled (toggle button visible)",
+      description:
+        "Initial view mode when uncontrolled (toggle button visible)",
     },
     showLineNumbers: {
       control: "boolean",
       description: "Controlled line numbers — hides the toggle button when set",
-    },
-    headless: {
-      control: "boolean",
-      description: "Render without the CodeFrame wrapper",
-    },
-    maxHeight: {
-      control: "number",
-      description:
-        "Headless mode only. Number = px, or CSS string. Optional cap — omit to size via className/parent",
-    },
-    className: {
-      control: "text",
-      description:
-        "Headless mode only. Merged onto the scroll container (e.g. 'min-h-0 flex-1' to fill a flex parent)",
     },
   },
 });
@@ -82,7 +71,7 @@ index 1234567..89abcdef 100644
    "dependencies": {
      "react": "^19.0.0",
      "react-dom": "^19.0.0",
-+    "highlight.js": "^11.9.0",
++    "refractor": "^5.0.0",
      "typescript": "~5.3.0"
    }
  }
@@ -155,8 +144,6 @@ index 1111111..2222222 100644
 +const port = Number(process.env.PORT ?? 3000);
 +createApp().listen({ port });
 +console.log(\`Server running on http://localhost:\${port}\`);`;
-
-// ---------------------------------------------------------------------------
 // Uncontrolled — toggle buttons visible
 // ---------------------------------------------------------------------------
 
@@ -281,43 +268,40 @@ index 1234567..0000000 100644
   },
 });
 
-// ---------------------------------------------------------------------------
-// Headless — internal vertical & horizontal scroll
-// ---------------------------------------------------------------------------
-
-export const HeadlessWithMaxHeight = meta.story({
+export const RawViewWithMaxHeight = meta.story({
   args: {
     diff: longDiff,
     filePath: "src/server.ts",
-    headless: true,
-    maxHeight: 240,
     showLineNumbers: true,
     viewMode: "line-by-line",
   },
+  render: (args) => (
+    <DiffView
+      diff={args.diff}
+      filePath={args.filePath}
+      viewMode={args.viewMode ?? "line-by-line"}
+      showLineNumbers={args.showLineNumbers ?? false}
+      maxHeight={240}
+    />
+  ),
 });
 
-export const HeadlessSideBySide = meta.story({
+export const RawViewFillParent = meta.story({
   args: {
     diff: longDiff,
     filePath: "src/server.ts",
-    headless: true,
-    maxHeight: 300,
-    viewMode: "side-by-side",
-  },
-});
-
-export const HeadlessFillParent = meta.story({
-  args: {
-    diff: longDiff,
-    filePath: "src/server.ts",
-    headless: true,
-    className: "min-h-0 flex-1",
     showLineNumbers: true,
     viewMode: "line-by-line",
   },
   render: (args) => (
     <div className="flex h-[400px] w-full flex-col rounded-md border border-[#404040] bg-[#1e1e1e] p-2">
-      <DiffViewer {...args} />
+      <DiffView
+        diff={args.diff}
+        filePath={args.filePath}
+        viewMode={args.viewMode ?? "line-by-line"}
+        showLineNumbers={args.showLineNumbers ?? false}
+        className="min-h-0 flex-1"
+      />
     </div>
   ),
 });

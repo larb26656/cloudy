@@ -21,8 +21,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { FileListSidebar } from "./FileListSidebar";
-import { CodeBlock } from "@/components/markdown/CodeBlock";
-import { DiffViewer } from "@/components/markdown/DiffViewer";
+import { CodeView } from "@/components/markdown/CodeView";
+import { DiffView } from "@/components/markdown/DiffView";
 
 export interface FileItem {
   name: string;
@@ -74,7 +74,7 @@ export function FileUpdateViewer({
 
     if (isEditMode) {
       return (
-        <DiffViewer
+        <DiffView
           diff={createTwoFilesPatch(filePath, filePath, oldString, newString)}
           filePath={filePath}
           viewMode="line-by-line"
@@ -83,7 +83,7 @@ export function FileUpdateViewer({
       );
     }
 
-    return <CodeBlock headless>{currentFile.content}</CodeBlock>;
+    return <CodeView>{currentFile.content}</CodeView>;
   };
 
   return (

@@ -1,5 +1,5 @@
 import type { VcsFileDiff } from "@opencode-ai/sdk/v2";
-import { DiffViewer } from "@/components/markdown/DiffViewer";
+import { DiffView } from "@/components/markdown/DiffView";
 import { NoData } from "@/components/ui/empty-state";
 
 interface FileDetailProps {
@@ -20,12 +20,11 @@ export function FileDetail({ file }: FileDetailProps) {
     <div className="flex h-full flex-col">
       <div className="flex min-h-0 flex-1 flex-col">
         {file.patch ? (
-          <DiffViewer
+          <DiffView
             diff={file.patch}
             filePath={file.file}
-            defaultViewMode="line-by-line"
+            viewMode="line-by-line"
             showLineNumbers={true}
-            headless={true}
             className="min-h-0 flex-1"
           />
         ) : (

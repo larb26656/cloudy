@@ -7,7 +7,6 @@ interface CodeFrameProps {
   code?: string;
   header?: ReactNode;
   actions?: ReactNode;
-  headless?: boolean;
 }
 
 export function CodeFrame({
@@ -16,7 +15,6 @@ export function CodeFrame({
   code,
   header,
   actions,
-  headless = false,
 }: CodeFrameProps) {
   const [copied, setCopied] = useState(false);
 
@@ -46,10 +44,6 @@ export function CodeFrame({
       )}
     </button>
   );
-
-  if (headless) {
-    return <>{children}</>;
-  }
 
   return (
     <div className="relative group my-4 rounded-lg overflow-hidden bg-[#1e1e1e]">

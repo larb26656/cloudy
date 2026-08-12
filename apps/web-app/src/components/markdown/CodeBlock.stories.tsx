@@ -77,8 +77,8 @@ export const JSONCode = meta.story({
   "version": "1.0.0",
   "dependencies": {
     "react": "^19.0.0",
-    "highlight.js": "^11.9.0",
-    "diff2html": "^3.4.0"
+    "refractor": "^5.0.0",
+    "react-diff-view": "^3.3.3"
   }
 }
 \`\`\``,

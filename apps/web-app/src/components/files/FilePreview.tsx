@@ -1,7 +1,7 @@
 import { FileWarning } from "lucide-react";
 import type { ReactNode } from "react";
 import { useFileRead } from "@/hooks/queries/useFiles";
-import { CodeBlock } from "@/components/markdown/CodeBlock";
+import { CodeView } from "@/components/markdown/CodeView";
 import { EmptyState, NoData } from "@/components/ui/empty-state";
 import { ErrorState } from "@/components/ui/error-state";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -64,9 +64,9 @@ function FilePreviewBody({
   } else {
     content = (
       <div className="h-full overflow-auto">
-        <CodeBlock fileName={path} headless showLineNumbers>
+        <CodeView fileName={path} showLineNumbers>
           {data.content}
-        </CodeBlock>
+        </CodeView>
       </div>
     );
   }
