@@ -1,4 +1,4 @@
-import { PenTool } from "lucide-react";
+import { Palette } from "lucide-react";
 import type { TabTemplate, TabTitleProps } from "../../template";
 import { useFlowStore } from "@/stores/flowStore";
 import { DeskContent } from "./DeskContent";
@@ -14,7 +14,7 @@ function DeskTabTitle({ data }: TabTitleProps<DeskData>) {
 export const deskTemplate: TabTemplate<DeskData> = {
   type: "desk",
   label: "New Desk",
-  icon: PenTool,
+  icon: Palette,
   TitleComponent: DeskTabTitle,
   ContentComponent: DeskContent,
   defaultData: {
