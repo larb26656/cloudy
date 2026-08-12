@@ -150,6 +150,59 @@ const initialQuestions: QuestionV2Request[] = [
   },
 ];
 
+const longQuestion: QuestionV2Request = {
+  id: "que_longquestion0000000000000001",
+  sessionID: "ses_066f50c05ffeKdaKvp34Y4sTEm",
+  questions: [
+    {
+      question:
+        "ก่อนที่เราจะเริ่มลงมือ implement ฟีเจอร์ใหม่นี้ ผมอยากให้เราเลือกทิศทางของสถาปัตยกรรมกันก่อน เพราะการตัดสินใจตรงนี้จะส่งผลต่อ codebase ทั้งหมดในระยะยาว ทั้งในเรื่องของ performance, maintainability, ความสามารถในการ scale, ตลอดจนประสบการณ์ของนักพัฒนาที่จะมา maintain โค้ดชุดนี้ต่อในอนาคต — โปรดพิจารณาอย่างรอบคอบว่าแต่ละทางเลือกมี trade-off อย่างไรบ้าง เพราะบางตัวเลือกอาจดูเรียบง่ายในระยะสั้นแต่กลับกลายเป็นหนี้ทางเทคนิคในอีกหกเดือนข้างหน้า ในขณะที่บางตัวเลือกต้องลงทุนตั้งแต่ต้นแต่จะคุ้มในระยะยาว คุณจะเลือกแนวทางไหน?",
+      header: "สถาปัตยกรรมระบบ — กรุณาเลือกอย่างรอบคอบ",
+      options: [
+        {
+          label: "Monolith แบบคลาสสิก",
+          description:
+            "โค้ดอยู่ใน repo เดียว, deploy เดียว, เริ่มต้นง่ายและเร็วที่สุด เหมาะกับทีมเล็กและโปรเจกต์ที่ยังไม่ชัดเจน แต่อาจใหญ่เกินไปเมื่อโตขึ้น",
+        },
+        {
+          label: "Modular Monolith",
+          description:
+            "แบ่งเป็น module ชัดเจนภายใน repo เดียว, มี boundary ระหว่างโมดูล สมดุลระหว่างความเรียบง่ายและการขยายตัว",
+        },
+        {
+          label: "Microservices เต็มรูปแบบ",
+          description:
+            "แบ่งบริการอิสระหลายตัว, deploy แยก, scale แยก ยืดหยุ่นสูงแต่ซับซ้อนในแง่ ops, monitoring, และการสื่อสารระหว่างบริการ",
+        },
+        {
+          label: "Serverless / FaaS",
+          description:
+            "รันเป็นฟังก์ชัน, จ่ายตามการใช้งานจริง, ไม่ต้องจัดการเซิร์ฟเวอร์ เหมาะกับงาน event-driven และ spike traffic",
+        },
+        {
+          label: "Event-driven Architecture",
+          description:
+            "ใช้ message queue / event bus เป็นแกนกลาง ตัดขาด coupling ระหว่าง component แต่ต้องระวังเรื่อง eventual consistency",
+        },
+        {
+          label: "Hybrid (Monolith + selected services)",
+          description:
+            "เริ่ม monolith แล้วดึงบางส่วนออกเป็น service เมื่อจำเป็น ปฏิบัติตามหลัก strangler fig pattern",
+        },
+        {
+          label: "อื่นๆ (ระบุเอง)",
+          description: "หากทางเลือกด้านบนไม่ตรงกับความต้องการของคุณ",
+        },
+      ],
+      multiple: false,
+    },
+  ],
+  tool: {
+    messageID: "msg_longquestion00000000000001",
+    callID: "call_function_long_1",
+  },
+};
+
 let demoQuestions: QuestionV2Request[] = [...initialQuestions];
 
 const resetDemo = () => {
@@ -177,6 +230,12 @@ const handlers = [
     removeById(idFrom(new URL(request.url), rejectPattern));
     return new HttpResponse(null, { status: 200 });
   }),
+];
+
+const longQuestionHandlers = [
+  http.get(listPattern, () => HttpResponse.json([longQuestion])),
+  http.post(replyPattern, () => new HttpResponse(null, { status: 200 })),
+  http.post(rejectPattern, () => new HttpResponse(null, { status: 200 })),
 ];
 
 const errorHandlers = [
@@ -264,5 +323,12 @@ export const SubmissionFails = meta.story({
   render: () => <QuestionSheetDemo />,
   parameters: {
     msw: { handlers: errorHandlers },
+  },
+});
+
+export const LongQuestion = meta.story({
+  render: () => <QuestionSheetDemo />,
+  parameters: {
+    msw: { handlers: longQuestionHandlers },
   },
 });

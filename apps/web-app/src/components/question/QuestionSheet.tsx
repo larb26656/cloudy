@@ -185,16 +185,16 @@ export function QuestionSheet({
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetContent
         side="bottom"
-        className="max-w-lg mx-auto rounded-t-xl overflow-y-auto"
+        className="max-w-lg mx-auto rounded-t-xl max-h-dvh"
       >
-        <SheetHeader>
+        <SheetHeader className="shrink-0">
           <SheetTitle className="flex items-center gap-2">
             <HelpCircle className="size-4 text-amber-600" />
             Question {step + 1} of {question.questions.length}
           </SheetTitle>
         </SheetHeader>
 
-        <div className="space-y-4 p-1">
+        <div className="flex-1 min-h-0 overflow-y-auto space-y-4 p-1">
           <div className="p-3 space-y-3">
             <div className="mb-5">
               <div className="font-medium uppercase mb-1">
@@ -225,7 +225,7 @@ export function QuestionSheet({
           </div>
         </div>
 
-        <SheetFooter>
+        <SheetFooter className="shrink-0">
           <div className="flex gap-2 w-full">
             {step === 0 ? (
               <Button
