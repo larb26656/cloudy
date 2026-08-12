@@ -12,13 +12,7 @@ export function TerminalCreateDialog({
     <TerminalWorkspaceDialog
       open={open}
       onOpenChange={onOpenChange}
-      onSubmit={(workspace) =>
-        addTab("terminal", {
-          workspaceId: workspace.id,
-          directory: workspace.directory,
-          ptyId: null,
-        })
-      }
+      onSubmit={(data) => addTab("terminal", data)}
     />
   );
 }

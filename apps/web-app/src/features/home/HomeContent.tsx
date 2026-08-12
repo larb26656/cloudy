@@ -8,6 +8,7 @@ import type { Workspace } from "@/lib/cloudy/workspaces";
 import { HomeGreeting } from "./components/HomeGreeting";
 import { RecentDesksSection } from "./components/RecentDesksSection";
 import { RecentSessionsSection } from "./components/RecentSessionsSection";
+import { OpenTerminalsSection } from "./components/OpenTerminalsSection";
 import { WorkspacesSection } from "./components/WorkspacesSection";
 import { WorkspaceDetail } from "./components/WorkspaceDetail";
 
@@ -59,6 +60,7 @@ export function HomeContent() {
           recentSessions={recentSessions.length}
         />
         <RecentDesksSection />
+        <OpenTerminalsSection />
         <RecentSessionsSection />
         <WorkspacesSection onSelectWorkspace={setSelectedWorkspace} />
       </>

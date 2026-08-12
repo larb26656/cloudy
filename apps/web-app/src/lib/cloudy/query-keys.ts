@@ -11,6 +11,7 @@
 export const ptyKeys = {
   root: () => ["pty"] as const,
   shells: () => ["pty", "shells"] as const,
+  sessions: () => ["pty", "sessions"] as const,
   detail: (id: string) => ["pty", "sessions", id] as const,
 };
 

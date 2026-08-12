@@ -32,8 +32,13 @@ describe("PTY WebSocket route", () => {
 
     ptyService.getSession.mockReturnValue({
       id: "pty-1",
+      name: "Quiet Harbor",
+      directory: "/tmp",
+      command: "/bin/sh",
       alive: true,
       exitCode: null,
+      createdAt: 100,
+      lastActivityAt: 200,
     });
     ptyService.onData.mockImplementation((_id, listener) => {
       emitData = listener;

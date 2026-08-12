@@ -1,10 +1,17 @@
+import { randomInt } from "node:crypto";
 import type {
   CreateSessionInput,
   ResizeInput,
   SessionDto,
   ShellDto,
+  UpdateSessionInput,
 } from "./pty.model";
-import type { DataListener, ExitListener, PtyRepository } from "./pty.repository";
+import type {
+  DataListener,
+  ExitListener,
+  PtyRepository,
+  PtySession,
+} from "./pty.repository";
 import { listShells } from "./shell-resolver";
 import { SessionNotFoundError } from "./pty.errors";
 
@@ -15,29 +22,51 @@ import { SessionNotFoundError } from "./pty.errors";
  * shapes DTOs so routes stay thin.
  */
 export function createPtyService(repo: PtyRepository) {
+  const adjectives = ["Amber", "Brisk", "Calm", "Clever", "Quiet", "Swift"];
+  const nouns = ["Comet", "Harbor", "Meadow", "Orbit", "Pine", "River"];
+  const randomName = (): string => {
+    const adjective = adjectives[randomInt(adjectives.length)]!;
+    const noun = nouns[randomInt(nouns.length)]!;
+    return `${adjective} ${noun}`;
+  };
+
+  const toDto = (session: PtySession): SessionDto => ({
+    id: session.id,
+    name: session.name,
+    directory: session.directory,
+    command: session.command,
+    alive: session.exitCode === null,
+    exitCode: session.exitCode,
+    createdAt: session.createdAt,
+    lastActivityAt: session.lastActivityAt,
+  });
+
   const listShellsFn = (): ShellDto[] =>
     listShells().map((s) => ({ path: s.path, acceptable: s.acceptable }));
 
-  const createSession = (input: CreateSessionInput): { id: string } => {
+  const createSession = (input: CreateSessionInput): SessionDto => {
     const session = repo.spawn({
       directory: input.directory,
+      name: input.name ?? randomName(),
       command: input.command,
       cols: input.cols,
       rows: input.rows,
       env: input.env,
     });
-    return { id: session.id };
+    return toDto(session);
   };
 
   const getSession = (id: string): SessionDto => {
     const session = repo.get(id);
     if (!session) throw new SessionNotFoundError(id);
-    return {
-      id: session.id,
-      alive: session.exitCode === null,
-      exitCode: session.exitCode,
-    };
+    return toDto(session);
   };
+
+  const listSessions = (): SessionDto[] =>
+    repo
+      .list()
+      .sort((a, b) => b.lastActivityAt - a.lastActivityAt)
+      .map(toDto);
 
   const resize = (id: string, input: ResizeInput): void => {
     if (!repo.get(id)) throw new SessionNotFoundError(id);
@@ -47,6 +76,14 @@ export function createPtyService(repo: PtyRepository) {
   const kill = (id: string): void => {
     if (!repo.get(id)) throw new SessionNotFoundError(id);
     repo.kill(id);
+  };
+
+  const killAll = (): void => repo.killAll();
+
+  const updateSession = (id: string, input: UpdateSessionInput): SessionDto => {
+    if (!repo.get(id)) throw new SessionNotFoundError(id);
+    repo.rename(id, input.name);
+    return getSession(id);
   };
 
   const write = (id: string, data: string): void => {
@@ -66,7 +103,19 @@ export function createPtyService(repo: PtyRepository) {
     return repo.onExit(id, fn);
   };
 
-  return { listShells: listShellsFn, createSession, getSession, resize, kill, write, onData, onExit };
+  return {
+    listShells: listShellsFn,
+    createSession,
+    getSession,
+    listSessions,
+    updateSession,
+    resize,
+    kill,
+    killAll,
+    write,
+    onData,
+    onExit,
+  };
 }
 
 export type PtyService = ReturnType<typeof createPtyService>;

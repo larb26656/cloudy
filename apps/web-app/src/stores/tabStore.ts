@@ -21,6 +21,32 @@ interface TabStore {
   ) => void;
 }
 
+type PersistedTab = {
+  id: string;
+  type: string;
+  data: unknown;
+  updatedAt?: number;
+};
+
+export function removeTerminalWorkspaceIdentity(
+  tabs: PersistedTab[],
+): PersistedTab[] {
+  return tabs.map((tab) => {
+    if (tab.type !== "terminal") return tab;
+    const data = tab.data as {
+      directory?: string;
+      ptyId?: string | null;
+    };
+    return {
+      ...tab,
+      data: {
+        directory: data.directory ?? "",
+        ptyId: data.ptyId ?? null,
+      },
+    };
+  });
+}
+
 export const useTabStore = create<TabStore>()(
   persist(
     (set, get) => ({
@@ -80,12 +106,11 @@ export const useTabStore = create<TabStore>()(
     }),
     {
       name: "tabs",
-      version: 6,
+      version: 7,
       migrate: (persistedState, version) => {
         // Persisted shapes may predate the current `Tab` union, so read them
         // through a looser type. Old versions stored `type: "session"` which
         // no longer exists in the union.
-        type PersistedTab = { id: string; type: string; data: unknown };
         type Persisted = { tabs?: PersistedTab[]; activeTabId?: string };
         const state = persistedState as Persisted | undefined;
         if (!state?.tabs) return persistedState;
@@ -167,6 +192,12 @@ export const useTabStore = create<TabStore>()(
               },
             };
           });
+        }
+
+        // v6 -> v7: terminal sessions are directory-based resources and no
+        // longer retain workspace identity in persisted tab data.
+        if (version < 7) {
+          tabs = removeTerminalWorkspaceIdentity(tabs);
         }
 
         // v0 -> v1: drop stale "files" tabs missing a workspaceId.

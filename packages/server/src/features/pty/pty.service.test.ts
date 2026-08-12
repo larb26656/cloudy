@@ -25,17 +25,22 @@ function makeFakePty() {
   };
 }
 
-function makeServiceWithSession(
-  overrides: Partial<PtySession> = {},
-): { service: ReturnType<typeof createPtyService>; pty: ReturnType<typeof makeFakePty>; id: string } {
+function makeServiceWithSession(overrides: Partial<PtySession> = {}): {
+  service: ReturnType<typeof createPtyService>;
+  pty: ReturnType<typeof makeFakePty>;
+  id: string;
+} {
   const pty = makeFakePty();
   const id = "test-id";
   const session: PtySession = {
     id,
+    name: "Quiet Harbor",
     pty: pty as unknown as PtySession["pty"],
     directory: "/tmp",
     command: "/bin/sh",
     exitCode: null,
+    createdAt: 100,
+    lastActivityAt: 200,
     ...overrides,
   };
 
@@ -70,16 +75,91 @@ describe("PtyService", () => {
 
   it("createSession returns repository id", () => {
     const { service, id } = makeServiceWithSession();
-    expect(service.createSession({ directory: "/tmp" })).toEqual({ id });
+    expect(service.createSession({ directory: "/tmp" })).toEqual(
+      expect.objectContaining({ id, name: "Quiet Harbor" }),
+    );
+  });
+
+  it("creates a readable default name when none is provided", () => {
+    const repo = mock<PtyRepository>();
+    repo.spawn.mockImplementation((input) => ({
+      id: "new-id",
+      pty: {} as PtySession["pty"],
+      directory: input.directory,
+      command: "/bin/sh",
+      name: input.name,
+      exitCode: null,
+      createdAt: 100,
+      lastActivityAt: 100,
+    }));
+
+    expect(
+      createPtyService(repo).createSession({ directory: "/tmp" }).name,
+    ).toMatch(/^[A-Z][a-z]+ [A-Z][a-z]+$/);
+  });
+
+  it("keeps a caller-provided name without enforcing uniqueness", () => {
+    const repo = mock<PtyRepository>();
+    repo.spawn.mockImplementation((input) => ({
+      id: "new-id",
+      pty: {} as PtySession["pty"],
+      directory: input.directory,
+      command: "/bin/sh",
+      name: input.name,
+      exitCode: null,
+      createdAt: 100,
+      lastActivityAt: 100,
+    }));
+    const service = createPtyService(repo);
+
+    expect(
+      service.createSession({ directory: "/tmp", name: "Quiet Harbor" }).name,
+    ).toBe("Quiet Harbor");
+    expect(
+      service.createSession({ directory: "/tmp", name: "Quiet Harbor" }).name,
+    ).toBe("Quiet Harbor");
   });
 
   it("getSession returns dto when found", () => {
     const { service, id } = makeServiceWithSession();
     expect(service.getSession(id)).toEqual({
       id,
+      name: "Quiet Harbor",
+      directory: "/tmp",
+      command: "/bin/sh",
       alive: true,
       exitCode: null,
+      createdAt: 100,
+      lastActivityAt: 200,
     });
+  });
+
+  it("listSessions returns sessions ordered by recent activity", () => {
+    const { service } = makeServiceWithSession();
+    const repo = mock<PtyRepository>();
+    const older = {
+      id: "older",
+      name: "Older",
+      directory: "/older",
+      command: "/bin/sh",
+      exitCode: null,
+      createdAt: 10,
+      lastActivityAt: 20,
+    } as PtySession;
+    const newer = {
+      ...older,
+      id: "newer",
+      directory: "/newer",
+      lastActivityAt: 30,
+    };
+    repo.list.mockReturnValue([older, newer]);
+
+    expect(
+      createPtyService(repo)
+        .listSessions()
+        .map((session) => session.id),
+    ).toEqual(["newer", "older"]);
+    expect(service.listSessions).toBeTypeOf("function");
   });
 
   it("getSession throws SessionNotFoundError when missing", () => {
@@ -128,8 +208,44 @@ describe("PtyService", () => {
     const { service, id } = makeServiceWithSession({ exitCode: 42 });
     expect(service.getSession(id)).toEqual({
       id,
+      name: "Quiet Harbor",
+      directory: "/tmp",
+      command: "/bin/sh",
       alive: false,
       exitCode: 42,
+      createdAt: 100,
+      lastActivityAt: 200,
     });
+  });
+
+  it("killAll delegates to the repository", () => {
+    const repo = mock<PtyRepository>();
+    createPtyService(repo).killAll();
+    expect(repo.killAll).toHaveBeenCalledOnce();
+  });
+
+  it("renames a session and returns its updated dto", () => {
+    const { service, id } = makeServiceWithSession();
+    const repo = mock<PtyRepository>();
+    const session = {
+      id,
+      name: "Before",
+      pty: {} as PtySession["pty"],
+      directory: "/tmp",
+      command: "/bin/sh",
+      exitCode: null,
+      createdAt: 100,
+      lastActivityAt: 200,
+    };
+    repo.get.mockReturnValue(session);
+    repo.rename.mockImplementation((_id, name) => {
+      session.name = name;
+    });
+
+    expect(
+      createPtyService(repo).updateSession(id, { name: "After" }).name,
+    ).toBe("After");
+    expect(repo.rename).toHaveBeenCalledWith(id, "After");
+    expect(service.updateSession).toBeTypeOf("function");
   });
 });

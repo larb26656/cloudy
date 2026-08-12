@@ -53,20 +53,26 @@ export function createInMemoryPtyRepository(
   const spawn = (input: PtySpawnInput): PtySession => {
     const id = randomUUID();
     const pty = spawnFactory(input);
+    const now = Date.now();
     const session: PtySession = {
       id,
+      name: input.name,
       pty,
       directory: input.directory,
       command: input.command ?? process.env.SHELL ?? "/bin/sh",
       exitCode: null,
+      createdAt: now,
+      lastActivityAt: now,
     };
 
     pty.onData((data) => {
+      session.lastActivityAt = Date.now();
       const set = dataListeners.get(id);
       if (set) for (const fn of set) fn(data);
     });
     pty.onExit(({ exitCode, signal }) => {
       session.exitCode = exitCode;
+      session.lastActivityAt = Date.now();
       const set = exitListeners.get(id);
       if (set) for (const fn of set) fn(exitCode, signal);
     });
@@ -77,6 +83,8 @@ export function createInMemoryPtyRepository(
 
   const get = (id: string): PtySession | null => sessions.get(id) ?? null;
 
+  const list = (): PtySession[] => [...sessions.values()];
+
   const resize = (id: string, cols: number, rows: number): void => {
     const session = sessions.get(id);
     if (!session) return;
@@ -86,17 +94,29 @@ export function createInMemoryPtyRepository(
   const write = (id: string, data: string): void => {
     const session = sessions.get(id);
     if (!session) return;
+    session.lastActivityAt = Date.now();
     session.pty.write(data);
+  };
+
+  const rename = (id: string, name: string): void => {
+    const session = sessions.get(id);
+    if (!session) return;
+    session.name = name;
+    session.lastActivityAt = Date.now();
   };
 
   const kill = (id: string): void => {
     const session = sessions.get(id);
     if (!session) return;
     try {
-      session.pty.kill();
+      if (session.exitCode === null) session.pty.kill();
     } finally {
       cleanup(id);
     }
+  };
+
+  const killAll = (): void => {
+    for (const id of [...sessions.keys()]) kill(id);
   };
 
   const onData = (id: string, fn: DataListener): (() => void) => {
@@ -123,5 +143,16 @@ export function createInMemoryPtyRepository(
     };
   };
 
-  return { spawn, get, resize, write, kill, onData, onExit };
+  return {
+    spawn,
+    get,
+    list,
+    resize,
+    write,
+    rename,
+    kill,
+    killAll,
+    onData,
+    onExit,
+  };
 }

@@ -6,14 +6,16 @@ import { TerminalView } from "@/components/terminal";
 import { ErrorState } from "@/components/ui/error-state";
 import { Center } from "@/components/layout";
 import { useTabStore } from "@/stores/tabStore";
-import { useWorkspace } from "@/hooks/queries";
-import { useKillPtySession } from "@/hooks/queries";
+import {
+  useKillPtySession,
+  usePtySession,
+  useUpdatePtySession,
+} from "@/hooks/queries";
 import { useDeleteNode } from "../useDeleteNode";
 import { WindowFrame } from "../WindowFrame";
 
 type TerminalNodeProps = Node<
   {
-    workspaceId: string;
     directory: string;
     ptyId: string | null;
   },
@@ -28,11 +30,12 @@ export function TerminalNode({
   const { updateNodeData } = useReactFlow();
   const addTab = useTabStore((s) => s.addTab);
   const killPty = useKillPtySession();
+  const updatePty = useUpdatePtySession();
   const deleteNode = useDeleteNode(id);
-  const { data: workspace } = useWorkspace(data.workspaceId);
+  const { data: session } = usePtySession(data.ptyId);
 
-  const directory = workspace?.directory ?? data.directory;
-  const title = workspace?.name ?? "Terminal";
+  const directory = data.directory;
+  const title = session?.name ?? "Terminal";
 
   const handlePtyChange = useCallback(
     (ptyId: string | null) => {
@@ -43,11 +46,10 @@ export function TerminalNode({
 
   const handleOpenInTab = useCallback(() => {
     addTab("terminal", {
-      workspaceId: data.workspaceId,
       directory,
       ptyId: data.ptyId,
     });
-  }, [addTab, data.workspaceId, data.ptyId, directory]);
+  }, [addTab, data.ptyId, directory]);
 
   const handleClose = useCallback(() => {
     if (data.ptyId) {
@@ -65,8 +67,12 @@ export function TerminalNode({
       minHeight={250}
       maxWidth={900}
       maxHeight={700}
-      workspaceId={data.workspaceId}
       onCloseOverride={handleClose}
+      onRename={
+        data.ptyId
+          ? (name) => updatePty.mutate({ id: data.ptyId!, name })
+          : undefined
+      }
       actions={[
         {
           icon: ExternalLink,

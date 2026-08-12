@@ -51,6 +51,16 @@ async function serveCommand(options: {
   try {
     const { url } = await server.start();
     console.log(`Starting server on ${url}...`);
+
+    let stopping = false;
+    const stop = async () => {
+      if (stopping) return;
+      stopping = true;
+      await server.stop();
+      process.exit(0);
+    };
+    process.once("SIGINT", () => void stop());
+    process.once("SIGTERM", () => void stop());
   } catch (err) {
     console.error(pc.red(err instanceof Error ? err.message : String(err)));
     process.exit(1);

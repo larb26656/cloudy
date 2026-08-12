@@ -11,12 +11,18 @@ export interface PtyShell {
 
 export interface PtySession {
   id: string;
+  name: string;
+  directory: string;
+  command: string;
   alive: boolean;
   exitCode: number | null;
+  createdAt: number;
+  lastActivityAt: number;
 }
 
 export interface CreatePtyInput {
   directory: string;
+  name?: string;
   command?: string;
   cols?: number;
   rows?: number;
@@ -31,6 +37,24 @@ export interface ResizePtyInput {
 
 export interface KillPtyInput {
   id: string;
+}
+
+export interface UpdatePtyInput {
+  id: string;
+  name: string;
+}
+
+export function usePtySessions() {
+  return useQuery({
+    queryKey: ptyKeys.sessions(),
+    queryFn: async (): Promise<PtySession[]> => {
+      const res = await cloudyClient.api.pty.sessions.$get();
+      if (!res.ok)
+        throw new Error(`Failed to list PTY sessions (${res.status})`);
+      return res.json();
+    },
+    refetchInterval: 5000,
+  });
 }
 
 /**
@@ -66,7 +90,8 @@ export function usePtySession(
       const res = await cloudyClient.api.pty.sessions[":id"].$get({
         param: { id },
       });
-      if (!res.ok) throw new Error(`Failed to fetch PTY session (${res.status})`);
+      if (!res.ok)
+        throw new Error(`Failed to fetch PTY session (${res.status})`);
       return res.json();
     },
     enabled: !!id,
@@ -76,13 +101,13 @@ export function usePtySession(
 }
 
 /**
- * Spawn a new PTY session. Returns `{ id }` to the caller (e.g. the
- * orchestrator) which is responsible for persisting it.
+ * Spawn a new PTY session. Returns the server-owned metadata while the
+ * caller persists only the id and directory needed to reconnect.
  */
 export function useCreatePtySession() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: async (input: CreatePtyInput): Promise<{ id: string }> => {
+    mutationFn: async (input: CreatePtyInput): Promise<PtySession> => {
       const res = await cloudyClient.api.pty.sessions.$post({ json: input });
       if (!res.ok) {
         const text = await res.text().catch(() => res.statusText);
@@ -90,21 +115,30 @@ export function useCreatePtySession() {
       }
       const data = await res.json();
       if (!data?.id) throw new Error("PTY create returned no id");
-      return { id: data.id as string };
+      return data;
     },
-    onSuccess: ({ id }) => {
-      // Prefetch the detail cache so the first WS frame races against a
-      // warm cache rather than a cold fetch.
-      void queryClient.prefetchQuery({
-        queryKey: ptyKeys.detail(id),
-        queryFn: async (): Promise<PtySession> => {
-          const res = await cloudyClient.api.pty.sessions[":id"].$get({
-            param: { id },
-          });
-          if (!res.ok) throw new Error("prefetch failed");
-          return res.json();
-        },
+    onSuccess: (session) => {
+      void queryClient.invalidateQueries({ queryKey: ptyKeys.sessions() });
+      queryClient.setQueryData(ptyKeys.detail(session.id), session);
+    },
+  });
+}
+
+export function useUpdatePtySession() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, name }: UpdatePtyInput): Promise<PtySession> => {
+      const res = await cloudyClient.api.pty.sessions[":id"].$patch({
+        param: { id },
+        json: { name },
       });
+      if (!res.ok)
+        throw new Error(`Failed to rename PTY session (${res.status})`);
+      return res.json();
+    },
+    onSuccess: (session) => {
+      queryClient.setQueryData(ptyKeys.detail(session.id), session);
+      void queryClient.invalidateQueries({ queryKey: ptyKeys.sessions() });
     },
   });
 }
@@ -144,6 +178,21 @@ export function useKillPtySession() {
     },
     onSuccess: (_, { id }) => {
       queryClient.removeQueries({ queryKey: ptyKeys.detail(id) });
+      void queryClient.invalidateQueries({ queryKey: ptyKeys.sessions() });
+    },
+  });
+}
+
+export function useKillAllPtySessions() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (): Promise<void> => {
+      const res = await cloudyClient.api.pty.sessions.$delete();
+      if (!res.ok)
+        throw new Error(`Failed to stop PTY sessions (${res.status})`);
+    },
+    onSuccess: () => {
+      queryClient.removeQueries({ queryKey: ptyKeys.root() });
     },
   });
 }

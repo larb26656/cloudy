@@ -44,6 +44,27 @@ export function createPtyController(service: PtyService) {
       },
     )
     .get(
+      "/sessions",
+      describeRoute({
+        description: "List PTY sessions held by the server",
+        tags: ["PTY"],
+        responses: { 200: { description: "PTY sessions" } },
+      }),
+      (c) => c.json(service.listSessions()),
+    )
+    .delete(
+      "/sessions",
+      describeRoute({
+        description: "Kill and remove every PTY session",
+        tags: ["PTY"],
+        responses: { 204: { description: "All sessions killed" } },
+      }),
+      (c) => {
+        service.killAll();
+        return c.body(null, 204);
+      },
+    )
+    .get(
       "/sessions/:id",
       describeRoute({
         description: "Get the status of a PTY session",
@@ -67,6 +88,23 @@ export function createPtyController(service: PtyService) {
         service.getSession(id);
         return createPtyWebSocketEvents(id, service);
       }),
+    )
+    .patch(
+      "/sessions/:id",
+      describeRoute({
+        description: "Rename a PTY session",
+        tags: ["PTY"],
+        responses: {
+          200: { description: "Session renamed" },
+          404: { description: "Session not found" },
+        },
+      }),
+      zValidator("param", idParamSchema),
+      zValidator("json", PtyModel.updateSessionSchema),
+      (c) => {
+        const { id } = c.req.valid("param");
+        return c.json(service.updateSession(id, c.req.valid("json")));
+      },
     )
     .post(
       "/sessions/:id/resize",

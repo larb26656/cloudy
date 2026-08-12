@@ -3,13 +3,15 @@ import { WebSocketServer } from "ws";
 import { createApp } from "../server";
 import { createContainer } from "../container";
 import { AppOption, loadConfig } from "../config/config";
+import type { Container } from "../container";
 
 export function createServer(option: AppOption) {
   let server: ServerType | null = null;
+  let container: Container | null = null;
 
   const start = async () => {
     const config = loadConfig(option);
-    const container = createContainer(config);
+    container = createContainer(config);
 
     const app = createApp({
       corsOrigins: config.cors,
@@ -32,8 +34,16 @@ export function createServer(option: AppOption) {
   };
 
   const stop = async () => {
-    server?.close();
+    container?.ptyService.killAll();
+    await new Promise<void>((resolve, reject) => {
+      if (!server) {
+        resolve();
+        return;
+      }
+      server.close((error) => (error ? reject(error) : resolve()));
+    });
     server = null;
+    container = null;
   };
 
   return { start, stop };

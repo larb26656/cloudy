@@ -1,20 +1,46 @@
 import { Terminal } from "lucide-react";
+import { useState } from "react";
 import type { TabTemplate, TabTitleProps } from "../../template";
-import { useWorkspace } from "@/hooks/queries";
+import { usePtySession } from "@/hooks/queries";
 import { cloudyClient } from "@/lib/api";
+import { TerminalNameInput } from "@/components/terminal";
 import { TerminalCreateDialog } from "./TerminalCreateDialog";
 import { TerminalContent } from "./TerminalContent";
 
 export type TerminalData = {
-  workspaceId: string;
   directory: string;
   ptyId: string | null;
 };
 
 function TerminalTabTitle({ data }: TabTitleProps<TerminalData>) {
-  const { data: workspace } = useWorkspace(data.workspaceId);
+  const { data: session } = usePtySession(data.ptyId);
+  const [isEditing, setIsEditing] = useState(false);
 
-  return workspace?.name ?? "Terminal";
+  if (isEditing && data.ptyId) {
+    return (
+      <TerminalNameInput
+        sessionId={data.ptyId}
+        initialName={session?.name ?? "Terminal"}
+        onDone={() => setIsEditing(false)}
+      />
+    );
+  }
+
+  return (
+    <span
+      className="truncate"
+      onDoubleClick={
+        data.ptyId
+          ? (event) => {
+              event.stopPropagation();
+              setIsEditing(true);
+            }
+          : undefined
+      }
+    >
+      {session?.name ?? "Terminal"}
+    </span>
+  );
 }
 
 export const terminalTemplate: TabTemplate<TerminalData> = {
@@ -24,7 +50,6 @@ export const terminalTemplate: TabTemplate<TerminalData> = {
   TitleComponent: TerminalTabTitle,
   ContentComponent: TerminalContent,
   CreateDialog: TerminalCreateDialog,
-  getWorkspaceId: (data) => data.workspaceId,
   onClose: (tab) => {
     if (tab.type !== "terminal") return;
     const ptyId = tab.data.ptyId;

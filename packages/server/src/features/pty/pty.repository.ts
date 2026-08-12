@@ -2,14 +2,18 @@ import type { IPty } from "@lydell/node-pty";
 
 export interface PtySession {
   id: string;
+  name: string;
   pty: IPty;
   directory: string;
   command: string;
   exitCode: number | null;
+  createdAt: number;
+  lastActivityAt: number;
 }
 
 export interface PtySpawnInput {
   directory: string;
+  name: string;
   command?: string;
   cols?: number;
   rows?: number;
@@ -28,9 +32,12 @@ export type ExitListener = (code: number, signal?: number) => void;
 export interface PtyRepository {
   spawn(input: PtySpawnInput): PtySession;
   get(id: string): PtySession | null;
+  list(): PtySession[];
   resize(id: string, cols: number, rows: number): void;
   write(id: string, data: string): void;
+  rename(id: string, name: string): void;
   kill(id: string): void;
+  killAll(): void;
   onData(id: string, fn: DataListener): () => void;
   onExit(id: string, fn: ExitListener): () => void;
 }

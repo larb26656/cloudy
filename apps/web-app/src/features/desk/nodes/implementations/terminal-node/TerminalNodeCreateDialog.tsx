@@ -10,13 +10,7 @@ export function TerminalNodeCreateDialog({
     <TerminalWorkspaceDialog
       open={open}
       onOpenChange={onOpenChange}
-      onSubmit={(workspace) =>
-        onSubmit({
-          workspaceId: workspace.id,
-          directory: workspace.directory,
-          ptyId: null,
-        })
-      }
+      onSubmit={(data) => onSubmit({ ...data })}
     />
   );
 }

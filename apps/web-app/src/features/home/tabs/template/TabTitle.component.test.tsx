@@ -5,10 +5,14 @@ import { getTabWorkspaceId, TabTitle } from "./TabTitle";
 const mocks = vi.hoisted(() => ({
   useSession: vi.fn(),
   useWorkspace: vi.fn(),
+  usePtySession: vi.fn(),
+  useUpdatePtySession: vi.fn(),
 }));
 
 vi.mock("@/hooks/queries", () => ({
   useWorkspace: mocks.useWorkspace,
+  usePtySession: mocks.usePtySession,
+  useUpdatePtySession: mocks.useUpdatePtySession,
 }));
 
 vi.mock("@/hooks/queries/useSessions", () => ({
@@ -19,6 +23,11 @@ describe("TabTitle", () => {
   beforeEach(() => {
     mocks.useSession.mockReturnValue({ data: undefined });
     mocks.useWorkspace.mockReturnValue({ data: undefined });
+    mocks.usePtySession.mockReturnValue({ data: undefined });
+    mocks.useUpdatePtySession.mockReturnValue({
+      mutate: vi.fn(),
+      isPending: false,
+    });
   });
 
   it("uses the current chat session title in every tab surface", () => {
@@ -92,7 +101,6 @@ describe("TabTitle", () => {
           id: "terminal-1",
           type: "terminal",
           data: {
-            workspaceId: "workspace-1",
             directory: "/work/cloudy",
             ptyId: null,
           },
@@ -102,5 +110,25 @@ describe("TabTitle", () => {
     );
 
     expect(screen.getByText("Terminal")).toBeInTheDocument();
+  });
+
+  it("uses the server-owned terminal session name", () => {
+    mocks.usePtySession.mockReturnValue({
+      data: { id: "pty-1", name: "Quiet Harbor" },
+    });
+
+    render(
+      <TabTitle
+        tab={{
+          id: "terminal-1",
+          type: "terminal",
+          data: { directory: "/work/cloudy", ptyId: "pty-1" },
+          updatedAt: 0,
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Quiet Harbor")).toBeInTheDocument();
+    expect(mocks.usePtySession).toHaveBeenCalledWith("pty-1");
   });
 });
