@@ -32,25 +32,8 @@ vi.mock("@/hooks/queries/useFiles", () => ({
 }));
 
 vi.mock("@/components/markdown/DiffView", () => ({
-  DiffView: ({
-    filePath,
-    compactContextLines,
-    showFullContextToggle,
-    progressiveLineLimit,
-  }: {
-    filePath: string;
-    compactContextLines?: number;
-    showFullContextToggle?: boolean;
-    progressiveLineLimit?: number;
-  }) => (
-    <div
-      data-testid={`diff-${filePath}`}
-      data-compact-context-lines={compactContextLines}
-      data-show-full-context-toggle={showFullContextToggle}
-      data-progressive-line-limit={progressiveLineLimit}
-    >
-      {filePath} diff
-    </div>
+  DiffView: ({ filePath }: { filePath: string }) => (
+    <div data-testid={`diff-${filePath}`}>{filePath} diff</div>
   ),
 }));
 
@@ -176,18 +159,7 @@ describe("FilesChanges view modes", () => {
     const firstFileTrigger = getAccordionTrigger(/src\/first\.ts/);
     fireEvent.click(firstFileTrigger);
     await waitFor(() => {
-      expect(screen.getByTestId("diff-src/first.ts")).toHaveAttribute(
-        "data-progressive-line-limit",
-        "500",
-      );
-      expect(screen.getByTestId("diff-src/first.ts")).toHaveAttribute(
-        "data-compact-context-lines",
-        "3",
-      );
-      expect(screen.getByTestId("diff-src/first.ts")).toHaveAttribute(
-        "data-show-full-context-toggle",
-        "true",
-      );
+      expect(screen.getByTestId("diff-src/first.ts")).toBeInTheDocument();
     });
 
     fireEvent.click(firstFileTrigger);

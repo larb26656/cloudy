@@ -119,9 +119,6 @@ function VirtualizedChangesList({
                     filePath={file.file}
                     viewMode="line-by-line"
                     showLineNumbers={true}
-                    compactContextLines={3}
-                    showFullContextToggle={true}
-                    progressiveLineLimit={500}
                     className="w-full min-w-0 max-w-full overflow-x-auto overflow-y-visible"
                   />
                 ) : (
