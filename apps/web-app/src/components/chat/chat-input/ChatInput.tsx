@@ -9,6 +9,7 @@ import { useAgents } from "@/hooks/queries/useAgents";
 import { ChatInputEditor } from "./ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
 import { useChat } from "../ChatProvider";
+import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
 import { useMessageScroller } from "@/components/ui/message-scroller";
 import { memo, useEffect, useRef, useState } from "react";
 
@@ -17,7 +18,7 @@ interface ChatInputProps {
   initialValue?: string;
 }
 
-const MOCK_HISTORY: string[] = [];
+const NO_HISTORY: string[] = [];
 
 export const ChatInput = memo(function ChatInput({
   placeholder = "Type a message...",
@@ -33,6 +34,7 @@ export const ChatInput = memo(function ChatInput({
     effectiveModel,
     effectiveAgent,
     directory,
+    sessionId,
     sendMessage,
     abortGeneration,
     executeImmediateCommand,
@@ -42,6 +44,10 @@ export const ChatInput = memo(function ChatInput({
   } = useChat();
 
   const { data: agents } = useAgents();
+
+  const history = useChatInputHistoryStore((s) =>
+    sessionId ? (s.sessions[sessionId] ?? NO_HISTORY) : NO_HISTORY,
+  );
 
   const { scrollToEnd } = useMessageScroller();
 
@@ -54,7 +60,11 @@ export const ChatInput = memo(function ChatInput({
   const prevListeningRef = useRef(false);
 
   const currentHistorySelectValue =
-    historyIndex === -1 ? "" : (MOCK_HISTORY[historyIndex] ?? "");
+    historyIndex === -1 ? "" : (history[historyIndex] ?? "");
+
+  useEffect(() => {
+    setHistoryIndex(-1);
+  }, [sessionId]);
 
   useEffect(() => {
     if (initialValue) {
@@ -109,16 +119,16 @@ export const ChatInput = memo(function ChatInput({
   };
 
   const handleHistoryCursor = (e: React.KeyboardEvent) => {
-    if (!MOCK_HISTORY.length) return;
+    if (!history.length) return;
     if (chatInputContent.text !== currentHistorySelectValue) return;
 
     if (e.key === "ArrowUp") {
       setHistoryIndex((i) =>
-        i === -1 ? MOCK_HISTORY.length - 1 : Math.max(0, i - 1),
+        i === -1 ? history.length - 1 : Math.max(0, i - 1),
       );
     } else if (e.key === "ArrowDown") {
       setHistoryIndex((i) =>
-        i === -1 || i === MOCK_HISTORY.length - 1 ? -1 : i + 1,
+        i === -1 || i === history.length - 1 ? -1 : i + 1,
       );
     }
   };

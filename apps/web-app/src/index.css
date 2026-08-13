@@ -316,6 +316,11 @@
   border-bottom: 1px solid #404040;
 }
 
+.diff-viewer-dark .diff-unified col.diff-gutter-col:first-child {
+  visibility: collapse;
+  width: 0;
+}
+
 /* Prism token colors — github-dark-dimmed palette, shared by code blocks and diffs. */
 :where(.diff-viewer-dark, .syntax-highlight) .token.comment,
 :where(.diff-viewer-dark, .syntax-highlight) .token.prolog,

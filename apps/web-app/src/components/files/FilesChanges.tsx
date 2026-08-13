@@ -7,6 +7,7 @@ import { LoadingState } from "@/components/ui/loading-state";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useVcsDiff } from "@/hooks/queries/useFiles";
 import { AllFilesChangesView } from "./AllFilesChangesView";
+import { FullFileDialog } from "./FullFileDialog";
 import { SingleFileChangesView } from "./SingleFileChangesView";
 
 interface FilesChangesProps {
@@ -18,9 +19,11 @@ type ChangesViewMode = "all-files" | "single-file";
 export function FilesChanges({ directory }: FilesChangesProps) {
   const { data, isLoading, error, refetch } = useVcsDiff({ directory });
   const [viewMode, setViewMode] = useState<ChangesViewMode>("all-files");
+  const [openFilePath, setOpenFilePath] = useState<string | null>(null);
 
   useEffect(() => {
     setViewMode("all-files");
+    setOpenFilePath(null);
   }, [directory]);
 
   const handleViewModeChange = (values: string[]) => {
@@ -84,13 +87,21 @@ export function FilesChanges({ directory }: FilesChangesProps) {
           directory={directory}
           files={files}
           active={viewMode === "all-files"}
+          onOpenFile={setOpenFilePath}
         />
         <SingleFileChangesView
           directory={directory}
           files={files}
           active={viewMode === "single-file"}
+          onOpenFile={setOpenFilePath}
         />
       </div>
+
+      <FullFileDialog
+        directory={directory}
+        path={openFilePath}
+        onClose={() => setOpenFilePath(null)}
+      />
     </div>
   );
 }

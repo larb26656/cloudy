@@ -21,6 +21,7 @@ import type { ChatInputContent } from "@/lib/opencode";
 import { isCommand, parseCommand } from "@/lib/command";
 import { findSystemCommand, useSystemCommands } from "@/lib/commands";
 import { toast } from "@/components/ui/sonner";
+import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
 import { useSessionAgentModelStore } from "@/stores/sessionAgentModelStore";
@@ -188,6 +189,7 @@ export function ChatProvider({
         }
 
         const messageSessionId = await ensureSessionId(agent, model);
+        useChatInputHistoryStore.getState().addEntry(messageSessionId, text);
         await sendMessageAsync({
           sessionId: messageSessionId,
           content,

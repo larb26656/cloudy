@@ -244,6 +244,28 @@ export const PopulatedChanges = meta.story({
   render: () => <FilesFrame />,
 });
 
+export const FullFilePreview = meta.story({
+  render: () => <FilesFrame />,
+  play: async ({ canvas, canvasElement, userEvent }) => {
+    await userEvent.click(
+      await canvas.findByRole("button", {
+        name: "Open full file: src/App.tsx",
+      }),
+    );
+    const documentBody = within(canvasElement.ownerDocument.body);
+    await expect(
+      await documentBody.findByRole("dialog", { name: "src/App.tsx" }),
+    ).toBeInTheDocument();
+    await expect(
+      await documentBody.findByText(
+        (_, element) =>
+          element?.tagName === "CODE" &&
+          element.textContent?.includes("Explorer preview ready") === true,
+      ),
+    ).toBeInTheDocument();
+  },
+});
+
 export const SingleFileSelection = meta.story({
   render: () => <FilesFrame />,
   play: async ({ canvas, userEvent }) => {
@@ -256,7 +278,7 @@ export const SingleFileSelection = meta.story({
     await userEvent.click(legacyFileButtons[legacyFileButtons.length - 1]!);
     await expect(
       canvas.getAllByText("This file has no inline patch to display."),
-    ).toHaveLength(2);
+    ).toHaveLength(1);
   },
 });
 

@@ -12,17 +12,20 @@ import { FileDetail } from "./FileDetail";
 import { FILE_CHANGE_STATUS_META } from "./file-change-status";
 import { FilesList } from "./FilesList";
 import { FilesResponsiveHeader } from "./FilesResponsiveHeader";
+import { OpenFullFileButton } from "./OpenFullFileButton";
 
 interface SingleFileChangesViewProps {
   directory: string;
   files: VcsFileDiff[];
   active: boolean;
+  onOpenFile: (path: string) => void;
 }
 
 export function SingleFileChangesView({
   directory,
   files,
   active,
+  onOpenFile,
 }: SingleFileChangesViewProps) {
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -99,6 +102,11 @@ export function SingleFileChangesView({
                   −{selected.deletions}
                 </span>
               </span>
+              <OpenFullFileButton
+                path={selected.file}
+                status={selected.status}
+                onOpen={onOpenFile}
+              />
             </>
           )}
         </FilesResponsiveHeader>

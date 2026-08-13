@@ -7,6 +7,7 @@ import { ChatInput } from "./ChatInput";
 import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useSessionAgentModelStore } from "@/stores/sessionAgentModelStore";
+import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
 
 const mocks = vi.hoisted(() => ({
   sendMessage: vi.fn(),
@@ -423,5 +424,79 @@ describe("ChatInput — Cmd/Ctrl + M opens model dropdown", () => {
       pressKey("m", { metaKey: true });
     });
     expect(mocks.sendMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe("ChatInput — input history navigation", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.isSending = false;
+    mocks.sessionStatuses = { [SESSION_ID]: { type: "idle" } };
+    mocks.sendMessage.mockResolvedValue(undefined);
+    useChatInputHistoryStore.setState({ sessions: {} });
+  });
+
+  test("ArrowUp recalls the most recent entry", async () => {
+    useChatInputHistoryStore.getState().addEntry(SESSION_ID, "previous prompt");
+    renderInput();
+    await act(async () => {
+      pressKey("ArrowUp");
+    });
+    expect(screen.getByLabelText("chat-editor")).toHaveValue("previous prompt");
+  });
+
+  test("ArrowUp walks older entries, ArrowDown walks back", async () => {
+    useChatInputHistoryStore.getState().addEntry(SESSION_ID, "first");
+    useChatInputHistoryStore.getState().addEntry(SESSION_ID, "second");
+    renderInput();
+
+    await act(async () => {
+      pressKey("ArrowUp");
+    });
+    expect(screen.getByLabelText("chat-editor")).toHaveValue("second");
+
+    await act(async () => {
+      pressKey("ArrowUp");
+    });
+    expect(screen.getByLabelText("chat-editor")).toHaveValue("first");
+
+    await act(async () => {
+      pressKey("ArrowDown");
+    });
+    expect(screen.getByLabelText("chat-editor")).toHaveValue("second");
+  });
+
+  test("ArrowDown past the newest entry clears the input", async () => {
+    useChatInputHistoryStore.getState().addEntry(SESSION_ID, "only");
+    renderInput();
+    await act(async () => {
+      pressKey("ArrowUp");
+    });
+    await act(async () => {
+      pressKey("ArrowDown");
+    });
+    expect(screen.getByLabelText("chat-editor")).toHaveValue("");
+  });
+
+  test("ArrowUp is a no-op when history is empty", async () => {
+    renderInput();
+    await act(async () => {
+      pressKey("ArrowUp");
+    });
+    expect(screen.getByLabelText("chat-editor")).toHaveValue("");
+  });
+
+  test("editing after recall disables history navigation", async () => {
+    useChatInputHistoryStore.getState().addEntry(SESSION_ID, "recalled");
+    renderInput();
+    await act(async () => {
+      pressKey("ArrowUp");
+    });
+    // user edits — input no longer matches the history selection
+    typeText("recalled!");
+    await act(async () => {
+      pressKey("ArrowUp");
+    });
+    expect(screen.getByLabelText("chat-editor")).toHaveValue("recalled!");
   });
 });

@@ -25,6 +25,9 @@ export function FileDetail({ file }: FileDetailProps) {
             filePath={file.file}
             viewMode="line-by-line"
             showLineNumbers={true}
+            compactContextLines={3}
+            showFullContextToggle={true}
+            progressiveLineLimit={500}
             className="min-h-0 flex-1"
           />
         ) : (

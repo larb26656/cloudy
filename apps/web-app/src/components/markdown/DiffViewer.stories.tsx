@@ -305,3 +305,21 @@ export const RawViewFillParent = meta.story({
     </div>
   ),
 });
+
+export const RawViewChangesOnly = meta.story({
+  args: {
+    diff: sampleDiff,
+    filePath: "src/index.ts",
+    showLineNumbers: true,
+    viewMode: "line-by-line",
+  },
+  render: (args) => (
+    <DiffView
+      diff={args.diff}
+      filePath={args.filePath}
+      viewMode={args.viewMode ?? "line-by-line"}
+      showLineNumbers={args.showLineNumbers ?? false}
+      showOnlyChanges={true}
+    />
+  ),
+});
