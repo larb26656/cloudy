@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
-@import "dracula-prism/dist/css/dracula-prism.css";
+@import "./styles/syntax-highlight.css";
 @import "./styles/diff-viewer.css";
 
 @custom-variant dark (&:is(.dark *));
@@ -273,4 +273,3 @@
   content: " *";
   color: var(--destructive);
 }
-
