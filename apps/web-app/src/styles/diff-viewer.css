@@ -1,0 +1,62 @@
+/* Scoped via the `.diff-viewer-dark` wrapper used by `<DiffViewer>` so the
+   default light theme remains in place elsewhere. Colors track the cloudy
+   dark palette (`#1e1e1e` chrome, github-dark-dimmed accents). */
+
+.diff-viewer-dark {
+  --diff-background-color: #0d1117;
+  --diff-text-color: #e6edf3;
+  --diff-font-family: Consolas, Courier, monospace;
+
+  --diff-selection-background-color: #264f78;
+  --diff-selection-text-color: #ffffff;
+
+  /* Gutter */
+  --diff-gutter-insert-background-color: #1b4721;
+  --diff-gutter-insert-text-color: #aff5b4;
+
+  --diff-gutter-delete-background-color: #5a1e24;
+  --diff-gutter-delete-text-color: #ffdcd7;
+
+  --diff-gutter-selected-background-color: #2d333b;
+  --diff-gutter-selected-text-color: #ffffff;
+
+  /* Code */
+  --diff-code-insert-background-color: #12261e;
+  --diff-code-insert-text-color: #e6edf3;
+
+  --diff-code-delete-background-color: #2d1518;
+  --diff-code-delete-text-color: #e6edf3;
+
+  /* Highlight changed characters */
+  --diff-code-insert-edit-background-color: #347d39;
+  --diff-code-insert-edit-text-color: #ffffff;
+
+  --diff-code-delete-edit-background-color: #9e2f3b;
+  --diff-code-delete-edit-text-color: #ffffff;
+
+  /* Selected line */
+  --diff-code-selected-background-color: #1f2937;
+  --diff-code-selected-text-color: #ffffff;
+
+  /* Omitted lines */
+  --diff-omit-gutter-line-color: #8b949e;
+}
+
+/* Layout overrides: the library forces `.diff { table-layout: fixed; width: 100% }`
+   and `.diff-code { white-space: pre-wrap; word-break: break-all }`, which lock the
+   table to the wrapper width and wrap long lines mid-word instead of overflowing.
+   Switching to auto layout + `min-width: max-content` lets the table grow with its
+   content so the wrapper's `overflow-{x,y}-auto` can actually scroll, and `pre`
+   keeps each line intact (GitHub/VSCode-style horizontal scroll). */
+.diff-viewer-dark .diff {
+  table-layout: auto;
+  width: 100%;
+  min-width: max-content;
+}
+
+.diff-viewer-dark .diff-code {
+  white-space: pre;
+  word-break: normal;
+  overflow-wrap: normal;
+  word-wrap: normal;
+}

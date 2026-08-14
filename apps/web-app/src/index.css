@@ -2,6 +2,8 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "dracula-prism/dist/css/dracula-prism.css";
+@import "./styles/diff-viewer.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -272,94 +274,3 @@
   color: var(--destructive);
 }
 
-/* ----------------------------------------------------------------------- */
-/* react-diff-view dark theme overrides                                     */
-/* ----------------------------------------------------------------------- */
-/* Scoped via the `.diff-viewer-dark` wrapper used by `<DiffViewer>` so the */
-/* default light theme remains in place elsewhere. Colors track the cloudy  */
-/* dark palette (`#1e1e1e` chrome, github-dark-dimmed accents).             */
-.diff-viewer-dark {
-  --diff-background-color: #1e1e1e;
-  --diff-text-color: #d4d4d4;
-  --diff-font-family:
-    ui-monospace, "Cascadia Code", "SF Mono", "Source Code Pro", Menlo,
-    Consolas, monospace;
-  --diff-selection-background-color: #264f78;
-  --diff-selection-text-color: #ffffff;
-
-  --diff-gutter-insert-background-color: #1a3a22;
-  --diff-gutter-insert-text-color: #6a9955;
-  --diff-gutter-delete-background-color: #4a1f1f;
-  --diff-gutter-delete-text-color: #f14c4c;
-  --diff-gutter-selected-background-color: #2d2d2d;
-  --diff-gutter-selected-text-color: #ffffff;
-
-  --diff-code-insert-background-color: #1c2e1f;
-  --diff-code-insert-text-color: #d4d4d4;
-  --diff-code-delete-background-color: #2e1c1c;
-  --diff-code-delete-text-color: #d4d4d4;
-  --diff-code-insert-edit-background-color: #4ec9b0;
-  --diff-code-insert-edit-text-color: #1e1e1e;
-  --diff-code-delete-edit-background-color: #f14c4c;
-  --diff-code-delete-edit-text-color: #1e1e1e;
-  --diff-code-selected-background-color: #264f78;
-  --diff-code-selected-text-color: #ffffff;
-
-  --diff-omit-gutter-line-color: #4a1f1f;
-}
-
-/* Hunk header decoration row (the `@@ -x,y +x,y @@` line). */
-.diff-viewer-dark .diff-decoration-content {
-  padding: 2px 8px;
-  background-color: #2d2d2d;
-  border-top: 1px solid #404040;
-  border-bottom: 1px solid #404040;
-}
-
-/* Prism token colors — github-dark-dimmed palette, shared by code blocks and diffs. */
-:where(.diff-viewer-dark, .syntax-highlight) .token.comment,
-:where(.diff-viewer-dark, .syntax-highlight) .token.prolog,
-:where(.diff-viewer-dark, .syntax-highlight) .token.doctype,
-:where(.diff-viewer-dark, .syntax-highlight) .token.cdata {
-  color: #7a828e;
-}
-:where(.diff-viewer-dark, .syntax-highlight) .token.punctuation {
-  color: #c9d1d9;
-}
-:where(.diff-viewer-dark, .syntax-highlight) .token.property,
-:where(.diff-viewer-dark, .syntax-highlight) .token.tag,
-:where(.diff-viewer-dark, .syntax-highlight) .token.boolean,
-:where(.diff-viewer-dark, .syntax-highlight) .token.number,
-:where(.diff-viewer-dark, .syntax-highlight) .token.constant,
-:where(.diff-viewer-dark, .syntax-highlight) .token.symbol {
-  color: #79c0ff;
-}
-:where(.diff-viewer-dark, .syntax-highlight) .token.selector,
-:where(.diff-viewer-dark, .syntax-highlight) .token.attr-name,
-:where(.diff-viewer-dark, .syntax-highlight) .token.string,
-:where(.diff-viewer-dark, .syntax-highlight) .token.char,
-:where(.diff-viewer-dark, .syntax-highlight) .token.builtin,
-:where(.diff-viewer-dark, .syntax-highlight) .token.inserted {
-  color: #a5d6ff;
-}
-:where(.diff-viewer-dark, .syntax-highlight) .token.operator,
-:where(.diff-viewer-dark, .syntax-highlight) .token.entity,
-:where(.diff-viewer-dark, .syntax-highlight) .token.url,
-:where(.diff-viewer-dark, .syntax-highlight) .language-css .token.string,
-:where(.diff-viewer-dark, .syntax-highlight) .style .token.string {
-  color: #d2a8ff;
-}
-:where(.diff-viewer-dark, .syntax-highlight) .token.atrule,
-:where(.diff-viewer-dark, .syntax-highlight) .token.attr-value,
-:where(.diff-viewer-dark, .syntax-highlight) .token.keyword {
-  color: #ff7b72;
-}
-:where(.diff-viewer-dark, .syntax-highlight) .token.function,
-:where(.diff-viewer-dark, .syntax-highlight) .token.class-name {
-  color: #d2a8ff;
-}
-:where(.diff-viewer-dark, .syntax-highlight) .token.regex,
-:where(.diff-viewer-dark, .syntax-highlight) .token.important,
-:where(.diff-viewer-dark, .syntax-highlight) .token.variable {
-  color: #ffa657;
-}

@@ -201,6 +201,9 @@ importers:
       diff:
         specifier: ^9.0.0
         version: 9.0.0
+      dracula-prism:
+        specifier: ^2.1.16
+        version: 2.1.16
       hast-util-to-html:
         specifier: ^9.0.5
         version: 9.0.5
@@ -7028,6 +7031,12 @@ packages:
         integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==,
       }
     engines: { node: ">=12" }
+
+  dracula-prism@2.1.16:
+    resolution:
+      {
+        integrity: sha512-fNZU8sMYOFYq/K8WFtsVUJEHemYlQJy7E3wm+Lndp3hTWG+Hp3+sCcbQdWVvQTfw+xIJeI+mIrjfUWHb9Q/s2Q==,
+      }
 
   drizzle-kit@0.30.6:
     resolution:
@@ -16865,6 +16874,8 @@ snapshots:
   dotenv@16.0.3: {}
 
   dotenv@17.4.2: {}
+
+  dracula-prism@2.1.16: {}
 
   drizzle-kit@0.30.6:
     dependencies:
