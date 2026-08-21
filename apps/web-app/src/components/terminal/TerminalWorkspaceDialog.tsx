@@ -19,6 +19,7 @@ import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
 import { usePtySessions } from "@/hooks/queries";
 import type { PtySession } from "@/hooks/queries";
 import { formatRelativeFromTimestamp } from "@/lib/format";
+import { isAbsoluteDirectory } from "@/lib/path";
 
 export interface TerminalDialogResult {
   directory: string;
@@ -29,10 +30,6 @@ interface TerminalWorkspaceDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (result: TerminalDialogResult) => void;
-}
-
-export function isAbsoluteDirectory(value: string): boolean {
-  return value.startsWith("/") || /^[A-Za-z]:[\\/]/.test(value);
 }
 
 export function TerminalWorkspaceDialog({

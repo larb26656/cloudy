@@ -11,7 +11,9 @@ import { Center } from "@/components/layout";
 
 type ChatNodeProps = Node<
   {
-    workspaceId: string;
+    workspaceId: string | null;
+    /** Present when the node was created from an ad-hoc path (no workspace). */
+    directory?: string | null;
     sessionId: string | null;
     sessionName?: string;
   },
@@ -26,7 +28,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
 
   const { data: session } = useSession({ sessionId: data.sessionId });
   const title = session?.title ?? "Chat";
-  const directory = workspace?.directory;
+  const directory = workspace?.directory ?? data.directory;
 
   const handleSessionChange = useCallback(
     (sessionId: string | null) => {
@@ -37,7 +39,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
 
   const handleRename = useCallback(
     (newTitle: string) => {
-      if (!data.sessionId) return;
+      if (!data.sessionId || !directory) return;
       updateSession.mutate({
         sessionID: data.sessionId,
         directory,

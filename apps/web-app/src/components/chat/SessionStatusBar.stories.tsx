@@ -118,9 +118,11 @@ export default meta;
 function StatusBarInBox({
   width,
   workspace = DEMO_WORKSPACE,
+  sessionId = DEMO_SESSION_ID,
 }: {
   width: string;
   workspace?: Workspace | null;
+  sessionId?: string | null;
 }) {
   return (
     <div className="flex flex-col items-center gap-2 p-8">
@@ -132,7 +134,7 @@ function StatusBarInBox({
         style={{ width }}
       >
         <SessionStatusBar
-          sessionId={DEMO_SESSION_ID}
+          sessionId={sessionId}
           directory={DEMO_DIRECTORY}
           workspace={workspace}
         />
@@ -174,6 +176,10 @@ export const EmptyWhenZero = meta.story({
 export const NoWorkspace = meta.story({
   parameters: { msw: { handlers: createHandlers(fullSession) } },
   render: () => <StatusBarInBox width="700px" workspace={null} />,
+});
+
+export const NewChatNoSession = meta.story({
+  render: () => <StatusBarInBox width="700px" sessionId={null} />,
 });
 
 function ResizableContainer() {

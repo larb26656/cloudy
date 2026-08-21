@@ -112,10 +112,8 @@ export const SessionStatusBar = memo(function SessionStatusBar({
     </Tooltip>
   ) : null;
 
-  if (!session) return null;
-
-  const tokens = session.tokens;
-  const cost = session.cost ?? 0;
+  const tokens = session?.tokens;
+  const cost = session?.cost ?? 0;
   const input = tokens?.input ?? 0;
   const output = tokens?.output ?? 0;
   const reasoning = tokens?.reasoning ?? 0;

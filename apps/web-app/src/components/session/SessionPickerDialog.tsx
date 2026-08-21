@@ -79,12 +79,6 @@ export function SessionPickerDialog({
                 </CommandItem>
               );
             })}
-            <CommandItem>
-              <span>Home</span>
-            </CommandItem>
-            <CommandItem>
-              <span>Inbox</span>
-            </CommandItem>
           </CommandGroup>
         </CommandList>
       </Command>

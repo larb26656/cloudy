@@ -13,19 +13,29 @@ import { Button } from "@/components/ui/button";
 import { SessionItem } from "@/components/ui/SessionItem";
 import { EmptyState } from "@/components/ui/empty-state";
 import { LoadingState } from "@/components/ui/loading-state";
+import { QuickPathSection } from "./QuickPathSection";
 import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
 import type { Workspace } from "@/lib/cloudy/workspaces";
+import { basename } from "@/lib/path";
+import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
 import { useSessions } from "@/hooks/queries";
 
 interface CreateChatDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: {
-    workspaceId: string;
+    workspaceId: string | null;
     directory: string;
     sessionId: string | null;
     sessionName: string;
   }) => void;
+}
+
+/** Directory the chat will run in — a registered workspace or an ad-hoc path. */
+interface ChatTarget {
+  workspaceId: string | null;
+  directory: string;
+  name: string;
 }
 
 export function CreateChatDialog({
@@ -34,27 +44,39 @@ export function CreateChatDialog({
   onSubmit,
 }: CreateChatDialogProps) {
   const navigate = useNavigate();
-  const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
-    null,
-  );
+  const pushRecentDirectory = useRecentDirectoryStore((s) => s.push);
+  const [selected, setSelected] = useState<ChatTarget | null>(null);
 
   const { data: sessions = [], isLoading: sessionsLoading } = useSessions({
-    directory: selectedWorkspace?.directory ?? "",
+    directory: selected?.directory ?? "",
   });
 
+  const handleQuickPath = (directory: string) => {
+    pushRecentDirectory(directory);
+    setSelected({
+      workspaceId: null,
+      directory,
+      name: basename(directory) || directory,
+    });
+  };
+
   const handleWorkspaceSelect = (workspace: Workspace) => {
-    setSelectedWorkspace(workspace);
+    setSelected({
+      workspaceId: workspace.id,
+      directory: workspace.directory,
+      name: workspace.name,
+    });
   };
 
   const handleBack = () => {
-    setSelectedWorkspace(null);
+    setSelected(null);
   };
 
   const resolveSession = (sessionId: string | null, sessionName: string) => {
-    if (!selectedWorkspace) return;
+    if (!selected) return;
     onSubmit({
-      workspaceId: selectedWorkspace.id,
-      directory: selectedWorkspace.directory,
+      workspaceId: selected.workspaceId,
+      directory: selected.directory,
       sessionId,
       sessionName,
     });
@@ -67,7 +89,7 @@ export function CreateChatDialog({
     resolveSession(session.id, session.title || "New Chat");
 
   const handleClose = () => {
-    setSelectedWorkspace(null);
+    setSelected(null);
     onOpenChange(false);
   };
 
@@ -81,23 +103,29 @@ export function CreateChatDialog({
       <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden">
         <DialogHeader>
           <DialogTitle>
-            {selectedWorkspace
-              ? `Sessions in ${selectedWorkspace.name}`
-              : "Select Workspace"}
+            {selected ? `Sessions in ${selected.name}` : "New Chat"}
           </DialogTitle>
           <DialogDescription>
-            {selectedWorkspace
+            {selected
               ? "Choose a session or start a new chat"
-              : "Choose a workspace to create a new chat"}
+              : "Start from any directory path or a registered workspace"}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4 flex-1 min-h-0 flex flex-col">
-          {!selectedWorkspace ? (
-            <WorkspaceSelectStep
-              onSelect={handleWorkspaceSelect}
-              onGoToWorkspaces={handleGoToWorkspaces}
-            />
+          {!selected ? (
+            <>
+              <QuickPathSection onPathSubmit={handleQuickPath} />
+              <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+                <span className="h-px flex-1 bg-border" />
+                or choose a workspace
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <WorkspaceSelectStep
+                onSelect={handleWorkspaceSelect}
+                onGoToWorkspaces={handleGoToWorkspaces}
+              />
+            </>
           ) : (
             <SessionStep
               sessions={sessions}
@@ -165,7 +193,7 @@ function SessionStep({
         onClick={onBack}
         className="self-start -ml-2 shrink-0"
       >
-        Back to workspaces
+        Back
       </Button>
     </div>
   );
