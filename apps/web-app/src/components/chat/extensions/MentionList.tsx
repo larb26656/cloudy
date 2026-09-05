@@ -40,7 +40,7 @@ const MentionList = forwardRef<MentionListRef, MentionListProps>(
         itemToValue={itemToValue}
         selectItem={selectItem}
         setSelectedValue={setSelectedValue}
-        renderItem={(item) => <span className="break-all">{item}</span>}
+        renderItem={(item) => <span className="wrap-anywhere">{item}</span>}
         renderEmpty={() => "No result"}
         selectedValue={selectedValue}
         cmdRootRef={setCmdRoot}

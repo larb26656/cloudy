@@ -204,6 +204,11 @@
   padding-left: 0;
 }
 
+/* streamdown inline code — long paths/identifiers wrap at / or any char instead of only at - */
+[data-streamdown="inline-code"] {
+  overflow-wrap: anywhere;
+}
+
 /* input editor */
 
 .input-chat {

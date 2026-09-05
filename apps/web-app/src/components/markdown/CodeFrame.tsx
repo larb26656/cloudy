@@ -48,7 +48,7 @@ export function CodeFrame({
   return (
     <div className="relative group my-4 rounded-lg overflow-hidden bg-[#1e1e1e]">
       <div className="flex items-center justify-between px-2 py-1 bg-[#2d2d2d] border-b border-[#404040]">
-        <span className="text-xs text-gray-400 font-mono break-all">
+        <span className="text-xs text-gray-400 font-mono wrap-anywhere">
           {header || language}
         </span>
         <div className="flex items-center gap-2">

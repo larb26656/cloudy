@@ -22,7 +22,9 @@ export function WebTool({ tool, state }: ToolComponentProps) {
     <ExpandableToolCard
       tool={tool}
       state={state}
-      preview={<ToolPreviewLabel icon={<Globe className="size-3" />} label={label} />}
+      preview={
+        <ToolPreviewLabel icon={<Globe className="size-3" />} label={label} />
+      }
       detail={
         <div className="space-y-1.5 mt-2 p-2 bg-orange-50 dark:bg-orange-900/20 rounded-md">
           <div className="flex items-center gap-1.5 text-xs font-medium text-orange-700 dark:text-orange-300">
@@ -32,7 +34,7 @@ export function WebTool({ tool, state }: ToolComponentProps) {
           {input.url != null && (
             <div className="text-xs" key="url">
               <span className="text-muted-foreground">url:</span>{" "}
-              <code className="bg-orange-100 dark:bg-orange-900/50 px-1 rounded break-all">
+              <code className="bg-orange-100 dark:bg-orange-900/50 px-1 rounded wrap-anywhere">
                 {String(input.url)}
               </code>
             </div>

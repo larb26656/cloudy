@@ -463,3 +463,37 @@ export const NestedStructures = meta.story({
 4. Done.`,
   },
 });
+
+// ---------------------------------------------------------------------------
+// Regression: long inline code paths inside list items must wrap mid-token
+// (verified visually with a narrow viewport — see decorator below).
+// ---------------------------------------------------------------------------
+const longInlineCodePaths = `Files touched in this change:
+
+- \`apps/web-app/src/components/markdown/CodeFrame.tsx\`
+- \`apps/web-app/src/features/home/components/WorkspaceCard.tsx:32\`
+- \`apps/web-app/src/components/chat/message/UserMessageBubble.tsx\`
+- \`apps/web-app/src/components/markdown/MarkdownRenderer.tsx\`
+
+Long identifier without slashes also wraps cleanly:
+
+- \`some-really-long-camelCaseIdentifierThatShouldNotClipAtTheRightEdge\`
+
+Mixed prose:
+
+- See \`apps/web-app/src/components/markdown/CodeFrame.tsx\` for the implementation.
+`;
+
+export const LongInlineCodeInList = meta.story({
+  name: "Long Inline Code in List (narrow)",
+  decorators: [
+    (Story) => (
+      <div className="mx-auto max-w-xs p-4 border border-border rounded-md">
+        <Story />
+      </div>
+    ),
+  ],
+  args: {
+    content: longInlineCodePaths,
+  },
+});

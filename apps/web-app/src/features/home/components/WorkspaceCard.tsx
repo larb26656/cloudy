@@ -29,7 +29,7 @@ export function WorkspaceCard({
       </span>
       <span className="flex min-w-0 flex-col">
         <span className="truncate text-sm font-semibold">{workspace.name}</span>
-        <span className="mt-0.5 text-[11.5px] text-muted-foreground/80 break-all">
+        <span className="mt-0.5 text-[11.5px] text-muted-foreground/80 wrap-anywhere">
           {sessionCount !== undefined
             ? `${sessionCount} session${sessionCount === 1 ? "" : "s"}`
             : workspace.directory}
