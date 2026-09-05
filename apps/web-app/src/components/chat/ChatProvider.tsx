@@ -158,7 +158,8 @@ export function ChatProvider({
       agent?: string | null,
     ) => {
       const text = content.text.trim();
-      if (!text) return;
+      const hasAttachments = content.attachments.length > 0;
+      if (!text && !hasAttachments) return;
 
       try {
         if (isCommand(text)) {

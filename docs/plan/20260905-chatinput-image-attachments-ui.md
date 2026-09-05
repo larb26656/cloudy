@@ -146,7 +146,7 @@ Submit works even if `text` is empty as long as at least one attachment is queue
 
 ## Tasks
 
-- [ ] 1. **Lift `addImageFile` and wire all three input paths in `ChatInput.tsx`**
+- [x] 1. **Lift `addImageFile` and wire all three input paths in `ChatInput.tsx`**
   - Add the `addImageFile` helper inside `ChatInput.tsx` (local to the component file —
     no separate util). Import `toast` from `@/components/ui/sonner`.
   - Initialize `attachments` in the existing `useState<ChatInputContent>({...})`.
@@ -162,7 +162,7 @@ Submit works even if `text` is empty as long as at least one attachment is queue
     pass (the new tests from task 4 should run here).
   - files: `apps/web-app/src/components/chat/chat-input/ChatInput.tsx`
 
-- [ ] 2. **Create `<AttachmentPreview>` and render it inside `ChatInput.tsx`**
+- [x] 2. **Create `<AttachmentPreview>` and render it inside `ChatInput.tsx`**
   - Create `apps/web-app/src/components/chat/chat-input/AttachmentPreview.tsx` with the
     component spec from Context.
   - In `ChatInput.tsx`, render `<AttachmentPreview attachments={...} onRemove={...} />`
@@ -173,7 +173,7 @@ Submit works even if `text` is empty as long as at least one attachment is queue
   - files: `apps/web-app/src/components/chat/chat-input/AttachmentPreview.tsx`,
     `apps/web-app/src/components/chat/chat-input/ChatInput.tsx`
 
-- [ ] 3. **Intercept image paste in `ChatInputEditor.tsx`**
+- [x] 3. **Intercept image paste in `ChatInputEditor.tsx`**
   - Pass a new prop `onAddFiles?: (files: File[]) => void` from `ChatInput.tsx` (which
     calls `addImageFile` per file in the array).
   - In `useEditor`, add `editorProps.handlePaste(view, event)`. If
@@ -186,12 +186,12 @@ Submit works even if `text` is empty as long as at least one attachment is queue
   - files: `apps/web-app/src/components/chat/chat-input/ChatInputEditor.tsx`,
     `apps/web-app/src/components/chat/chat-input/ChatInput.tsx`
 
-- [ ] 4. **Add component + buildParts tests**
+- [x] 4. **Add component + buildParts tests**
   - Extend `ChatInput.component.test.tsx` with the four cases in Context.
   - Add `useMessages.test.ts` with one `buildParts` test that takes a content with one
     `attachments` entry and asserts the last element of the returned array is
     `{ type: "file", mime: "image/png", url: "data:image/png;base64,AAA",
-   filename: "x.png" }`.
+filename: "x.png" }`.
   - verify:
     `pnpm --filter web-app exec vitest --project jsdom run src/components/chat src/hooks/queries/useMessages`
     passes.
@@ -199,7 +199,7 @@ Submit works even if `text` is empty as long as at least one attachment is queue
     `apps/web-app/src/components/chat/chat-input/ChatInput.component.test.tsx`,
     `apps/web-app/src/hooks/queries/useMessages.test.ts`
 
-- [ ] 5. **Add `WithAttachment` Storybook story**
+- [x] 5. **Add `WithAttachment` Storybook story**
   - Extend `ChatInput.stories.tsx` with a new export `WithAttachment` that renders
     `ChatInput` pre-seeded with one `ImageAttachment` (use a 1×1 PNG data URL).
   - verify: `pnpm --filter web-app storybook` opens and the `WithAttachment` story shows
@@ -207,24 +207,24 @@ Submit works even if `text` is empty as long as at least one attachment is queue
   - files:
     `apps/web-app/src/components/chat/chat-input/ChatInput.stories.tsx`
 
-- [ ] 6. **Full pre-commit checks**
+- [x] 6. **Full pre-commit checks**
   - verify: `pnpm --filter web-app lint && pnpm --filter web-app check-types &&
 pnpm --filter web-app exec vitest --project jsdom run` — all green.
   - files: —
 
 ## Done when
 
-- [ ] User can paste an image into the editor → it appears as a chip
-- [ ] User can drag-and-drop an image file onto the input bar → chip appears
-- [ ] User can click the paperclip button → file picker opens → selected images become chips
-- [ ] Picking a non-image file (e.g. PDF) does NOT add a chip and shows a toast
-- [ ] Adding a 6th image shows a toast and keeps the count at 5
-- [ ] Clicking the `<X>` on a chip removes it
-- [ ] Submitting with text + images sends both and clears both
-- [ ] Submitting with images only (empty text) sends the images
-- [ ] `pnpm --filter web-app lint` and `pnpm --filter web-app check-types` clean
-- [ ] New component + buildParts tests pass
-- [ ] Storybook `WithAttachment` renders the chip
+- [x] User can paste an image into the editor → it appears as a chip
+- [x] User can drag-and-drop an image file onto the input bar → chip appears
+- [x] User can click the paperclip button → file picker opens → selected images become chips
+- [x] Picking a non-image file (e.g. PDF) does NOT add a chip and shows a toast
+- [x] Adding a 6th image shows a toast and keeps the count at 5
+- [x] Clicking the `<X>` on a chip removes it
+- [x] Submitting with text + images sends both and clears both
+- [x] Submitting with images only (empty text) sends the images
+- [x] `pnpm --filter web-app lint` and `pnpm --filter web-app check-types` clean
+- [x] New component + buildParts tests pass
+- [x] Storybook `WithAttachment` renders the chip
 
 ## Notes for implementer
 

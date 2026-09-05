@@ -6,7 +6,7 @@ import {
   createCommandSuggestion,
 } from "../extensions/suggestion";
 import { shouldShowSlashCommand } from "@/lib/command";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
 import { useQuickPhrasesStore } from "@/stores/quickPhrasesStore";
@@ -18,6 +18,7 @@ interface ChatInputEditorProps {
   onChange: (content: ChatInputContent) => void;
   onKeyDown: (e: React.KeyboardEvent) => void;
   onImmediateExecute?: (commandName: string) => void;
+  onAddFiles?: (files: File[]) => void;
   placeholder?: string;
   disabled?: boolean;
   directory: string;
@@ -40,12 +41,18 @@ export function ChatInputEditor({
   onChange,
   onKeyDown,
   onImmediateExecute,
+  onAddFiles,
   placeholder,
   disabled,
   directory,
 }: ChatInputEditorProps) {
   const phrases = useQuickPhrasesStore((s) => s.phrases);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
+
+  const onAddFilesRef = useRef(onAddFiles);
+  useEffect(() => {
+    onAddFilesRef.current = onAddFiles;
+  }, [onAddFiles]);
 
   const extensions = useMemo(() => {
     return [
@@ -91,7 +98,27 @@ export function ChatInputEditor({
       onChange({
         text: editor.getText({ blockSeparator: "\n" }),
         mentions: getMentions(editor),
+        attachments: content.attachments,
       });
+    },
+    editorProps: {
+      handlePaste: (_view, event) => {
+        const items = event.clipboardData?.items;
+        if (!items) return false;
+
+        const files: File[] = [];
+        for (let i = 0; i < items.length; i++) {
+          const item = items[i];
+          if (!item) continue;
+          if (item.kind !== "file") continue;
+          const file = item.getAsFile();
+          if (file) files.push(file);
+        }
+
+        if (files.length === 0) return false;
+        onAddFilesRef.current?.(files);
+        return true;
+      },
     },
   });
 

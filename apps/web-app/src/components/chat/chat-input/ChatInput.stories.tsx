@@ -7,6 +7,7 @@ import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import { ChatInput } from "./ChatInput";
 import { useQuickPhrasesStore } from "@/stores/quickPhrasesStore";
 import preview from "@/storybook/preview";
+import type { ImageAttachment } from "@/lib/opencode";
 import type { SessionStatus } from "@opencode-ai/sdk/v2";
 
 const SAMPLE_PHRASES = ["Explain this code", "Write a test", "Fix the bug"];
@@ -33,11 +34,20 @@ const queryClient = new QueryClient({
   },
 });
 
-function ChatInputStory({ initialValue }: { initialValue?: string }) {
+function ChatInputStory({
+  initialValue,
+  initialAttachments,
+}: {
+  initialValue?: string;
+  initialAttachments?: ImageAttachment[];
+}) {
   return (
     <ChatProvider workspace={null} directory={DIRECTORY} sessionId={SESSION_ID}>
       <MessageScrollerProvider autoScroll>
-        <ChatInput initialValue={initialValue} />
+        <ChatInput
+          initialValue={initialValue}
+          initialAttachments={initialAttachments}
+        />
       </MessageScrollerProvider>
     </ChatProvider>
   );
@@ -108,5 +118,18 @@ function ChatInputWithPhrasesStory() {
 
 export const WithQuickPhrases = meta.story({
   render: () => <ChatInputWithPhrasesStory />,
+  parameters: { msw: { handlers: makeHandlers({ type: "idle" }) } },
+});
+
+const SAMPLE_ATTACHMENT: ImageAttachment = {
+  id: "att_story_1",
+  mime: "image/png",
+  filename: "screenshot.png",
+  dataUrl:
+    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==",
+};
+
+export const WithAttachment = meta.story({
+  render: () => <ChatInputStory initialAttachments={[SAMPLE_ATTACHMENT]} />,
   parameters: { msw: { handlers: makeHandlers({ type: "idle" }) } },
 });

@@ -81,12 +81,20 @@ function ChatActions() {
 
   return (
     <>
-      <button onClick={() => void sendMessage({ text: "hello", mentions: [] })}>
+      <button
+        onClick={() =>
+          void sendMessage({ text: "hello", mentions: [], attachments: [] })
+        }
+      >
         Send message
       </button>
       <button
         onClick={() =>
-          void sendMessage({ text: "/test-command", mentions: [] })
+          void sendMessage({
+            text: "/test-command",
+            mentions: [],
+            attachments: [],
+          })
         }
       >
         Send slash command
@@ -252,7 +260,7 @@ describe("ChatProvider", () => {
     expect(onSessionChange).toHaveBeenCalledWith("ses_created");
     expect(mocks.sendMessage).toHaveBeenCalledWith({
       sessionId: "ses_created",
-      content: { text: "hello", mentions: [] },
+      content: { text: "hello", mentions: [], attachments: [] },
       directory: "/project",
       model: undefined,
       agent: undefined,

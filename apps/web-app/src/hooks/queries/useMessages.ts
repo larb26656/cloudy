@@ -92,7 +92,14 @@ export function buildParts(
     };
   });
 
-  return [textPart, ...mentionParts];
+  const attachmentParts: FilePartInput[] = content.attachments.map((a) => ({
+    type: "file",
+    mime: a.mime,
+    url: a.dataUrl,
+    filename: a.filename,
+  }));
+
+  return [textPart, ...mentionParts, ...attachmentParts];
 }
 
 export function useSendMessage() {

@@ -1,5 +1,11 @@
 import { describe, expect, test, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import {
+  render,
+  screen,
+  fireEvent,
+  act,
+  waitFor,
+} from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { SessionStatus } from "@opencode-ai/sdk/v2";
 import { ChatProvider } from "../ChatProvider";
@@ -61,7 +67,11 @@ vi.mock("./ChatInputEditor", () => ({
     disabled,
   }: {
     content: { text: string };
-    onChange: (next: { text: string; mentions: unknown[] }) => void;
+    onChange: (next: {
+      text: string;
+      mentions: unknown[];
+      attachments: unknown[];
+    }) => void;
     onKeyDown: (e: {
       key: string;
       shiftKey?: boolean;
@@ -78,7 +88,9 @@ vi.mock("./ChatInputEditor", () => ({
       aria-label="chat-editor"
       disabled={disabled}
       value={content.text}
-      onChange={(e) => onChange({ text: e.target.value, mentions: [] })}
+      onChange={(e) =>
+        onChange({ text: e.target.value, mentions: [], attachments: [] })
+      }
       onKeyDown={(e) =>
         onKeyDown({
           key: e.key,
@@ -498,5 +510,88 @@ describe("ChatInput — input history navigation", () => {
       pressKey("ArrowUp");
     });
     expect(screen.getByLabelText("chat-editor")).toHaveValue("recalled!");
+  });
+});
+
+describe("ChatInput — image attachments", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.isSending = false;
+    mocks.sessionStatuses = { [SESSION_ID]: { type: "idle" } };
+    mocks.sendMessage.mockResolvedValue(undefined);
+  });
+
+  function focusEditor() {
+    act(() => {
+      fireEvent.focus(screen.getByLabelText("chat-editor"));
+    });
+  }
+
+  function pickFile(file: File) {
+    focusEditor();
+    const input = screen.getByLabelText("Attach image files");
+    fireEvent.change(input, { target: { files: [file] } });
+  }
+
+  test("picking an image file adds a chip", async () => {
+    renderInput();
+    pickFile(new File(["x"], "photo.png", { type: "image/png" }));
+
+    await waitFor(() =>
+      expect(screen.getByAltText("photo.png")).toBeInTheDocument(),
+    );
+    expect(screen.getByTestId("attachment-preview")).toBeInTheDocument();
+  });
+
+  test("picking a non-image file does not add a chip and shows a toast", async () => {
+    renderInput();
+    pickFile(new File(["x"], "notes.txt", { type: "text/plain" }));
+
+    await waitFor(() =>
+      expect(mocks.toastError).toHaveBeenCalledWith(
+        "Only image files can be attached",
+      ),
+    );
+    expect(screen.queryByTestId("attachment-preview")).not.toBeInTheDocument();
+  });
+
+  test("clicking the X on a chip removes the attachment", async () => {
+    renderInput();
+    pickFile(new File(["x"], "photo.png", { type: "image/png" }));
+
+    await waitFor(() =>
+      expect(screen.getByAltText("photo.png")).toBeInTheDocument(),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Remove photo.png" }));
+
+    await waitFor(() =>
+      expect(screen.queryByAltText("photo.png")).not.toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("attachment-preview")).not.toBeInTheDocument();
+  });
+
+  test("submitting with attachments only (no text) sends and clears attachments", async () => {
+    renderInput();
+    pickFile(new File(["x"], "photo.png", { type: "image/png" }));
+
+    await waitFor(() =>
+      expect(screen.getByAltText("photo.png")).toBeInTheDocument(),
+    );
+
+    await act(async () => {
+      screen.getByRole("button", { name: "Send message" }).click();
+    });
+
+    expect(mocks.sendMessage).toHaveBeenCalledOnce();
+    const sent = mocks.sendMessage.mock.calls[0]?.[0] as {
+      content: { attachments: { filename: string }[] };
+    };
+    expect(sent?.content.attachments).toHaveLength(1);
+    expect(sent?.content.attachments[0]?.filename).toBe("photo.png");
+
+    await waitFor(() =>
+      expect(screen.queryByAltText("photo.png")).not.toBeInTheDocument(),
+    );
   });
 });

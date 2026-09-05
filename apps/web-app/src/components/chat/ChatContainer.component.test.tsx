@@ -42,7 +42,9 @@ vi.mock("@/components/chat/chat-input", () => ({
       <div data-testid="chat-input">
         <button
           data-testid="trigger-send"
-          onClick={() => void sendMessage({ text: "hello", mentions: [] })}
+          onClick={() =>
+            void sendMessage({ text: "hello", mentions: [], attachments: [] })
+          }
           disabled={isGenerating}
         >
           {isGenerating ? "loading" : "send"}
@@ -63,7 +65,11 @@ vi.mock("@/components/chat/chat-input", () => ({
         <button
           data-testid="trigger-slash-command"
           onClick={() =>
-            void sendMessage({ text: "/test-command", mentions: [] })
+            void sendMessage({
+              text: "/test-command",
+              mentions: [],
+              attachments: [],
+            })
           }
         >
           trigger slash command

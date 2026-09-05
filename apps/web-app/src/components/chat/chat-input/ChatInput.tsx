@@ -1,13 +1,15 @@
-import { ArrowUp, Square } from "lucide-react";
+import { ArrowUp, Paperclip, Square } from "lucide-react";
 import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
 import { Button } from "@/components/ui/button";
-import { type ChatInputContent } from "@/lib/opencode";
+import { toast } from "@/components/ui/sonner";
+import { type ChatInputContent, type ImageAttachment } from "@/lib/opencode";
 import { cn } from "@/lib/utils";
 import { getNextName } from "@/lib/cycleName";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { ChatInputEditor } from "./ChatInputEditor";
 import SpeechBtn from "./SpeechBtn";
+import { AttachmentPreview } from "./AttachmentPreview";
 import { useChat } from "../ChatProvider";
 import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
 import { useMessageScroller } from "@/components/ui/message-scroller";
@@ -16,19 +18,25 @@ import { memo, useEffect, useRef, useState } from "react";
 interface ChatInputProps {
   placeholder?: string;
   initialValue?: string;
+  initialAttachments?: ImageAttachment[];
 }
 
 const NO_HISTORY: string[] = [];
+const MAX_ATTACHMENTS = 5;
+const EMPTY_CONTENT: ChatInputContent = {
+  text: "",
+  mentions: [],
+  attachments: [],
+};
 
 export const ChatInput = memo(function ChatInput({
   placeholder = "Type a message...",
   initialValue,
+  initialAttachments,
 }: ChatInputProps) {
   const [historyIndex, setHistoryIndex] = useState(-1);
-  const [chatInputContent, setChatInputContent] = useState<ChatInputContent>({
-    text: "",
-    mentions: [],
-  });
+  const [chatInputContent, setChatInputContent] =
+    useState<ChatInputContent>(EMPTY_CONTENT);
 
   const {
     effectiveModel,
@@ -58,6 +66,7 @@ export const ChatInput = memo(function ChatInput({
 
   const speechBaseRef = useRef("");
   const prevListeningRef = useRef(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const currentHistorySelectValue =
     historyIndex === -1 ? "" : (history[historyIndex] ?? "");
@@ -67,15 +76,22 @@ export const ChatInput = memo(function ChatInput({
   }, [sessionId]);
 
   useEffect(() => {
-    if (initialValue) {
-      setChatInputContent({ text: initialValue, mentions: [] });
+    if (initialValue || initialAttachments) {
+      setChatInputContent({
+        ...EMPTY_CONTENT,
+        text: initialValue ?? "",
+        attachments: initialAttachments ?? [],
+      });
       setSpeechDraft("");
-      speechBaseRef.current = initialValue;
+      speechBaseRef.current = initialValue ?? "";
     }
-  }, [initialValue]);
+  }, [initialValue, initialAttachments]);
 
   useEffect(() => {
-    setChatInputContent({ text: currentHistorySelectValue, mentions: [] });
+    setChatInputContent({
+      ...EMPTY_CONTENT,
+      text: currentHistorySelectValue,
+    });
   }, [historyIndex, currentHistorySelectValue]);
 
   useEffect(() => {
@@ -98,21 +114,65 @@ export const ChatInput = memo(function ChatInput({
     ? `${speechBaseRef.current} ${speechDraft}`.trim()
     : chatInputContent.text;
 
+  const addImageFile = (file: File): boolean => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Only image files can be attached");
+      return false;
+    }
+
+    if (chatInputContent.attachments.length >= MAX_ATTACHMENTS) {
+      toast.error("Up to 5 images per message");
+      return false;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      if (typeof dataUrl !== "string") return;
+      const attachment: ImageAttachment = {
+        id: crypto.randomUUID(),
+        mime: file.type,
+        filename: file.name,
+        dataUrl,
+      };
+      setChatInputContent((prev) => ({
+        ...prev,
+        attachments: [...prev.attachments, attachment],
+      }));
+    };
+    reader.readAsDataURL(file);
+    return true;
+  };
+
+  const addFiles = (files: File[]) => {
+    for (const file of files) {
+      addImageFile(file);
+    }
+  };
+
+  const removeAttachment = (id: string) => {
+    setChatInputContent((prev) => ({
+      ...prev,
+      attachments: prev.attachments.filter((a) => a.id !== id),
+    }));
+  };
+
   const handleImmediateExecute = (commandName: string) => {
     void executeImmediateCommand(commandName);
-    setChatInputContent({ text: "", mentions: [] });
+    setChatInputContent(EMPTY_CONTENT);
   };
 
   const handleSubmit = () => {
     const finalText = displayText.trim();
-    if (finalText && !isSending) {
+    const hasAttachments = chatInputContent.attachments.length > 0;
+    if ((finalText || hasAttachments) && !isSending) {
       scrollToEnd();
       void sendMessage(
         { ...chatInputContent, text: finalText },
         effectiveModel,
         effectiveAgent,
       );
-      setChatInputContent({ text: "", mentions: [] });
+      setChatInputContent(EMPTY_CONTENT);
       setSpeechDraft("");
       setHistoryIndex(-1);
     }
@@ -174,7 +234,17 @@ export const ChatInput = memo(function ChatInput({
   };
 
   return (
-    <div className="p-4 @container">
+    <div
+      className="p-4 @container"
+      onDragOver={(e) => {
+        e.preventDefault();
+      }}
+      onDrop={(e) => {
+        e.preventDefault();
+        const files = Array.from(e.dataTransfer.files);
+        if (files.length > 0) addFiles(files);
+      }}
+    >
       <div className="max-w-4xl mx-auto">
         <div className="flex flex-col gap-2">
           <div
@@ -190,6 +260,12 @@ export const ChatInput = memo(function ChatInput({
               }
             }}
           >
+            {isFocused && (
+              <AttachmentPreview
+                attachments={chatInputContent.attachments}
+                onRemove={removeAttachment}
+              />
+            )}
             <div
               className={cn(
                 "flex gap-2 w-full pt-2",
@@ -206,12 +282,12 @@ export const ChatInput = memo(function ChatInput({
                 }}
                 onKeyDown={handleKeyDown}
                 onImmediateExecute={handleImmediateExecute}
+                onAddFiles={addFiles}
                 placeholder={placeholder}
                 disabled={isSending}
                 directory={directory}
               />
             </div>
-
             <div
               className={cn(
                 "flex gap-2 justify-between",
@@ -229,6 +305,33 @@ export const ChatInput = memo(function ChatInput({
               </div>
 
               <div className="flex gap-2 shrink-0">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="hidden"
+                  onChange={(e) => {
+                    const files = Array.from(e.target.files ?? []);
+                    if (files.length > 0) addFiles(files);
+                    e.target.value = "";
+                  }}
+                  aria-label="Attach image files"
+                />
+                {isFocused && (
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="rounded-full p-4"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isSending}
+                    title="Attach images"
+                    aria-label="Attach images"
+                  >
+                    <Paperclip className="size-5" />
+                  </Button>
+                )}
+
                 <SpeechBtn
                   onTranscript={(text) => setSpeechDraft(text)}
                   onListeningChange={setIsListening}
@@ -248,7 +351,10 @@ export const ChatInput = memo(function ChatInput({
                     size="icon"
                     className="rounded-full p-4"
                     onClick={handleSubmit}
-                    disabled={!displayText.trim()}
+                    disabled={
+                      !displayText.trim() &&
+                      chatInputContent.attachments.length === 0
+                    }
                     title="Send message"
                   >
                     <ArrowUp className="size-5" />

@@ -79,7 +79,7 @@ mentions: MentionAttrs[] }`. Add `attachments: ImageAttachment[]` so every exist
 
 ## Tasks
 
-- [ ] 1. **Extend `ChatInputContent` with `attachments`**
+- [x] 1. **Extend `ChatInputContent` with `attachments`**
   - Add and export:
     ```ts
     export interface ImageAttachment {
@@ -104,7 +104,7 @@ vitest --project jsdom run src/components/chat` may show failures — note them,
     not fix in this plan.
   - files: `apps/web-app/src/lib/opencode/chat-input.ts`
 
-- [ ] 2. **Extend `buildParts()` to emit `FilePartInput` from attachments**
+- [x] 2. **Extend `buildParts()` to emit `FilePartInput` from attachments**
   - In `apps/web-app/src/hooks/queries/useMessages.ts:67`, after the existing
     `mentionParts` map, add:
     ```ts
@@ -125,7 +125,7 @@ vitest --project jsdom run src/components/chat` may show failures — note them,
     (defined at `useMessages.ts:70`).
   - files: `apps/web-app/src/hooks/queries/useMessages.ts`
 
-- [ ] 3. **Smoke-check that nothing regressed for text-only and mentions-only paths**
+- [x] 3. **Smoke-check that nothing regressed for text-only and mentions-only paths**
   - verify: `pnpm --filter web-app exec vitest --project jsdom run
 src/components/chat/ChatInput.component.test.tsx src/components/chat/ChatContainer.component.test.tsx`
     — text-only and mention paths still type-check and behave the same (they pass with
@@ -135,12 +135,12 @@ src/components/chat/ChatInput.component.test.tsx src/components/chat/ChatContain
 
 ## Done when
 
-- [ ] `ChatInputContent` has `attachments: ImageAttachment[]` and the type compiles
-- [ ] `buildParts()` returns one `FilePartInput` per attachment, with `mime`/`url`/`filename`
+- [x] `ChatInputContent` has `attachments: ImageAttachment[]` and the type compiles
+- [x] `buildParts()` returns one `FilePartInput` per attachment, with `mime`/`url`/`filename`
       populated from `dataUrl`/`filename`/`mime`
-- [ ] No new file added; no server, proxy, or schema changes
-- [ ] `pnpm --filter web-app lint` passes for the two touched files
-- [ ] `pnpm --filter web-app check-types` either passes (if no inline-construction errors)
+- [x] No new file added; no server, proxy, or schema changes
+- [x] `pnpm --filter web-app lint` passes for the two touched files
+- [x] `pnpm --filter web-app check-types` either passes (if no inline-construction errors)
       or produces a known set of "missing `attachments` field" errors that the UI plan
       resolves
 
