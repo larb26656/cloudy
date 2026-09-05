@@ -38,3 +38,4 @@
  */
 
 export type { AppType } from "@repo/server";
+export type { CreateNotificationInput, NotificationDto } from "@repo/server";

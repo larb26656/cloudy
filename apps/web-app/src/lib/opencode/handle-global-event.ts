@@ -1,4 +1,5 @@
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { cloudyClient } from "@/lib/api";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { useSessionErrorStore } from "@/stores/sessionErrorStore";
 import {
@@ -24,6 +25,26 @@ const KNOWN_EVENT_TYPES = new Set<string>([
   "question.asked",
   "permission.asked",
 ]);
+
+function postOpencodeNotification(
+  type: "info" | "success" | "warning",
+  title: string,
+  sessionID: string,
+  directory: string | undefined,
+) {
+  const metadata: Record<string, string> = { source: "opencode", sessionID };
+  if (directory) metadata.directory = directory;
+  void cloudyClient.api.notifications
+    .$post({ json: { type, title, message: directory ?? "", metadata } })
+    .then((res) => {
+      if (!res.ok) {
+        console.debug("[notifications] create failed:", res.status);
+      }
+    })
+    .catch((error) => {
+      console.debug("[notifications] create failed:", error);
+    });
+}
 
 export function handleEvent(
   event: GlobalEvent,
@@ -81,6 +102,13 @@ export function handleEvent(
           queryKey: fileKeys.root(),
         });
       }
+
+      postOpencodeNotification(
+        "success",
+        "Session completed",
+        sessionId,
+        event.directory,
+      );
       break;
     }
 
@@ -158,6 +186,12 @@ export function handleEvent(
       queryClient.invalidateQueries({
         queryKey: questionKeys.list(event.directory),
       });
+      postOpencodeNotification(
+        "info",
+        "Question asked",
+        props.sessionID,
+        event.directory,
+      );
       break;
     }
 
@@ -167,6 +201,12 @@ export function handleEvent(
       queryClient.invalidateQueries({
         queryKey: permissionKeys.request.root(),
       });
+      postOpencodeNotification(
+        "warning",
+        "Permission requested",
+        props.sessionID,
+        event.directory,
+      );
       break;
     }
   }

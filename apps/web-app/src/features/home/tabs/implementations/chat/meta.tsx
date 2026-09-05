@@ -2,6 +2,7 @@ import { MessageCircle } from "lucide-react";
 import { useState } from "react";
 import type { TabTemplate, TabTitleProps } from "../../template";
 import { useSession } from "@/hooks/queries/useSessions";
+import { useChatPanelStore } from "@/stores/chatPanelStore";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { ChatCreateDialog } from "./ChatCreateDialog";
 import { ChatContent } from "./ChatContent";
@@ -62,4 +63,7 @@ export const chatTemplate: TabTemplate<ChatData> = {
   CreateDialog: ChatCreateDialog,
   getWorkspaceId: (data) => data.workspaceId,
   HeaderActionsComponent: ChatHeaderActions,
+  onClose: (tab) => {
+    useChatPanelStore.getState().clearTab(tab.id);
+  },
 };

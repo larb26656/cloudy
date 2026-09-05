@@ -1,6 +1,7 @@
 import { Menu, X } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
 import { AppBar } from "@/components/layout";
+import { NotificationBell } from "@/components/notification";
 import { TabTitle, tabTypeMap } from "../tabs/template";
 
 interface MobileTabBarProps {
@@ -33,16 +34,19 @@ export function MobileTabBar({ onOpenDrawer }: MobileTabBarProps) {
       <AppBar.Title>
         {activeTab ? <TabTitle tab={activeTab} /> : "Home"}
       </AppBar.Title>
-      {activeTab && (
-        <AppBar.Actions>
-          {Actions && <Actions tab={activeTab} />}
-          <AppBar.ActionIcon
-            icon={X}
-            label="Close tab"
-            onClick={() => removeTab(activeTab.id)}
-          />
-        </AppBar.Actions>
-      )}
+      <AppBar.Actions>
+        <NotificationBell className="h-9 w-9 justify-center px-2" />
+        {activeTab && (
+          <>
+            {Actions && <Actions tab={activeTab} />}
+            <AppBar.ActionIcon
+              icon={X}
+              label="Close tab"
+              onClick={() => removeTab(activeTab.id)}
+            />
+          </>
+        )}
+      </AppBar.Actions>
     </AppBar>
   );
 }

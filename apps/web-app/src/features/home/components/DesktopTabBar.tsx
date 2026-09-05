@@ -17,6 +17,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { useTabStore, type Tab } from "@/stores/tabStore";
+import { NotificationBell } from "@/components/notification";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -145,6 +146,8 @@ export function DesktopTabBar({ onOpenAllTabs, onAddTab }: DesktopTabBarProps) {
             <span>{tabs.length}</span>
           </button>
         )}
+
+        <NotificationBell />
 
         <DropdownMenu>
           <DropdownMenuTrigger

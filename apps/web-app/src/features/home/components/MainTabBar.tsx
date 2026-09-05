@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Tab } from "@/stores/tabStore";
 import { useTabStore } from "@/stores/tabStore";
+import { useNotificationsStream } from "@/hooks/useNotificationsStream";
 import { tabTemplates } from "../tabs/template";
 import { AllTabsDialog } from "./AllTabsDialog";
 import { DesktopTabBar } from "./DesktopTabBar";
@@ -8,6 +9,7 @@ import { MobileTabBar } from "./MobileTabBar";
 import { MobileTabDrawer } from "./MobileTabDrawer";
 
 export function MainTabBar() {
+  useNotificationsStream();
   const addTab = useTabStore((s) => s.addTab);
   const [activeCreateDialog, setActiveCreateDialog] = useState<
     Tab["type"] | null

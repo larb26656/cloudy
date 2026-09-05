@@ -20,3 +20,8 @@ export const workspaceKeys = {
   list: () => [...workspaceKeys.root(), "list"] as const,
   detail: (id: string) => [...workspaceKeys.root(), "detail", id] as const,
 };
+
+export const notificationKeys = {
+  root: () => ["notifications"] as const,
+  list: () => [...notificationKeys.root(), "list"] as const,
+};

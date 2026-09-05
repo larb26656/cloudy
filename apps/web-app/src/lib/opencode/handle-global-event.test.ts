@@ -13,6 +13,20 @@ import type { AssistantMessage, Part } from "@opencode-ai/sdk/v2";
 import type { InfiniteData } from "@tanstack/react-query";
 import type { Message } from "@/types";
 
+const { postNotificationMock } = vi.hoisted(() => ({
+  postNotificationMock: vi.fn(() => Promise.resolve({ ok: true })),
+}));
+
+vi.mock("@/lib/api", () => ({
+  cloudyClient: {
+    api: {
+      notifications: {
+        $post: postNotificationMock,
+      },
+    },
+  },
+}));
+
 const DEMO_DIRECTORY = "/demo/project";
 const SESSION_ID = "ses_1";
 const MESSAGE_ID = "msg_1";
@@ -88,6 +102,7 @@ describe("handleEvent", () => {
   beforeEach(() => {
     queryClient = createQueryClient();
     useStreamingMessagesStore.setState({ streamingMessages: new Map() });
+    postNotificationMock.mockClear();
   });
 
   describe("guard clause", () => {
@@ -484,6 +499,117 @@ describe("handleEvent", () => {
 
       expect(invalidateSpy).toHaveBeenCalledWith({
         queryKey: permissionKeys.request.root(),
+      });
+    });
+  });
+
+  describe("notification posts", () => {
+    test("session.idle posts a success notification", () => {
+      handleEvent(
+        buildEvent({
+          id: "evt_1",
+          type: "session.idle",
+          properties: { sessionID: SESSION_ID },
+        }),
+        queryClient,
+      );
+
+      expect(postNotificationMock).toHaveBeenCalledWith({
+        json: {
+          type: "success",
+          title: "Session completed",
+          message: DEMO_DIRECTORY,
+          metadata: {
+            source: "opencode",
+            sessionID: SESSION_ID,
+            directory: DEMO_DIRECTORY,
+          },
+        },
+      });
+    });
+
+    test("question.asked posts an info notification", () => {
+      handleEvent(
+        buildEvent({
+          id: "evt_1",
+          type: "question.asked",
+          properties: {
+            id: "que_1",
+            sessionID: SESSION_ID,
+            questions: [],
+          },
+        }),
+        queryClient,
+      );
+
+      expect(postNotificationMock).toHaveBeenCalledWith({
+        json: {
+          type: "info",
+          title: "Question asked",
+          message: DEMO_DIRECTORY,
+          metadata: {
+            source: "opencode",
+            sessionID: SESSION_ID,
+            directory: DEMO_DIRECTORY,
+          },
+        },
+      });
+    });
+
+    test("permission.asked posts a warning notification", () => {
+      handleEvent(
+        buildEvent({
+          id: "evt_1",
+          type: "permission.asked",
+          properties: {
+            id: "per_1",
+            sessionID: SESSION_ID,
+            permission: "read",
+            patterns: [],
+            metadata: {},
+            always: [],
+          },
+        }),
+        queryClient,
+      );
+
+      expect(postNotificationMock).toHaveBeenCalledWith({
+        json: {
+          type: "warning",
+          title: "Permission requested",
+          message: DEMO_DIRECTORY,
+          metadata: {
+            source: "opencode",
+            sessionID: SESSION_ID,
+            directory: DEMO_DIRECTORY,
+          },
+        },
+      });
+    });
+
+    test("omits directory from notification when event has none", () => {
+      handleEvent(
+        buildEvent(
+          {
+            id: "evt_1",
+            type: "session.idle",
+            properties: { sessionID: SESSION_ID },
+          },
+          "",
+        ),
+        queryClient,
+      );
+
+      expect(postNotificationMock).toHaveBeenCalledWith({
+        json: {
+          type: "success",
+          title: "Session completed",
+          message: "",
+          metadata: {
+            source: "opencode",
+            sessionID: SESSION_ID,
+          },
+        },
       });
     });
   });

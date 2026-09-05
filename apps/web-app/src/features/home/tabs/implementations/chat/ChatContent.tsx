@@ -30,6 +30,11 @@ export function ChatContent({ tab }: ChatContentProps) {
     (s) => s.filesOpenByTabId[tab.id] ?? false,
   );
   const setFilesOpen = useChatPanelStore((s) => s.setFilesOpen);
+  const setFilesWidth = useChatPanelStore((s) => s.setFilesWidth);
+  const filesWidth = useChatPanelStore(
+    (s) => s.filesWidthByTabId[tab.id] ?? 35,
+  );
+  const clampedFilesWidth = Math.min(70, Math.max(20, filesWidth));
 
   const { data: workspace } = useWorkspace(tab.data.workspaceId);
 
@@ -76,15 +81,23 @@ export function ChatContent({ tab }: ChatContentProps) {
 
   return (
     <div className="flex h-full">
-      <ResizablePanelGroup orientation="horizontal">
-        <ResizablePanel defaultSize="100%" minSize="30%">
+      <ResizablePanelGroup
+        orientation="horizontal"
+        onLayoutChanged={(layout, meta) => {
+          if (meta.isUserInteraction && layout.files != null) {
+            setFilesWidth(tab.id, layout.files);
+          }
+        }}
+      >
+        <ResizablePanel id="chat" defaultSize="100%" minSize="30%">
           {chatContainer}
         </ResizablePanel>
         {filesOpen && <ResizableHandle withHandle />}
         {filesOpen && (
           <ResizablePanel
             key="files"
-            defaultSize="35%"
+            id="files"
+            defaultSize={`${clampedFilesWidth}%`}
             minSize="20%"
             maxSize="70%"
           >

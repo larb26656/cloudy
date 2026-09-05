@@ -9,6 +9,8 @@ import { Toaster } from "./components/ui/sonner";
 import { QueryProvider } from "./providers/QueryProvider";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { GlobalEventProvider } from "./providers";
+import { useChatPanelStore } from "./stores/chatPanelStore";
+import { useTabStore } from "./stores/tabStore";
 
 export const isModeElectron = false;
 
@@ -22,6 +24,8 @@ declare module "@tanstack/react-router" {
 
 const rootElement = document.getElementById("root")!;
 localStorage.removeItem("workspaces");
+const liveTabIds = new Set(useTabStore.getState().tabs.map((t) => t.id));
+useChatPanelStore.getState().pruneExcept(liveTabIds);
 if (!rootElement.innerHTML) {
   ReactDOM.createRoot(rootElement).render(
     <StrictMode>
