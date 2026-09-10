@@ -8,6 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { NotificationDot } from "@/components/ui/notification-dot";
 import { NotificationList } from "./NotificationList";
 
 interface NotificationBellProps {
@@ -20,6 +21,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
   const clearNotifications = useClearNotifications();
 
   const count = notifications?.length ?? 0;
+  const hasUnread = count > 0;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -27,7 +29,9 @@ export function NotificationBell({ className }: NotificationBellProps) {
         render={
           <button
             type="button"
-            aria-label="Notifications"
+            aria-label={
+              hasUnread ? `${count} unread notifications` : "Notifications"
+            }
             className={cn(
               "flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground",
               className,
@@ -35,12 +39,10 @@ export function NotificationBell({ className }: NotificationBellProps) {
           />
         }
       >
-        <Bell data-icon className="size-4" />
-        {count > 0 && (
-          <span className="inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold tabular-nums text-primary-foreground">
-            {count}
-          </span>
-        )}
+        <span className="relative inline-flex">
+          <Bell data-icon className="size-4" />
+          <NotificationDot visible={hasUnread} />
+        </span>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 gap-0 p-0">
         <div className="flex items-center justify-between border-b px-3 py-2">

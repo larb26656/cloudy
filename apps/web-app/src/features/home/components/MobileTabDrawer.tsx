@@ -186,7 +186,7 @@ function DrawerRow({
       {dragHandle}
       <button
         onClick={onClick}
-        className="flex flex-1 items-center gap-2 px-3 py-2 text-left text-sm font-medium"
+        className="flex flex-1 min-w-0 items-center gap-2 px-3 py-2 text-left text-sm font-medium"
       >
         <span className="[&>svg]:size-4 shrink-0">
           <Icon />
@@ -198,7 +198,7 @@ function DrawerRow({
         <button
           onClick={onClose}
           aria-label="Close tab"
-          className="rounded p-1 opacity-0 transition-opacity hover:bg-background group-hover:opacity-100"
+          className="rounded p-1 transition-opacity hover:bg-background"
         >
           <X size={14} />
         </button>

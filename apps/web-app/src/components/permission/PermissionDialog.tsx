@@ -79,17 +79,17 @@ export function PermissionDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="max-h-[50vh]">
+        <ScrollArea className="max-h-[50vh] min-w-0">
           <div className="space-y-4 p-1">
             <div className="p-4 bg-red-50 dark:bg-red-900/20 rounded-lg">
               <div className="flex items-start gap-3">
                 {getActionIcon(permission.permission)}
-                <div className="flex-1 space-y-2">
+                <div className="flex-1 min-w-0 space-y-2">
                   <div>
                     <div className="text-xs font-medium text-red-700 dark:text-red-300 uppercase mb-1">
                       Permission
                     </div>
-                    <div className="font-medium text-sm">
+                    <div className="font-medium text-sm break-words">
                       {permission.permission}
                     </div>
                   </div>
@@ -98,11 +98,11 @@ export function PermissionDialog({
                     <div className="text-xs font-medium text-red-700 dark:text-red-300 uppercase mb-1">
                       Patterns
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-1 min-w-0">
                       {permission.patterns.map((pattern, idx) => (
                         <code
                           key={idx}
-                          className="block text-xs bg-red-100 dark:bg-red-900/40 px-2 py-1 rounded"
+                          className="block text-xs bg-red-100 dark:bg-red-900/40 px-2 py-1 rounded wrap-anywhere"
                         >
                           {pattern}
                         </code>
@@ -115,7 +115,7 @@ export function PermissionDialog({
                       <div className="text-xs font-medium text-red-700 dark:text-red-300 uppercase mb-1">
                         Always Allow
                       </div>
-                      <div className="text-xs text-red-600 dark:text-red-400">
+                      <div className="text-xs text-red-600 dark:text-red-400 break-words">
                         {permission.always.join(", ")}
                       </div>
                     </div>
@@ -126,7 +126,7 @@ export function PermissionDialog({
                       <div className="text-xs font-medium text-red-700 dark:text-red-300 uppercase mb-1">
                         Tool
                       </div>
-                      <div className="text-xs text-red-600 dark:text-red-400">
+                      <div className="text-xs text-red-600 dark:text-red-400 break-words">
                         Message ID: {permission.tool.messageID}
                       </div>
                     </div>

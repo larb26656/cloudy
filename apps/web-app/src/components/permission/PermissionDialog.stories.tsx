@@ -11,7 +11,8 @@ import preview from "../../../.storybook/preview";
 const DEMO_DIRECTORY = "/demo/project";
 
 const buildRequest = (
-  overloads: Partial<PermissionRequest> & Pick<PermissionRequest, "id" | "permission" | "patterns">,
+  overloads: Partial<PermissionRequest> &
+    Pick<PermissionRequest, "id" | "permission" | "patterns">,
 ): PermissionRequest => ({
   sessionID: "ses_demo",
   metadata: {},
@@ -86,6 +87,23 @@ const initialRequests: Record<string, PermissionRequest[]> = {
       tool: {
         messageID: "msg_multi_delete",
         callID: "call_multi_delete",
+      },
+    }),
+  ],
+  longPath: [
+    buildRequest({
+      id: "per_long_path_1",
+      permission: "write",
+      patterns: [
+        "/Users/luckytime1996/Documents/Work/One-man-show/Code/cloudy/apps/web-app/src/components/permission/PermissionDialog.tsx",
+        "C:\\Users\\luckytime1996\\AppData\\Roaming\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\helper-script-with-very-long-name-that-exceeds-any-reasonable-limit.ps1",
+        "node_modules/@scope/some-pkg/dist/esm/src/internal/utils/helpers/strings/transformers/camelCase/index.ts",
+      ],
+      always: ["edit", "write", "create", "delete"],
+      tool: {
+        messageID:
+          "msg_with_extremely_long_identifier_for_testing_overflow_handling_in_the_permission_dialog",
+        callID: "call_long_path_demo",
       },
     }),
   ],
@@ -228,4 +246,8 @@ export const SubmissionFails = meta.story({
   parameters: {
     msw: { handlers: errorHandlers },
   },
+});
+
+export const LongPathOverflow = meta.story({
+  render: () => <PermissionDialogDemo scenario="longPath" />,
 });
