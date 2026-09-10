@@ -200,6 +200,12 @@ export const ChatInput = memo(function ChatInput({
       return;
     }
 
+    if ((e.metaKey || e.ctrlKey) && e.key === "n") {
+      e.preventDefault();
+      handleImmediateExecute("new");
+      return;
+    }
+
     if (e.key === "Escape") {
       if (isStreaming && !displayText.trim()) {
         e.preventDefault();
@@ -369,6 +375,7 @@ export const ChatInput = memo(function ChatInput({
             {directory && " • @ or / to mention files"}
             {" • Tab to switch agent"}
             {" • Cmd/Ctrl + M for model"}
+            {" • Cmd/Ctrl + N for new session"}
           </div>
         </div>
       </div>

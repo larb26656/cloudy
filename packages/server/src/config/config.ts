@@ -2,7 +2,7 @@ import z, { prettifyError } from "zod";
 import path from "node:path";
 import { loadEnvConfig } from "./env-loader";
 import { stripUndefined } from "../lib/utils/object";
-import { loadFileConfig } from "./file-loader";
+import { expanduser, loadFileConfig } from "./file-loader";
 
 const BASE_CONFIG_DIR = "~/.config/cloudy";
 
@@ -40,7 +40,7 @@ export type AppOption = Partial<AppConfigInput> & {
 };
 
 export function loadConfig(option?: AppOption): AppConfig {
-  const configDir = option?.configDir ?? BASE_CONFIG_DIR;
+  const configDir = expanduser(option?.configDir ?? BASE_CONFIG_DIR);
   const fileConfig = loadFileConfig(configDir);
   const envConfig = loadEnvConfig();
 
@@ -52,9 +52,7 @@ export function loadConfig(option?: AppOption): AppConfig {
   });
 
   if (!result.success) {
-    throw new Error(
-      `Invalid configuration:\n${prettifyError(result.error)}`,
-    );
+    throw new Error(`Invalid configuration:\n${prettifyError(result.error)}`);
   }
 
   return result.data;

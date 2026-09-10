@@ -51,7 +51,8 @@ vi.mock("@/hooks/queries/useSessions", () => ({
 }));
 
 vi.mock("@/lib/commands", () => ({
-  findSystemCommand: () => null,
+  findSystemCommand: (name: string) =>
+    name === "new" ? { name: "new", immediate: true } : undefined,
   useSystemCommands: () => ({ execute: mocks.systemCommand }),
 }));
 
@@ -436,6 +437,64 @@ describe("ChatInput — Cmd/Ctrl + M opens model dropdown", () => {
       pressKey("m", { metaKey: true });
     });
     expect(mocks.sendMessage).not.toHaveBeenCalled();
+  });
+});
+
+describe("ChatInput — Cmd/Ctrl + N starts a new session", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.sessionStatuses = { [SESSION_ID]: { type: "idle" } };
+    mocks.systemCommand.mockResolvedValue(undefined);
+  });
+
+  test("Cmd+N executes the new system command", async () => {
+    renderInput();
+    await act(async () => {
+      pressKey("n", { metaKey: true });
+    });
+    expect(mocks.systemCommand).toHaveBeenCalledWith(
+      "new",
+      "",
+      expect.objectContaining({ directory: "/proj", sessionId: SESSION_ID }),
+    );
+  });
+
+  test("Ctrl+N executes the new system command", async () => {
+    renderInput();
+    await act(async () => {
+      pressKey("n", { ctrlKey: true });
+    });
+    expect(mocks.systemCommand).toHaveBeenCalledWith(
+      "new",
+      "",
+      expect.anything(),
+    );
+  });
+
+  test("plain N does not trigger the command", async () => {
+    renderInput();
+    await act(async () => {
+      pressKey("n");
+    });
+    expect(mocks.systemCommand).not.toHaveBeenCalled();
+  });
+
+  test("Cmd+N does not send a message", async () => {
+    renderInput();
+    typeText("hello");
+    await act(async () => {
+      pressKey("n", { metaKey: true });
+    });
+    expect(mocks.sendMessage).not.toHaveBeenCalled();
+  });
+
+  test("Cmd+N clears the draft input", async () => {
+    renderInput();
+    typeText("draft");
+    await act(async () => {
+      pressKey("n", { metaKey: true });
+    });
+    expect(screen.getByLabelText("chat-editor")).toHaveValue("");
   });
 });
 

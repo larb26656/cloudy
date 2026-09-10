@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
@@ -71,9 +71,9 @@ describe("loadConfig (integration)", () => {
   it("option overrides env values", () => {
     vi.stubEnv("CLOUDY_HOST", "from.env");
 
-    expect(
-      loadConfig({ configDir: dir, host: "from.option" }).host,
-    ).toBe("from.option");
+    expect(loadConfig({ configDir: dir, host: "from.option" }).host).toBe(
+      "from.option",
+    );
   });
 
   it("coerces CLOUDY_PORT string env to number", () => {
@@ -83,5 +83,24 @@ describe("loadConfig (integration)", () => {
 
   it("composes dbPath from the config dir", () => {
     expect(loadConfig({ configDir: dir }).dbPath).toBe(join(dir, "cloud.db"));
+  });
+
+  it("resolves a ~ configDir against HOME regardless of cwd", () => {
+    const fakeCwd = join(tmpdir(), "cloudy-cwd-" + randomUUID());
+    mkdirSync(fakeCwd, { recursive: true });
+    const prevCwd = process.cwd();
+    process.chdir(fakeCwd);
+    try {
+      vi.stubEnv("HOME", dir);
+
+      const config = loadConfig({ configDir: "~/.config/cloudy" });
+
+      expect(config.dbPath).toBe(join(dir, ".config", "cloudy", "cloud.db"));
+      expect(config.dbPath.startsWith("~")).toBe(false);
+      expect(existsSync(join(fakeCwd, "~"))).toBe(false);
+    } finally {
+      process.chdir(prevCwd);
+      rmSync(fakeCwd, { recursive: true, force: true });
+    }
   });
 });

@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import path from "node:path";
+import { homedir } from "node:os";
 
 vi.mock("./env-loader", () => ({
   loadEnvConfig: vi.fn(),
 }));
-vi.mock("./file-loader", () => ({
+vi.mock("./file-loader", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("./file-loader")>()),
   loadFileConfig: vi.fn(),
 }));
 
@@ -24,27 +26,27 @@ beforeEach(() => {
 describe("ConfigurableSchema", () => {
   describe("ui", () => {
     it("parses true boolean", () => {
-      expect(
-        ConfigurableSchema.parse({ dbPath: "/x", ui: true }).ui,
-      ).toBe(true);
+      expect(ConfigurableSchema.parse({ dbPath: "/x", ui: true }).ui).toBe(
+        true,
+      );
     });
 
     it("parses 'true' string as true", () => {
-      expect(
-        ConfigurableSchema.parse({ dbPath: "/x", ui: "true" }).ui,
-      ).toBe(true);
+      expect(ConfigurableSchema.parse({ dbPath: "/x", ui: "true" }).ui).toBe(
+        true,
+      );
     });
 
     it("parses false boolean", () => {
-      expect(
-        ConfigurableSchema.parse({ dbPath: "/x", ui: false }).ui,
-      ).toBe(false);
+      expect(ConfigurableSchema.parse({ dbPath: "/x", ui: false }).ui).toBe(
+        false,
+      );
     });
 
     it("parses 'false' string as false", () => {
-      expect(
-        ConfigurableSchema.parse({ dbPath: "/x", ui: "false" }).ui,
-      ).toBe(false);
+      expect(ConfigurableSchema.parse({ dbPath: "/x", ui: "false" }).ui).toBe(
+        false,
+      );
     });
 
     it("defaults to false when missing", () => {
@@ -60,9 +62,9 @@ describe("ConfigurableSchema", () => {
     });
 
     it("accepts a number", () => {
-      expect(
-        ConfigurableSchema.parse({ dbPath: "/x", port: 3000 }).port,
-      ).toBe(3000);
+      expect(ConfigurableSchema.parse({ dbPath: "/x", port: 3000 }).port).toBe(
+        3000,
+      );
     });
 
     it("defaults to 4122 when missing", () => {
@@ -78,9 +80,9 @@ describe("ConfigurableSchema", () => {
     });
 
     it("keeps '*' as the string '*'", () => {
-      expect(
-        ConfigurableSchema.parse({ dbPath: "/x", cors: "*" }).cors,
-      ).toBe("*");
+      expect(ConfigurableSchema.parse({ dbPath: "/x", cors: "*" }).cors).toBe(
+        "*",
+      );
     });
 
     it("splits comma-separated origins and trims whitespace", () => {
@@ -99,17 +101,15 @@ describe("ConfigurableSchema", () => {
 
   describe("host", () => {
     it("defaults to localhost", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x" }).host).toBe(
-        "localhost",
-      );
+      expect(ConfigurableSchema.parse({ dbPath: "/x" }).host).toBe("localhost");
     });
   });
 
   describe("opencodeApiBase", () => {
     it("defaults to http://localhost:4096", () => {
-      expect(
-        ConfigurableSchema.parse({ dbPath: "/x" }).opencodeApiBase,
-      ).toBe("http://localhost:4096");
+      expect(ConfigurableSchema.parse({ dbPath: "/x" }).opencodeApiBase).toBe(
+        "http://localhost:4096",
+      );
     });
   });
 });
@@ -127,6 +127,14 @@ describe("loadConfig", () => {
   it("composes dbPath from configDir + cloud.db", () => {
     const config = loadConfig({ configDir: "/custom/dir" });
     expect(config.dbPath).toBe(path.join("/custom/dir", "cloud.db"));
+  });
+
+  it("expands ~ in configDir against the user home, not the cwd", () => {
+    const config = loadConfig({ configDir: "~/.config/cloudy" });
+    expect(config.dbPath).toBe(
+      path.join(homedir(), ".config", "cloudy", "cloud.db"),
+    );
+    expect(config.dbPath.startsWith("~")).toBe(false);
   });
 
   it("file config overrides defaults", () => {
@@ -158,7 +166,9 @@ describe("loadConfig", () => {
 
   it("uses the base config dir when no configDir option is given", () => {
     loadConfig();
-    expect(mockedLoadFileConfig).toHaveBeenCalledWith("~/.config/cloudy");
+    expect(mockedLoadFileConfig).toHaveBeenCalledWith(
+      path.join(homedir(), ".config", "cloudy"),
+    );
   });
 
   it("strips unknown option keys (configDir is not part of AppConfig)", () => {
