@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useWindowFocus } from "@/hooks";
 import { env } from "@/config/env";
 import { notificationKeys } from "@/lib/cloudy/query-keys";
+import { playNotificationSound } from "@/lib/notification-sound";
 import {
   notificationDtoSchema,
   type Notification,
@@ -58,6 +59,23 @@ export function applyNotificationFrame(
   }
 }
 
+/**
+ * True only when `raw` is a valid `notification.created` frame whose id is
+ * not present in `current` — i.e. a genuinely new notification that has not
+ * been mirrored into the cache yet. Drives the notification chime so the
+ * REST POST response and the WS broadcast never double-play.
+ */
+export function isNewNotificationFrame(
+  current: Notification[] | undefined,
+  raw: unknown,
+): boolean {
+  const parsed = wsFrameSchema.safeParse(raw);
+  if (!parsed.success) return false;
+  const frame = parsed.data;
+  if (frame.type !== "notification.created") return false;
+  return !(current ?? []).some((n) => n.id === frame.notification.id);
+}
+
 function buildNotificationsWsUrl(): string {
   const base = env.getApiUrl().replace(/\/$/, "");
   const wsBase = base.replace(/^http:/i, "ws:").replace(/^https:/i, "wss:");
@@ -110,6 +128,16 @@ export function useNotificationsStream() {
           raw = JSON.parse(e.data);
         } catch {
           return;
+        }
+        if (
+          isNewNotificationFrame(
+            queryClient.getQueryData<Notification[] | undefined>(
+              notificationKeys.list(),
+            ),
+            raw,
+          )
+        ) {
+          playNotificationSound();
         }
         queryClient.setQueryData<Notification[] | undefined>(
           notificationKeys.list(),

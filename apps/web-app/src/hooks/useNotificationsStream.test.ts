@@ -1,5 +1,8 @@
 import { describe, test, expect, vi } from "vitest";
-import { applyNotificationFrame } from "./useNotificationsStream";
+import {
+  applyNotificationFrame,
+  isNewNotificationFrame,
+} from "./useNotificationsStream";
 import type { Notification } from "@/lib/cloudy/notifications";
 
 vi.mock("@/config/env", () => ({
@@ -127,5 +130,76 @@ describe("applyNotificationFrame", () => {
     });
 
     expect(result).toEqual([]);
+  });
+});
+
+describe("isNewNotificationFrame", () => {
+  test("returns true for notification.created with an unseen id", () => {
+    const existing = createNotification({ id: "ntf_old" });
+    const created = createNotification({ id: "ntf_new" });
+
+    expect(
+      isNewNotificationFrame([existing], {
+        type: "notification.created",
+        notification: created,
+      }),
+    ).toBe(true);
+  });
+
+  test("returns true when the cache is empty", () => {
+    const created = createNotification();
+
+    expect(
+      isNewNotificationFrame(undefined, {
+        type: "notification.created",
+        notification: created,
+      }),
+    ).toBe(true);
+  });
+
+  test("returns false when the id already exists in the cache", () => {
+    const existing = createNotification({ id: "ntf_1" });
+    const created = createNotification({ id: "ntf_1", title: "Rebroadcast" });
+
+    expect(
+      isNewNotificationFrame([existing], {
+        type: "notification.created",
+        notification: created,
+      }),
+    ).toBe(false);
+  });
+
+  test("returns false for snapshot frames", () => {
+    const created = createNotification();
+
+    expect(
+      isNewNotificationFrame([], {
+        type: "snapshot",
+        notifications: [created],
+      }),
+    ).toBe(false);
+  });
+
+  test("returns false for deleted and cleared frames", () => {
+    expect(
+      isNewNotificationFrame([], { type: "notification.deleted", id: "x" }),
+    ).toBe(false);
+    expect(
+      isNewNotificationFrame([createNotification()], {
+        type: "notifications.cleared",
+      }),
+    ).toBe(false);
+  });
+
+  test("returns false for malformed payloads", () => {
+    expect(isNewNotificationFrame([], { type: "nope" })).toBe(false);
+    expect(isNewNotificationFrame([], "garbage")).toBe(false);
+    expect(isNewNotificationFrame([], null)).toBe(false);
+    expect(
+      isNewNotificationFrame([], {
+        type: "notification.created",
+        notification: { id: "ntf_x" },
+      }),
+    ).toBe(false);
   });
 });
