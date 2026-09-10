@@ -1,6 +1,7 @@
 import { describe, test, expect, vi } from "vitest";
 import {
   applyNotificationFrame,
+  getNewNotification,
   isNewNotificationFrame,
 } from "./useNotificationsStream";
 import type { Notification } from "@/lib/cloudy/notifications";
@@ -130,6 +131,68 @@ describe("applyNotificationFrame", () => {
     });
 
     expect(result).toEqual([]);
+  });
+});
+
+describe("getNewNotification", () => {
+  test("returns the notification for a created frame with an unseen id", () => {
+    const created = createNotification({ id: "ntf_new" });
+
+    const result = getNewNotification([createNotification({ id: "ntf_old" })], {
+      type: "notification.created",
+      notification: created,
+    });
+
+    expect(result).toEqual(created);
+  });
+
+  test("returns the notification when the cache is empty", () => {
+    const created = createNotification();
+
+    expect(
+      getNewNotification(undefined, {
+        type: "notification.created",
+        notification: created,
+      }),
+    ).toEqual(created);
+  });
+
+  test("returns null when the id already exists in the cache", () => {
+    const existing = createNotification({ id: "ntf_1" });
+
+    expect(
+      getNewNotification([existing], {
+        type: "notification.created",
+        notification: createNotification({ id: "ntf_1" }),
+      }),
+    ).toBeNull();
+  });
+
+  test("returns null for snapshot, deleted, and cleared frames", () => {
+    expect(
+      getNewNotification([], {
+        type: "snapshot",
+        notifications: [createNotification()],
+      }),
+    ).toBeNull();
+    expect(
+      getNewNotification([], { type: "notification.deleted", id: "x" }),
+    ).toBeNull();
+    expect(
+      getNewNotification([], { type: "notifications.cleared" }),
+    ).toBeNull();
+  });
+
+  test("returns null for malformed payloads", () => {
+    expect(getNewNotification([], { type: "nope" })).toBeNull();
+    expect(getNewNotification([], "garbage")).toBeNull();
+    expect(getNewNotification([], null)).toBeNull();
+    expect(
+      getNewNotification([], {
+        type: "notification.created",
+        notification: { id: "ntf_x" },
+      }),
+    ).toBeNull();
   });
 });
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { z } from "zod";
 import { useWindowFocus } from "@/hooks";
 import { env } from "@/config/env";
@@ -60,26 +61,53 @@ export function applyNotificationFrame(
 }
 
 /**
+ * The `Notification` behind a valid `notification.created` frame whose id is
+ * not present in `current` — i.e. a genuinely new notification that has not
+ * been mirrored into the cache yet. Returns `null` for anything else. Drives
+ * the notification chime and toast so the REST POST response and the WS
+ * broadcast never double-fire.
+ */
+export function getNewNotification(
+  current: Notification[] | undefined,
+  raw: unknown,
+): Notification | null {
+  const parsed = wsFrameSchema.safeParse(raw);
+  if (!parsed.success) return null;
+  const frame = parsed.data;
+  if (frame.type !== "notification.created") return null;
+  if ((current ?? []).some((n) => n.id === frame.notification.id)) return null;
+  return frame.notification;
+}
+
+/**
  * True only when `raw` is a valid `notification.created` frame whose id is
  * not present in `current` — i.e. a genuinely new notification that has not
- * been mirrored into the cache yet. Drives the notification chime so the
- * REST POST response and the WS broadcast never double-play.
+ * been mirrored into the cache yet.
  */
 export function isNewNotificationFrame(
   current: Notification[] | undefined,
   raw: unknown,
 ): boolean {
-  const parsed = wsFrameSchema.safeParse(raw);
-  if (!parsed.success) return false;
-  const frame = parsed.data;
-  if (frame.type !== "notification.created") return false;
-  return !(current ?? []).some((n) => n.id === frame.notification.id);
+  return getNewNotification(current, raw) !== null;
 }
 
 function buildNotificationsWsUrl(): string {
   const base = env.getApiUrl().replace(/\/$/, "");
   const wsBase = base.replace(/^http:/i, "ws:").replace(/^https:/i, "wss:");
   return `${wsBase}/api/notifications/ws`;
+}
+
+const notificationToasts = {
+  info: toast.info,
+  success: toast.success,
+  warning: toast.warning,
+  error: toast.error,
+} as const;
+
+function showNotificationToast(notification: Notification) {
+  notificationToasts[notification.type](notification.title, {
+    description: notification.message,
+  });
 }
 
 const MAX_BACKOFF_MS = 30_000;
@@ -129,15 +157,15 @@ export function useNotificationsStream() {
         } catch {
           return;
         }
-        if (
-          isNewNotificationFrame(
-            queryClient.getQueryData<Notification[] | undefined>(
-              notificationKeys.list(),
-            ),
-            raw,
-          )
-        ) {
+        const newNotification = getNewNotification(
+          queryClient.getQueryData<Notification[] | undefined>(
+            notificationKeys.list(),
+          ),
+          raw,
+        );
+        if (newNotification) {
           playNotificationSound();
+          showNotificationToast(newNotification);
         }
         queryClient.setQueryData<Notification[] | undefined>(
           notificationKeys.list(),
