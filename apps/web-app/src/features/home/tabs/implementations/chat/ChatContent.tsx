@@ -13,6 +13,7 @@ import {
 import { FilesContainer } from "@/components/files/FilesContainer";
 import { ErrorState } from "@/components/ui/error-state";
 import { ChatContainer } from "@/components/chat/ChatContainer";
+import { BotChatContainer } from "@/components/chat/BotChatContainer";
 import { Center } from "@/components/layout";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useWorkspace } from "@/hooks/queries";
@@ -68,7 +69,20 @@ export function ChatContent({ tab }: ChatContentProps) {
 
   const directory = tab.data.directory;
 
-  const chatContainer = (
+  const isBotWorkspace = workspace?.type === "bot";
+
+  const chatContainer = isBotWorkspace ? (
+    <BotChatContainer
+      workspace={workspace ?? null}
+      directory={directory}
+      sessionId={tab.data.sessionId}
+      onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
+      agent={agent}
+      onAgentChange={handleAgentChange}
+      model={model}
+      onModelChange={handleModelChange}
+    />
+  ) : (
     <ChatContainer
       workspace={workspace ?? null}
       directory={directory}

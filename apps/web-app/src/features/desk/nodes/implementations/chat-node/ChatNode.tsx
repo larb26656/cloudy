@@ -1,4 +1,5 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
+import { BotChatContainer } from "@/components/chat/BotChatContainer";
 import type { Node, NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import { useCallback, useState } from "react";
@@ -81,6 +82,8 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
     });
   }, [addTab, data.sessionId, data.workspaceId, directory, title]);
 
+  const isBotWorkspace = workspace?.type === "bot";
+
   return (
     <WindowFrame
       title={title}
@@ -99,16 +102,29 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       ]}
     >
       {directory ? (
-        <ChatContainer
-          workspace={workspace}
-          sessionId={data.sessionId}
-          directory={directory}
-          onSessionChange={handleSessionChange}
-          agent={agent}
-          onAgentChange={handleAgentChange}
-          model={model}
-          onModelChange={handleModelChange}
-        />
+        isBotWorkspace ? (
+          <BotChatContainer
+            workspace={workspace}
+            sessionId={data.sessionId}
+            directory={directory}
+            onSessionChange={handleSessionChange}
+            agent={agent}
+            onAgentChange={handleAgentChange}
+            model={model}
+            onModelChange={handleModelChange}
+          />
+        ) : (
+          <ChatContainer
+            workspace={workspace}
+            sessionId={data.sessionId}
+            directory={directory}
+            onSessionChange={handleSessionChange}
+            agent={agent}
+            onAgentChange={handleAgentChange}
+            model={model}
+            onModelChange={handleModelChange}
+          />
+        )
       ) : (
         <Center className="flex-1">
           <ErrorState message="Workspace not found" />

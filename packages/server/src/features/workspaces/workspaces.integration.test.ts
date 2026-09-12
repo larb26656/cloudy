@@ -37,9 +37,58 @@ describe("workspaces integration", () => {
       id: "ws-1",
       name: "Test",
       color: "#3B82F6",
+      type: "agent",
       directory: "/tmp/test-1",
     });
     expect(typeof body.createdAt).toBe("string");
+  });
+
+  it("POST defaults type to agent when omitted", async () => {
+    const res = await env.app.request("/api/workspaces", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "ws-default",
+        name: "Default",
+        color: "#3B82F6",
+        directory: "/tmp/default",
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.type).toBe("agent");
+  });
+
+  it("POST creates a bot workspace when type is bot", async () => {
+    const res = await env.app.request("/api/workspaces", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "ws-bot",
+        name: "Bot",
+        color: "#10B981",
+        type: "bot",
+        directory: "/tmp/bot",
+      }),
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.type).toBe("bot");
+  });
+
+  it("POST returns 400 on invalid type", async () => {
+    const res = await env.app.request("/api/workspaces", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "ws-bad",
+        name: "Bad",
+        color: "#3B82F6",
+        type: "nope",
+        directory: "/tmp/bad",
+      }),
+    });
+    expect(res.status).toBe(400);
   });
 
   it("POST returns 409 on duplicate directory", async () => {
@@ -109,6 +158,27 @@ describe("workspaces integration", () => {
     expect(body.name).toBe("New");
   });
 
+  it("PATCH updates type", async () => {
+    await env.app.request("/api/workspaces", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "ws-type",
+        name: "Type",
+        color: "#3B82F6",
+        directory: "/tmp/type",
+      }),
+    });
+    const res = await env.app.request("/api/workspaces/ws-type", {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ type: "bot" }),
+    });
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.type).toBe("bot");
+  });
+
   it("PATCH returns 404 when missing", async () => {
     const res = await env.app.request("/api/workspaces/nope", {
       method: "PATCH",
@@ -129,14 +199,18 @@ describe("workspaces integration", () => {
         directory: "/tmp/del",
       }),
     });
-    const del = await env.app.request("/api/workspaces/ws-del", { method: "DELETE" });
+    const del = await env.app.request("/api/workspaces/ws-del", {
+      method: "DELETE",
+    });
     expect(del.status).toBe(204);
     const after = await env.app.request("/api/workspaces/ws-del");
     expect(after.status).toBe(404);
   });
 
   it("DELETE returns 404 when missing", async () => {
-    const res = await env.app.request("/api/workspaces/nope", { method: "DELETE" });
+    const res = await env.app.request("/api/workspaces/nope", {
+      method: "DELETE",
+    });
     expect(res.status).toBe(404);
   });
 });

@@ -13,6 +13,7 @@ function makeWorkspace(overrides: Partial<WorkspaceDto> = {}): WorkspaceDto {
     id: "ws-1",
     name: "Test",
     color: "#3B82F6",
+    type: "agent",
     directory: "/tmp/test",
     createdAt: now,
     updatedAt: now,
@@ -42,7 +43,11 @@ function makeRepo(
     update: (id, input) => {
       const current = store.get(id);
       if (!current) return null;
-      const next: WorkspaceDto = { ...current, ...input, updatedAt: new Date() };
+      const next: WorkspaceDto = {
+        ...current,
+        ...input,
+        updatedAt: new Date(),
+      };
       store.set(id, next);
       return next;
     },
@@ -79,10 +84,23 @@ describe("WorkspacesService", () => {
       id: "ws-new",
       name: "New",
       color: "#10B981",
+      type: "agent",
       directory: "/tmp/new",
     });
     expect(ws.id).toBe("ws-new");
     expect(ws.directory).toBe("/tmp/new");
+  });
+
+  it("create returns created bot workspace", () => {
+    const service = createWorkspacesService(makeRepo());
+    const ws = service.create({
+      id: "ws-bot",
+      name: "Bot",
+      color: "#10B981",
+      type: "bot",
+      directory: "/tmp/bot",
+    });
+    expect(ws.type).toBe("bot");
   });
 
   it("create throws 409 on duplicate directory", () => {
@@ -94,6 +112,7 @@ describe("WorkspacesService", () => {
         id: "ws-other",
         name: "Other",
         color: "#000000",
+        type: "agent",
         directory: "/tmp/dup",
       }),
     ).toThrow(WorkspaceConflictError);
@@ -102,6 +121,7 @@ describe("WorkspacesService", () => {
         id: "ws-other",
         name: "Other",
         color: "#000000",
+        type: "agent",
         directory: "/tmp/dup",
       }),
     ).toThrow(expect.objectContaining({ status: 409 }));
@@ -111,6 +131,12 @@ describe("WorkspacesService", () => {
     const service = createWorkspacesService(makeRepo([makeWorkspace()]));
     const updated = service.update("ws-1", { name: "Renamed" });
     expect(updated.name).toBe("Renamed");
+  });
+
+  it("update patches type to bot", () => {
+    const service = createWorkspacesService(makeRepo([makeWorkspace()]));
+    const updated = service.update("ws-1", { type: "bot" });
+    expect(updated.type).toBe("bot");
   });
 
   it("update throws 404 when missing", () => {
@@ -136,7 +162,9 @@ describe("WorkspacesService", () => {
     const service = createWorkspacesService(
       makeRepo([makeWorkspace({ id: "a", directory: "/tmp/a" })]),
     );
-    expect(() => service.update("a", { directory: "/tmp/a", name: "x" })).not.toThrow();
+    expect(() =>
+      service.update("a", { directory: "/tmp/a", name: "x" }),
+    ).not.toThrow();
   });
 
   it("delete removes when found", () => {

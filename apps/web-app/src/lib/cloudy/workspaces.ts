@@ -11,10 +11,14 @@ export const WORKSPACE_COLORS = [
   "#84CC16",
 ] as const;
 
+export const WORKSPACE_TYPES = ["agent", "bot"] as const;
+export type WorkspaceType = (typeof WORKSPACE_TYPES)[number];
+
 export const workspaceDtoSchema = z.object({
   id: z.string(),
   name: z.string(),
   color: z.string(),
+  type: z.enum(WORKSPACE_TYPES),
   directory: z.string(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),

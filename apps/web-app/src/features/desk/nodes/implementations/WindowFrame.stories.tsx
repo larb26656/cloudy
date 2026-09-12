@@ -11,6 +11,7 @@ const STORY_WORKSPACE = {
   id: "story-workspace-1",
   name: "Personal",
   color: WORKSPACE_COLORS[0],
+  type: "agent",
   directory: "/storybook/personal",
   createdAt: new Date(),
   updatedAt: new Date(),
@@ -24,9 +25,7 @@ const meta = preview.meta({
     layout: "centered",
     msw: {
       handlers: [
-        http.get("/api/workspaces", () =>
-          HttpResponse.json([STORY_WORKSPACE]),
-        ),
+        http.get("/api/workspaces", () => HttpResponse.json([STORY_WORKSPACE])),
         http.get("/api/workspaces/:id", () =>
           HttpResponse.json(STORY_WORKSPACE),
         ),
@@ -88,7 +87,12 @@ export const WithActions = meta.story({
       { icon: Settings, label: "Settings", onClick: () => {} },
       { icon: Copy, label: "Duplicate", onClick: () => {} },
       { icon: Maximize2, label: "Expand", onClick: () => {} },
-      { icon: Bell, label: "Disabled action", onClick: () => {}, disabled: true },
+      {
+        icon: Bell,
+        label: "Disabled action",
+        onClick: () => {},
+        disabled: true,
+      },
     ];
     return (
       <WindowFrame nodeId="story-node" title="Actions" actions={actions}>
@@ -139,7 +143,10 @@ export const CustomColor = meta.story({
 
 export const LongTitle = meta.story({
   render: () => (
-    <WindowFrame nodeId="story-node" title="A very long window title that should truncate gracefully">
+    <WindowFrame
+      nodeId="story-node"
+      title="A very long window title that should truncate gracefully"
+    >
       <p className="p-4 text-sm text-muted-foreground">
         The title uses <code>truncate</code> so it never pushes the action
         buttons out of the header.
@@ -150,10 +157,14 @@ export const LongTitle = meta.story({
 
 export const WithWorkspaceDot = meta.story({
   render: () => (
-    <WindowFrame nodeId="story-node" title="Workspace Node" workspaceId={STORY_WORKSPACE.id}>
+    <WindowFrame
+      nodeId="story-node"
+      title="Workspace Node"
+      workspaceId={STORY_WORKSPACE.id}
+    >
       <p className="p-4 text-sm text-muted-foreground">
-        A colored dot representing the node&apos;s workspace is shown next
-        to the title.
+        A colored dot representing the node&apos;s workspace is shown next to
+        the title.
       </p>
     </WindowFrame>
   ),

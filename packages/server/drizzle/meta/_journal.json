@@ -15,6 +15,13 @@
       "when": 1787318602494,
       "tag": "0001_tearful_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1789227300569,
+      "tag": "0002_jittery_eternals",
+      "breakpoints": true
     }
   ]
 }

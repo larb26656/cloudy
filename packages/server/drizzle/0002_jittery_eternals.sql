@@ -1,0 +1,1 @@
+ALTER TABLE `workspaces` ADD `type` text DEFAULT 'agent' NOT NULL;

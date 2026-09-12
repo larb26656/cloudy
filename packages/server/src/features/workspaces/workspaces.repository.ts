@@ -1,7 +1,10 @@
 import { eq } from "drizzle-orm";
 import type { DbClient } from "../../db/client";
 import { workspaces, type NewWorkspace } from "../../db/schema";
-import type { CreateWorkspaceInput, UpdateWorkspaceInput } from "./workspaces.model";
+import type {
+  CreateWorkspaceInput,
+  UpdateWorkspaceInput,
+} from "./workspaces.model";
 import type { WorkspaceDto } from "./workspaces.model";
 
 /**
@@ -23,6 +26,7 @@ function toDto(row: typeof workspaces.$inferSelect): WorkspaceDto {
     id: row.id,
     name: row.name,
     color: row.color,
+    type: row.type,
     directory: row.directory,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -30,7 +34,8 @@ function toDto(row: typeof workspaces.$inferSelect): WorkspaceDto {
 }
 
 export function createWorkspacesRepository(db: DbClient): WorkspacesRepository {
-  const list = (): WorkspaceDto[] => db.select().from(workspaces).all().map(toDto);
+  const list = (): WorkspaceDto[] =>
+    db.select().from(workspaces).all().map(toDto);
 
   const findById = (id: string): WorkspaceDto | null => {
     const row = db.select().from(workspaces).where(eq(workspaces.id, id)).get();
@@ -51,13 +56,17 @@ export function createWorkspacesRepository(db: DbClient): WorkspacesRepository {
       id: input.id,
       name: input.name,
       color: input.color,
+      type: input.type,
       directory: input.directory,
     };
     const result = db.insert(workspaces).values(newRow).returning().get();
     return toDto(result);
   };
 
-  const update = (id: string, input: UpdateWorkspaceInput): WorkspaceDto | null => {
+  const update = (
+    id: string,
+    input: UpdateWorkspaceInput,
+  ): WorkspaceDto | null => {
     const result = db
       .update(workspaces)
       .set({ ...input, updatedAt: new Date() })

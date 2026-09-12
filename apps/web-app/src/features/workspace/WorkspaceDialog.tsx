@@ -13,6 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Field,
   FieldGroup,
   FieldLabel,
@@ -21,8 +28,8 @@ import {
 } from "@/components/ui/field";
 import { ColorPicker } from "@/components/ui/color-picker/ColorPicker";
 import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
-import { WORKSPACE_COLORS } from "@/lib/cloudy/workspaces";
-import type { Workspace } from "@/lib/cloudy/workspaces";
+import { WORKSPACE_COLORS, WORKSPACE_TYPES } from "@/lib/cloudy/workspaces";
+import type { Workspace, WorkspaceType } from "@/lib/cloudy/workspaces";
 import {
   useCreateWorkspace,
   useUpdateWorkspace,
@@ -54,17 +61,16 @@ export function WorkspaceDialog({
 
   const workspaceSchema = z.object({
     name: z.string().trim().min(1, "Name is required"),
-    directory: z
-      .string()
-      .trim()
-      .min(1, "Directory is required"),
+    directory: z.string().trim().min(1, "Directory is required"),
     color: z.enum(WORKSPACE_COLORS),
+    type: z.enum(WORKSPACE_TYPES),
   });
 
   type WorkspaceFormValues = {
     name: string;
     directory: string;
     color: (typeof WORKSPACE_COLORS)[number];
+    type: WorkspaceType;
   };
 
   const {
@@ -79,6 +85,7 @@ export function WorkspaceDialog({
       name: "",
       directory: "",
       color: WORKSPACE_COLORS[0],
+      type: "agent",
     },
   });
 
@@ -101,6 +108,7 @@ export function WorkspaceDialog({
           name: workspace.name,
           directory: workspace.directory,
           color: workspace.color as (typeof WORKSPACE_COLORS)[number],
+          type: workspace.type,
         });
         dirRef.current = workspace.directory;
       } else {
@@ -108,6 +116,7 @@ export function WorkspaceDialog({
           name: "",
           directory: "",
           color: WORKSPACE_COLORS[0],
+          type: "agent",
         });
         dirRef.current = "";
       }
@@ -122,6 +131,7 @@ export function WorkspaceDialog({
           name: data.name,
           directory: data.directory,
           color: data.color,
+          type: data.type,
         },
         {
           onSuccess: () => onOpenChange(false),
@@ -134,6 +144,7 @@ export function WorkspaceDialog({
           name: data.name,
           directory: data.directory,
           color: data.color,
+          type: data.type,
         },
         {
           onSuccess: () => onOpenChange(false),
@@ -201,6 +212,28 @@ export function WorkspaceDialog({
               </Field>
 
               <Field>
+                <FieldLabel>Type</FieldLabel>
+                <Controller
+                  name="type"
+                  control={control}
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger id="workspace-type" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="agent">Agent</SelectItem>
+                        <SelectItem value="bot">Bot</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                <FieldDescription>
+                  Bot workspaces use the simplified bot chat surface.
+                </FieldDescription>
+              </Field>
+
+              <Field>
                 <FieldLabel>Color</FieldLabel>
                 <Controller
                   name="color"
@@ -237,7 +270,14 @@ export function WorkspaceDialog({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting || createWorkspace.isPending || updateWorkspace.isPending}>
+              <Button
+                type="submit"
+                disabled={
+                  isSubmitting ||
+                  createWorkspace.isPending ||
+                  updateWorkspace.isPending
+                }
+              >
                 {isEditMode ? "Save" : "Create"}
               </Button>
             </DialogFooter>

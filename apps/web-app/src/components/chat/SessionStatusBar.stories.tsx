@@ -14,6 +14,7 @@ const DEMO_WORKSPACE: Workspace = {
   id: "ws_demo",
   name: "demo-project",
   color: "#3B82F6",
+  type: "agent",
   directory: DEMO_DIRECTORY,
   createdAt: new Date("2024-01-01"),
   updatedAt: new Date("2024-01-01"),

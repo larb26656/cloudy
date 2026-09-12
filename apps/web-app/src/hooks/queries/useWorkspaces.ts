@@ -2,7 +2,11 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { cloudyClient } from "@/lib/api";
 import { workspaceKeys } from "@/lib/cloudy/query-keys";
-import { workspaceDtoSchema, type Workspace } from "@/lib/cloudy/workspaces";
+import {
+  workspaceDtoSchema,
+  type Workspace,
+  type WorkspaceType,
+} from "@/lib/cloudy/workspaces";
 
 export function useWorkspaces() {
   return useQuery({
@@ -21,8 +25,9 @@ export function useWorkspace(id: string | null) {
     queryKey: workspaceKeys.detail(id ?? ""),
     queryFn: async (): Promise<Workspace> => {
       if (!id) throw new Error("Missing workspace id");
-      const res =
-        await cloudyClient.api.workspaces[":id"].$get({ param: { id } });
+      const res = await cloudyClient.api.workspaces[":id"].$get({
+        param: { id },
+      });
       if (!res.ok) throw new Error(`Failed to fetch workspace (${res.status})`);
       const data = await res.json();
       return workspaceDtoSchema.parse(data);
@@ -38,6 +43,7 @@ export function useCreateWorkspace() {
       id: string;
       name: string;
       color: string;
+      type: WorkspaceType;
       directory: string;
     }): Promise<Workspace> => {
       const res = await cloudyClient.api.workspaces.$post({ json: input });
@@ -83,6 +89,7 @@ export function useUpdateWorkspace() {
       id: string;
       name?: string;
       color?: string;
+      type?: WorkspaceType;
       directory?: string;
     }): Promise<Workspace> => {
       const res = await cloudyClient.api.workspaces[":id"].$patch({
