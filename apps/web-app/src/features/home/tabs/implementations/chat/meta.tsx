@@ -1,5 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import { useState } from "react";
+import type { ModelConfig } from "@/types";
 import type { TabTemplate, TabTitleProps } from "../../template";
 import { useSession } from "@/hooks/queries/useSessions";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
@@ -15,6 +16,10 @@ export type ChatData = {
   /** Filesystem path used for all opencode calls. Always present. */
   directory: string;
   sessionName: string;
+  /** Agent chosen in this chat tab. Null/undefined = use global default. */
+  agent?: string | null;
+  /** Model chosen in this chat tab. Null/undefined = use global default. */
+  model?: ModelConfig | null;
 };
 
 function ChatTabTitle({ data }: TabTitleProps<ChatData>) {

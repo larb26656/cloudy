@@ -8,6 +8,7 @@ import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useSessionData } from "@/hooks/session/useSessionHumanApprove";
 import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
 import type { Workspace } from "@/lib/cloudy/workspaces";
+import type { ModelConfig } from "@/types";
 import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
 import { ChatProvider, useChat } from "./ChatProvider";
@@ -18,6 +19,10 @@ interface ChatContainerProps {
   directory: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
+  agent?: string | null;
+  onAgentChange?: (agent: string | null) => void;
+  model?: ModelConfig | null;
+  onModelChange?: (model: ModelConfig | null) => void;
 }
 
 export function ChatContainer({
@@ -25,6 +30,10 @@ export function ChatContainer({
   directory,
   sessionId,
   onSessionChange,
+  agent,
+  onAgentChange,
+  model,
+  onModelChange,
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
 
@@ -34,6 +43,10 @@ export function ChatContainer({
       directory={directory}
       sessionId={sessionId}
       onSessionChange={onSessionChange}
+      agent={agent}
+      onAgentChange={onAgentChange}
+      model={model}
+      onModelChange={onModelChange}
     >
       <ChatContainerContent chatplaceholder={chatplaceholder} />
     </ChatProvider>

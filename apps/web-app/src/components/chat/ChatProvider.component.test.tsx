@@ -1,10 +1,11 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
+import { useState } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ChatProvider, useChat } from "./ChatProvider";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
-import { useSessionAgentModelStore } from "@/stores/sessionAgentModelStore";
+import type { ModelConfig } from "@/types";
 
 const mocks = vi.hoisted(() => ({
   abort: vi.fn(),
@@ -39,7 +40,7 @@ vi.mock("@/components/ui/sonner", () => ({
   toast: { error: mocks.toastError },
 }));
 
-const model = {
+const model: ModelConfig = {
   providerID: "openai",
   modelID: "gpt-5",
   name: "GPT-5",
@@ -48,7 +49,7 @@ const model = {
   supportsTools: true,
 };
 
-const sessionModel = {
+const altModel: ModelConfig = {
   ...model,
   modelID: "claude-sonnet",
   name: "Claude Sonnet",
@@ -112,10 +113,52 @@ function ChatActions() {
   );
 }
 
+function ControlledWrapper({
+  initialAgent,
+  initialModel,
+  onAgentChange,
+  onModelChange,
+}: {
+  initialAgent: string | null;
+  initialModel: ModelConfig | null;
+  onAgentChange: (agent: string | null) => void;
+  onModelChange: (model: ModelConfig | null) => void;
+}) {
+  const [agent, setAgent] = useState<string | null>(initialAgent);
+  const [model, setModel] = useState<ModelConfig | null>(initialModel);
+  return (
+    <ChatProvider
+      workspace={null}
+      directory="/project"
+      sessionId="ses_1"
+      agent={agent}
+      onAgentChange={(a) => {
+        onAgentChange(a);
+        setAgent(a);
+      }}
+      model={model}
+      onModelChange={(m) => {
+        onModelChange(m);
+        setModel(m);
+      }}
+    >
+      <ChatSelection />
+    </ChatProvider>
+  );
+}
+
+type ChatProviderOptions = {
+  sessionId: string | null;
+  onSessionChange?: (sessionId: string | null) => void;
+  agent?: string | null;
+  onAgentChange?: (agent: string | null) => void;
+  model?: ModelConfig | null;
+  onModelChange?: (model: ModelConfig | null) => void;
+};
+
 function renderChat(
-  sessionId: string | null,
-  children = <ChatSelection />,
-  onSessionChange?: (sessionId: string | null) => void,
+  options: ChatProviderOptions,
+  children: React.ReactNode = <ChatSelection />,
 ) {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false } },
@@ -126,8 +169,12 @@ function renderChat(
       <ChatProvider
         workspace={null}
         directory="/project"
-        sessionId={sessionId}
-        onSessionChange={onSessionChange}
+        sessionId={options.sessionId}
+        onSessionChange={options.onSessionChange}
+        agent={options.agent}
+        onAgentChange={options.onAgentChange}
+        model={options.model}
+        onModelChange={options.onModelChange}
       >
         {children}
       </ChatProvider>
@@ -144,41 +191,50 @@ describe("ChatProvider", () => {
     mocks.systemCommand.mockResolvedValue(undefined);
     useDefaultAgentStore.setState({ defaultAgent: null });
     useDefaultModelStore.setState({ defaultModel: null });
-    useSessionAgentModelStore.setState({ sessions: {} });
   });
 
   test("uses global defaults when the session has no selection", () => {
     useDefaultAgentStore.setState({ defaultAgent: "plan" });
     useDefaultModelStore.setState({ defaultModel: model });
 
-    renderChat("ses_1");
+    renderChat({ sessionId: "ses_1" });
 
     expect(screen.getByTestId("agent")).toHaveTextContent("plan");
     expect(screen.getByTestId("model")).toHaveTextContent("GPT-5");
   });
 
   test("saves selections made before a new session exists as defaults", async () => {
-    renderChat(null);
+    const onAgentChange = vi.fn();
+    const onModelChange = vi.fn();
+    renderChat({
+      sessionId: null,
+      onAgentChange,
+      onModelChange,
+    });
 
     await act(async () => {
       screen.getByRole("button", { name: "Select agent" }).click();
       screen.getByRole("button", { name: "Select model" }).click();
     });
 
-    expect(screen.getByTestId("agent")).toHaveTextContent("build");
-    expect(screen.getByTestId("model")).toHaveTextContent("GPT-5");
-    expect(useDefaultAgentStore.getState().defaultAgent).toBe("build");
-    expect(useDefaultModelStore.getState().defaultModel).toEqual(model);
+    expect(onAgentChange).toHaveBeenCalledWith("build");
+    expect(onModelChange).toHaveBeenCalledWith(model);
   });
 
   test("uses and updates selections scoped to the active session", async () => {
     useDefaultAgentStore.setState({ defaultAgent: "plan" });
     useDefaultModelStore.setState({ defaultModel: model });
-    useSessionAgentModelStore.setState({
-      sessions: { ses_1: { agent: "explore", model: sessionModel } },
-    });
 
-    renderChat("ses_1");
+    const onAgentChange = vi.fn();
+    const onModelChange = vi.fn();
+
+    renderChat({
+      sessionId: "ses_1",
+      agent: "explore",
+      model: altModel,
+      onAgentChange,
+      onModelChange,
+    });
 
     expect(screen.getByTestId("agent")).toHaveTextContent("explore");
     expect(screen.getByTestId("model")).toHaveTextContent("Claude Sonnet");
@@ -188,10 +244,8 @@ describe("ChatProvider", () => {
       screen.getByRole("button", { name: "Select model" }).click();
     });
 
-    expect(useSessionAgentModelStore.getState().sessions.ses_1).toEqual({
-      agent: "build",
-      model,
-    });
+    expect(onAgentChange).toHaveBeenCalledWith("build");
+    expect(onModelChange).toHaveBeenCalledWith(model);
     expect(useDefaultAgentStore.getState().defaultAgent).toBe("plan");
     expect(useDefaultModelStore.getState().defaultModel).toEqual(model);
   });
@@ -199,11 +253,20 @@ describe("ChatProvider", () => {
   test("returns each session field to its global default independently", async () => {
     useDefaultAgentStore.setState({ defaultAgent: "plan" });
     useDefaultModelStore.setState({ defaultModel: model });
-    useSessionAgentModelStore.setState({
-      sessions: { ses_1: { agent: "explore", model: sessionModel } },
-    });
 
-    renderChat("ses_1");
+    const onAgentChange = vi.fn();
+    const onModelChange = vi.fn();
+
+    const { rerender } = render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ControlledWrapper
+          initialAgent="explore"
+          initialModel={altModel}
+          onAgentChange={onAgentChange}
+          onModelChange={onModelChange}
+        />
+      </QueryClientProvider>,
+    );
 
     await act(async () => {
       screen.getByRole("button", { name: "Use default agent" }).click();
@@ -211,29 +274,47 @@ describe("ChatProvider", () => {
 
     expect(screen.getByTestId("agent")).toHaveTextContent("plan");
     expect(screen.getByTestId("model")).toHaveTextContent("Claude Sonnet");
-    expect(useSessionAgentModelStore.getState().sessions.ses_1).toEqual({
-      model: sessionModel,
-    });
+    expect(onAgentChange).toHaveBeenCalledWith(null);
 
     await act(async () => {
       screen.getByRole("button", { name: "Use default model" }).click();
     });
 
     expect(screen.getByTestId("model")).toHaveTextContent("GPT-5");
-    expect(useSessionAgentModelStore.getState().sessions.ses_1).toBeUndefined();
+    expect(onModelChange).toHaveBeenCalledWith(null);
+    rerender(<></>);
   });
 
   test("does not apply one session's selection to another session", async () => {
-    const { rerender } = renderChat("ses_1");
+    const onAgentChange = vi.fn();
+    const onModelChange = vi.fn();
+
+    const { rerender } = renderChat({
+      sessionId: "ses_1",
+      onAgentChange,
+      onModelChange,
+    });
 
     await act(async () => {
       screen.getByRole("button", { name: "Select agent" }).click();
       screen.getByRole("button", { name: "Select model" }).click();
     });
 
+    expect(onAgentChange).toHaveBeenCalledWith("build");
+    expect(onModelChange).toHaveBeenCalledWith(model);
+
+    onAgentChange.mockClear();
+    onModelChange.mockClear();
+
     rerender(
       <QueryClientProvider client={new QueryClient()}>
-        <ChatProvider workspace={null} directory="/project" sessionId="ses_2">
+        <ChatProvider
+          workspace={null}
+          directory="/project"
+          sessionId="ses_2"
+          onAgentChange={onAgentChange}
+          onModelChange={onModelChange}
+        >
           <ChatSelection />
         </ChatProvider>
       </QueryClientProvider>,
@@ -241,16 +322,13 @@ describe("ChatProvider", () => {
 
     expect(screen.getByTestId("agent")).toBeEmptyDOMElement();
     expect(screen.getByTestId("model")).toBeEmptyDOMElement();
-    expect(useSessionAgentModelStore.getState().sessions.ses_1).toEqual({
-      agent: "build",
-      model,
-    });
-    expect(useSessionAgentModelStore.getState().sessions.ses_2).toBeUndefined();
+    expect(onAgentChange).not.toHaveBeenCalled();
+    expect(onModelChange).not.toHaveBeenCalled();
   });
 
   test("creates a session before sending a message", async () => {
     const onSessionChange = vi.fn();
-    renderChat(null, <ChatActions />, onSessionChange);
+    renderChat({ sessionId: null, onSessionChange }, <ChatActions />);
 
     await act(async () => {
       screen.getByRole("button", { name: "Send message" }).click();
@@ -268,7 +346,7 @@ describe("ChatProvider", () => {
   });
 
   test("awaits system commands dispatched from slash messages", async () => {
-    renderChat("ses_1", <ChatActions />);
+    renderChat({ sessionId: "ses_1" }, <ChatActions />);
 
     await act(async () => {
       screen.getByRole("button", { name: "Send slash command" }).click();
@@ -286,7 +364,7 @@ describe("ChatProvider", () => {
 
   test("reports failures from immediate commands", async () => {
     mocks.systemCommand.mockRejectedValueOnce(new Error("Command exploded"));
-    renderChat("ses_1", <ChatActions />);
+    renderChat({ sessionId: "ses_1" }, <ChatActions />);
 
     screen.getByRole("button", { name: "Run immediate command" }).click();
 
@@ -297,7 +375,7 @@ describe("ChatProvider", () => {
 
   test("owns session picker state and delegates session changes", async () => {
     const onSessionChange = vi.fn();
-    renderChat("ses_1", <ChatActions />, onSessionChange);
+    renderChat({ sessionId: "ses_1", onSessionChange }, <ChatActions />);
 
     expect(screen.getByTestId("picker-open")).toHaveTextContent("false");
 
@@ -312,5 +390,21 @@ describe("ChatProvider", () => {
     });
 
     expect(onSessionChange).toHaveBeenCalledWith("ses_next");
+  });
+
+  test("uncontrolled mode owns local state when no handler is provided", async () => {
+    renderChat({ sessionId: "ses_1" });
+
+    await act(async () => {
+      screen.getByRole("button", { name: "Select agent" }).click();
+    });
+
+    expect(screen.getByTestId("agent")).toHaveTextContent("build");
+
+    await act(async () => {
+      screen.getByRole("button", { name: "Use default agent" }).click();
+    });
+
+    expect(screen.getByTestId("agent")).toBeEmptyDOMElement();
   });
 });

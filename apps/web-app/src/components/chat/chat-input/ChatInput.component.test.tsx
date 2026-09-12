@@ -12,7 +12,6 @@ import { ChatProvider } from "../ChatProvider";
 import { ChatInput } from "./ChatInput";
 import { MessageScrollerProvider } from "@/components/ui/message-scroller";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
-import { useSessionAgentModelStore } from "@/stores/sessionAgentModelStore";
 import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
 
 const mocks = vi.hoisted(() => ({
@@ -115,15 +114,31 @@ vi.mock("./SpeechBtn", () => ({ default: () => null }));
 
 const SESSION_ID = "ses_test";
 
-function renderInput(initialValue?: string) {
+type RenderInputOptions = {
+  initialValue?: string;
+  initialAgent?: string | null;
+  initialModel?: import("@/types").ModelConfig | null;
+  onAgentChange?: (agent: string | null) => void;
+  onModelChange?: (model: import("@/types").ModelConfig | null) => void;
+};
+
+function renderInput(options: RenderInputOptions = {}) {
   const queryClient = new QueryClient({
     defaultOptions: { mutations: { retry: false }, queries: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <ChatProvider workspace={null} directory="/proj" sessionId={SESSION_ID}>
+      <ChatProvider
+        workspace={null}
+        directory="/proj"
+        sessionId={SESSION_ID}
+        agent={options.initialAgent}
+        onAgentChange={options.onAgentChange}
+        model={options.initialModel}
+        onModelChange={options.onModelChange}
+      >
         <MessageScrollerProvider autoScroll>
-          <ChatInput initialValue={initialValue} />
+          <ChatInput initialValue={options.initialValue} />
         </MessageScrollerProvider>
       </ChatProvider>
     </QueryClientProvider>,
@@ -272,7 +287,7 @@ describe("ChatInput — abort/send button behavior", () => {
     });
 
     test("blocks Send click when text was pre-filled but a send is in-flight", async () => {
-      renderInput("prefilled message");
+      renderInput({ initialValue: "prefilled message" });
       await act(async () => {
         screen.getByRole("button", { name: "Send message" }).click();
       });
@@ -280,7 +295,7 @@ describe("ChatInput — abort/send button behavior", () => {
     });
 
     test("blocks Enter-to-send when text was pre-filled but a send is in-flight", async () => {
-      renderInput("prefilled message");
+      renderInput({ initialValue: "prefilled message" });
       await act(async () => {
         pressKey("Enter");
       });
@@ -331,60 +346,61 @@ describe("ChatInput — Tab cycles agents", () => {
     mocks.sessionStatuses = { [SESSION_ID]: { type: "idle" } };
     mocks.sendMessage.mockResolvedValue(undefined);
     useDefaultAgentStore.setState({ defaultAgent: null });
-    useSessionAgentModelStore.setState({ sessions: {} });
   });
 
   test("Tab from default (null) selects first agent", () => {
-    renderInput();
+    const onAgentChange = vi.fn();
+    renderInput({ onAgentChange });
     pressKey("Tab");
-    expect(
-      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
-    ).toBe("build");
+    expect(onAgentChange).toHaveBeenCalledWith("build");
   });
 
   test("Tab advances to next agent", () => {
-    useSessionAgentModelStore.getState().setSessionAgent(SESSION_ID, "build");
-    renderInput();
+    const onAgentChange = vi.fn();
+    renderInput({
+      initialAgent: "build",
+      onAgentChange,
+    });
     pressKey("Tab");
-    expect(
-      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
-    ).toBe("plan");
+    expect(onAgentChange).toHaveBeenCalledWith("plan");
   });
 
   test("Tab wraps from last to first", () => {
-    useSessionAgentModelStore.getState().setSessionAgent(SESSION_ID, "explore");
-    renderInput();
+    const onAgentChange = vi.fn();
+    renderInput({
+      initialAgent: "explore",
+      onAgentChange,
+    });
     pressKey("Tab");
-    expect(
-      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
-    ).toBe("build");
+    expect(onAgentChange).toHaveBeenCalledWith("build");
   });
 
   test("Shift+Tab goes backward", () => {
-    useSessionAgentModelStore.getState().setSessionAgent(SESSION_ID, "plan");
-    renderInput();
+    const onAgentChange = vi.fn();
+    renderInput({
+      initialAgent: "plan",
+      onAgentChange,
+    });
     pressKey("Tab", { shiftKey: true });
-    expect(
-      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
-    ).toBe("build");
+    expect(onAgentChange).toHaveBeenCalledWith("build");
   });
 
   test("Shift+Tab wraps from first to last", () => {
-    useSessionAgentModelStore.getState().setSessionAgent(SESSION_ID, "build");
-    renderInput();
+    const onAgentChange = vi.fn();
+    renderInput({
+      initialAgent: "build",
+      onAgentChange,
+    });
     pressKey("Tab", { shiftKey: true });
-    expect(
-      useSessionAgentModelStore.getState().sessions[SESSION_ID]?.agent,
-    ).toBe("explore");
+    expect(onAgentChange).toHaveBeenCalledWith("explore");
   });
 
   test("Tab is a no-op when agent list is empty (no setAgent call)", () => {
     mocks.agents = [];
-    renderInput();
+    const onAgentChange = vi.fn();
+    renderInput({ onAgentChange });
     pressKey("Tab");
-    expect(
-      useSessionAgentModelStore.getState().sessions[SESSION_ID],
-    ).toBeUndefined();
+    expect(onAgentChange).not.toHaveBeenCalled();
   });
 
   test("Tab does not send a message", async () => {

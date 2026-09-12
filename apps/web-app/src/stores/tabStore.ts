@@ -106,7 +106,7 @@ export const useTabStore = create<TabStore>()(
     }),
     {
       name: "tabs",
-      version: 7,
+      version: 9,
       migrate: (persistedState, version) => {
         // Persisted shapes may predate the current `Tab` union, so read them
         // through a looser type. Old versions stored `type: "session"` which
@@ -198,6 +198,52 @@ export const useTabStore = create<TabStore>()(
         // longer retain workspace identity in persisted tab data.
         if (version < 7) {
           tabs = removeTerminalWorkspaceIdentity(tabs);
+        }
+
+        // v7 -> v8: chat tabs now carry per-session agent/model overrides on
+        // `data.sessionAgent` and `data.sessionModel`. Legacy tabs read
+        // them as undefined and fall back to global defaults, so no
+        // backfill is required — just keep the fields opt-in.
+        if (version < 8) {
+          tabs = tabs.map((t) => {
+            if (t.type !== "chat") return t;
+            const data = t.data as {
+              sessionAgent?: string | null;
+              sessionModel?: unknown;
+            };
+            return {
+              ...t,
+              data: {
+                ...data,
+                sessionAgent: data.sessionAgent ?? null,
+                sessionModel: data.sessionModel ?? null,
+              },
+            };
+          });
+        }
+
+        // v8 -> v9: rename the chat-tab override fields. `sessionAgent` /
+        // `sessionModel` were misleading — the override lives on the tab
+        // (or desk node), not on the session — so we drop the `session`
+        // prefix. Migrate any v8 data so user selections carry over.
+        if (version < 9) {
+          tabs = tabs.map((t) => {
+            if (t.type !== "chat") return t;
+            const data = t.data as {
+              sessionAgent?: string | null;
+              sessionModel?: unknown;
+              agent?: string | null;
+              model?: unknown;
+            };
+            return {
+              ...t,
+              data: {
+                ...data,
+                agent: data.agent ?? data.sessionAgent ?? null,
+                model: data.model ?? data.sessionModel ?? null,
+              },
+            };
+          });
         }
 
         // v0 -> v1: drop stale "files" tabs missing a workspaceId.

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -18,6 +19,7 @@ import { useWorkspace } from "@/hooks/queries";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
+import type { ModelConfig } from "@/types";
 
 interface ChatContentProps {
   tab: Extract<Tab, { type: "chat" }>;
@@ -38,6 +40,21 @@ export function ChatContent({ tab }: ChatContentProps) {
 
   const { data: workspace } = useWorkspace(tab.data.workspaceId);
 
+  const [agent, setAgent] = useState<string | null>(tab.data.agent ?? null);
+  const [model, setModel] = useState<ModelConfig | null>(
+    tab.data.model ?? null,
+  );
+
+  const handleAgentChange = (nextAgent: string | null) => {
+    setAgent(nextAgent);
+    updateTabData(tab.id, { agent: nextAgent });
+  };
+
+  const handleModelChange = (nextModel: ModelConfig | null) => {
+    setModel(nextModel);
+    updateTabData(tab.id, { model: nextModel });
+  };
+
   if (!tab.data.directory) {
     return (
       <Center className="h-full">
@@ -57,6 +74,10 @@ export function ChatContent({ tab }: ChatContentProps) {
       directory={directory}
       sessionId={tab.data.sessionId}
       onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
+      agent={agent}
+      onAgentChange={handleAgentChange}
+      model={model}
+      onModelChange={handleModelChange}
     />
   );
 

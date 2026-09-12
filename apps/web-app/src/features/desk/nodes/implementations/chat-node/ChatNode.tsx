@@ -1,13 +1,14 @@
 import { ChatContainer } from "@/components/chat/ChatContainer";
 import type { Node, NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { useSession, useUpdateSession, useWorkspace } from "@/hooks/queries";
 import { WindowFrame } from "../WindowFrame";
 import { ExternalLink } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
 import { ErrorState } from "@/components/ui/error-state";
 import { Center } from "@/components/layout";
+import type { ModelConfig } from "@/types";
 
 type ChatNodeProps = Node<
   {
@@ -16,6 +17,8 @@ type ChatNodeProps = Node<
     directory?: string | null;
     sessionId: string | null;
     sessionName?: string;
+    agent?: string | null;
+    model?: ModelConfig | null;
   },
   "chat"
 >;
@@ -30,9 +33,28 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const title = session?.title ?? "Chat";
   const directory = workspace?.directory ?? data.directory;
 
+  const [agent, setAgent] = useState<string | null>(data.agent ?? null);
+  const [model, setModel] = useState<ModelConfig | null>(data.model ?? null);
+
   const handleSessionChange = useCallback(
     (sessionId: string | null) => {
       updateNodeData(id, { sessionId });
+    },
+    [id, updateNodeData],
+  );
+
+  const handleAgentChange = useCallback(
+    (nextAgent: string | null) => {
+      setAgent(nextAgent);
+      updateNodeData(id, { agent: nextAgent });
+    },
+    [id, updateNodeData],
+  );
+
+  const handleModelChange = useCallback(
+    (nextModel: ModelConfig | null) => {
+      setModel(nextModel);
+      updateNodeData(id, { model: nextModel });
     },
     [id, updateNodeData],
   );
@@ -82,6 +104,10 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
           sessionId={data.sessionId}
           directory={directory}
           onSessionChange={handleSessionChange}
+          agent={agent}
+          onAgentChange={handleAgentChange}
+          model={model}
+          onModelChange={handleModelChange}
         />
       ) : (
         <Center className="flex-1">

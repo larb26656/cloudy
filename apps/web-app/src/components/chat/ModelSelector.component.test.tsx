@@ -5,7 +5,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ModelSelector } from "./ModelSelector";
 import { useFavoriteModelsStore } from "@/stores/favoriteModelsStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
-import { useSessionAgentModelStore } from "@/stores/sessionAgentModelStore";
 import type { ModelConfig, ModelProvider } from "@/types";
 
 const fixtures: ModelProvider[] = [
@@ -126,7 +125,6 @@ describe("ModelSelector — favorites", () => {
     mocks.effectiveModel = null;
     useFavoriteModelsStore.setState({ favorites: [] });
     useDefaultModelStore.setState({ defaultModel: null });
-    useSessionAgentModelStore.setState({ sessions: {} });
   });
 
   test("renders all provider groups when no favorites are set", () => {

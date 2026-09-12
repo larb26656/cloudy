@@ -24,7 +24,6 @@ import { toast } from "@/components/ui/sonner";
 import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
-import { useSessionAgentModelStore } from "@/stores/sessionAgentModelStore";
 
 type ChatContextValue = {
   workspace: Workspace | null;
@@ -61,6 +60,20 @@ type ChatProviderProps = PropsWithChildren<{
   directory: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
+  /**
+   * Agent chosen in this chat context. When `onAgentChange` is provided, the
+   * provider runs in controlled mode and `agent` is the source of truth.
+   * When `onAgentChange` is omitted, the provider owns local state for
+   * standalone usage.
+   */
+  agent?: string | null;
+  onAgentChange?: (agent: string | null) => void;
+  /**
+   * Model chosen in this chat context. Same controlled/uncontrolled contract
+   * as `agent` / `onAgentChange`.
+   */
+  model?: ModelConfig | null;
+  onModelChange?: (model: ModelConfig | null) => void;
 }>;
 
 export function ChatProvider({
@@ -69,13 +82,20 @@ export function ChatProvider({
   directory,
   sessionId,
   onSessionChange,
+  agent: agentProp,
+  onAgentChange,
+  model: modelProp,
+  onModelChange,
 }: ChatProviderProps) {
   const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
+  const [localAgent, setLocalAgent] = useState<string | null>(null);
+  const [localModel, setLocalModel] = useState<ModelConfig | null>(null);
   const defaultAgent = useDefaultAgentStore((state) => state.defaultAgent);
   const defaultModel = useDefaultModelStore((state) => state.defaultModel);
-  const sessionSelection = useSessionAgentModelStore((state) =>
-    sessionId ? state.sessions[sessionId] : undefined,
-  );
+  const isAgentControlled = onAgentChange !== undefined;
+  const isModelControlled = onModelChange !== undefined;
+  const agent = isAgentControlled ? (agentProp ?? null) : localAgent;
+  const model = isModelControlled ? (modelProp ?? null) : localModel;
   const { mutateAsync: sendMessageAsync, isPending: isSending } =
     useSendMessage();
   const { mutateAsync: executeCommandAsync } = useExecuteCommand();
@@ -123,32 +143,22 @@ export function ChatProvider({
 
   const setAgent = useCallback(
     (agent: string | null) => {
-      if (!sessionId) {
-        useDefaultAgentStore.getState().setDefaultAgent(agent);
-        return;
+      onAgentChange?.(agent);
+      if (!isAgentControlled) {
+        setLocalAgent(agent);
       }
-      if (agent === null) {
-        useSessionAgentModelStore.getState().clearSessionAgent(sessionId);
-        return;
-      }
-      useSessionAgentModelStore.getState().setSessionAgent(sessionId, agent);
     },
-    [sessionId],
+    [isAgentControlled, onAgentChange],
   );
 
   const setModel = useCallback(
     (model: ModelConfig | null) => {
-      if (!sessionId) {
-        useDefaultModelStore.getState().setDefaultModel(model);
-        return;
+      onModelChange?.(model);
+      if (!isModelControlled) {
+        setLocalModel(model);
       }
-      if (model === null) {
-        useSessionAgentModelStore.getState().clearSessionModel(sessionId);
-        return;
-      }
-      useSessionAgentModelStore.getState().setSessionModel(sessionId, model);
     },
-    [sessionId],
+    [isModelControlled, onModelChange],
   );
 
   const sendMessage = useCallback(
@@ -249,8 +259,8 @@ export function ChatProvider({
       workspace,
       directory,
       sessionId,
-      effectiveAgent: sessionSelection?.agent ?? defaultAgent,
-      effectiveModel: sessionSelection?.model ?? defaultModel,
+      effectiveAgent: agent ?? defaultAgent,
+      effectiveModel: model ?? defaultModel,
       setAgent,
       setModel,
       sendMessage,
@@ -269,7 +279,8 @@ export function ChatProvider({
       defaultModel,
       directory,
       sessionId,
-      sessionSelection,
+      agent,
+      model,
       setAgent,
       setModel,
       sendMessage,
