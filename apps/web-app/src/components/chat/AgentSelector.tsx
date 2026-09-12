@@ -34,9 +34,9 @@ const FALLBACK_AGENTS: Agent[] = [
 export function AgentSelector() {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const { effectiveAgent, setAgent } = useChat();
+  const { effectiveAgent, setAgent, directory } = useChat();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { data, isLoading, error } = useAgents();
+  const { data, isLoading, error } = useAgents({ directory });
   const agents = data ?? FALLBACK_AGENTS;
 
   useEffect(() => {

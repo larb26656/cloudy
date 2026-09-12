@@ -4,19 +4,19 @@ import { agentKeys } from "@/lib/opencode";
 import type { Agent } from "@/types/agent";
 import { getErrorMessage, type SdkError } from "@/lib/opencode";
 
-export function useAgents() {
+export function useAgents({ directory }: { directory?: string } = {}) {
   return useQuery({
-    queryKey: agentKeys.list(),
+    queryKey: agentKeys.list(directory),
     queryFn: async (): Promise<Agent[]> => {
       const oc = getOcClient();
-      const result = await oc.app.agents();
+      const result = await oc.app.agents(directory ? { directory } : undefined);
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
       const data = result.data;
       if (!Array.isArray(data)) return [];
       return data
-        .filter((a) => !a.hidden && a.mode === 'primary')
+        .filter((a) => !a.hidden && a.mode === "primary")
         .map((a) => ({
           name: a.name,
           description: a.description,

@@ -15,7 +15,8 @@ export const messageKeys = {
 
 export const agentKeys = {
   root: () => ["agents"] as const,
-  list: () => ["agents", "list"] as const,
+  list: (directory?: string) =>
+    ["agents", "list", directory ?? "global"] as const,
 };
 
 export const modelKeys = {
