@@ -20,6 +20,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { SessionList } from "./SessionList";
+import { BotEyeIcon } from "./BotEyeIcon";
 
 interface WorkspaceDetailProps {
   workspace: Workspace;
@@ -58,7 +59,11 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
             className="flex size-11 items-center justify-center rounded-xl text-base font-bold text-white shrink-0"
             style={{ backgroundColor: workspace.color }}
           >
-            {workspace.name.charAt(0).toUpperCase()}
+            {workspace.type === "bot" ? (
+              <BotEyeIcon className="size-5" />
+            ) : (
+              workspace.name.charAt(0).toUpperCase()
+            )}
           </span>
           <div>
             <h1 className="text-[22px] font-bold leading-tight">

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useForm, Controller, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { Bot, Sparkles } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,13 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import {
   Field,
   FieldGroup,
@@ -217,15 +212,35 @@ export function WorkspaceDialog({
                   name="type"
                   control={control}
                   render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger id="workspace-type" className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="agent">Agent</SelectItem>
-                        <SelectItem value="bot">Bot</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <ToggleGroup
+                      value={[field.value]}
+                      onValueChange={(values) => {
+                        const next = values.at(-1);
+                        if (next === "agent" || next === "bot") {
+                          field.onChange(next);
+                        }
+                      }}
+                      variant="outline"
+                      aria-label="Workspace type"
+                      className="w-full"
+                    >
+                      <ToggleGroupItem
+                        value="agent"
+                        className="flex-1"
+                        aria-label="Agent workspace"
+                      >
+                        <Sparkles data-icon="inline-start" />
+                        Agent
+                      </ToggleGroupItem>
+                      <ToggleGroupItem
+                        value="bot"
+                        className="flex-1"
+                        aria-label="Bot workspace"
+                      >
+                        <Bot data-icon="inline-start" />
+                        Bot
+                      </ToggleGroupItem>
+                    </ToggleGroup>
                   )}
                 />
                 <FieldDescription>

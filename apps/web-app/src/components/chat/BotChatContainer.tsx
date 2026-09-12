@@ -16,8 +16,6 @@ interface BotChatContainerProps {
   directory: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
-  agent?: string | null;
-  onAgentChange?: (agent: string | null) => void;
   model?: ModelConfig | null;
   onModelChange?: (model: ModelConfig | null) => void;
   placeholder?: string;
@@ -31,8 +29,6 @@ export function BotChatContainer({
   directory,
   sessionId,
   onSessionChange,
-  agent,
-  onAgentChange,
   model,
   onModelChange,
   placeholder,
@@ -43,8 +39,8 @@ export function BotChatContainer({
       directory={directory}
       sessionId={sessionId}
       onSessionChange={onSessionChange}
-      agent={agent}
-      onAgentChange={onAgentChange ?? noopAgentChange}
+      agent="bot"
+      onAgentChange={noopAgentChange}
       model={model}
       onModelChange={
         onModelChange ?? (model !== undefined ? noopModelChange : undefined)

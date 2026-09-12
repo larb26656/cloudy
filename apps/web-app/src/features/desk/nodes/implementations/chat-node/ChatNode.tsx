@@ -108,8 +108,6 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
             sessionId={data.sessionId}
             directory={directory}
             onSessionChange={handleSessionChange}
-            agent={agent}
-            onAgentChange={handleAgentChange}
             model={model}
             onModelChange={handleModelChange}
           />

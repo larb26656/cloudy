@@ -1,5 +1,6 @@
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { cn } from "@/lib/utils";
+import { BotEyeIcon } from "./BotEyeIcon";
 
 interface WorkspaceCardProps {
   workspace: Workspace;
@@ -25,7 +26,11 @@ export function WorkspaceCard({
         className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[15px] font-bold text-white"
         style={{ backgroundColor: workspace.color }}
       >
-        {workspace.name.charAt(0).toUpperCase()}
+        {workspace.type === "bot" ? (
+          <BotEyeIcon className="size-[18px]" />
+        ) : (
+          workspace.name.charAt(0).toUpperCase()
+        )}
       </span>
       <span className="flex min-w-0 flex-col">
         <span className="truncate text-sm font-semibold">{workspace.name}</span>

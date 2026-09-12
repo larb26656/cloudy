@@ -77,8 +77,6 @@ export function ChatContent({ tab }: ChatContentProps) {
       directory={directory}
       sessionId={tab.data.sessionId}
       onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
-      agent={agent}
-      onAgentChange={handleAgentChange}
       model={model}
       onModelChange={handleModelChange}
     />
