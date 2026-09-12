@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 import { z } from "zod";
 import { useWindowFocus } from "@/hooks";
 import { env } from "@/config/env";
@@ -64,7 +63,7 @@ export function applyNotificationFrame(
  * The `Notification` behind a valid `notification.created` frame whose id is
  * not present in `current` — i.e. a genuinely new notification that has not
  * been mirrored into the cache yet. Returns `null` for anything else. Drives
- * the notification chime and toast so the REST POST response and the WS
+ * the notification chime so the REST POST response and the WS
  * broadcast never double-fire.
  */
 export function getNewNotification(
@@ -95,19 +94,6 @@ function buildNotificationsWsUrl(): string {
   const base = env.getApiUrl().replace(/\/$/, "");
   const wsBase = base.replace(/^http:/i, "ws:").replace(/^https:/i, "wss:");
   return `${wsBase}/api/notifications/ws`;
-}
-
-const notificationToasts = {
-  info: toast.info,
-  success: toast.success,
-  warning: toast.warning,
-  error: toast.error,
-} as const;
-
-function showNotificationToast(notification: Notification) {
-  notificationToasts[notification.type](notification.title, {
-    description: notification.message,
-  });
 }
 
 const MAX_BACKOFF_MS = 30_000;
@@ -165,7 +151,6 @@ export function useNotificationsStream() {
         );
         if (newNotification) {
           playNotificationSound();
-          showNotificationToast(newNotification);
         }
         queryClient.setQueryData<Notification[] | undefined>(
           notificationKeys.list(),
