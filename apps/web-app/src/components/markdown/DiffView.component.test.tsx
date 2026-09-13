@@ -1,6 +1,6 @@
 import { render } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
-import { DiffView } from "./DiffView";
+import { DiffView } from "@repo/ui/components/markdown";
 
 const diff = `--- a/example.ts
 +++ b/example.ts

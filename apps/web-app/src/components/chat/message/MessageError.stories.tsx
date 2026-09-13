@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { MessageError } from "./MessageError";
+import { MessageError } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/MessageError",

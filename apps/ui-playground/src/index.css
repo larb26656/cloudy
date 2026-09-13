@@ -1,0 +1,9 @@
+@import "@repo/ui/styles/globals.css";
+
+@source "../";
+
+@layer base {
+  body {
+    min-width: 320px;
+  }
+}

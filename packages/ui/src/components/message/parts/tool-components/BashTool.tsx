@@ -1,5 +1,5 @@
 import { Terminal } from "lucide-react";
-import { CodeBlock } from "@/components/markdown/CodeBlock";
+import { CodeBlock } from "@repo/ui/components/markdown";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import { ExpandableToolCard } from "./ExpandableToolCard";
 import type { ToolComponentProps } from "./types";

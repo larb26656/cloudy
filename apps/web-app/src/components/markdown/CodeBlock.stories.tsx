@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { MarkdownRenderer } from "./MarkdownRenderer";
+import { MarkdownRenderer } from "@repo/ui/components/markdown";
 
 const meta = preview.meta({
   title: "Markdown/CodeBlock",

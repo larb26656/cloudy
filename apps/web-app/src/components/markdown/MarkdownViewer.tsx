@@ -1,4 +1,4 @@
-import { MarkdownRenderer } from "./MarkdownRenderer";
+import { MarkdownRenderer } from "@repo/ui/components/markdown";
 
 interface MarkdownViewerProps {
   content: string;

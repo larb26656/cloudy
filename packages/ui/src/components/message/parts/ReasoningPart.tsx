@@ -1,9 +1,9 @@
 import type { ReasoningPart as ReasoningPartType } from "@opencode-ai/sdk/v2";
 import { Brain } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
-import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
+import { MarkdownRenderer } from "@repo/ui/components/markdown";
 import { useMessageSettings } from "../context";
-import { useElapsedTime } from "@/hooks/useElapsedTime";
+import { useElapsedTime } from "@repo/ui/hooks/use-elapsed-time";
 import { CollapsiblePart } from "./CollapsiblePart";
 
 interface ReasoningPartProps {

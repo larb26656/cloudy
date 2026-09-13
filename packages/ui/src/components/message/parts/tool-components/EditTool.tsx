@@ -1,6 +1,6 @@
 import { Files } from "lucide-react";
 import { createTwoFilesPatch } from "diff";
-import { DiffViewer } from "@/components/markdown/DiffViewer";
+import { DiffViewer } from "@repo/ui/components/markdown";
 import { PathText } from "@repo/ui/components/path-text";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import type { ToolComponentProps } from "./types";

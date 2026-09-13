@@ -14,8 +14,7 @@ export function QuestionTool({ state }: ToolComponentProps) {
       }>
     | undefined;
 
-  const firstQuestion =
-    questions && questions.length > 0 ? questions[0].question : null;
+  const firstQuestion = questions?.[0]?.question ?? null;
 
   return (
     <ExpandableToolCard

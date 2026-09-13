@@ -1,5 +1,5 @@
 import { useTheme } from "next-themes";
-import { Sprite } from "../../Sprite";
+import { Sprite } from "@repo/ui/components/Sprite";
 
 const defaultDarkSrc = "/sprite/thinking-dark.png";
 const defaultLightSrc = "/sprite/thinking.png";

@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { TodoTool } from "./TodoTool";
+import { TodoTool } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/ToolComponents/TodoTool",

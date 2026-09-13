@@ -60,7 +60,7 @@ export function Sprite({
   }, [sequence, fps, currentFrame, loop]);
 
   const actualFrame =
-    currentFrame !== undefined ? currentFrame : sequence[frameIndex];
+    currentFrame !== undefined ? currentFrame : (sequence[frameIndex] ?? 0);
 
   const col = actualFrame % cols;
   const row = Math.floor(actualFrame / cols);

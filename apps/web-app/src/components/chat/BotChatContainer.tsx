@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { MessageList } from "./message/MessageList";
-import { SessionViewDialogContext } from "./message/context";
+import { SessionViewDialogContext } from "@repo/ui/components/message";
 import { SessionViewDialog } from "./dialogs/SessionViewDialog";
 import { BotChatInput } from "./chat-input";
 import { PermissionBanner } from "@/components/permission/PermissionBanner";

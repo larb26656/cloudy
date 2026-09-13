@@ -19,7 +19,9 @@ export function DefaultTool({ tool, state }: ToolComponentProps) {
     <ExpandableToolCard
       tool={tool}
       state={state}
-      preview={<ToolPreviewLabel icon={<Wrench className="size-3" />} label={label} />}
+      preview={
+        <ToolPreviewLabel icon={<Wrench className="size-3" />} label={label} />
+      }
       detail={
         <div className="space-y-1.5 mt-2 p-2 bg-slate-50 dark:bg-slate-900/50 rounded-md">
           <div className="flex items-center gap-1.5 text-xs font-medium text-slate-700 dark:text-slate-300">

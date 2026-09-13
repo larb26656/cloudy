@@ -1,4 +1,4 @@
-import { MessageBubble } from "./MessageBubble";
+import { MessageBubble } from "@repo/ui/components/message";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 
 interface StreamingMessageBubbleProps {

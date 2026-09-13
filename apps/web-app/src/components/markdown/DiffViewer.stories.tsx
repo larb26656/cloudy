@@ -1,6 +1,5 @@
 import preview from "@/storybook/preview";
-import { DiffView } from "./DiffView";
-import { DiffViewer } from "./DiffViewer";
+import { DiffView, DiffViewer } from "@repo/ui/components/markdown";
 
 const meta = preview.meta({
   title: "Markdown/DiffViewer",

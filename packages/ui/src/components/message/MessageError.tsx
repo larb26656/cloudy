@@ -34,7 +34,9 @@ const ERROR_CONFIGS: Partial<Record<MessageErrorInfo["name"], ErrorConfig>> = {
     icon: MessageSquareWarning,
     title: "Context limit exceeded",
     getDescription: (error) =>
-      error.name === "ContextOverflowError" ? (error.data.message ?? null) : null,
+      error.name === "ContextOverflowError"
+        ? (error.data.message ?? null)
+        : null,
   },
   ContentFilterError: {
     icon: FilterX,
@@ -53,9 +55,10 @@ const ERROR_CONFIGS: Partial<Record<MessageErrorInfo["name"], ErrorConfig>> = {
     getDescription: (error) => {
       if (error.name !== "StructuredOutputError") return null;
       const { message, retries } = error.data;
-      const parts = [message, retries !== undefined ? `${retries} retries` : null].filter(
-        Boolean,
-      );
+      const parts = [
+        message,
+        retries !== undefined ? `${retries} retries` : null,
+      ].filter(Boolean);
       return parts.length > 0 ? parts.join(" · ") : null;
     },
   },
@@ -65,7 +68,9 @@ const ERROR_CONFIGS: Partial<Record<MessageErrorInfo["name"], ErrorConfig>> = {
     getDescription: (error) => {
       if (error.name !== "APIError") return null;
       const { message, statusCode } = error.data;
-      return [statusCode ? String(statusCode) : null, message].filter(Boolean).join(": ");
+      return [statusCode ? String(statusCode) : null, message]
+        .filter(Boolean)
+        .join(": ");
     },
   },
   UnknownError: {

@@ -1,5 +1,5 @@
 import type { TextPart as TextPartType } from "@opencode-ai/sdk/v2";
-import { MarkdownRenderer } from "../../../markdown/MarkdownRenderer";
+import { MarkdownRenderer } from "@repo/ui/components/markdown";
 
 interface TextPartProps {
   part: TextPartType;

@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { RetryPart } from "./RetryPart";
+import { RetryPart } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/RetryPart",

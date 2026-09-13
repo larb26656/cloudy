@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { EditTool } from "./EditTool";
+import { EditTool } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/ToolComponents/EditTool",
@@ -43,8 +43,7 @@ export const MultiLineEdit = meta.story({
       status: "completed",
       input: {
         filePath: "apps/web-app/src/App.tsx",
-        oldString:
-          "function App() {\n  return <div>Hello</div>;\n}",
+        oldString: "function App() {\n  return <div>Hello</div>;\n}",
         newString:
           "function App() {\n  const [count, setCount] = useState(0);\n  return <button onClick={() => setCount(count + 1)}>{count}</button>;\n}",
       },
@@ -65,7 +64,7 @@ export const Insertion = meta.story({
       input: {
         filePath: "packages/server/src/db/schema/index.ts",
         oldString: "",
-        newString: "export * from \"./workspace\";\n",
+        newString: 'export * from "./workspace";\n',
       },
       output: "Inserted 1 line",
       title: "edit",

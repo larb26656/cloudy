@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { CompactionPart } from "./CompactionPart";
+import { CompactionPart } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/CompactionPart",

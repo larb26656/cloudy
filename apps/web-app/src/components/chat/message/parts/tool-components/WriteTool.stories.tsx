@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { WriteTool } from "./WriteTool";
+import { WriteTool } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/ToolComponents/WriteTool",

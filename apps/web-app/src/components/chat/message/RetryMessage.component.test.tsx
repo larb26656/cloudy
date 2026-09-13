@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import { screen, act } from "@testing-library/react";
 import { renderWithProviders } from "@/test/utils";
-import { RetryMessage } from "./RetryMessage";
+import { RetryMessage } from "@repo/ui/components/message";
 
 describe("RetryMessage", () => {
   beforeEach(() => {

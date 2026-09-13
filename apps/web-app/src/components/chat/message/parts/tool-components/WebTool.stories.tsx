@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { WebTool } from "./WebTool";
+import { WebTool } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/ToolComponents/WebTool",

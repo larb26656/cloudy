@@ -1,6 +1,4 @@
-export function formatNumber(num: number, locale = "en-US"): string {
-  return num.toLocaleString(locale);
-}
+export { formatNumber } from "@repo/ui/lib/format";
 
 export function formatPercentage(value: number, total: number): string {
   if (total <= 0) return "0%";

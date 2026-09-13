@@ -1,7 +1,7 @@
 import type { UserMessage, Part } from "@opencode-ai/sdk/v2";
-import { formatTime } from "@/lib/format";
-import { useCopyMessage } from "@/hooks/useCopyMessage";
-import { getTextFromParts } from "@/lib/message/text";
+import { useCopyMessage } from "@repo/ui/hooks/use-copy-message";
+import { formatTime } from "@repo/ui/lib/format";
+import { getTextFromParts } from "@repo/ui/lib/message-text";
 import { CopyButton } from "@repo/ui/components/CopyButton";
 
 interface UserMessageBubbleProps {

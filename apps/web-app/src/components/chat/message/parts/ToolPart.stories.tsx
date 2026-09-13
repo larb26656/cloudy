@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { ToolPart } from "./ToolPart";
+import { ToolPart } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/ToolPart",
@@ -61,7 +61,8 @@ export const Completed = meta.story({
         input: {
           command: "ls -la",
         },
-        output: "total 64\ndrwxr-xr-x  12 user  staff   384 Mar 17 10:00 .\ndrwxr-xr-x   3 root  root    96 Mar 17 09:00 ..",
+        output:
+          "total 64\ndrwxr-xr-x  12 user  staff   384 Mar 17 10:00 .\ndrwxr-xr-x   3 root  root    96 Mar 17 09:00 ..",
         time: {
           start: Date.now() - 5000,
           end: Date.now() - 2000,
@@ -81,7 +82,8 @@ export const Error = meta.story({
         input: {
           command: "npm run build",
         },
-        error: "Error: Command failed with exit code 1\nENOENT: No such file or directory",
+        error:
+          "Error: Command failed with exit code 1\nENOENT: No such file or directory",
         time: {
           start: Date.now() - 10000,
           end: Date.now() - 8000,
@@ -103,7 +105,8 @@ export const ReadTool = meta.story({
           offset: 0,
           limit: 100,
         },
-        output: "import React from 'react';\n\nexport function App() {\n  return <div>Hello</div>;\n}",
+        output:
+          "import React from 'react';\n\nexport function App() {\n  return <div>Hello</div>;\n}",
         time: {
           start: Date.now() - 2000,
           end: Date.now(),
@@ -166,7 +169,8 @@ export const GrepTool = meta.story({
           path: "src/",
           include: "*.ts",
         },
-        output: "src/utils.ts:1:function add(a, b)\nsrc/App.tsx:5:function render()",
+        output:
+          "src/utils.ts:1:function add(a, b)\nsrc/App.tsx:5:function render()",
         time: {
           start: Date.now() - 3000,
           end: Date.now(),

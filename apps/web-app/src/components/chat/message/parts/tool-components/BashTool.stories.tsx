@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { BashTool } from "./BashTool";
+import { BashTool } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/ToolComponents/BashTool",
@@ -58,7 +58,8 @@ export const Error = meta.story({
     state: {
       status: "error",
       input: { command: "git push" },
-      error: "fatal: unable to access 'https://github.com/...': Could not resolve host",
+      error:
+        "fatal: unable to access 'https://github.com/...': Could not resolve host",
       time: { start: 1690000000000, end: 1690000001500 },
     } as any,
   },

@@ -1,13 +1,10 @@
 export function toISOString(date?: Date | string): string {
-  return (date instanceof Date ? date : date ? new Date(date) : new Date()).toISOString();
+  return (
+    date instanceof Date ? date : date ? new Date(date) : new Date()
+  ).toISOString();
 }
 
-export function formatTime(timestamp: number, locale = "en-US"): string {
-  return new Date(timestamp).toLocaleTimeString(locale, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+export { formatTime } from "@repo/ui/lib/format";
 
 export function formatDate(dateStr: string, locale = "en-US"): string {
   return new Intl.DateTimeFormat(locale, {

@@ -29,7 +29,7 @@ export function IsVisible({
 
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting) {
+        if (entry?.isIntersecting) {
           onVisibleRef.current();
         }
       },

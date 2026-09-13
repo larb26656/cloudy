@@ -1,5 +1,5 @@
 import { memo } from "react";
-import type { Message } from "@/types/message";
+import type { Message } from "@repo/ui/components/message/types";
 import { UserMessageBubble } from "./UserMessageBubble";
 import { AssistantMessageBubble } from "./AssistantMessageBubble";
 

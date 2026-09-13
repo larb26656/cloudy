@@ -1,6 +1,6 @@
 import type { UserMessage, Part } from "@opencode-ai/sdk/v2";
 import preview from "../../../../.storybook/preview";
-import { UserMessageBubble } from "./UserMessageBubble";
+import { UserMessageBubble } from "@repo/ui/components/message";
 
 const NOW = Date.now();
 

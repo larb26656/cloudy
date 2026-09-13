@@ -37,7 +37,7 @@ src/
   routes/                   TanStack Router file-based routes (source of routeTree.gen.ts)
   providers/                React context providers, composed in main.tsx
   features/                 feature modules (chat, desk, home, workspace, settings, app)
-  components/               shared/cross-feature UI (chat/, ui/, layout/, markdown/, ...)
+  components/               shared/cross-feature UI (chat/ orchestration, ui/, layout/, markdown/, ...)
   stores/                   Zustand stores (one file per store)
   hooks/                    react-query hooks (queries/) + misc hooks (session/, device, ...)
   lib/                      framework-agnostic helpers: api client, opencode SDK, commands, ...
@@ -275,7 +275,7 @@ go through barrel `index.ts` files, not deep relative paths.
 | Feature      | Tab?   | Role                                                                                                                                                                                      |
 | ------------ | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `home/`      | —      | The landing surface: workspace picker + session list. Owns the **tabs/** subsystem (the registry above) and `HomeContent` / `HomePage`.                                                   |
-| `chat/`      | `chat` | Chat surface: `ChatPage`, create-chat dialog. The heavy lifting (message bubbles, streaming, tool parts) lives in `src/components/chat/`.                                                 |
+| `chat/`      | `chat` | Chat surface: `ChatPage`, create-chat dialog. Message data/streaming orchestration lives in `src/components/chat/`; presentational message UI lives in `@repo/ui/components/message`.     |
 | `desk/`      | `desk` | React Flow canvas. See [Desk canvas](#desk-canvas) below for the node-adding workflow; key files: `DeskCanvas.tsx`, `NodeDrawerSidebar.tsx`, `nodes/template/`, `nodes/implementations/`. |
 | `workspace/` | —      | Workspace create/edit dialog + onboarding step.                                                                                                                                           |
 | `settings/`  | —      | Settings page: `SettingsLayout`, `SettingsNavigation`, `settingsConfig.ts` (section registry).                                                                                            |
@@ -287,15 +287,18 @@ Two layers, deliberately split:
 
 - **`src/components/`** — **shared / cross-feature** UI. Anything reused by ≥2 features or
   by Storybook as a standalone showcase belongs here. Subfolders: `ui/` (shadcn
-  primitives), `chat/` (the entire chat surface, because it's used by both the `chat` tab
-  and the `chat-node` desk node), `markdown/`, `terminal/`, `permission/`, `question/`,
+  primitives), `chat/` (the chat surface orchestration, because it's used by both the `chat`
+  tab and the `chat-node` desk node), `markdown/`, `terminal/`, `permission/`, `question/`,
   `layout/`, `workspace/`, `utils/`.
 - **`src/features/<feature>/components/`** — **feature-private** UI. If only one feature
   uses it, keep it local to avoid premature promotion.
 
 Rule of thumb: start in `features/*/components/`; promote to `src/components/` only when a
-second consumer appears. The `chat/` split is the canonical example — the chat UI is shared
-between the chat tab and the desk chat-node, so it lives in `src/components/chat/`.
+second consumer appears. The `chat/` split is the canonical example — its data and streaming
+orchestration are shared between the chat tab and desk chat-node. Presentational message and
+markdown components are package-owned in `@repo/ui/components/message` and
+`@repo/ui/components/markdown`, with app-specific streaming, minimap, and empty-state UI
+passed through `MessageListView` slots.
 
 ## State components (`EmptyState` / `ErrorState` / `LoadingState`)
 

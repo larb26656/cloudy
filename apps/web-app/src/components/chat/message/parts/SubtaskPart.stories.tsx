@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { SubtaskPart } from "./SubtaskPart";
+import { SubtaskPart } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/SubtaskPart",
@@ -31,7 +31,8 @@ export const WithPrompt = meta.story({
       type: "subtask",
       agent: "test-generator",
       description: "Generate unit tests",
-      prompt: "Create tests for the authentication module covering:\n- Login flow\n- Password reset\n- Token refresh",
+      prompt:
+        "Create tests for the authentication module covering:\n- Login flow\n- Password reset\n- Token refresh",
     } as any,
   },
 });

@@ -104,12 +104,12 @@ Decisions already made: target is `@repo/ui` (not a new package);
 
 ## Tasks
 
-- [ ] 1. Add `@opencode-ai/sdk` to `packages/ui/package.json` (peer + dev deps) and run
+- [x] 1. Add `@opencode-ai/sdk` to `packages/ui/package.json` (peer + dev deps) and run
      `pnpm install`
   - verify: `grep -c "@opencode-ai/sdk" packages/ui/package.json` ≥ 2 &&
     `pnpm install` succeeds
   - files: `packages/ui/package.json`
-- [ ] 2. Move support utilities: `types/message.ts` content → `packages/ui/src/components/message/types.ts`,
+- [x] 2. Move support utilities: `types/message.ts` content → `packages/ui/src/components/message/types.ts`,
      `lib/format/` → `packages/ui/src/lib/format.ts`, `lib/message/text.ts` →
      `packages/ui/src/lib/message-text.ts`, `hooks/useCopyMessage.ts` →
      `packages/ui/src/hooks/use-copy-message.ts`; leave thin re-export shims at the
@@ -117,7 +117,7 @@ Decisions already made: target is `@repo/ui` (not a new package);
   - verify: `pnpm --filter web-app check-types && pnpm --filter @repo/ui check-types`
     pass
   - files: both sides of each move
-- [ ] 3. Audit + move the markdown trio (`MarkdownRenderer`, `CodeBlock`, `DiffViewer`
+- [x] 3. Audit + move the markdown trio (`MarkdownRenderer`, `CodeBlock`, `DiffViewer`
      - whatever internal deps the audit reveals: `CodeFrame`, `CodeView`,
        `lib/highlight`, `lib/refractor-custom`) into `packages/ui/src/components/markdown/`
        with an `index.ts` barrel + export entry; web-app keeps shims or rewrites
@@ -125,7 +125,7 @@ Decisions already made: target is `@repo/ui` (not a new package);
   - verify: `pnpm --filter web-app check-types` passes &&
     `pnpm --filter web-app exec vitest run src/components/markdown` green
   - files: `packages/ui/src/components/markdown/**`, `apps/web-app/src/components/markdown/**`
-- [ ] 4. Move the presentational message tree into
+- [x] 4. Move the presentational message tree into
      `packages/ui/src/components/message/` (list under "What moves" above) with an
      `index.ts` barrel + `"./components/message": "./src/components/message/index.ts"`
      export; rewrite intra-package imports to the `@repo/ui/...` self-reference
@@ -133,7 +133,7 @@ Decisions already made: target is `@repo/ui` (not a new package);
   - verify: `pnpm --filter @repo/ui check-types` passes &&
     `grep -rn "@/stores/\|@/hooks/queries/" packages/ui/src/` returns nothing
   - files: `packages/ui/src/components/message/**`
-- [ ] 5. Rewire web-app: `MessageList.tsx`, `StreamingMessageBubble.tsx`, containers,
+- [x] 5. Rewire web-app: `MessageList.tsx`, `StreamingMessageBubble.tsx`, containers,
      and remaining stories import from `@repo/ui/components/message`; delete the moved
      files from `apps/web-app/src/components/chat/message/`; containers mount the
      dialog + settings context providers around the moved tree
@@ -141,14 +141,14 @@ Decisions already made: target is `@repo/ui` (not a new package);
     `useMessageListData.ts`, `StreamingMessageBubble.tsx` (+ their stories/tests) &&
     `pnpm --filter web-app lint && pnpm --filter web-app check-types` pass
   - files: `apps/web-app/src/components/chat/**`
-- [ ] 6. Add `MessageListView.stories.tsx` in web-app rendering the full message list
+- [x] 6. Add `MessageListView.stories.tsx` in web-app rendering the full message list
      purely from mock props (varied parts: text, reasoning, tool calls, error, retry)
      with zero store/query imports — this is the extension-usage proof
   - verify: story renders in `pnpm --filter web-app storybook` &&
     `grep -c "@/stores/\|@/hooks/" apps/web-app/src/components/chat/message/MessageListView.stories.tsx`
     returns 0
   - files: `apps/web-app/src/components/chat/message/MessageListView.stories.tsx`
-- [ ] 7. Update `apps/web-app/AGENTS.md` — directory map (`chat/` now hosts only
+- [x] 7. Update `apps/web-app/AGENTS.md` — directory map (`chat/` now hosts only
      orchestration; presentational tree lives in `@repo/ui/components/message`) and
      the component-organization section
   - verify: `grep -n "@repo/ui/components/message" apps/web-app/AGENTS.md` matches
@@ -158,12 +158,12 @@ Decisions already made: target is `@repo/ui` (not a new package);
 
 - [ ] `grep -rn "@/stores/\|@/hooks/queries/\|SessionViewDialog" packages/ui/src/components/message/`
       returns nothing — the moved tree is app-coupling-free
-- [ ] `pnpm --filter web-app lint && pnpm --filter web-app check-types &&
-    pnpm --filter @repo/ui check-types && pnpm --filter web-app exec vitest run`
+- [x] `pnpm --filter web-app lint && pnpm --filter web-app check-types &&
+  pnpm --filter @repo/ui check-types && pnpm --filter web-app exec vitest run`
       all green
-- [ ] The pure-props `MessageListView` story renders the full chat surface in Storybook
+- [x] The pure-props `MessageListView` story renders the full chat surface in Storybook
       without any web-app data layer
-- [ ] `packages/ui/package.json` lists `@opencode-ai/sdk` in `peerDependencies`
+- [x] `packages/ui/package.json` lists `@opencode-ai/sdk` in `peerDependencies`
 
 ## Notes for implementer
 

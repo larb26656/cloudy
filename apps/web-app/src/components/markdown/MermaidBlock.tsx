@@ -15,7 +15,7 @@ import {
 } from "@repo/ui/components/tabs";
 import panzoom from "panzoom";
 import { v4 as uuidv4 } from "uuid";
-import { CodeBlock } from "./CodeBlock";
+import { CodeBlock } from "@repo/ui/components/markdown";
 
 interface MermaidBlockProps {
   chart: string;

@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { SnapshotPart } from "./SnapshotPart";
+import { SnapshotPart } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/SnapshotPart",

@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { TaskTool } from "./TaskTool";
+import { TaskTool } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/ToolComponents/TaskTool",
@@ -25,7 +25,8 @@ export const CompletedWithSession = meta.story({
       input: {
         agent: "explore",
         description: "Find all API route definitions",
-        prompt: "Search the codebase for every createXxxApp route factory and list their file paths.",
+        prompt:
+          "Search the codebase for every createXxxApp route factory and list their file paths.",
       },
       output: "Found 6 route factories",
       title: "task",

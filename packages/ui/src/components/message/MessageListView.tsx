@@ -1,36 +1,35 @@
 import { ArrowDownIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import type { SessionStatus } from "@opencode-ai/sdk/v2";
+import { Center } from "@repo/ui/components/center";
 import { ErrorState } from "@repo/ui/components/error-state";
+import { IsVisible } from "@repo/ui/components/is-visible";
 import {
   MessageScroller,
-  MessageScrollerViewport,
+  MessageScrollerButton,
   MessageScrollerContent,
   MessageScrollerItem,
-  MessageScrollerButton,
+  MessageScrollerViewport,
 } from "@repo/ui/components/message-scroller";
-import { Center } from "@/components/layout";
-import { IsVisible } from "@/components/utils/IsVisible";
-import type { SessionStatus } from "@opencode-ai/sdk/v2";
-import type { Message } from "@/types";
-import { ChatMinimap } from "../ChatMinimap";
-import { EmptyChatState } from "../ChatEmptyState";
+import type { Message } from "./types";
 import { MessageBubble } from "./MessageBubble";
-import { StreamingMessageBubble } from "./StreamingMessageBubble";
-import { ThinkingAnimation } from "./ThinkingAnimation";
 import { RetryMessage } from "./RetryMessage";
 import { SessionErrorMessage } from "./SessionErrorMessage";
+import { ThinkingAnimation } from "./ThinkingAnimation";
 import type { SessionErrorInfo } from "./SessionErrorMessage";
-import type { MessageDisplayItem } from "./useMessageListData";
+
+export type MessageDisplayItem =
+  | { id: string; kind: "remote"; message: Message }
+  | { id: string; kind: "streaming" };
 
 interface MessageListViewProps {
-  sessionId: string | null;
   remoteMessages: Message[];
   displayItems: MessageDisplayItem[];
   streamingCount: number;
   isLoading: boolean;
   error: Error | null;
   onRetry: () => void;
-  isShowEmptyState: boolean;
-  onSnippetSelect?: (type: "idea" | "memory" | "artifact") => void;
+  emptyState?: ReactNode;
   sessionStatus: SessionStatus | undefined;
   isStreaming: boolean;
   sessionError: SessionErrorInfo | undefined;
@@ -38,20 +37,18 @@ interface MessageListViewProps {
   hasNextPage: boolean;
   isFetchingNextPage: boolean;
   onLoadMore: () => void;
-  minimapOpen: boolean;
-  onCloseMinimap?: () => void;
+  streamingMessage: (messageId: string) => ReactNode;
+  minimap?: ReactNode;
 }
 
 export function MessageListView({
-  sessionId,
   remoteMessages,
   displayItems,
   streamingCount,
   isLoading,
   error,
   onRetry,
-  isShowEmptyState,
-  onSnippetSelect,
+  emptyState,
   sessionStatus,
   isStreaming,
   sessionError,
@@ -59,8 +56,8 @@ export function MessageListView({
   hasNextPage,
   isFetchingNextPage,
   onLoadMore,
-  minimapOpen,
-  onCloseMinimap,
+  streamingMessage,
+  minimap,
 }: MessageListViewProps) {
   if (isLoading) {
     return (
@@ -81,12 +78,8 @@ export function MessageListView({
     );
   }
 
-  if (remoteMessages.length === 0 && streamingCount === 0 && isShowEmptyState) {
-    return (
-      <Center className="flex-1">
-        <EmptyChatState onSnippetSelect={onSnippetSelect} />
-      </Center>
-    );
+  if (remoteMessages.length === 0 && streamingCount === 0 && emptyState) {
+    return <Center className="flex-1">{emptyState}</Center>;
   }
 
   return (
@@ -101,7 +94,7 @@ export function MessageListView({
               <div className="self-center py-2">
                 {isFetchingNextPage ? (
                   <span className="text-sm text-muted-foreground">
-                    Loading…
+                    Loading...
                   </span>
                 ) : (
                   <IsVisible onVisible={onLoadMore} />
@@ -120,10 +113,7 @@ export function MessageListView({
                 {item.kind === "remote" ? (
                   <MessageBubble message={item.message} />
                 ) : (
-                  <StreamingMessageBubble
-                    sessionId={sessionId ?? ""}
-                    messageId={item.id}
-                  />
+                  streamingMessage(item.id)
                 )}
               </MessageScrollerItem>
             ))}
@@ -161,10 +151,7 @@ export function MessageListView({
           <span className="sr-only">Scroll to end</span>
         </MessageScrollerButton>
       </MessageScroller>
-
-      {minimapOpen && onCloseMinimap && remoteMessages.length > 0 && (
-        <ChatMinimap messages={remoteMessages} onClose={onCloseMinimap} />
-      )}
+      {minimap}
     </div>
   );
 }

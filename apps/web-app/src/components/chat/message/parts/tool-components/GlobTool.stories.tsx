@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { GlobTool } from "./GlobTool";
+import { GlobTool } from "@repo/ui/components/message";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/ToolComponents/GlobTool",

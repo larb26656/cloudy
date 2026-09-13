@@ -1,8 +1,13 @@
 import { memo } from "react";
-import { MessageSettingsContext } from "./context";
-import { MessageListView } from "./MessageListView";
+import {
+  MessageListView,
+  MessageSettingsContext,
+} from "@repo/ui/components/message";
 import { useMessageListData } from "./useMessageListData";
 import { useChatSettingsStore } from "@/stores/chatSettingsStore";
+import { ChatMinimap } from "../ChatMinimap";
+import { EmptyChatState } from "../ChatEmptyState";
+import { StreamingMessageBubble } from "./StreamingMessageBubble";
 
 interface MessageListProps {
   selectedSessionId: string | null;
@@ -41,15 +46,17 @@ export const MessageList = memo(function MessageList({
   return (
     <MessageSettingsContext.Provider value={{ autoExpandThinking }}>
       <MessageListView
-        sessionId={selectedSessionId}
         remoteMessages={remoteMessages}
         displayItems={displayItems}
         streamingCount={streamingIds.length}
         isLoading={isLoading}
         error={error}
         onRetry={() => refetch()}
-        isShowEmptyState={isShowEmptyState}
-        onSnippetSelect={onSnippetSelect}
+        emptyState={
+          isShowEmptyState ? (
+            <EmptyChatState onSnippetSelect={onSnippetSelect} />
+          ) : undefined
+        }
         sessionStatus={sessionStatus}
         isStreaming={isStreaming}
         sessionError={sessionError}
@@ -59,8 +66,17 @@ export const MessageList = memo(function MessageList({
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
         onLoadMore={() => fetchNextPage()}
-        minimapOpen={minimapOpen}
-        onCloseMinimap={onCloseMinimap}
+        streamingMessage={(messageId) => (
+          <StreamingMessageBubble
+            sessionId={selectedSessionId ?? ""}
+            messageId={messageId}
+          />
+        )}
+        minimap={
+          minimapOpen && onCloseMinimap && remoteMessages.length > 0 ? (
+            <ChatMinimap messages={remoteMessages} onClose={onCloseMinimap} />
+          ) : undefined
+        }
       />
     </MessageSettingsContext.Provider>
   );
