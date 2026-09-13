@@ -8,10 +8,12 @@ import {
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
+  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@repo/ui/components/dropdown-menu";
 import { Button } from "@repo/ui/components/button";
 import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
+import { useSession } from "@/hooks/queries/useSessions";
 import { useChat } from "./ChatProvider";
 
 /**
@@ -29,6 +31,7 @@ export function BotChatSessionMenu() {
     sessionPickerOpen,
     setSessionPickerOpen,
   } = useChat();
+  const { data: session } = useSession({ sessionId, directory });
 
   return (
     <div className="flex min-w-0 flex-1 items-center">
@@ -42,6 +45,9 @@ export function BotChatSessionMenu() {
         />
         <DropdownMenuContent align="start" className="w-44">
           <DropdownMenuGroup>
+            <DropdownMenuLabel className="max-w-full truncate">
+              {session?.title ?? "New Bot Chat"}
+            </DropdownMenuLabel>
             <DropdownMenuItem onClick={() => changeSession(null)}>
               <MessageSquarePlus />
               New chat
