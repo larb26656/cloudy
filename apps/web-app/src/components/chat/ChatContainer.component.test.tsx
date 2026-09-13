@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor, act } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
@@ -98,12 +98,6 @@ vi.mock("@/components/permission/PermissionDialog", () => ({
       data-testid="permission-dialog"
       data-session={permission?.sessionID ?? ""}
     />
-  ),
-}));
-
-vi.mock("@/components/session/SessionPickerDialog", () => ({
-  SessionPickerDialog: ({ open }: { open?: boolean }) => (
-    <div data-testid="session-picker-dialog" data-open={open ?? false} />
   ),
 }));
 
@@ -480,24 +474,6 @@ describe("ChatCoatainer", () => {
       });
     });
 
-    test("opens session picker when command calls openSessionPicker", async () => {
-      mockExecute.mockImplementation((_command, _args, opts) => {
-        opts?.openSessionPicker?.();
-      });
-
-      renderChat("test-session");
-
-      const trigger = await screen.findByTestId("trigger-immediate-command");
-      await act(async () => {
-        trigger.click();
-      });
-
-      await waitFor(() => {
-        const dialog = screen.getByTestId("session-picker-dialog");
-        expect(dialog).toHaveAttribute("data-open", "true");
-      });
-    });
-
     test("shows a toast when a slash command fails", async () => {
       mockExecute.mockRejectedValueOnce(new Error("Command exploded"));
 
@@ -526,23 +502,6 @@ describe("ChatCoatainer", () => {
           "Immediate command exploded",
         );
       });
-    });
-  });
-
-  describe("sessionPickerDialog visibility", () => {
-    beforeEach(() => {
-      server.use(
-        http.get(/\/oc\/question(\?.*)?$/, () => HttpResponse.json([])),
-        http.get(/\/oc\/permission(\?.*)?$/, () => HttpResponse.json([])),
-        childrenHandler([]),
-      );
-    });
-
-    test("renders SessionPickerDialog with open=false by default", async () => {
-      renderChat("test-session");
-
-      const dialog = await screen.findByTestId("session-picker-dialog");
-      expect(dialog).toHaveAttribute("data-open", "false");
     });
   });
 });

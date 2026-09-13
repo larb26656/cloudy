@@ -6,6 +6,7 @@ import { useSession } from "@/hooks/queries/useSessions";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { BotChatContent } from "./BotChatContent";
 import { BotChatCreateDialog } from "./BotChatCreateDialog";
+import { BotChatHeaderActions } from "./BotChatHeaderActions";
 
 export type BotChatData = {
   sessionId: string | null;
@@ -58,5 +59,6 @@ export const botChatTemplate: TabTemplate<BotChatData> = {
   TitleComponent: BotChatTabTitle,
   ContentComponent: BotChatContent,
   CreateDialog: BotChatCreateDialog,
+  HeaderActionsComponent: BotChatHeaderActions,
   getWorkspaceId: (data) => data.workspaceId,
 };
