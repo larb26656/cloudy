@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -12,15 +11,12 @@ import {
 } from "@/components/ui/sheet";
 import { FilesContainer } from "@/components/files/FilesContainer";
 import { ErrorState } from "@/components/ui/error-state";
-import { ChatContainer } from "@/components/chat/ChatContainer";
-import { BotChatContainer } from "@/components/chat/BotChatContainer";
+import { ChatSurface } from "@/components/chat/ChatSurface";
 import { Center } from "@/components/layout";
 import { useIsMobile } from "@/hooks/useMobile";
-import { useWorkspace } from "@/hooks/queries";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
-import type { ModelConfig } from "@/types";
 
 interface ChatContentProps {
   tab: Extract<Tab, { type: "chat" }>;
@@ -39,23 +35,6 @@ export function ChatContent({ tab }: ChatContentProps) {
   );
   const clampedFilesWidth = Math.min(70, Math.max(20, filesWidth));
 
-  const { data: workspace } = useWorkspace(tab.data.workspaceId);
-
-  const [agent, setAgent] = useState<string | null>(tab.data.agent ?? null);
-  const [model, setModel] = useState<ModelConfig | null>(
-    tab.data.model ?? null,
-  );
-
-  const handleAgentChange = (nextAgent: string | null) => {
-    setAgent(nextAgent);
-    updateTabData(tab.id, { agent: nextAgent });
-  };
-
-  const handleModelChange = (nextModel: ModelConfig | null) => {
-    setModel(nextModel);
-    updateTabData(tab.id, { model: nextModel });
-  };
-
   if (!tab.data.directory) {
     return (
       <Center className="h-full">
@@ -69,27 +48,16 @@ export function ChatContent({ tab }: ChatContentProps) {
 
   const directory = tab.data.directory;
 
-  const isBotWorkspace = workspace?.type === "bot";
-
-  const chatContainer = isBotWorkspace ? (
-    <BotChatContainer
-      workspace={workspace ?? null}
+  const chatContainer = (
+    <ChatSurface
+      workspaceId={tab.data.workspaceId}
       directory={directory}
       sessionId={tab.data.sessionId}
       onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
-      model={model}
-      onModelChange={handleModelChange}
-    />
-  ) : (
-    <ChatContainer
-      workspace={workspace ?? null}
-      directory={directory}
-      sessionId={tab.data.sessionId}
-      onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
-      agent={agent}
-      onAgentChange={handleAgentChange}
-      model={model}
-      onModelChange={handleModelChange}
+      initialAgent={tab.data.agent}
+      onAgentChange={(agent) => updateTabData(tab.id, { agent })}
+      initialModel={tab.data.model}
+      onModelChange={(model) => updateTabData(tab.id, { model })}
     />
   );
 

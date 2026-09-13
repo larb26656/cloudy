@@ -1,8 +1,7 @@
-import { ChatContainer } from "@/components/chat/ChatContainer";
-import { BotChatContainer } from "@/components/chat/BotChatContainer";
+import { ChatSurface } from "@/components/chat/ChatSurface";
 import type { Node, NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import { useSession, useUpdateSession, useWorkspace } from "@/hooks/queries";
 import { WindowFrame } from "../WindowFrame";
 import { ExternalLink } from "lucide-react";
@@ -34,9 +33,6 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const title = session?.title ?? "Chat";
   const directory = workspace?.directory ?? data.directory;
 
-  const [agent, setAgent] = useState<string | null>(data.agent ?? null);
-  const [model, setModel] = useState<ModelConfig | null>(data.model ?? null);
-
   const handleSessionChange = useCallback(
     (sessionId: string | null) => {
       updateNodeData(id, { sessionId });
@@ -45,17 +41,15 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   );
 
   const handleAgentChange = useCallback(
-    (nextAgent: string | null) => {
-      setAgent(nextAgent);
-      updateNodeData(id, { agent: nextAgent });
+    (agent: string | null) => {
+      updateNodeData(id, { agent });
     },
     [id, updateNodeData],
   );
 
   const handleModelChange = useCallback(
-    (nextModel: ModelConfig | null) => {
-      setModel(nextModel);
-      updateNodeData(id, { model: nextModel });
+    (model: ModelConfig | null) => {
+      updateNodeData(id, { model });
     },
     [id, updateNodeData],
   );
@@ -82,8 +76,6 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
     });
   }, [addTab, data.sessionId, data.workspaceId, directory, title]);
 
-  const isBotWorkspace = workspace?.type === "bot";
-
   return (
     <WindowFrame
       title={title}
@@ -102,27 +94,16 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       ]}
     >
       {directory ? (
-        isBotWorkspace ? (
-          <BotChatContainer
-            workspace={workspace}
-            sessionId={data.sessionId}
-            directory={directory}
-            onSessionChange={handleSessionChange}
-            model={model}
-            onModelChange={handleModelChange}
-          />
-        ) : (
-          <ChatContainer
-            workspace={workspace}
-            sessionId={data.sessionId}
-            directory={directory}
-            onSessionChange={handleSessionChange}
-            agent={agent}
-            onAgentChange={handleAgentChange}
-            model={model}
-            onModelChange={handleModelChange}
-          />
-        )
+        <ChatSurface
+          workspaceId={data.workspaceId}
+          directory={directory}
+          sessionId={data.sessionId}
+          onSessionChange={handleSessionChange}
+          initialAgent={data.agent}
+          onAgentChange={handleAgentChange}
+          initialModel={data.model}
+          onModelChange={handleModelChange}
+        />
       ) : (
         <Center className="flex-1">
           <ErrorState message="Workspace not found" />
