@@ -1,4 +1,4 @@
-import { describe, expect, test, vi, beforeEach } from "vitest";
+import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -72,6 +72,8 @@ const sonnet: ModelConfig = {
   supportsTools: true,
 };
 
+const originalInnerWidth = window.innerWidth;
+
 vi.mock("@/hooks/queries/useModels", () => ({
   useModels: () => ({ data: fixtures, isLoading: false, error: null }),
 }));
@@ -122,9 +124,20 @@ function groupByLabel(label: string): HTMLElement {
 describe("ModelSelector — favorites", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 1024,
+    });
     mocks.effectiveModel = null;
     useFavoriteModelsStore.setState({ favorites: [] });
     useDefaultModelStore.setState({ defaultModel: null });
+  });
+
+  afterAll(() => {
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: originalInnerWidth,
+    });
   });
 
   test("renders all provider groups when no favorites are set", () => {
@@ -269,5 +282,28 @@ describe("ModelSelector — favorites", () => {
         modelID: "claude-opus",
       }),
     );
+  });
+
+  test("uses a drawer on mobile and closes it after selecting a model", async () => {
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 375,
+    });
+    const onOpenChange = vi.fn();
+    const user = userEvent.setup();
+    render(<ModelSelector open onOpenChange={onOpenChange} />);
+
+    expect(
+      screen.getByRole("heading", { name: "Select model" }),
+    ).toBeInTheDocument();
+
+    const modelButton = screen.getByText("Claude Opus").closest("button");
+    if (!modelButton) throw new Error("Model button not found");
+    await user.click(modelButton);
+
+    expect(mocks.setModel).toHaveBeenCalledWith(
+      expect.objectContaining({ modelID: "claude-opus" }),
+    );
+    expect(onOpenChange).toHaveBeenCalledWith(false);
   });
 });
