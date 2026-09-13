@@ -1,6 +1,6 @@
 import { useState } from "react";
 import preview from "@/storybook/preview";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { WebviewCreateDialog } from "./WebviewCreateDialog";
 
 /**

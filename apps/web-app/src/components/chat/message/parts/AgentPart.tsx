@@ -1,6 +1,6 @@
 import type { AgentPart as AgentPartType } from "@opencode-ai/sdk/v2";
 import { Bot, Code } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@repo/ui/components/card";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface AgentPartProps {
@@ -19,9 +19,7 @@ export function AgentPart({ part }: AgentPartProps) {
                 Agent
               </span>
             </div>
-            <div className="text-sm font-medium">
-              {part.name}
-            </div>
+            <div className="text-sm font-medium">{part.name}</div>
             {part.source && (
               <div className="text-xs font-mono bg-muted rounded p-2 overflow-x-auto">
                 <div className="flex items-center gap-1 mb-1">

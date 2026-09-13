@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Globe, RotateCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
+import { cn } from "@repo/ui/lib/utils";
 import { normalizeUrl } from "@/lib/url";
 
 export interface WebviewFrameProps {

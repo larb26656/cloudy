@@ -1,5 +1,5 @@
 import type { Workspace } from "@/lib/cloudy/workspaces";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { BotEyeIcon } from "./BotEyeIcon";
 
 interface WorkspaceCardProps {

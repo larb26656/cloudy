@@ -2,8 +2,8 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { cn } from "@/lib/utils";
+} from "@repo/ui/components/collapsible";
+import { cn } from "@repo/ui/lib/utils";
 import { ChevronDownIcon } from "lucide-react";
 import { type ReactNode } from "react";
 

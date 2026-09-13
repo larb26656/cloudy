@@ -1,12 +1,12 @@
 import { memo, useCallback, useMemo, useState } from "react";
 import { Bot, ListTree, Search, User, X } from "lucide-react";
 import type { Message } from "@/types/message";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
 import {
   useMessageScroller,
   useMessageScrollerVisibility,
-} from "@/components/ui/message-scroller";
-import { cn } from "@/lib/utils";
+} from "@repo/ui/components/message-scroller";
+import { cn } from "@repo/ui/lib/utils";
 
 interface ChatMinimapProps {
   messages: Message[];

@@ -1,6 +1,6 @@
 import { PanelRight } from "lucide-react";
 import { AppBar } from "@/components/layout";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
 import type { TabHeaderActionsProps } from "../../template";
 

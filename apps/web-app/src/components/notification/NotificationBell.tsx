@@ -1,14 +1,14 @@
 import { useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 import { useClearNotifications, useNotifications } from "@/hooks/queries";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { NotificationDot } from "@/components/ui/notification-dot";
+} from "@repo/ui/components/popover";
+import { Button } from "@repo/ui/components/button";
+import { NotificationDot } from "@repo/ui/components/notification-dot";
 import { NotificationList } from "./NotificationList";
 
 interface NotificationBellProps {

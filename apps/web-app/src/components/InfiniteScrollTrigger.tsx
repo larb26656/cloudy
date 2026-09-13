@@ -1,4 +1,4 @@
-import { LoadingState } from "@/components/ui/loading-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
 
 type InfiniteScrollTriggerProps = {
   enabled: boolean;

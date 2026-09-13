@@ -1,7 +1,7 @@
 import { useReactFlow } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
 import { Pause, Play, RotateCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { WindowFrame } from "../WindowFrame";
 import type { StopwatchNodeProps } from "./types";
 import { formatStopwatch, useStopwatchEngine } from "./useStopwatchEngine";

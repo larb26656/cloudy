@@ -5,16 +5,16 @@ import { debounce } from "lodash-es";
 import { AlertCircle, Code, X } from "lucide-react";
 import { useTheme } from "next-themes";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { CodeEditor } from "@/components/ui/code-editor";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+} from "@repo/ui/components/popover";
+import { cn } from "@repo/ui/lib/utils";
 import { WindowFrame } from "../WindowFrame";
 
 type MermaidNodeProps = Node<

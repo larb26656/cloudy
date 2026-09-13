@@ -3,7 +3,7 @@ import {
   CommandItem,
   CommandList,
   CommandEmpty,
-} from "@/components/ui/command";
+} from "@repo/ui/components/command";
 import { useEffect, useRef, type Ref } from "react";
 
 type CommandListPanelProps<T> = {

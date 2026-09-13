@@ -1,5 +1,5 @@
 import { FilesContainer } from "@/components/files/FilesContainer";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
 

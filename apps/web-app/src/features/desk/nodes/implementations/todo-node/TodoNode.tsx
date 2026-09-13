@@ -2,11 +2,11 @@ import { useReactFlow } from "@xyflow/react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { X } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
+import { Button } from "@repo/ui/components/button";
+import { Checkbox } from "@repo/ui/components/checkbox";
+import { EmptyState } from "@repo/ui/components/empty-state";
+import { Input } from "@repo/ui/components/input";
+import { cn } from "@repo/ui/lib/utils";
 import { WindowFrame } from "../WindowFrame";
 
 type TodoItem = {

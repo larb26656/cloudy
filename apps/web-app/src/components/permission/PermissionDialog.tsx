@@ -8,12 +8,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
+} from "@repo/ui/components/dialog";
+import { Button } from "@repo/ui/components/button";
+import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { useReplyPermission } from "@/hooks/queries/usePermissions";
 import type { PermissionRequest } from "@opencode-ai/sdk/v2";
-import { toast } from "../ui/sonner";
+import { toast } from "@repo/ui/components/sonner";
 
 interface PermissionDialogProps {
   open: boolean;

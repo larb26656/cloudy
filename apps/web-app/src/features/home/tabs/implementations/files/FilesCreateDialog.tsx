@@ -6,7 +6,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@repo/ui/components/dialog";
 import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
 import { useTabStore } from "@/stores/tabStore";
 import type { CreateDialogProps } from "../../template";

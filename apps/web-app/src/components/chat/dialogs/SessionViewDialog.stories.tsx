@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { http, HttpResponse, delay } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { SessionViewDialog } from "./SessionViewDialog";
 import preview from "../../../../.storybook/preview";
 import type { Message } from "@/types/message";
@@ -73,7 +73,11 @@ const createAssistantMessage = (
 const emptyMessages: MockMessage[] = [];
 
 const singleMessage: MockMessage[] = [
-  createUserMessage("msg_1", "Hello, can you help me with my TypeScript project?", Date.now() - 60000),
+  createUserMessage(
+    "msg_1",
+    "Hello, can you help me with my TypeScript project?",
+    Date.now() - 60000,
+  ),
   createAssistantMessage(
     "msg_2",
     "Of course! I'd be happy to help with your TypeScript project. What specific aspect would you like assistance with?",
@@ -82,7 +86,11 @@ const singleMessage: MockMessage[] = [
 ];
 
 const multipleMessages: MockMessage[] = [
-  createUserMessage("msg_1", "Hi, I need help building a React component", Date.now() - 300000),
+  createUserMessage(
+    "msg_1",
+    "Hi, I need help building a React component",
+    Date.now() - 300000,
+  ),
   createAssistantMessage(
     "msg_2",
     "I'd be happy to help you build a React component! Could you tell me more about what the component should do?",

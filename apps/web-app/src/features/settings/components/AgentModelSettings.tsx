@@ -9,7 +9,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "@repo/ui/components/select";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
 

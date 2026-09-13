@@ -1,8 +1,8 @@
 import type { Part } from "@opencode-ai/sdk/v2";
 import { Bot, Zap, ExternalLink } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@repo/ui/components/button";
+import { Card, CardContent } from "@repo/ui/components/card";
 import { SessionViewDialog } from "@/components/chat/dialogs/SessionViewDialog";
 import CollapsiblePart from "./CollapsiblePart";
 
@@ -44,15 +44,11 @@ export function SubtaskPart({ part }: SubtaskPartProps) {
               {part.agent && (
                 <div className="flex items-center gap-2">
                   <Bot className="size-3 text-muted-foreground" />
-                  <span className="text-sm font-medium">
-                    {part.agent}
-                  </span>
+                  <span className="text-sm font-medium">{part.agent}</span>
                 </div>
               )}
               {part.description && (
-                <div className="text-sm">
-                  {part.description}
-                </div>
+                <div className="text-sm">{part.description}</div>
               )}
               {part.prompt && (
                 <div className="text-xs font-mono bg-muted rounded p-2 overflow-x-auto">

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { http, HttpResponse, delay } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { PermissionRequest } from "@opencode-ai/sdk/v2";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { permissionKeys } from "@/lib/opencode";
 import { usePermissions } from "@/hooks/queries/usePermissions";
 import { PermissionDialog } from "./PermissionDialog";

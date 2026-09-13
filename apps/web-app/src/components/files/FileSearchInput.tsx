@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash-es";
 import { Search, X } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
+import { Input } from "@repo/ui/components/input";
+import { Button } from "@repo/ui/components/button";
 
 interface FileSearchInputProps {
   value: string;

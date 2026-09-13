@@ -12,7 +12,7 @@ import type { ModelConfig } from "@/types";
 import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
 import { ChatProvider, useChat } from "./ChatProvider";
-import { MessageScrollerProvider } from "@/components/ui/message-scroller";
+import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 
 interface ChatContainerProps {
   workspace?: Workspace | null;

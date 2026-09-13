@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { ListTree, PanelLeft } from "lucide-react";
 import { Center } from "@/components/layout";
-import { NoData } from "@/components/ui/empty-state";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { NoData } from "@repo/ui/components/empty-state";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { ToggleGroup, ToggleGroupItem } from "@repo/ui/components/toggle-group";
 import { useVcsDiff } from "@/hooks/queries/useFiles";
 import { AllFilesChangesView } from "./AllFilesChangesView";
 import { FullFileDialog } from "./FullFileDialog";

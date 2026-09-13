@@ -1,10 +1,10 @@
 import { ArrowUp, Paperclip, Square } from "lucide-react";
 import { ModelSelector } from "../ModelSelector";
 import { AgentSelector } from "../AgentSelector";
-import { Button } from "@/components/ui/button";
-import { toast } from "@/components/ui/sonner";
+import { Button } from "@repo/ui/components/button";
+import { toast } from "@repo/ui/components/sonner";
 import { type ChatInputContent, type ImageAttachment } from "@/lib/opencode";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { getNextName } from "@/lib/cycleName";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { ChatInputEditor } from "./ChatInputEditor";
@@ -12,7 +12,7 @@ import SpeechBtn from "./SpeechBtn";
 import { AttachmentPreview } from "./AttachmentPreview";
 import { useChat } from "../ChatProvider";
 import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
-import { useMessageScroller } from "@/components/ui/message-scroller";
+import { useMessageScroller } from "@repo/ui/components/message-scroller";
 import { memo, useEffect, useRef, useState } from "react";
 
 interface ChatInputProps {

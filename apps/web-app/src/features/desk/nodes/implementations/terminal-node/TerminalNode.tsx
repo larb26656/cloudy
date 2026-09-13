@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import { TerminalView } from "@/components/terminal";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 import { Center } from "@/components/layout";
 import { useTabStore } from "@/stores/tabStore";
 import {

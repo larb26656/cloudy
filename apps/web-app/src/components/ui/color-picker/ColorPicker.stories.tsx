@@ -1,7 +1,7 @@
 import preview from "@/storybook/preview";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ColorPicker } from "./ColorPicker";
+import { ColorPicker } from "@repo/ui/components/color-picker/ColorPicker";
 import { WORKSPACE_COLORS } from "@/lib/cloudy/workspaces";
 
 interface ColorPickerDemoProps {
@@ -109,7 +109,14 @@ export const Disabled = meta.story({
 
 export const CustomColors = meta.story({
   args: {
-    colors: ["#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FF00FF", "#00FFFF"] as const,
+    colors: [
+      "#FF0000",
+      "#00FF00",
+      "#0000FF",
+      "#FFFF00",
+      "#FF00FF",
+      "#00FFFF",
+    ] as const,
     columns: 3,
     size: "md",
   },
@@ -145,7 +152,8 @@ export const WithReactHookForm = meta.story({
           )}
         />
         <p className="text-sm text-muted-foreground">
-          Selected: <span style={{ color: selectedColor }}>{selectedColor}</span>
+          Selected:{" "}
+          <span style={{ color: selectedColor }}>{selectedColor}</span>
         </p>
       </div>
     );

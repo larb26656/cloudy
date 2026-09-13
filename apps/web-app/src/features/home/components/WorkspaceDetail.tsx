@@ -9,8 +9,8 @@ import {
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { useDeleteWorkspace } from "@/hooks/queries";
 import { useTabStore } from "@/stores/tabStore";
-import { Button } from "@/components/ui/button";
-import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+import { Button } from "@repo/ui/components/button";
+import { DeleteConfirmDialog } from "@repo/ui/components/delete-confirm-dialog";
 import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
 import {
   DropdownMenu,
@@ -18,7 +18,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+} from "@repo/ui/components/dropdown-menu";
 import { SessionList } from "./SessionList";
 import { BotEyeIcon } from "./BotEyeIcon";
 

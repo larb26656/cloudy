@@ -22,12 +22,12 @@ import "@xyflow/react/dist/style.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PlusIcon } from "lucide-react";
 import { useTheme } from "next-themes";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@repo/ui/components/tooltip";
 import { NodeDrawerSidebar } from "./NodeDrawerSidebar";
 import { useFlowStore } from "@/stores/flowStore";
 import { type NodeTemplate } from "./nodes/template/nodeTemplates";

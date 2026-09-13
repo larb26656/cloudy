@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
 import { Wrench } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@repo/ui/components/card";
 import CollapsiblePart from "../CollapsiblePart";
 import { ToolStateDisplay } from "../ToolStateDisplay";
 
@@ -36,7 +36,10 @@ export function ExpandableToolCard({
   return (
     <div className="space-y-1">
       {detail && (
-        <CollapsiblePart label="Tool Call" detail={`${tool} - ${getStateLabel(state.status)}`}>
+        <CollapsiblePart
+          label="Tool Call"
+          detail={`${tool} - ${getStateLabel(state.status)}`}
+        >
           <Card>
             <CardContent>
               <div className="space-y-2">

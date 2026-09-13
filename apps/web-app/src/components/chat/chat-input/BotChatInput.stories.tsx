@@ -1,8 +1,8 @@
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { ChatProvider } from "../ChatProvider";
-import { MessageScrollerProvider } from "@/components/ui/message-scroller";
+import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import { BotChatInput } from "./BotChatInput";
 import preview from "@/storybook/preview";
 import type { SessionStatus } from "@opencode-ai/sdk/v2";

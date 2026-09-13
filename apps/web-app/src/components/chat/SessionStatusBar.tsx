@@ -4,11 +4,11 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { PathText } from "@/components/ui/path-text";
+} from "@repo/ui/components/tooltip";
+import { PathText } from "@repo/ui/components/path-text";
 import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
 import { useSession } from "@/hooks/queries/useSessions";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { formatCompact, formatNumber, formatPercentage } from "@/lib/format";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 

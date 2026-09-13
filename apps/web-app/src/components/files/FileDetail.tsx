@@ -1,6 +1,6 @@
 import type { VcsFileDiff } from "@opencode-ai/sdk/v2";
 import { DiffView } from "@/components/markdown/DiffView";
-import { NoData } from "@/components/ui/empty-state";
+import { NoData } from "@repo/ui/components/empty-state";
 
 interface FileDetailProps {
   file: VcsFileDiff | null;

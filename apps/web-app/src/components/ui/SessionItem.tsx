@@ -1,5 +1,5 @@
 import type { Session } from "@opencode-ai/sdk/v2";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 interface SessionItemProps {
   session: Session;

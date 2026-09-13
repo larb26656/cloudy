@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Bot, ChevronDown, Search } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Input } from "@repo/ui/components/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,10 +8,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuGroup,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import { EmptyState } from "@/components/ui/empty-state";
+} from "@repo/ui/components/dropdown-menu";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
 import type { Agent } from "@/types/agent";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { useChat } from "./ChatProvider";

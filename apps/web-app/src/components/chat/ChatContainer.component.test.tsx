@@ -8,7 +8,7 @@ import { useChat } from "./ChatProvider";
 import type { QuestionV2Request, PermissionRequest } from "@opencode-ai/sdk/v2";
 
 const mockToastError = vi.fn();
-vi.mock("@/components/ui/sonner", () => ({
+vi.mock("@repo/ui/components/sonner", () => ({
   toast: {
     error: (...args: unknown[]) => mockToastError(...args),
   },

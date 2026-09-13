@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import type { VcsFileDiff } from "@opencode-ai/sdk/v2";
-import { Badge } from "@/components/ui/badge";
-import { PathText } from "@/components/ui/path-text";
+import { Badge } from "@repo/ui/components/badge";
+import { PathText } from "@repo/ui/components/path-text";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@repo/ui/components/sheet";
 import { FileDetail } from "./FileDetail";
 import { FILE_CHANGE_STATUS_META } from "./file-change-status";
 import { FilesList } from "./FilesList";

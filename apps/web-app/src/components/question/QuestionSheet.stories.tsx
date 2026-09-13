@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { http, HttpResponse, delay } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { QuestionV2Request } from "@opencode-ai/sdk/v2";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { questionKeys } from "@/lib/opencode";
 import { useQuestions } from "@/hooks/queries/useQuestions";
 import { QuestionSheet } from "./QuestionSheet";

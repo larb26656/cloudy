@@ -10,19 +10,19 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+} from "@repo/ui/components/dialog";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
+import { ToggleGroup, ToggleGroupItem } from "@repo/ui/components/toggle-group";
 import {
   Field,
   FieldGroup,
   FieldLabel,
   FieldDescription,
   FieldError,
-} from "@/components/ui/field";
-import { ColorPicker } from "@/components/ui/color-picker/ColorPicker";
-import { DeleteConfirmDialog } from "@/components/ui/delete-confirm-dialog";
+} from "@repo/ui/components/field";
+import { ColorPicker } from "@repo/ui/components/color-picker/ColorPicker";
+import { DeleteConfirmDialog } from "@repo/ui/components/delete-confirm-dialog";
 import { WORKSPACE_COLORS, WORKSPACE_TYPES } from "@/lib/cloudy/workspaces";
 import type { Workspace, WorkspaceType } from "@/lib/cloudy/workspaces";
 import {

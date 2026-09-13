@@ -1,10 +1,10 @@
 import { useMemo } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@repo/ui/components/button";
+import { Card } from "@repo/ui/components/card";
+import { EmptyState } from "@repo/ui/components/empty-state";
 import { generateGreeting } from "@/lib/greeting-generator";
 import { Lightbulb, Brain, FileCode } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 type SnippetType = "idea" | "memory" | "artifact";
 

@@ -1,7 +1,7 @@
 import { X } from "lucide-react";
 import type { Tab } from "@/stores/tabStore";
 import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { getTabWorkspaceId, TabTitle, tabTypeMap } from "../tabs/template";
 
 interface TabCardProps {

@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@repo/ui/components/badge";
 import type { ContextItem } from "@/types/context";
 
 interface ContextBadgeProps {

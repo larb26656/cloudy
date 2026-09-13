@@ -7,7 +7,7 @@ import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
 import { useSessionData } from "@/hooks/session/useSessionHumanApprove";
 import { ChatProvider, useChat } from "./ChatProvider";
-import { MessageScrollerProvider } from "@/components/ui/message-scroller";
+import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import type { ModelConfig } from "@/types";
 

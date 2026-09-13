@@ -1,6 +1,6 @@
 import { WifiOff } from "lucide-react";
 import preview from "@/storybook/preview";
-import { ErrorState } from "./error-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 
 const meta = preview.meta({
   title: "UI/ErrorState",

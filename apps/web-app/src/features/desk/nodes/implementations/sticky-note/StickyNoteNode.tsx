@@ -3,8 +3,12 @@ import type { Node, NodeProps } from "@xyflow/react";
 import { ChevronDown } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { debounce } from "lodash-es";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@repo/ui/components/popover";
+import { cn } from "@repo/ui/lib/utils";
 import { WindowFrame } from "../WindowFrame";
 
 type StickyColor = "yellow" | "pink" | "green" | "blue" | "purple" | "orange";
@@ -40,7 +44,8 @@ export function StickyNoteNode({
   }, [data.label]);
 
   const debouncedUpdateLabel = useMemo(
-    () => debounce((value: string) => updateNodeData(id, { label: value }), 500),
+    () =>
+      debounce((value: string) => updateNodeData(id, { label: value }), 500),
     [id, updateNodeData],
   );
 
@@ -84,7 +89,12 @@ export function StickyNoteNode({
       headerAction={
         <Popover open={pickerOpen} onOpenChange={setPickerOpen}>
           <PopoverTrigger className="nodrag flex items-center gap-1 px-2 py-1 rounded hover:bg-black/10">
-            <div className={cn("w-4 h-4 rounded-full border border-black/20", bgClass)} />
+            <div
+              className={cn(
+                "w-4 h-4 rounded-full border border-black/20",
+                bgClass,
+              )}
+            />
             <ChevronDown className="h-3 w-3 opacity-60" />
           </PopoverTrigger>
           <PopoverContent className="w-auto p-2" align="start">

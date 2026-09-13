@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Folder, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { PathText } from "@/components/ui/path-text";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
+import { PathText } from "@repo/ui/components/path-text";
 import { isAbsoluteDirectory } from "@/lib/path";
 import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
 

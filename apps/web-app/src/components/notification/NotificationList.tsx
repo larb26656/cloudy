@@ -12,10 +12,10 @@ import type {
   NotificationType,
 } from "@/lib/cloudy/notifications";
 import { formatRelativeFromTimestamp } from "@/lib/format";
-import { cn } from "@/lib/utils";
-import { EmptyState } from "@/components/ui/empty-state";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { cn } from "@repo/ui/lib/utils";
+import { EmptyState } from "@repo/ui/components/empty-state";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
 import type { LucideIcon } from "lucide-react";
 
 const TYPE_META: Record<

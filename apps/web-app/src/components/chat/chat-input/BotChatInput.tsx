@@ -1,9 +1,9 @@
 import { ArrowUp, Square } from "lucide-react";
 import { useState } from "react";
 import { ModelSelector } from "../ModelSelector";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { useMessageScroller } from "@/components/ui/message-scroller";
+import { Button } from "@repo/ui/components/button";
+import { Textarea } from "@repo/ui/components/textarea";
+import { useMessageScroller } from "@repo/ui/components/message-scroller";
 import { useChat } from "../ChatProvider";
 
 interface BotChatInputProps {

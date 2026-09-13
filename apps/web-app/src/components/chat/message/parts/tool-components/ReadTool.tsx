@@ -1,5 +1,5 @@
 import { FileText } from "lucide-react";
-import { PathText } from "@/components/ui/path-text";
+import { PathText } from "@repo/ui/components/path-text";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import { ExpandableToolCard } from "./ExpandableToolCard";
 import { ToolValueRenderer } from "./ToolValueRenderer";

@@ -1,6 +1,6 @@
 import { LayoutGrid } from "lucide-react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import type { Tab } from "@/stores/tabStore";
 
 interface DeskCardProps {

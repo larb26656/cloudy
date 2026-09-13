@@ -1,7 +1,7 @@
 import type { VcsFileDiff } from "@opencode-ai/sdk/v2";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { PathText } from "@/components/ui/path-text";
+import { cn } from "@repo/ui/lib/utils";
+import { ScrollArea } from "@repo/ui/components/scroll-area";
+import { PathText } from "@repo/ui/components/path-text";
 
 const STATUS_STYLES: Record<string, string> = {
   added: "text-green-600 dark:text-green-400",

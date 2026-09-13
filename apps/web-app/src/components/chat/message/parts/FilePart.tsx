@@ -3,8 +3,8 @@ import type {
   FilePartSource,
 } from "@opencode-ai/sdk/v2";
 import { Paperclip } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
-import { PathText } from "@/components/ui/path-text";
+import { Card, CardContent } from "@repo/ui/components/card";
+import { PathText } from "@repo/ui/components/path-text";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface FilePartProps {
@@ -41,10 +41,7 @@ function FileSourceDisplay({ source }: FileSourceDisplayProps) {
 
 export function FilePart({ part }: FilePartProps) {
   return (
-    <CollapsiblePart
-      label="File"
-      detail={part.filename || "Untitled"}
-    >
+    <CollapsiblePart label="File" detail={part.filename || "Untitled"}>
       <Card>
         <CardContent className="p-3">
           <div className="flex flex-col gap-2">

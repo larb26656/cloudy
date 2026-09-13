@@ -2,7 +2,7 @@ import { useReactFlow } from "@xyflow/react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { debounce } from "lodash-es";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { FramelessNode } from "../FramelessNode";
 
 type TextSize = "s" | "m" | "l";

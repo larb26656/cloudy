@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Settings } from "lucide-react";
-import { EmptyState } from "@/components/ui/empty-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
 
 function SettingsIndexPage() {
   return (

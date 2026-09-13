@@ -1,4 +1,4 @@
-import { EmptyState } from "../empty-state/base.tsx";
+import { EmptyState } from "@repo/ui/components/empty-state/base";
 import errorUrl from "/mascot/error.png?url";
 
 export function ErrorState({

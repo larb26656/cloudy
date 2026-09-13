@@ -2,10 +2,10 @@ import { Plus } from "lucide-react";
 import { useState } from "react";
 import { useWorkspaces } from "@/hooks/queries";
 import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
-import { LoadingState } from "@/components/ui/loading-state";
-import { ErrorState } from "@/components/ui/error-state";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Button } from "@/components/ui/button";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
+import { Button } from "@repo/ui/components/button";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { WorkspaceCard } from "./WorkspaceCard";
 

@@ -2,9 +2,9 @@ import { FileWarning } from "lucide-react";
 import type { ReactNode } from "react";
 import { useFileRead } from "@/hooks/queries/useFiles";
 import { CodeView } from "@/components/markdown/CodeView";
-import { EmptyState, NoData } from "@/components/ui/empty-state";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { EmptyState, NoData } from "@repo/ui/components/empty-state";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
 
 interface FilePreviewProps {
   directory: string;

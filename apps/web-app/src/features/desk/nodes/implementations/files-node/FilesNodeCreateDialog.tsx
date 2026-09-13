@@ -5,7 +5,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@repo/ui/components/dialog";
 import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
 import type { ConfigDialogProps } from "../../template";
 

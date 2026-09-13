@@ -1,11 +1,11 @@
 import type { VcsFileDiff } from "@opencode-ai/sdk/v2";
 import { Maximize2 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@repo/ui/components/tooltip";
 
 interface OpenFullFileButtonProps {
   path: string;

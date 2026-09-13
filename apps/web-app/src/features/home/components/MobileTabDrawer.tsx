@@ -21,14 +21,14 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@repo/ui/components/sheet";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+} from "@repo/ui/components/dropdown-menu";
+import { cn } from "@repo/ui/lib/utils";
 import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
 import {
   getTabWorkspaceId,

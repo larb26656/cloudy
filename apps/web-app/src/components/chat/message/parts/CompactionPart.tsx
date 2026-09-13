@@ -1,6 +1,6 @@
 import type { CompactionPart as CompactionPartType } from "@opencode-ai/sdk/v2";
 import { Minimize2, Sparkles } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@repo/ui/components/card";
 import CollapsiblePart from "./CollapsiblePart";
 
 interface CompactionPartProps {
@@ -25,9 +25,7 @@ export function CompactionPart({ part }: CompactionPartProps) {
                 <span>Auto</span>
               </div>
             ) : (
-              <span className="text-xs text-muted-foreground">
-                Manual
-              </span>
+              <span className="text-xs text-muted-foreground">Manual</span>
             )}
           </div>
         </CardContent>

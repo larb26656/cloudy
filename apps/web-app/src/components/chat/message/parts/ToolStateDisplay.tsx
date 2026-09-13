@@ -1,5 +1,5 @@
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@repo/ui/components/badge";
 import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
 import type { ReactNode } from "react";
 

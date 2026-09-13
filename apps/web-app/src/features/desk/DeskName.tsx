@@ -1,5 +1,5 @@
-import { Field, FieldError } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
+import { Field, FieldError } from "@repo/ui/components/field";
+import { Input } from "@repo/ui/components/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";

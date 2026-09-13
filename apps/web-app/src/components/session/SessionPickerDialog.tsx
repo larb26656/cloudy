@@ -8,7 +8,7 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command";
+} from "@repo/ui/components/command";
 import { useSessions } from "@/hooks/queries/useSessions";
 import { formatRelativeFromTimestamp } from "@/lib/format";
 import { Check } from "lucide-react";

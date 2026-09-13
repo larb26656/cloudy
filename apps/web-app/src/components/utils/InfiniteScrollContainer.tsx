@@ -1,7 +1,7 @@
 import { useRef, type ReactNode, type RefObject } from "react";
-import { Button } from "../ui/button";
+import { Button } from "@repo/ui/components/button";
 import { IsVisible } from "./IsVisible";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 type PaginationConfig = {
   hasMore: boolean;

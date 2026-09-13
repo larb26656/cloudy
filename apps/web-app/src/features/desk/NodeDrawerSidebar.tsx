@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { NodeMenuButton } from "./nodes/NodeMenuButton";
 import { nodeTemplates, type NodeTemplate } from "./nodes/template";
 

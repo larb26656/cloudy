@@ -3,12 +3,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "@repo/ui/components/dialog";
 import { useSession } from "@/hooks/queries/useSessions";
 import { MessageList } from "../message/MessageList";
-import { MessageScrollerProvider } from "@/components/ui/message-scroller";
+import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import { SHEET_SIZE_CLASSES } from "@/constants/sheet";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 interface SessionViewDialogProps {
   sessionId: string;

@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
-} from "@/components/ui/dropdown-menu";
+} from "@repo/ui/components/dropdown-menu";
 import { tabTemplates } from "../tabs/template";
 import { TabBarItem } from "./TabBarItem";
 import { SortableTab } from "./SortableTab";

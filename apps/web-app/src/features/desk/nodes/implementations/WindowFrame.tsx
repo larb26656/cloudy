@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";

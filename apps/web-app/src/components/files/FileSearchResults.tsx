@@ -1,12 +1,12 @@
 import { File as FileIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useFileSearch } from "@/hooks/queries/useFiles";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { PathText } from "@/components/ui/path-text";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@repo/ui/lib/utils";
+import { ScrollArea } from "@repo/ui/components/scroll-area";
+import { PathText } from "@repo/ui/components/path-text";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
 
 interface FileSearchResultsProps {
   directory: string;

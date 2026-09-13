@@ -11,7 +11,7 @@ import type { ChatInputContent, MentionAttrs } from "@/lib/opencode";
 import { Placeholder } from "@tiptap/extensions";
 import { useQuickPhrasesStore } from "@/stores/quickPhrasesStore";
 import { QuickPhrasesBar } from "./QuickPhrasesBar";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 interface ChatInputEditorProps {
   content: ChatInputContent;

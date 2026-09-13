@@ -1,7 +1,7 @@
 import preview from "@/storybook/preview";
 import { Inbox } from "lucide-react";
-import { Button } from "../button";
-import { EmptyState } from "./base";
+import { Button } from "@repo/ui/components/button";
+import { EmptyState } from "@repo/ui/components/empty-state/base";
 
 const meta = preview.meta({
   title: "UI/EmptyState",

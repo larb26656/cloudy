@@ -2,15 +2,15 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import type { Session } from "@opencode-ai/sdk/v2";
 
-import { Button } from "@/components/ui/button";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import { EmptyState } from "@/components/ui/empty-state";
+import { Button } from "@repo/ui/components/button";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { useTabStore } from "@/stores/tabStore";
 import { useSessions, useCreateSession } from "@/hooks/queries";
 import { Plus } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 interface SessionListProps {
   directory: string;

@@ -1,6 +1,6 @@
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { BotChatContainer } from "./BotChatContainer";
 import preview from "@/storybook/preview";
 import type { Message } from "@/types";

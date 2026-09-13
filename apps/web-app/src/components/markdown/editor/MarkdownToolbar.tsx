@@ -1,5 +1,5 @@
 import { Editor } from "@tiptap/react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import {
   Bold,
   Italic,
@@ -129,7 +129,11 @@ export function MarkdownToolbar({
           />
           <ToolbarButton
             onClick={() =>
-              editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()
+              editor
+                .chain()
+                .focus()
+                .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                .run()
             }
             icon={Table}
             label="Insert Table"

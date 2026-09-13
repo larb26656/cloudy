@@ -1,12 +1,12 @@
 import { Hand, MousePointer2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { cn } from "@/lib/utils";
+} from "@repo/ui/components/tooltip";
+import { cn } from "@repo/ui/lib/utils";
 import { DeskPanel } from "./DeskPanel";
 import type { InteractionMode } from "../hooks/useInteractionMode";
 

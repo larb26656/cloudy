@@ -1,6 +1,6 @@
 import { RotateCw } from "lucide-react";
 import preview from "@/storybook/preview";
-import { LoadingState } from "./loading-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
 
 const meta = preview.meta({
   title: "UI/LoadingState",

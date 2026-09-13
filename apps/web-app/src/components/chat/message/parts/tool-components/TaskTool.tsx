@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Bot, ExternalLink, ListTodo } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { SessionViewDialog } from "@/components/chat/dialogs/SessionViewDialog";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import { ExpandableToolCard } from "./ExpandableToolCard";

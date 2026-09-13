@@ -8,8 +8,8 @@ import {
   SheetHeader,
   SheetFooter,
   SheetTitle,
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+} from "@repo/ui/components/sheet";
+import { Button } from "@repo/ui/components/button";
 import {
   useReplyQuestion,
   useRejectQuestion,
@@ -20,8 +20,8 @@ import { RadioOptionList } from "./RadioOptionList";
 import z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Field } from "../ui/field";
-import { toast } from "@/components/ui/sonner";
+import { Field } from "@repo/ui/components/field";
+import { toast } from "@repo/ui/components/sonner";
 
 const OTHER_VALUE = "other";
 

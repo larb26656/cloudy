@@ -2,7 +2,7 @@ import { ExternalLink } from "lucide-react";
 import { useCallback } from "react";
 import type { Node, NodeProps } from "@xyflow/react";
 import { FilesContainer } from "@/components/files/FilesContainer";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 import { Center } from "@/components/layout";
 import { useTabStore } from "@/stores/tabStore";
 import { useWorkspace } from "@/hooks/queries";

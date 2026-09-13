@@ -9,7 +9,7 @@ import {
   Star,
 } from "lucide-react";
 import type { ModelConfig } from "@/types";
-import { Input } from "@/components/ui/input";
+import { Input } from "@repo/ui/components/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,13 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuGroup,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import { EmptyState } from "@/components/ui/empty-state";
+} from "@repo/ui/components/dropdown-menu";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
 import { useModels } from "@/hooks/queries/useModels";
 import { useFavoriteModelsStore } from "@/stores/favoriteModelsStore";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { useChat } from "./ChatProvider";
 
 const providerIcons: Record<string, React.ReactNode> = {

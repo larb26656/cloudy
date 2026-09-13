@@ -72,9 +72,6 @@ importers:
 
   apps/web-app:
     dependencies:
-      "@base-ui/react":
-        specifier: ^1.4.1
-        version: 1.6.0(@types/react@19.2.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       "@dnd-kit/core":
         specifier: ^6.3.1
         version: 6.3.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -87,12 +84,6 @@ importers:
       "@floating-ui/dom":
         specifier: ^1.7.6
         version: 1.7.6
-      "@fontsource-variable/geist":
-        specifier: ^5.2.8
-        version: 5.2.9
-      "@fontsource-variable/inter":
-        specifier: ^5.2.8
-        version: 5.2.8
       "@hookform/resolvers":
         specifier: ^5.2.2
         version: 5.4.0(react-hook-form@7.80.0(react@19.2.7))
@@ -108,9 +99,9 @@ importers:
       "@repo/contracts":
         specifier: workspace:*
         version: link:../../packages/contracts
-      "@shadcn/react":
-        specifier: ^0.2.1
-        version: 0.2.1(@types/react@19.2.2)(react@19.2.7)
+      "@repo/ui":
+        specifier: workspace:*
+        version: link:../../packages/ui
       "@streamdown/cjk":
         specifier: ^1.0.3
         version: 1.0.3(@types/mdast@4.0.4)(micromark-util-types@2.0.2)(micromark@4.0.2)(react@19.2.7)(unified@11.0.5)
@@ -189,15 +180,9 @@ importers:
       "@xyflow/react":
         specifier: ^12.11.2
         version: 12.11.2(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      class-variance-authority:
-        specifier: ^0.7.1
-        version: 0.7.1
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      cmdk:
-        specifier: ^1.1.1
-        version: 1.1.1(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       diff:
         specifier: ^9.0.0
         version: 9.0.0
@@ -240,9 +225,6 @@ importers:
       react-markdown:
         specifier: ^10.1.0
         version: 10.1.0(@types/react@19.2.2)(react@19.2.7)
-      react-resizable-panels:
-        specifier: ^4.11.0
-        version: 4.12.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       react-router:
         specifier: ^7.15.0
         version: 7.18.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
@@ -258,24 +240,12 @@ importers:
       remark-gfm:
         specifier: ^4.0.1
         version: 4.0.1
-      shadcn:
-        specifier: ^4.7.0
-        version: 4.13.0(typescript@5.9.2)
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       streamdown:
         specifier: ^2.5.0
         version: 2.5.0(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      tailwind-merge:
-        specifier: ^3.6.0
-        version: 3.6.0
-      tailwindcss:
-        specifier: ^4.3.0
-        version: 4.3.2
-      tw-animate-css:
-        specifier: ^1.4.0
-        version: 1.4.0
       uuid:
         specifier: ^14.0.0
         version: 14.0.1
@@ -545,6 +515,76 @@ importers:
         version: 4.0.0(typescript@5.9.2)(vitest@4.1.9(@types/node@22.15.3)(@vitest/browser-playwright@4.1.9)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(msw@2.15.0(@types/node@22.15.3)(typescript@5.9.2))(vite@6.4.3(@types/node@22.15.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.0)))
 
   packages/typescript-config: {}
+
+  packages/ui:
+    dependencies:
+      "@base-ui/react":
+        specifier: ^1.4.1
+        version: 1.6.0(@types/react@19.2.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      "@fontsource-variable/geist":
+        specifier: ^5.2.8
+        version: 5.2.9
+      "@shadcn/react":
+        specifier: ^0.2.1
+        version: 0.2.1(@types/react@19.2.2)(react@19.2.7)
+      class-variance-authority:
+        specifier: ^0.7.1
+        version: 0.7.1
+      clsx:
+        specifier: ^2.1.1
+        version: 2.1.1
+      cmdk:
+        specifier: ^1.1.1
+        version: 1.1.1(@types/react-dom@19.2.2(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      lucide-react:
+        specifier: ^1.14.0
+        version: 1.23.0(react@19.2.7)
+      next-themes:
+        specifier: ^0.4.6
+        version: 0.4.6(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      react-resizable-panels:
+        specifier: ^4.11.0
+        version: 4.12.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      shadcn:
+        specifier: ^4.7.0
+        version: 4.13.0(typescript@5.9.2)
+      sonner:
+        specifier: ^2.0.7
+        version: 2.0.7(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
+      tailwind-merge:
+        specifier: ^3.6.0
+        version: 3.6.0
+      tailwindcss:
+        specifier: ^4.3.0
+        version: 4.3.2
+      tw-animate-css:
+        specifier: ^1.4.0
+        version: 1.4.0
+    devDependencies:
+      "@repo/eslint-config":
+        specifier: workspace:*
+        version: link:../eslint-config
+      "@repo/typescript-config":
+        specifier: workspace:*
+        version: link:../typescript-config
+      "@types/react":
+        specifier: 19.2.2
+        version: 19.2.2
+      "@types/react-dom":
+        specifier: 19.2.2
+        version: 19.2.2(@types/react@19.2.2)
+      eslint:
+        specifier: ^9.39.1
+        version: 9.39.1(jiti@2.7.0)
+      react:
+        specifier: ^19.2.5
+        version: 19.2.7
+      react-dom:
+        specifier: ^19.2.5
+        version: 19.2.7(react@19.2.7)
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
 
 packages:
   "@adobe/css-tools@4.5.0":
@@ -2279,12 +2319,6 @@ packages:
     resolution:
       {
         integrity: sha512-TP+QSBG3wxKGPE33CbMy/L0Nu3qvJ6Fy81Yc4LnQ95xH+i+cfEp8fyU8/kfV14YwszxIFPhnoMTbjL71waVpyQ==,
-      }
-
-  "@fontsource-variable/inter@5.2.8":
-    resolution:
-      {
-        integrity: sha512-kOfP2D+ykbcX/P3IFnokOhVRNoTozo5/JxhAIVYLpea/UBmCQ/YWPBfWIDuBImXX/15KH+eKh4xpEUyS2sQQGQ==,
       }
 
   "@hono/node-server@1.19.14":
@@ -13936,8 +13970,6 @@ snapshots:
   "@floating-ui/utils@0.2.11": {}
 
   "@fontsource-variable/geist@5.2.9": {}
-
-  "@fontsource-variable/inter@5.2.8": {}
 
   "@hono/node-server@1.19.14(hono@4.12.27)":
     dependencies:

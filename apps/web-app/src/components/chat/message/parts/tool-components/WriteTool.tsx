@@ -1,6 +1,6 @@
 import { Files } from "lucide-react";
 import { CodeBlock } from "@/components/markdown/CodeBlock";
-import { PathText } from "@/components/ui/path-text";
+import { PathText } from "@repo/ui/components/path-text";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import type { ToolComponentProps } from "./types";
 

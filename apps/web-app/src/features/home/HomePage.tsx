@@ -4,7 +4,7 @@ import { TabHeaderBar } from "./components/TabHeaderBar";
 import { ConnectionStatusBanner } from "./components/ConnectionStatusBanner";
 import { HomeContent } from "./HomeContent";
 import { tabTypeMap } from "./tabs/template";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 import { useGlobalEvent } from "@/providers";
 
 export default function HomePage() {

@@ -1,5 +1,5 @@
 import { useWorkspace } from "@/hooks/queries";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 
 interface WorkspaceDotProps {
   workspaceId: string | undefined;

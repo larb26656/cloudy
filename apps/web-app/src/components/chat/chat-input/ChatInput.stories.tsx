@@ -1,9 +1,9 @@
 import { useEffect, useRef } from "react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { ChatProvider } from "../ChatProvider";
-import { MessageScrollerProvider } from "@/components/ui/message-scroller";
+import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import { ChatInput } from "./ChatInput";
 import { useQuickPhrasesStore } from "@/stores/quickPhrasesStore";
 import preview from "@/storybook/preview";

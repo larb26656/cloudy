@@ -7,10 +7,10 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
-} from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
-import { NoData } from "@/components/ui/empty-state";
-import { PathText } from "@/components/ui/path-text";
+} from "@repo/ui/components/accordion";
+import { Badge } from "@repo/ui/components/badge";
+import { NoData } from "@repo/ui/components/empty-state";
+import { PathText } from "@repo/ui/components/path-text";
 import { FILE_CHANGE_STATUS_META } from "./file-change-status";
 import { OpenFullFileButton } from "./OpenFullFileButton";
 

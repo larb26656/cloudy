@@ -10,7 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { SessionStatus } from "@opencode-ai/sdk/v2";
 import { ChatProvider } from "../ChatProvider";
 import { ChatInput } from "./ChatInput";
-import { MessageScrollerProvider } from "@/components/ui/message-scroller";
+import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
 
@@ -55,7 +55,7 @@ vi.mock("@/lib/commands", () => ({
   useSystemCommands: () => ({ execute: mocks.systemCommand }),
 }));
 
-vi.mock("@/components/ui/sonner", () => ({
+vi.mock("@repo/ui/components/sonner", () => ({
   toast: { error: mocks.toastError },
 }));
 

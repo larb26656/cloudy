@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { PathText } from "@/components/ui/path-text";
+import { PathText } from "@repo/ui/components/path-text";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@repo/ui/components/sheet";
 import { FileTree } from "./FileTree";
 import { FilePreview } from "./FilePreview";
 import { FilesResponsiveHeader } from "./FilesResponsiveHeader";

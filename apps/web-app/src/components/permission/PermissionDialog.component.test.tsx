@@ -4,10 +4,10 @@ import { http, HttpResponse } from "msw";
 import { renderWithProviders, userEvent } from "@/test/utils";
 import { server } from "@/test/server";
 import type { PermissionRequest } from "@opencode-ai/sdk/v2";
-import { toast } from "../ui/sonner";
+import { toast } from "@repo/ui/components/sonner";
 import { PermissionDialog } from "./PermissionDialog";
 
-vi.mock("../ui/sonner", () => ({
+vi.mock("@repo/ui/components/sonner", () => ({
   toast: { error: vi.fn(), success: vi.fn(), info: vi.fn() },
 }));
 
@@ -118,9 +118,7 @@ describe("PermissionDialog", () => {
   describe("Action Buttons", () => {
     test("renders all three action buttons", () => {
       renderPermissionDialog(createMockPermission());
-      expect(
-        screen.getByRole("button", { name: /deny/i }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /deny/i })).toBeInTheDocument();
       expect(
         screen.getByRole("button", { name: /allow once/i }),
       ).toBeInTheDocument();

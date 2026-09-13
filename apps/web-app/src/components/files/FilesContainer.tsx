@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { FileDiff, FolderOpen, Search } from "lucide-react";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@repo/ui/components/tabs";
 import { FilesChanges } from "./FilesChanges";
 import { FilesExplorer } from "./FilesExplorer";
 import { FilesSearch } from "./FilesSearch";

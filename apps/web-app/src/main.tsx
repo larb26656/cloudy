@@ -4,8 +4,8 @@ import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
 
 import { routeTree } from "./routeTree.gen";
-import { TooltipProvider } from "./components/ui/tooltip";
-import { Toaster } from "./components/ui/sonner";
+import { TooltipProvider } from "@repo/ui/components/tooltip";
+import { Toaster } from "@repo/ui/components/sonner";
 import { QueryProvider } from "./providers/QueryProvider";
 import { ThemeProvider } from "./providers/ThemeProvider";
 import { GlobalEventProvider } from "./providers";

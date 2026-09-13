@@ -1,20 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { Clock3, FolderOpen, SquareTerminal } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Button } from "@repo/ui/components/button";
+import { ConfirmDialog } from "@repo/ui/components/confirm-dialog";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
-import { EmptyState } from "@/components/ui/empty-state";
-import { ErrorState } from "@/components/ui/error-state";
-import { Input } from "@/components/ui/input";
-import { LoadingState } from "@/components/ui/loading-state";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+} from "@repo/ui/components/dialog";
+import { EmptyState } from "@repo/ui/components/empty-state";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { Input } from "@repo/ui/components/input";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@repo/ui/components/tabs";
 import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
 import { usePtySessions } from "@/hooks/queries";
 import type { PtySession } from "@/hooks/queries";

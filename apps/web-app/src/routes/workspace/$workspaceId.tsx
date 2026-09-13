@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useWorkspace } from "@/hooks/queries";
-import { LoadingState } from "@/components/ui/loading-state";
-import { ErrorState } from "@/components/ui/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 import { WorkspaceDetail } from "@/features/home/components/WorkspaceDetail";
 
 function WorkspacePage() {

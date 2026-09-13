@@ -4,9 +4,9 @@ import { useRecentSessions } from "@/hooks/queries/useSessions";
 import { useWorkspaces } from "@/hooks/queries";
 import { useTabStore } from "@/stores/tabStore";
 import type { Workspace } from "@/lib/cloudy/workspaces";
-import { LoadingState } from "@/components/ui/loading-state";
-import { ErrorState } from "@/components/ui/error-state";
-import { EmptyState } from "@/components/ui/empty-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
 import { SessionRow } from "./SessionRow";
 
 export function RecentSessionsSection() {

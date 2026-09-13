@@ -20,7 +20,7 @@ import {
 import type { ChatInputContent } from "@/lib/opencode";
 import { isCommand, parseCommand } from "@/lib/command";
 import { findSystemCommand, useSystemCommands } from "@/lib/commands";
-import { toast } from "@/components/ui/sonner";
+import { toast } from "@repo/ui/components/sonner";
 import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";

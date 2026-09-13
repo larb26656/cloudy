@@ -8,11 +8,11 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+} from "@repo/ui/components/dialog";
+import { Button } from "@repo/ui/components/button";
 import { SessionItem } from "@/components/ui/SessionItem";
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
 import { QuickPathSection } from "./QuickPathSection";
 import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
 import type { Workspace } from "@/lib/cloudy/workspaces";

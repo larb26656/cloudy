@@ -1,7 +1,7 @@
 import type { SessionV2Info } from "@opencode-ai/sdk/v2";
 import { useState } from "react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 

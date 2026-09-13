@@ -1,41 +1,45 @@
-import { ChevronLeft } from 'lucide-react'
-import React from 'react'
-import { useNavigate, useRouter } from '@tanstack/react-router'
-import { Button } from './button'
+import { ChevronLeft } from "lucide-react";
+import React from "react";
+import { useNavigate, useRouter } from "@tanstack/react-router";
+import { Button } from "@repo/ui/components/button";
 
 type BackButtonProps = {
-  fallbackTo?: string
-  forceFallback?: boolean
-  'aria-label'?: string
-}
+  fallbackTo?: string;
+  forceFallback?: boolean;
+  "aria-label"?: string;
+};
 
-export function BackButton({ fallbackTo = '/', forceFallback = false, ...rest }: BackButtonProps) {
-  const navigate = useNavigate()
-  const router = useRouter()
+export function BackButton({
+  fallbackTo = "/",
+  forceFallback = false,
+  ...rest
+}: BackButtonProps) {
+  const navigate = useNavigate();
+  const router = useRouter();
 
   const goBack = React.useCallback(() => {
     if (forceFallback) {
-      navigate({ to: fallbackTo, replace: true })
-      return
+      navigate({ to: fallbackTo, replace: true });
+      return;
     }
     // Try browser back; if history length small, navigate to fallback
     if (window.history.length > 1) {
-      router.history.back()
+      router.history.back();
     } else {
-      navigate({ to: fallbackTo, replace: true })
+      navigate({ to: fallbackTo, replace: true });
     }
-  }, [fallbackTo, forceFallback, navigate, router.history])
+  }, [fallbackTo, forceFallback, navigate, router.history]);
 
   return (
     <Button
       variant="ghost"
       size="icon-sm"
       onClick={goBack}
-      aria-label={rest['aria-label'] || 'Go back'}
+      aria-label={rest["aria-label"] || "Go back"}
     >
       <ChevronLeft className="size-5" />
     </Button>
-  )
+  );
 }
 
-export default BackButton
+export default BackButton;

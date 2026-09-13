@@ -3,11 +3,11 @@ import { ChevronRight, Folder, FolderOpen } from "lucide-react";
 import type { FileNode } from "@opencode-ai/sdk/v2";
 import type { ReactNode } from "react";
 import { useFileList } from "@/hooks/queries/useFiles";
-import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
-import { EmptyState } from "@/components/ui/empty-state";
+import { cn } from "@repo/ui/lib/utils";
+import { ScrollArea } from "@repo/ui/components/scroll-area";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
 import { FileTypeIcon } from "@/components/files/FileTypeIcon";
 
 interface FileTreeProps {

@@ -2,18 +2,18 @@ import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
-} from "@/components/ui/resizable";
+} from "@repo/ui/components/resizable";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from "@/components/ui/sheet";
+} from "@repo/ui/components/sheet";
 import { FilesContainer } from "@/components/files/FilesContainer";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 import { ChatSurface } from "@/components/chat/ChatSurface";
 import { Center } from "@/components/layout";
-import { useIsMobile } from "@/hooks/useMobile";
+import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";

@@ -11,10 +11,10 @@ import {
   QueryClientProvider,
   useQueryClient,
 } from "@tanstack/react-query";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Button } from "@/components/ui/button";
+import { TooltipProvider } from "@repo/ui/components/tooltip";
+import { Button } from "@repo/ui/components/button";
 import { MessageList } from "./MessageList";
-import { MessageScrollerProvider } from "@/components/ui/message-scroller";
+import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { sessionKeys } from "@/lib/opencode/query-keys";
 import preview from "../../../../.storybook/preview";

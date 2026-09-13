@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import Editor from "react-simple-code-editor";
 
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { highlightCode } from "@/lib/highlight";
 
 interface CodeEditorProps {

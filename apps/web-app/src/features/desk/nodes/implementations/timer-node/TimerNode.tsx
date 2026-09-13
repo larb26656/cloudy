@@ -2,13 +2,13 @@ import { useReactFlow } from "@xyflow/react";
 import type { NodeProps } from "@xyflow/react";
 import { Pause, Play, RotateCcw, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover";
+} from "@repo/ui/components/popover";
 import { WindowFrame } from "../WindowFrame";
 import { formatTimer, useTimerEngine } from "./useTimerEngine";
 import type { TimerNodeProps } from "./types";

@@ -11,7 +11,7 @@ import "react-diff-view/style/index.css";
 import { normalizeDiff } from "@/lib/diff";
 import { getRefractorLanguage } from "@/lib/highlight";
 import refractor from "@/lib/refractor-custom";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import type { DiffType, HunkData, HunkTokens } from "react-diff-view";
 
 interface DiffViewProps {

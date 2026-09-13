@@ -7,7 +7,7 @@ import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@repo/ui/components/tooltip";
 import { formatNumber, formatTime } from "@/lib/format";
 
 interface StepFinishPartProps {

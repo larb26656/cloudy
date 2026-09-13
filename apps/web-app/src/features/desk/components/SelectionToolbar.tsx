@@ -11,13 +11,13 @@ import {
   Copy,
   Trash2,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import { Button } from "@repo/ui/components/button";
+import { Separator } from "@repo/ui/components/separator";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
-} from "@/components/ui/tooltip";
+} from "@repo/ui/components/tooltip";
 import { DeskPanel } from "./DeskPanel";
 import type { AlignType, DistributeAxis } from "../utils/selectionOps";
 

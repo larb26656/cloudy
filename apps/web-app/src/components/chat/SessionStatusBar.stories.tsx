@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { SessionStatusBar } from "./SessionStatusBar";
 import preview from "../../../.storybook/preview";
 import type { Session } from "@opencode-ai/sdk/v2";

@@ -1,9 +1,9 @@
 import { FolderOpen } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@repo/ui/components/button";
 import { WorkspaceItem } from "@/components/ui/WorkspaceItem";
-import { EmptyState } from "@/components/ui/empty-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { EmptyState } from "@repo/ui/components/empty-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
 import { useWorkspaces } from "@/hooks/queries";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 

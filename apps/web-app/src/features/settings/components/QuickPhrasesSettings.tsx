@@ -18,10 +18,10 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { EmptyState } from "@/components/ui/empty-state";
-import { cn } from "@/lib/utils";
+import { Button } from "@repo/ui/components/button";
+import { Input } from "@repo/ui/components/input";
+import { EmptyState } from "@repo/ui/components/empty-state";
+import { cn } from "@repo/ui/lib/utils";
 import { useQuickPhrasesStore, MAX_PHRASES } from "@/stores/quickPhrasesStore";
 
 export function QuickPhrasesSettings() {

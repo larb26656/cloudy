@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import { Center } from "./Center";
+import { Center } from "@repo/ui/components/center";
 
 const meta = preview.meta({
   title: "Layout/Center",

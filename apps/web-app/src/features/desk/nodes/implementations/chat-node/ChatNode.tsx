@@ -6,7 +6,7 @@ import { useSession, useUpdateSession, useWorkspace } from "@/hooks/queries";
 import { WindowFrame } from "../WindowFrame";
 import { ExternalLink } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 import { Center } from "@/components/layout";
 import type { ModelConfig } from "@/types";
 

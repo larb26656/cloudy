@@ -1,10 +1,10 @@
 import { RotateCcw } from "lucide-react";
 import { Terminal as XTermTerminal } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { cn } from "@repo/ui/lib/utils";
+import { Button } from "@repo/ui/components/button";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
 import { useTerminalPty, type TerminalStatus } from "./useTerminalPty";
 
 interface TerminalViewProps {

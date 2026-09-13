@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { TooltipProvider } from "@repo/ui/components/tooltip";
 import {
   MessageScroller,
   MessageScrollerContent,
   MessageScrollerItem,
   MessageScrollerProvider,
   MessageScrollerViewport,
-} from "@/components/ui/message-scroller";
+} from "@repo/ui/components/message-scroller";
 import { ChatMinimap } from "./ChatMinimap";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import preview from "../../../.storybook/preview";
 import type { Message } from "@/types";
 import type { AssistantMessage, Part, UserMessage } from "@opencode-ai/sdk/v2";

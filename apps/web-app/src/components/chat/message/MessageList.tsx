@@ -6,7 +6,7 @@ import { ChatMinimap } from "../ChatMinimap";
 import type { Message } from "@/types";
 import { EmptyChatState } from "../ChatEmptyState";
 import ThinkingAnimation from "./ThinkingAnimation";
-import { ErrorState } from "@/components/ui/error-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 import { Center } from "@/components/layout";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
@@ -23,7 +23,7 @@ import {
   MessageScrollerContent,
   MessageScrollerItem,
   MessageScrollerButton,
-} from "@/components/ui/message-scroller";
+} from "@repo/ui/components/message-scroller";
 
 interface MessageListProps {
   selectedSessionId: string | null;

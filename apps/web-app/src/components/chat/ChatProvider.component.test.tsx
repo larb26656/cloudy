@@ -36,7 +36,7 @@ vi.mock("@/lib/commands", () => ({
   useSystemCommands: () => ({ execute: mocks.systemCommand }),
 }));
 
-vi.mock("@/components/ui/sonner", () => ({
+vi.mock("@repo/ui/components/sonner", () => ({
   toast: { error: mocks.toastError },
 }));
 

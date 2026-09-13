@@ -1,5 +1,5 @@
-import { ErrorState } from "@/components/ui/error-state";
-import { LoadingState } from "@/components/ui/loading-state";
+import { ErrorState } from "@repo/ui/components/error-state";
+import { LoadingState } from "@repo/ui/components/loading-state";
 import { useGlobalEvent } from "@/providers";
 import { WifiOffIcon } from "lucide-react";
 import { useEffect, useState } from "react";

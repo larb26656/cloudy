@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn } from "@repo/ui/lib/utils";
 import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
 
 interface TabItemShellProps {
