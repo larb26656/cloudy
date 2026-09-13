@@ -8,6 +8,7 @@ import { PermissionDialog } from "@/components/permission/PermissionDialog";
 import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
 import { useSessionData } from "@/hooks/session/useSessionHumanApprove";
+import { BotChatSessionMenu } from "./BotChatSessionMenu";
 import { ChatProvider, useChat } from "./ChatProvider";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import type { Workspace } from "@/lib/cloudy/workspaces";
@@ -113,6 +114,10 @@ function BotChatContainerContent({
               count={sessionPermissions.length}
             />
           )}
+        </div>
+
+        <div className="flex shrink-0 items-center px-2 pt-2 pb-1">
+          <BotChatSessionMenu />
         </div>
 
         <MessageScrollerProvider autoScroll>

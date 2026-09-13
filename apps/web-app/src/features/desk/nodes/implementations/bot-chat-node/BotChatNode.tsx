@@ -34,7 +34,12 @@ export function BotChatNode({
 
   const handleSessionChange = useCallback(
     (sessionId: string | null) => {
-      updateNodeData(id, { sessionId });
+      updateNodeData(
+        id,
+        sessionId === null
+          ? { sessionId, sessionName: "New Bot Chat" }
+          : { sessionId },
+      );
     },
     [id, updateNodeData],
   );

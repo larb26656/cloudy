@@ -26,7 +26,14 @@ export function BotChatContent({ tab }: BotChatContentProps) {
       workspace={workspace}
       directory={tab.data.directory}
       sessionId={tab.data.sessionId}
-      onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
+      onSessionChange={(sessionId) =>
+        updateTabData(
+          tab.id,
+          sessionId === null
+            ? { sessionId, sessionName: "New Bot Chat" }
+            : { sessionId },
+        )
+      }
       model={tab.data.model}
       onModelChange={(model) => updateTabData(tab.id, { model })}
     />

@@ -12,7 +12,6 @@ import {
 import { FilesContainer } from "@/components/files/FilesContainer";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { ChatContainer } from "@/components/chat/ChatContainer";
-import { BotChatContainer } from "@/components/chat/BotChatContainer";
 import { Center } from "@/components/layout";
 import { useWorkspace } from "@/hooks/queries";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
@@ -52,29 +51,16 @@ export function ChatContent({ tab }: ChatContentProps) {
   const directory = tab.data.directory;
 
   const chatContainer = (
-    <>
-      {workspace?.type === "bot" ? (
-        <BotChatContainer
-          workspace={workspace}
-          directory={directory}
-          sessionId={tab.data.sessionId}
-          onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
-          model={tab.data.model}
-          onModelChange={(model) => updateTabData(tab.id, { model })}
-        />
-      ) : (
-        <ChatContainer
-          workspace={workspace ?? null}
-          directory={directory}
-          sessionId={tab.data.sessionId}
-          onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
-          agent={tab.data.agent}
-          onAgentChange={(agent) => updateTabData(tab.id, { agent })}
-          model={tab.data.model}
-          onModelChange={(model) => updateTabData(tab.id, { model })}
-        />
-      )}
-    </>
+    <ChatContainer
+      workspace={workspace ?? null}
+      directory={directory}
+      sessionId={tab.data.sessionId}
+      onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
+      agent={tab.data.agent}
+      onAgentChange={(agent) => updateTabData(tab.id, { agent })}
+      model={tab.data.model}
+      onModelChange={(model) => updateTabData(tab.id, { model })}
+    />
   );
 
   if (isMobile) {
