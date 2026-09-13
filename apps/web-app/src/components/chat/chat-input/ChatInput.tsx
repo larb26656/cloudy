@@ -62,6 +62,7 @@ export const ChatInput = memo(function ChatInput({
   const [isListening, setIsListening] = useState(false);
   const [speechDraft, setSpeechDraft] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [agentOpen, setAgentOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
 
   const speechBaseRef = useRef("");
@@ -303,10 +304,13 @@ export const ChatInput = memo(function ChatInput({
               <div
                 className={cn(
                   "flex gap-2 min-w-0 overflow-x-auto items-center",
-                  !isFocused && "@max-compact:hidden",
+                  !isFocused &&
+                    !agentOpen &&
+                    !modelOpen &&
+                    "@max-compact:hidden",
                 )}
               >
-                <AgentSelector />
+                <AgentSelector open={agentOpen} onOpenChange={setAgentOpen} />
                 <ModelSelector open={modelOpen} onOpenChange={setModelOpen} />
               </div>
 

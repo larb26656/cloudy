@@ -306,6 +306,7 @@ export function ModelSelector({ open, onOpenChange }: ModelSelectorProps) {
       <>
         <button
           type="button"
+          onPointerDown={(event) => event.preventDefault()}
           onClick={() => setIsOpen(true)}
           className="inline-flex items-center justify-center gap-1"
         >

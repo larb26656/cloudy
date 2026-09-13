@@ -38,8 +38,15 @@ const FALLBACK_AGENTS: Agent[] = [
   },
 ];
 
-export function AgentSelector() {
+interface AgentSelectorProps {
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function AgentSelector({ open, onOpenChange }: AgentSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const openState = open ?? isOpen;
+  const setOpenState = onOpenChange ?? setIsOpen;
   const [searchQuery, setSearchQuery] = useState("");
   const { effectiveAgent, setAgent, directory } = useChat();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -48,10 +55,10 @@ export function AgentSelector() {
   const { isMobile } = useDeviceType();
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    if (openState && inputRef.current) {
       setTimeout(() => inputRef.current?.focus(), 0);
     }
-  }, [isOpen]);
+  }, [openState]);
 
   const filteredAgents = searchQuery
     ? agents.filter(
@@ -70,7 +77,7 @@ export function AgentSelector() {
 
   const handleSelectAgent = (agentName: string | null) => {
     setAgent(agentName);
-    setIsOpen(false);
+    setOpenState(false);
     setSearchQuery("");
   };
 
@@ -162,12 +169,13 @@ export function AgentSelector() {
       <>
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
+          onPointerDown={(event) => event.preventDefault()}
+          onClick={() => setOpenState(true)}
           className="inline-flex items-center justify-center gap-1"
         >
           {trigger}
         </button>
-        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+        <Sheet open={openState} onOpenChange={setOpenState}>
           <SheetContent
             side="bottom"
             className="max-h-[80dvh] rounded-t-xl p-0"
@@ -195,7 +203,7 @@ export function AgentSelector() {
   }
 
   return (
-    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+    <DropdownMenu open={openState} onOpenChange={setOpenState}>
       <DropdownMenuTrigger className="inline-flex items-center justify-center gap-1">
         {trigger}
       </DropdownMenuTrigger>
