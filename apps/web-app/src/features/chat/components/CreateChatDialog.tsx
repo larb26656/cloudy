@@ -124,6 +124,7 @@ export function CreateChatDialog({
               <WorkspaceSelectStep
                 onSelect={handleWorkspaceSelect}
                 onGoToWorkspaces={handleGoToWorkspaces}
+                workspaceType="agent"
               />
             </>
           ) : (

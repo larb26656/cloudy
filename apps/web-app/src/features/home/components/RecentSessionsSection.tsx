@@ -20,11 +20,13 @@ export function RecentSessionsSection() {
   const handleOpen = (session: SessionV2Info) => {
     const dir = session.location.directory;
     const workspace = directoryToWorkspace(dir);
-    addTab("chat", {
+    addTab(workspace?.type === "bot" ? "bot-chat" : "chat", {
       sessionId: session.id,
       workspaceId: workspace?.id ?? null,
       directory: dir,
-      sessionName: session.title || "New Chat",
+      sessionName:
+        session.title ||
+        (workspace?.type === "bot" ? "New Bot Chat" : "New Chat"),
     });
   };
 

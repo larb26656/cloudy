@@ -9,12 +9,14 @@ import { pomodoroNodeTemplate } from "../implementations/pomodoro-node";
 import { stopwatchNodeTemplate } from "../implementations/stopwatch-node";
 import { timerNodeTemplate } from "../implementations/timer-node";
 import { webviewNodeTemplate } from "../implementations/webview-node";
+import { botChatNodeTemplate } from "../implementations/bot-chat-node";
 import type { NodeTemplate } from "./nodeTemplates";
 
 export * from "./nodeTemplates";
 
 export const nodeTemplates: NodeTemplate[] = [
   chatTemplate,
+  botChatNodeTemplate,
   stickyNoteTemplate,
   mermaidTemplate,
   textNodeTemplate,

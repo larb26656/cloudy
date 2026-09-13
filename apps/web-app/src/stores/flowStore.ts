@@ -8,6 +8,31 @@ export interface FlowData {
   viewport: Viewport;
 }
 
+type PersistedFlowState = { flows?: Record<string, FlowData> };
+
+export function migrateBotNodeType(
+  persistedState: unknown,
+  version: number,
+): unknown {
+  if (version >= 2) return persistedState;
+  const state = persistedState as PersistedFlowState;
+  if (!state.flows) return persistedState;
+  return {
+    ...state,
+    flows: Object.fromEntries(
+      Object.entries(state.flows).map(([id, flow]) => [
+        id,
+        {
+          ...flow,
+          nodes: flow.nodes.map((node) =>
+            node.type === "bot" ? { ...node, type: "bot-chat" } : node,
+          ),
+        },
+      ]),
+    ),
+  };
+}
+
 interface FlowState {
   flows: Record<string, FlowData>;
   saveFlow: (tabId: string, flow: FlowData) => void;
@@ -35,8 +60,8 @@ export const useFlowStore = create<FlowState>()(
     }),
     {
       name: "flow-storage",
-      version: 1,
-      migrate: (persistedState) => persistedState,
+      version: 2,
+      migrate: migrateBotNodeType,
     },
   ),
 );

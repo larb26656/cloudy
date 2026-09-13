@@ -11,35 +11,44 @@ import { useTabStore } from "@/stores/tabStore";
 import { useSessions, useCreateSession } from "@/hooks/queries";
 import { Plus } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import type { WorkspaceType } from "@/lib/cloudy/workspaces";
 
 interface SessionListProps {
   directory: string;
   workspaceId: string;
+  workspaceType: WorkspaceType;
   /** Optional custom header rendered above the list. When omitted, the default "New chat" button is shown. */
   header?: ReactNode;
 }
 
-function SessionList({ directory, workspaceId, header }: SessionListProps) {
+function SessionList({
+  directory,
+  workspaceId,
+  workspaceType,
+  header,
+}: SessionListProps) {
   const { data: sessions = [], isLoading, error } = useSessions({ directory });
   const createSession = useCreateSession();
   const addTab = useTabStore((s) => s.addTab);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleSelect = (session: Session) => {
-    addTab("chat", {
+    addTab(workspaceType === "bot" ? "bot-chat" : "chat", {
       sessionId: session.id,
       workspaceId,
       directory,
-      sessionName: session.title || "New Chat",
+      sessionName:
+        session.title ||
+        (workspaceType === "bot" ? "New Bot Chat" : "New Chat"),
     });
   };
 
   const handleNewChat = () => {
-    addTab("chat", {
+    addTab(workspaceType === "bot" ? "bot-chat" : "chat", {
       sessionId: null,
       workspaceId,
       directory,
-      sessionName: "New Chat",
+      sessionName: workspaceType === "bot" ? "New Bot Chat" : "New Chat",
     });
   };
 
@@ -65,7 +74,7 @@ function SessionList({ directory, workspaceId, header }: SessionListProps) {
           className="self-start gap-2"
         >
           <Plus data-icon="inline-start" />
-          New chat
+          {workspaceType === "bot" ? "New bot chat" : "New chat"}
         </Button>
       )}
       {rootSessions.map((session: Session) =>
@@ -74,7 +83,10 @@ function SessionList({ directory, workspaceId, header }: SessionListProps) {
             key={session.id}
             sessionId={session.id}
             directory={directory}
-            initialTitle={session.title || "New Chat"}
+            initialTitle={
+              session.title ||
+              (workspaceType === "bot" ? "New Bot Chat" : "New Chat")
+            }
             onDone={() => setEditingId(null)}
             className="px-2 py-1.5"
           />
@@ -91,7 +103,8 @@ function SessionList({ directory, workspaceId, header }: SessionListProps) {
               "shrink-0 truncate rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
             )}
           >
-            {session.title || "New Chat"}
+            {session.title ||
+              (workspaceType === "bot" ? "New Bot Chat" : "New Chat")}
           </button>
         ),
       )}

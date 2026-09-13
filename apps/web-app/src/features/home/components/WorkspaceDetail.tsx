@@ -34,11 +34,11 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
   const [deleting, setDeleting] = useState(false);
 
   const handleNewChat = () => {
-    addTab("chat", {
+    addTab(workspace.type === "bot" ? "bot-chat" : "chat", {
       sessionId: null,
       workspaceId: workspace.id,
       directory: workspace.directory,
-      sessionName: "New Chat",
+      sessionName: workspace.type === "bot" ? "New Bot Chat" : "New Chat",
     });
   };
 
@@ -103,6 +103,7 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
       <SessionList
         directory={workspace.directory}
         workspaceId={workspace.id}
+        workspaceType={workspace.type}
         header={
           <Button
             variant="default"
@@ -111,7 +112,7 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
             onClick={handleNewChat}
           >
             <Plus data-icon="inline-start" />
-            New chat
+            {workspace.type === "bot" ? "New bot chat" : "New chat"}
           </Button>
         }
       />

@@ -1,4 +1,4 @@
-import { ChatSurface } from "@/components/chat/ChatSurface";
+import { ChatContainer } from "@/components/chat/ChatContainer";
 import type { Node, NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
 import { useCallback } from "react";
@@ -73,8 +73,18 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       workspaceId: data.workspaceId,
       directory,
       sessionName: title,
+      agent: data.agent,
+      model: data.model,
     });
-  }, [addTab, data.sessionId, data.workspaceId, directory, title]);
+  }, [
+    addTab,
+    data.agent,
+    data.model,
+    data.sessionId,
+    data.workspaceId,
+    directory,
+    title,
+  ]);
 
   return (
     <WindowFrame
@@ -93,21 +103,25 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
         },
       ]}
     >
-      {directory ? (
-        <ChatSurface
-          workspaceId={data.workspaceId}
-          directory={directory}
-          sessionId={data.sessionId}
-          onSessionChange={handleSessionChange}
-          initialAgent={data.agent}
-          onAgentChange={handleAgentChange}
-          initialModel={data.model}
-          onModelChange={handleModelChange}
-        />
-      ) : (
+      {!directory ? (
         <Center className="flex-1">
           <ErrorState message="Workspace not found" />
         </Center>
+      ) : workspace?.type === "bot" ? (
+        <Center className="flex-1">
+          <ErrorState message="Use a Bot Chat node for this workspace" />
+        </Center>
+      ) : (
+        <ChatContainer
+          workspace={workspace ?? null}
+          directory={directory}
+          sessionId={data.sessionId}
+          onSessionChange={handleSessionChange}
+          agent={data.agent}
+          onAgentChange={handleAgentChange}
+          model={data.model}
+          onModelChange={handleModelChange}
+        />
       )}
     </WindowFrame>
   );

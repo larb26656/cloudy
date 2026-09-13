@@ -47,6 +47,12 @@ export function removeTerminalWorkspaceIdentity(
   });
 }
 
+export function migrateBotTabType(tabs: PersistedTab[]): PersistedTab[] {
+  return tabs.map((tab) =>
+    tab.type === "bot" ? { ...tab, type: "bot-chat" } : tab,
+  );
+}
+
 export const useTabStore = create<TabStore>()(
   persist(
     (set, get) => ({
@@ -106,7 +112,7 @@ export const useTabStore = create<TabStore>()(
     }),
     {
       name: "tabs",
-      version: 9,
+      version: 10,
       migrate: (persistedState, version) => {
         // Persisted shapes may predate the current `Tab` union, so read them
         // through a looser type. Old versions stored `type: "session"` which
@@ -244,6 +250,10 @@ export const useTabStore = create<TabStore>()(
               },
             };
           });
+        }
+
+        if (version < 10) {
+          tabs = migrateBotTabType(tabs);
         }
 
         // v0 -> v1: drop stale "files" tabs missing a workspaceId.
