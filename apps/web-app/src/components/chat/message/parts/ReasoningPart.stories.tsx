@@ -1,6 +1,5 @@
-import { useEffect } from "react";
 import preview from "@/storybook/preview";
-import { useChatSettingsStore } from "@/stores/chatSettingsStore";
+import { MessageSettingsContext } from "../context";
 import { ReasoningPart } from "./ReasoningPart";
 
 const meta = preview.meta({
@@ -83,21 +82,17 @@ export const AutoExpanded = meta.story({
 });
 
 function AutoExpandedStory() {
-  useEffect(() => {
-    useChatSettingsStore.setState({ autoExpandThinking: true });
-    return () => {
-      useChatSettingsStore.setState({ autoExpandThinking: false });
-    };
-  }, []);
   return (
-    <ReasoningPart
-      part={
-        {
-          type: "reasoning",
-          text: "Reasoning shown inline with **markdown** support and reduced opacity, no click needed.",
-          time: { start: Date.now() - 5000, end: Date.now() },
-        } as any
-      }
-    />
+    <MessageSettingsContext.Provider value={{ autoExpandThinking: true }}>
+      <ReasoningPart
+        part={
+          {
+            type: "reasoning",
+            text: "Reasoning shown inline with **markdown** support and reduced opacity, no click needed.",
+            time: { start: Date.now() - 5000, end: Date.now() },
+          } as any
+        }
+      />
+    </MessageSettingsContext.Provider>
   );
 }

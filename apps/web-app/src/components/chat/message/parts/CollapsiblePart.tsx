@@ -15,7 +15,7 @@ interface CollapsiblePartProps {
   children: ReactNode;
 }
 
-export default function CollapsiblePart({
+export function CollapsiblePart({
   label,
   detail,
   trailing,

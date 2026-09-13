@@ -9,10 +9,7 @@ interface UserMessageBubbleProps {
   parts: Part[];
 }
 
-export default function UserMessageBubble({
-  info,
-  parts,
-}: UserMessageBubbleProps) {
+export function UserMessageBubble({ info, parts }: UserMessageBubbleProps) {
   const { copied, handleCopy } = useCopyMessage(() => getTextFromParts(parts));
 
   return (

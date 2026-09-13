@@ -1,16 +1,24 @@
 import { useTheme } from "next-themes";
 import { Sprite } from "../../Sprite";
 
-const thinkingDarkUrl = "/sprite/thinking-dark.png";
-const thinkingUrl = "/sprite/thinking.png";
+const defaultDarkSrc = "/sprite/thinking-dark.png";
+const defaultLightSrc = "/sprite/thinking.png";
 
-export default function ThinkingAnimation() {
+interface ThinkingAnimationProps {
+  lightSrc?: string;
+  darkSrc?: string;
+}
+
+export function ThinkingAnimation({
+  lightSrc = defaultLightSrc,
+  darkSrc = defaultDarkSrc,
+}: ThinkingAnimationProps) {
   const { resolvedTheme } = useTheme();
   const isDarkMode = resolvedTheme === "dark";
 
   return (
     <Sprite
-      src={isDarkMode ? thinkingDarkUrl : thinkingUrl}
+      src={isDarkMode ? darkSrc : lightSrc}
       frameWidth={96}
       frameHeight={64}
       cols={2}

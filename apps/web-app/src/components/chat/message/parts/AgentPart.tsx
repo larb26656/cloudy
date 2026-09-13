@@ -1,7 +1,7 @@
 import type { AgentPart as AgentPartType } from "@opencode-ai/sdk/v2";
 import { Bot, Code } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
-import CollapsiblePart from "./CollapsiblePart";
+import { CollapsiblePart } from "./CollapsiblePart";
 
 interface AgentPartProps {
   part: AgentPartType;

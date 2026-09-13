@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
 import { Wrench } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
-import CollapsiblePart from "../CollapsiblePart";
+import { CollapsiblePart } from "../CollapsiblePart";
 import { ToolStateDisplay } from "../ToolStateDisplay";
 
 interface ExpandableToolCardProps {

@@ -2,7 +2,7 @@ import type { PatchPart as PatchPartType } from "@opencode-ai/sdk/v2";
 import { GitCommit } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { PathText } from "@repo/ui/components/path-text";
-import CollapsiblePart from "./CollapsiblePart";
+import { CollapsiblePart } from "./CollapsiblePart";
 
 interface PatchPartProps {
   part: PatchPartType;

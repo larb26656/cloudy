@@ -1,7 +1,6 @@
-import { useState } from "react";
 import { Bot, ExternalLink, ListTodo } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
-import { SessionViewDialog } from "@/components/chat/dialogs/SessionViewDialog";
+import { useSessionViewDialog } from "../../context";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import { ExpandableToolCard } from "./ExpandableToolCard";
 import type { ToolComponentProps } from "./types";
@@ -13,31 +12,24 @@ function getSessionID(state: ToolPartType["state"]): string | undefined {
 }
 
 function TaskPreview({ state }: { state: ToolPartType["state"] }) {
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const { openSessionView } = useSessionViewDialog();
   const sessionID = getSessionID(state);
   if (!sessionID) return null;
 
   return (
-    <>
-      <ToolPreviewLabel
-        icon={<ListTodo className="size-3" />}
-        label={"Subtask"}
-        action={
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => setDialogOpen(true)}
-          >
-            <ExternalLink className="size-3.5" />
-          </Button>
-        }
-      />
-      <SessionViewDialog
-        sessionId={sessionID}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-      />
-    </>
+    <ToolPreviewLabel
+      icon={<ListTodo className="size-3" />}
+      label={"Subtask"}
+      action={
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={() => openSessionView(sessionID)}
+        >
+          <ExternalLink className="size-3.5" />
+        </Button>
+      }
+    />
   );
 }
 

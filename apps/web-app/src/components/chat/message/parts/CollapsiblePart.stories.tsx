@@ -1,5 +1,5 @@
 import preview from "@/storybook/preview";
-import CollapsiblePart from "./CollapsiblePart";
+import { CollapsiblePart } from "./CollapsiblePart";
 
 const meta = preview.meta({
   title: "Chat/Message/Parts/CollapsiblePart",

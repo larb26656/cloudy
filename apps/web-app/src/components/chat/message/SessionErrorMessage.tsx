@@ -1,6 +1,8 @@
 import { X } from "lucide-react";
+import type { AssistantMessage } from "@opencode-ai/sdk/v2";
 import { MessageError } from "./MessageError";
-import type { SessionErrorInfo } from "@/stores/sessionErrorStore";
+
+export type SessionErrorInfo = NonNullable<AssistantMessage["error"]>;
 
 interface SessionErrorMessageProps {
   error: SessionErrorInfo;

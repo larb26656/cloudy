@@ -1,6 +1,6 @@
 import type { UserMessage, Part } from "@opencode-ai/sdk/v2";
 import preview from "../../../../.storybook/preview";
-import UserMessageBubble from "./UserMessageBubble";
+import { UserMessageBubble } from "./UserMessageBubble";
 
 const NOW = Date.now();
 
@@ -29,7 +29,11 @@ interface UserMessageBubbleStoryProps {
   parts: Part[];
 }
 
-function UserMessageBubbleStory({ width, info, parts }: UserMessageBubbleStoryProps) {
+function UserMessageBubbleStory({
+  width,
+  info,
+  parts,
+}: UserMessageBubbleStoryProps) {
   return (
     <div
       style={{

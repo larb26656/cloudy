@@ -5,7 +5,7 @@ import type {
 import { Paperclip } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { PathText } from "@repo/ui/components/path-text";
-import CollapsiblePart from "./CollapsiblePart";
+import { CollapsiblePart } from "./CollapsiblePart";
 
 interface FilePartProps {
   part: FilePartType;

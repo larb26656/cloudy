@@ -2,16 +2,16 @@ import type { ReasoningPart as ReasoningPartType } from "@opencode-ai/sdk/v2";
 import { Brain } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { MarkdownRenderer } from "@/components/markdown/MarkdownRenderer";
-import { useChatSettingsStore } from "@/stores/chatSettingsStore";
+import { useMessageSettings } from "../context";
 import { useElapsedTime } from "@/hooks/useElapsedTime";
-import CollapsiblePart from "./CollapsiblePart";
+import { CollapsiblePart } from "./CollapsiblePart";
 
 interface ReasoningPartProps {
   part: ReasoningPartType;
 }
 
 export function ReasoningPart({ part }: ReasoningPartProps) {
-  const autoExpandThinking = useChatSettingsStore((s) => s.autoExpandThinking);
+  const { autoExpandThinking } = useMessageSettings();
   const isRunning = !part.time.end;
   const finalSeconds = part.time.end
     ? Math.round((part.time.end - part.time.start) / 1000)

@@ -25,21 +25,21 @@ move.
 All paths under `apps/web-app/src/`. Many files, but one cohesive refactor of the
 `components/chat/` tree — single-feature scope.
 
-| Path                                                                                                       | Action                                   |
-| ---------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| `components/chat/message/context.ts`                                                                       | create — dialog + settings context seams |
-| `components/chat/message/SessionErrorMessage.tsx`                                                          | edit — drop store type import            |
-| `components/chat/message/parts/ReasoningPart.tsx` (+ `.stories.tsx`)                                       | edit — drop store read                   |
-| `components/chat/message/parts/SubtaskPart.tsx`                                                            | edit — stop rendering SessionViewDialog  |
-| `components/chat/message/parts/tool-components/TaskTool.tsx`                                               | edit — same                              |
-| `components/chat/message/ThinkingAnimation.tsx`                                                            | edit — asset props                       |
-| `components/chat/message/MessageBubble.tsx`                                                                | edit — remove lying props                |
-| `components/chat/message/UserMessageBubble.tsx`, `AssistantMessageBubble.tsx`, `parts/CollapsiblePart.tsx` | edit — named exports                     |
-| `components/chat/message/MessageListView.tsx`                                                              | create — presentational split            |
-| `components/chat/message/useMessageListData.ts`                                                            | create — data orchestration split        |
-| `components/chat/message/MessageList.tsx`                                                                  | edit — become thin composition           |
-| `components/chat/ChatContainer.tsx`, `BotChatContainer.tsx`                                                | edit/delete — merge into one container   |
-| `components/chat/dialogs/SessionViewDialog.tsx`                                                            | edit — host via seam (unchanged API)     |
+| Path                                                                                                       | Action                                       |
+| ---------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| `components/chat/message/context.ts`                                                                       | create — dialog + settings context seams     |
+| `components/chat/message/SessionErrorMessage.tsx`                                                          | edit — drop store type import                |
+| `components/chat/message/parts/ReasoningPart.tsx` (+ `.stories.tsx`)                                       | edit — drop store read                       |
+| `components/chat/message/parts/SubtaskPart.tsx`                                                            | edit — stop rendering SessionViewDialog      |
+| `components/chat/message/parts/tool-components/TaskTool.tsx`                                               | edit — same                                  |
+| `components/chat/message/ThinkingAnimation.tsx`                                                            | edit — asset props                           |
+| `components/chat/message/MessageBubble.tsx`                                                                | edit — remove lying props                    |
+| `components/chat/message/UserMessageBubble.tsx`, `AssistantMessageBubble.tsx`, `parts/CollapsiblePart.tsx` | edit — named exports                         |
+| `components/chat/message/MessageListView.tsx`                                                              | create — presentational split                |
+| `components/chat/message/useMessageListData.ts`                                                            | create — data orchestration split            |
+| `components/chat/message/MessageList.tsx`                                                                  | edit — become thin composition               |
+| `components/chat/ChatContainer.tsx`, `BotChatContainer.tsx`                                                | edit — host the dialog seam (merge reverted) |
+| `components/chat/dialogs/SessionViewDialog.tsx`                                                            | edit — host via seam (unchanged API)         |
 
 ## Context the new session needs
 
@@ -99,7 +99,7 @@ open={dialogOpen} onOpenChange={setDialogOpen}/>` inline (SubtaskPart.tsx:66,
 
 ## Tasks
 
-- [ ] 1. Create `components/chat/message/context.ts` with `SessionViewDialogSeam`
+- [x] 1. Create `components/chat/message/context.ts` with `SessionViewDialogSeam`
      (`openSessionView(sessionId, directory?) => void`, no-op default) and
      `MessageSettings` (`autoExpandThinking: boolean`, default `false`) contexts;
      rewire `SubtaskPart.tsx` and `tool-components/TaskTool.tsx` to call the seam
@@ -109,36 +109,36 @@ open={dialogOpen} onOpenChange={setDialogOpen}/>` inline (SubtaskPart.tsx:66,
     returns nothing && `pnpm --filter web-app check-types` passes
   - files: `components/chat/message/context.ts` (new), `parts/SubtaskPart.tsx`,
     `parts/tool-components/TaskTool.tsx`, `ChatContainer.tsx`, `BotChatContainer.tsx`
-- [ ] 2. Remove the `@/stores/sessionErrorStore` type import from
+- [x] 2. Remove the `@/stores/sessionErrorStore` type import from
      `SessionErrorMessage.tsx` — define `SessionErrorInfo` locally
   - verify: `grep -rn "sessionErrorStore" apps/web-app/src/components/chat/message/`
     matches only `MessageList.tsx`
   - files: `components/chat/message/SessionErrorMessage.tsx`
-- [ ] 3. Remove the `chatSettingsStore` read from `ReasoningPart.tsx` — consume
+- [x] 3. Remove the `chatSettingsStore` read from `ReasoningPart.tsx` — consume
      `MessageSettings` from the context (default `false`); update
      `ReasoningPart.stories.tsx` to wrap with the settings provider instead of mocking
      the store
   - verify: `grep -rn "chatSettingsStore" apps/web-app/src/components/chat/message/`
     matches only `MessageList.tsx`
   - files: `components/chat/message/parts/ReasoningPart.tsx`, `ReasoningPart.stories.tsx`
-- [ ] 4. Add `lightSrc`/`darkSrc` props to `ThinkingAnimation.tsx` defaulting to the
+- [x] 4. Add `lightSrc`/`darkSrc` props to `ThinkingAnimation.tsx` defaulting to the
      current `/sprite/thinking.png` / `/sprite/thinking-dark.png` constants
   - verify: `pnpm --filter web-app check-types` passes and
     `ThinkingAnimation` still renders in the running Storybook
   - files: `components/chat/message/ThinkingAnimation.tsx`
-- [ ] 5. Delete the unused `isStreaming`/`onRegenerate` props from `MessageBubble.tsx`
+- [x] 5. Delete the unused `isStreaming`/`onRegenerate` props from `MessageBubble.tsx`
      and update its call sites
   - verify: `grep -n "isStreaming\|onRegenerate" apps/web-app/src/components/chat/message/MessageBubble.tsx`
     returns nothing && `pnpm --filter web-app check-types` passes
   - files: `components/chat/message/MessageBubble.tsx`,
     `components/chat/message/StreamingMessageBubble.tsx`
-- [ ] 6. Convert the four default exports (`UserMessageBubble`,
+- [x] 6. Convert the four default exports (`UserMessageBubble`,
      `AssistantMessageBubble`, `ThinkingAnimation`, `CollapsiblePart`) to named
      exports and update all importers (components + stories)
   - verify: `grep -rn "export default" apps/web-app/src/components/chat/` returns
     nothing && `pnpm --filter web-app check-types` passes
   - files: the four components + importers
-- [ ] 7. Split `MessageList.tsx` into `useMessageListData.ts` (queries, stores,
+- [x] 7. Split `MessageList.tsx` into `useMessageListData.ts` (queries, stores,
      `pickFresher` dedupe, streaming eviction, pagination) + `MessageListView.tsx`
      (pure presentational, all data via props); `MessageList.tsx` keeps its exact
      props signature and composes the two; visual output unchanged
@@ -146,9 +146,15 @@ open={dialogOpen} onOpenChange={setDialogOpen}/>` inline (SubtaskPart.tsx:66,
     `pnpm --filter web-app check-types` passes
   - files: `components/chat/message/MessageList.tsx` (edit),
     `useMessageListData.ts` (new), `MessageListView.tsx` (new)
-- [ ] 8. Merge `ChatContainer` + `BotChatContainer` into a single parameterized
+- [ ] 8. ~~Merge `ChatContainer` + `BotChatContainer` into a single parameterized
      container (input/status-bar/picker/minimap as slots); delete
-     `BotChatContainer.tsx`; `ChatSurface.tsx` API unchanged
+     `BotChatContainer.tsx`; `ChatSurface.tsx` API unchanged~~
+     **REVERTED 2026-09-13 at owner's request** — the containers stay as two
+     separate files. The merge was implemented, verified, then reverted; both
+     containers keep the Task 1 seam (they host one `SessionViewDialog` and
+     provide `SessionViewDialogContext`). The follow-up extraction plan
+     (`20260913-extract-message-components-to-repo-ui.md`) should not assume a
+     merged container.
   - verify: `test ! -f apps/web-app/src/components/chat/BotChatContainer.tsx` &&
     `pnpm --filter web-app check-types` passes && both chat tab and bot chat render in
     Storybook/dev server
@@ -157,14 +163,14 @@ open={dialogOpen} onOpenChange={setDialogOpen}/>` inline (SubtaskPart.tsx:66,
 
 ## Done when
 
-- [ ] `grep -rn "@/stores/\|@/hooks/queries/" apps/web-app/src/components/chat/message/parts/`
+- [x] `grep -rn "@/stores/\|@/hooks/queries/" apps/web-app/src/components/chat/message/parts/`
       returns nothing (parts tree is store- and query-free; only `MessageList.tsx` /
       `useMessageListData.ts` may import them)
-- [ ] `grep -rn "SessionViewDialog" apps/web-app/src/components/chat/message/` returns
+- [x] `grep -rn "SessionViewDialog" apps/web-app/src/components/chat/message/` returns
       nothing (cycle broken)
-- [ ] `pnpm --filter web-app lint && pnpm --filter web-app check-types &&
-    pnpm --filter web-app exec vitest run` all green
-- [ ] `MessageList` consumers (`ChatContainer`, `SessionViewDialog`) required no prop
+- [x] `pnpm --filter web-app lint && pnpm --filter web-app check-types &&
+  pnpm --filter web-app exec vitest run` all green
+- [x] `MessageList` consumers (`ChatContainer`, `SessionViewDialog`) required no prop
       changes
 
 ## Notes for implementer

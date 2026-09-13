@@ -7,7 +7,7 @@ interface AssistantMessageBubbleProps {
   parts: Part[];
 }
 
-export default function AssistantMessageBubble({
+export function AssistantMessageBubble({
   info,
   parts,
 }: AssistantMessageBubbleProps) {
