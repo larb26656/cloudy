@@ -22,7 +22,7 @@ const mockExecute = vi.fn();
 vi.mock("@/lib/commands", () => ({
   useSystemCommands: () => ({ commands: [], execute: mockExecute }),
   findSystemCommand: (name: string) =>
-    name === "test-command" ? { name: "test-command" } : null,
+    name === "test-command" || name === "session" ? { name } : null,
 }));
 
 vi.mock("@/components/chat/message/MessageList", () => ({
@@ -74,6 +74,18 @@ vi.mock("@/components/chat/chat-input", () => ({
         >
           trigger slash command
         </button>
+        <button
+          data-testid="trigger-session-command"
+          onClick={() =>
+            void sendMessage({
+              text: "/session",
+              mentions: [],
+              attachments: [],
+            })
+          }
+        >
+          trigger session command
+        </button>
         <span data-testid="loading-state">
           {isGenerating ? "true" : "false"}
         </span>
@@ -98,6 +110,12 @@ vi.mock("@/components/permission/PermissionDialog", () => ({
       data-testid="permission-dialog"
       data-session={permission?.sessionID ?? ""}
     />
+  ),
+}));
+
+vi.mock("@/components/session/SessionPickerDialog", () => ({
+  SessionPickerDialog: ({ open }: { open: boolean }) => (
+    <div data-testid="session-picker-dialog" data-open={String(open)} />
   ),
 }));
 
@@ -470,6 +488,24 @@ describe("ChatCoatainer", () => {
             directory: DIRECTORY,
             sessionId: "test-session",
           }),
+        );
+      });
+    });
+
+    test("opens session picker when /session is sent", async () => {
+      mockExecute.mockImplementationOnce((_command, _args, options) => {
+        options?.openSessionPicker?.();
+      });
+
+      renderChat("test-session");
+
+      const trigger = await screen.findByTestId("trigger-session-command");
+      trigger.click();
+
+      await waitFor(() => {
+        expect(screen.getByTestId("session-picker-dialog")).toHaveAttribute(
+          "data-open",
+          "true",
         );
       });
     });

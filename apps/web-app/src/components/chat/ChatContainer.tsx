@@ -8,6 +8,7 @@ import { PermissionDialog } from "@/components/permission/PermissionDialog";
 import { useMemo, useState } from "react";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useSessionData } from "@/hooks/session/useSessionHumanApprove";
+import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import type { ModelConfig } from "@/types";
 import { QuestionBanner } from "../question/QuestionBanner";
@@ -73,8 +74,16 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
     }),
     [],
   );
-  const { abortGeneration, isGenerating, directory, sessionId, workspace } =
-    useChat();
+  const {
+    abortGeneration,
+    isGenerating,
+    directory,
+    sessionId,
+    workspace,
+    changeSession,
+    sessionPickerOpen,
+    setSessionPickerOpen,
+  } = useChat();
   const {
     sessionQuestions,
     currentQuestion,
@@ -152,6 +161,14 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
             directory={directory}
           />
         )}
+
+        <SessionPickerDialog
+          open={sessionPickerOpen}
+          onOpenChange={setSessionPickerOpen}
+          directory={directory}
+          sessionId={sessionId}
+          onSessionChange={changeSession}
+        />
       </div>
 
       <SessionViewDialog
