@@ -44,22 +44,22 @@ creating another app-local copy.
 
 ## Tasks
 
-- [ ] 1. Copy the existing AppBar implementation into `packages/ui/src/components/app-bar.tsx` and keep the public compound-component contract unchanged
+- [x] 1. Copy the existing AppBar implementation into `packages/ui/src/components/app-bar.tsx` and keep the public compound-component contract unchanged
   - verify: `pnpm --filter @repo/ui check-types` passes
   - files: `packages/ui/src/components/app-bar.tsx`
-- [ ] 2. Replace the app-local implementation with a package re-export and update the AppBar story import
+- [x] 2. Replace the app-local implementation with a package re-export and update the AppBar story import
   - verify: `pnpm --filter web-app check-types` passes and `rg 'from "./AppBar"' apps/web-app/src/components/layout/app-bar` returns no matches
   - files: `apps/web-app/src/components/layout/app-bar/AppBar.tsx`, `apps/web-app/src/components/layout/index.ts`, `apps/web-app/src/components/layout/app-bar/AppBar.stories.tsx`
-- [ ] 3. Run package and app quality checks
+- [x] 3. Run package and app quality checks
   - verify: `pnpm --filter @repo/ui lint && pnpm --filter @repo/ui check-types && pnpm --filter web-app lint && pnpm --filter web-app check-types`
   - files: —
 
 ## Done when
 
-- [ ] `@repo/ui` owns the only AppBar implementation.
-- [ ] Existing mobile tab bar and chat header action consumers compile without local AppBar imports.
-- [ ] The AppBar Storybook stories still render from the web-app Storybook setup.
-- [ ] Package and web-app lint/typecheck pass.
+- [x] `@repo/ui` owns the only AppBar implementation.
+- [x] Existing mobile tab bar and chat header action consumers compile without local AppBar imports.
+- [x] The AppBar Storybook stories still render from the web-app Storybook setup.
+- [x] Package and web-app lint/typecheck pass.
 
 ## Notes for implementer
 

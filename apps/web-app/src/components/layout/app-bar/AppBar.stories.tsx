@@ -1,6 +1,6 @@
 import preview from "@/storybook/preview";
 import { ArrowLeft, Menu, RefreshCw, Settings, X } from "lucide-react";
-import { AppBar } from "./AppBar";
+import { AppBar } from "@repo/ui/components/app-bar";
 
 const meta = preview.meta({
   title: "Layout/AppBar",
