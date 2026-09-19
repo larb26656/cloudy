@@ -25,3 +25,10 @@ export const workspaceDtoSchema = z.object({
 });
 
 export type Workspace = z.infer<typeof workspaceDtoSchema>;
+
+export const tempWorkspaceDtoSchema = z.object({
+  name: z.string(),
+  directory: z.string(),
+});
+
+export type TempWorkspace = z.infer<typeof tempWorkspaceDtoSchema>;

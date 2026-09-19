@@ -39,7 +39,7 @@ export function createWorkspacesService(
 
   const createTemp = async (): Promise<TempWorkspaceDto> => {
     const name = randomWorkspaceName();
-    const directory = path.join(tempWorkspaceDir, name);
+    const directory = path.resolve(tempWorkspaceDir, name);
     await mkdir(directory, {
       recursive: true,
     });

@@ -18,7 +18,8 @@ import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { basename } from "@/lib/path";
 import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
-import { useSessions } from "@/hooks/queries";
+import { useCreateTempWorkspace, useSessions } from "@/hooks/queries";
+import { MessageCircleDashed } from "lucide-react";
 
 interface CreateChatDialogProps {
   open: boolean;
@@ -46,10 +47,26 @@ export function CreateChatDialog({
   const navigate = useNavigate();
   const pushRecentDirectory = useRecentDirectoryStore((s) => s.push);
   const [selected, setSelected] = useState<ChatTarget | null>(null);
+  const createTempWorkspace = useCreateTempWorkspace();
 
   const { data: sessions = [], isLoading: sessionsLoading } = useSessions({
     directory: selected?.directory ?? "",
   });
+
+  const handleCreateTempChat = () => {
+    createTempWorkspace.mutate(undefined, {
+      onSuccess: ({ name, directory }) => {
+        pushRecentDirectory(directory);
+        onSubmit({
+          workspaceId: null,
+          directory,
+          sessionId: null,
+          sessionName: name,
+        });
+        handleClose();
+      },
+    });
+  };
 
   const handleQuickPath = (directory: string) => {
     pushRecentDirectory(directory);
@@ -112,9 +129,16 @@ export function CreateChatDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4 flex-1 min-h-0 flex flex-col">
+        <div className="py-4 flex-1 min-h-0 flex flex-col gap-3">
           {!selected ? (
             <>
+              <Button
+                variant="outline"
+                onClick={handleCreateTempChat}
+                disabled={createTempWorkspace.isPending}
+              >
+                <MessageCircleDashed /> Temp chat
+              </Button>
               <QuickPathSection onPathSubmit={handleQuickPath} />
               <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
                 <span className="h-px flex-1 bg-border" />

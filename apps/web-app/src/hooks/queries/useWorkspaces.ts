@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { cloudyClient } from "@/lib/api";
 import { workspaceKeys } from "@/lib/cloudy/query-keys";
 import {
+  tempWorkspaceDtoSchema,
   workspaceDtoSchema,
   type Workspace,
   type WorkspaceType,
@@ -33,6 +34,22 @@ export function useWorkspace(id: string | null) {
       return workspaceDtoSchema.parse(data);
     },
     enabled: !!id,
+  });
+}
+
+export function useCreateTempWorkspace() {
+  return useMutation({
+    mutationFn: async () => {
+      const res = await cloudyClient.api.workspaces.temp.$post();
+      if (!res.ok) {
+        throw new Error(`Failed to create temp workspace (${res.status})`);
+      }
+      const data = await res.json();
+      return tempWorkspaceDtoSchema.parse(data);
+    },
+    onError: (error: Error) => {
+      toast.error(error.message);
+    },
   });
 }
 
