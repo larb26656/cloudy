@@ -35,6 +35,9 @@ importers:
       "@opencode-ai/sdk":
         specifier: ^1.18.13
         version: 1.18.13
+      "@repo/contracts":
+        specifier: workspace:*
+        version: link:../../packages/contracts
       "@repo/opencode":
         specifier: workspace:*
         version: link:../../packages/opencode
@@ -50,6 +53,9 @@ importers:
       "@types/turndown":
         specifier: ^5.0.6
         version: 5.0.6
+      hono:
+        specifier: ^4.12.18
+        version: 4.12.27
       lucide-react:
         specifier: ^1.14.0
         version: 1.23.0(react@19.2.7)

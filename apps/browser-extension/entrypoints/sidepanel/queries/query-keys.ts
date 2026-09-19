@@ -8,3 +8,8 @@ export const sessionKeys = {
   root: () => ["extension", "sessions"] as const,
   list: (directory: string) => ["extension", "sessions", directory] as const,
 };
+
+export const browserWorkspaceKeys = {
+  root: () => ["extension", "browser-workspace"] as const,
+  status: () => [...browserWorkspaceKeys.root(), "status"] as const,
+};

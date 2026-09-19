@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { ASK_DIRECTORY, listSessions } from "../services/opencode";
+import { listSessions } from "../lib/opencode/sessions";
 import { sessionKeys } from "../queries/query-keys";
 
-export function useSessions() {
+export function useSessions(directory: string | null) {
   return useQuery({
-    queryKey: sessionKeys.list(ASK_DIRECTORY),
-    queryFn: listSessions,
+    queryKey: sessionKeys.list(directory ?? ""),
+    queryFn: () => listSessions(directory ?? ""),
+    enabled: !!directory,
     staleTime: 5_000,
     retry: 1,
   });

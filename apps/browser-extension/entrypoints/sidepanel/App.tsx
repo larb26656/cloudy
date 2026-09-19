@@ -4,43 +4,54 @@ import type { Message } from "@repo/ui/components/message/types";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import {
   abortSession,
-  ASK_DIRECTORY,
-  clearStoredSessionId,
   createBotSession,
-  dispatchStreamEvent,
-  getStoredSessionId,
   sendPrompt,
+} from "./lib/opencode/sessions";
+import { dispatchStreamEvent, subscribeToEvents } from "./lib/opencode/events";
+import {
+  clearStoredSessionId,
+  getStoredSessionId,
   storeSessionId,
-  subscribeToEvents,
-} from "./services/opencode";
+} from "./lib/session-storage";
 import { useStreamingMessagesStore } from "@repo/opencode";
 import { sessionKeys, sessionMessageKeys } from "./queries/query-keys";
+import {
+  useBrowserWorkspace,
+  useInitializeBrowserWorkspace,
+} from "./hooks/useBrowserWorkspace";
 import { useSessionMessages } from "./hooks/useSessionMessages";
 import { useSessions } from "./hooks/useSessions";
 import { ExtensionChatInput } from "./components/ExtensionChatInput";
 import { ExtensionMessageList } from "./components/ExtensionMessageList";
 import { ExtensionSessionAppBar } from "./components/ExtensionSessionAppBar";
 import { ExtensionSessionStatusBar } from "./components/ExtensionSessionStatusBar";
+import { BrowserWorkspaceLanding } from "./components/BrowserWorkspaceLanding";
 import "./styles/App.css";
 
 function App() {
+  const queryClient = useQueryClient();
+  const browserWorkspace = useBrowserWorkspace();
+  const initializeWorkspace = useInitializeBrowserWorkspace();
+  const directory =
+    browserWorkspace.data?.initialized === true
+      ? browserWorkspace.data.workspace.directory
+      : null;
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const sessionIdRef = useRef<string | null>(null);
-  const queryClient = useQueryClient();
   const {
     data: messages = [],
     isLoading: isMessagesLoading,
     error: messagesError,
-  } = useSessionMessages(sessionId);
+  } = useSessionMessages(directory, sessionId);
   const {
     data: sessions = [],
     isLoading: isSessionsLoading,
     error: sessionsError,
-  } = useSessions();
+  } = useSessions(directory);
   const streamingMessages = useStreamingMessagesStore((state) =>
     state.streamingMessages.get(sessionId ?? ""),
   );
@@ -53,6 +64,7 @@ function App() {
   }, [sessionId]);
 
   useEffect(() => {
+    if (!directory) return;
     let cancelled = false;
     let stop: (() => void) | undefined;
 
@@ -65,7 +77,7 @@ function App() {
         setIsLoading(false);
       }
 
-      stop = await subscribeToEvents((event) => {
+      stop = await subscribeToEvents(directory, (event) => {
         const currentSessionId = sessionIdRef.current;
 
         if (
@@ -89,7 +101,7 @@ function App() {
           if (idleSessionId === currentSessionId) setIsGenerating(false);
           takeSessionStreaming(idleSessionId);
           void queryClient.invalidateQueries({
-            queryKey: sessionMessageKeys.detail(ASK_DIRECTORY, idleSessionId),
+            queryKey: sessionMessageKeys.detail(directory, idleSessionId),
           });
           void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
           return;
@@ -110,7 +122,7 @@ function App() {
       cancelled = true;
       stop?.();
     };
-  }, [queryClient, takeSessionStreaming]);
+  }, [directory, queryClient, takeSessionStreaming]);
 
   useEffect(() => {
     if (!messagesError || !sessionId) return;
@@ -141,7 +153,8 @@ function App() {
     try {
       let currentSessionId = sessionIdRef.current;
       if (!currentSessionId) {
-        const session = await createBotSession();
+        if (!directory) throw new Error("Browser workspace is not initialized");
+        const session = await createBotSession(directory);
         currentSessionId = session.id;
         sessionIdRef.current = session.id;
         setSessionId(session.id);
@@ -150,7 +163,8 @@ function App() {
       }
       if (!currentSessionId) throw new Error("No session available");
       setIsGenerating(true);
-      await sendPrompt(currentSessionId, text);
+      if (!directory) throw new Error("Browser workspace is not initialized");
+      await sendPrompt(currentSessionId, text, directory);
     } catch (sendError: unknown) {
       setIsGenerating(false);
       setError(
@@ -165,7 +179,8 @@ function App() {
     const currentSessionId = sessionIdRef.current;
     if (!currentSessionId) return;
     try {
-      await abortSession(currentSessionId);
+      if (!directory) return;
+      await abortSession(currentSessionId, directory);
     } catch (abortError: unknown) {
       setError(
         abortError instanceof Error
@@ -205,6 +220,30 @@ function App() {
     });
   }
 
+  if (browserWorkspace.isLoading || browserWorkspace.isError) {
+    return (
+      <BrowserWorkspaceLanding
+        isLoading={browserWorkspace.isLoading}
+        isInitializing={false}
+        error={browserWorkspace.error}
+        onInitialize={() => undefined}
+        onRetry={() => void browserWorkspace.refetch()}
+      />
+    );
+  }
+
+  if (!directory) {
+    return (
+      <BrowserWorkspaceLanding
+        isLoading={false}
+        isInitializing={initializeWorkspace.isPending}
+        error={initializeWorkspace.error}
+        onInitialize={() => initializeWorkspace.mutate()}
+        onRetry={() => initializeWorkspace.mutate()}
+      />
+    );
+  }
+
   return (
     <main className="chat-container">
       <ExtensionSessionAppBar
@@ -230,7 +269,10 @@ function App() {
           onStop={() => void handleStop()}
         />
       </MessageScrollerProvider>
-      <ExtensionSessionStatusBar isGenerating={isGenerating} />
+      <ExtensionSessionStatusBar
+        directory={directory}
+        isGenerating={isGenerating}
+      />
     </main>
   );
 }
