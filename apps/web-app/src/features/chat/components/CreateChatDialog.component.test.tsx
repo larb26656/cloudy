@@ -16,6 +16,10 @@ vi.mock("@/hooks/queries", () => ({
     data: [],
     isLoading: false,
   }),
+  useCreateTempWorkspace: () => ({
+    mutate: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock("@/features/workspace/WorkspaceSelectStep", () => ({
