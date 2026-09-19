@@ -41,6 +41,21 @@ export function createWorkspacesController(service: WorkspacesService) {
         return c.json(created, 201);
       },
     )
+    .post(
+      "/temp",
+      describeRoute({
+        description: "Create temp workspace",
+        tags: ["Workspaces"],
+        responses: {
+          201: { description: "Temp workspace created" },
+          400: { description: "Invalid input" },
+        },
+      }),
+      async (c) => {
+        const created = await service.createTemp();
+        return c.json(created, 201);
+      },
+    )
     .get(
       "/:id",
       describeRoute({

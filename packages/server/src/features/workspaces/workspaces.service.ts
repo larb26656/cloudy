@@ -1,17 +1,27 @@
 import type {
   CreateWorkspaceInput,
+  TempWorkspaceDto,
   UpdateWorkspaceInput,
   WorkspaceDto,
 } from "./workspaces.model";
 import type { WorkspacesRepository } from "./workspaces.repository";
-import { WorkspaceNotFoundError, WorkspaceConflictError } from "./workspaces.errors";
+import {
+  WorkspaceNotFoundError,
+  WorkspaceConflictError,
+} from "./workspaces.errors";
+import { mkdir } from "fs/promises";
+import path from "path";
+import { randomWorkspaceName } from "../../lib/utils";
 
 /**
  * Workspaces business logic. Framework-free — throws `DomainError` subclasses
  * (`WorkspaceNotFoundError` → 404, `WorkspaceConflictError` → 409) so the HTTP
  * edge middleware can translate them. Sync throughout — no Promises.
  */
-export function createWorkspacesService(repo: WorkspacesRepository) {
+export function createWorkspacesService(
+  repo: WorkspacesRepository,
+  tempWorkspaceDir: string,
+) {
   const list = (): WorkspaceDto[] => repo.list();
 
   const get = (id: string): WorkspaceDto => {
@@ -25,6 +35,19 @@ export function createWorkspacesService(repo: WorkspacesRepository) {
       throw new WorkspaceConflictError(input.directory);
     }
     return repo.create(input);
+  };
+
+  const createTemp = async (): Promise<TempWorkspaceDto> => {
+    const name = randomWorkspaceName();
+    const directory = path.join(tempWorkspaceDir, name);
+    await mkdir(directory, {
+      recursive: true,
+    });
+
+    return {
+      name,
+      directory,
+    };
   };
 
   const update = (id: string, input: UpdateWorkspaceInput): WorkspaceDto => {
@@ -46,7 +69,7 @@ export function createWorkspacesService(repo: WorkspacesRepository) {
     repo.delete(id);
   };
 
-  return { list, get, create, update, delete: remove };
+  return { list, get, create, createTemp, update, delete: remove };
 }
 
 export type WorkspacesService = ReturnType<typeof createWorkspacesService>;

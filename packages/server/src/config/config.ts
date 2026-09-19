@@ -30,6 +30,7 @@ export const ConfigurableSchema = z.object({
     }),
   opencodeApiBase: z.string().default("http://localhost:4096"),
   publicDir: z.string().optional(),
+  tempWorkspaceDir: z.string(),
 });
 
 export type AppConfig = z.infer<typeof ConfigurableSchema>;
@@ -46,6 +47,7 @@ export function loadConfig(option?: AppOption): AppConfig {
 
   const result = ConfigurableSchema.safeParse({
     dbPath: path.join(configDir, "cloud.db"),
+    tempWorkspaceDir: path.join(configDir, "workspaces"),
     ...stripUndefined(fileConfig),
     ...stripUndefined(envConfig),
     ...stripUndefined(option ?? {}),

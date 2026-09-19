@@ -85,6 +85,7 @@ describe("loadEnvConfig", () => {
         "cors",
         "opencodeApiBase",
         "publicDir",
+        "tempWorkspaceDir",
       ].sort(),
     );
   });

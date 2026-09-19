@@ -17,7 +17,10 @@ export function createContainer(config: AppConfig, overrideDb?: DbClient) {
     })();
 
   const workspacesRepository = createWorkspacesRepository(db);
-  const workspacesService = createWorkspacesService(workspacesRepository);
+  const workspacesService = createWorkspacesService(
+    workspacesRepository,
+    config.tempWorkspaceDir,
+  );
 
   const notificationsRepository = createNotificationsRepository(db);
   const notificationsService = createNotificationsService(

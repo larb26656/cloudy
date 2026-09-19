@@ -1,4 +1,7 @@
-import { describe, it, expect } from "vitest";
+import { mkdtemp, readdir, rm, stat } from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
+import { afterEach, describe, it, expect } from "vitest";
 import { createWorkspacesService } from "./workspaces.service";
 import type { WorkspacesRepository } from "./workspaces.repository";
 import type { WorkspaceDto } from "./workspaces.model";
@@ -59,19 +62,32 @@ function makeRepo(
 }
 
 describe("WorkspacesService", () => {
+  const tempDirectories: string[] = [];
+
+  afterEach(async () => {
+    await Promise.all(
+      tempDirectories
+        .splice(0)
+        .map((directory) => rm(directory, { recursive: true, force: true })),
+    );
+  });
+
   it("list returns repository rows", () => {
     const seed = [makeWorkspace({ id: "a" }), makeWorkspace({ id: "b" })];
-    const service = createWorkspacesService(makeRepo(seed));
+    const service = createWorkspacesService(makeRepo(seed), "/tmp/workspaces");
     expect(service.list()).toHaveLength(2);
   });
 
   it("get returns dto when found", () => {
-    const service = createWorkspacesService(makeRepo([makeWorkspace()]));
+    const service = createWorkspacesService(
+      makeRepo([makeWorkspace()]),
+      "/tmp/workspaces",
+    );
     expect(service.get("ws-1").id).toBe("ws-1");
   });
 
   it("get throws WorkspaceNotFoundError when missing", () => {
-    const service = createWorkspacesService(makeRepo());
+    const service = createWorkspacesService(makeRepo(), "/tmp/workspaces");
     expect(() => service.get("nope")).toThrow(WorkspaceNotFoundError);
     expect(() => service.get("nope")).toThrow(
       expect.objectContaining({ status: 404 }),
@@ -79,7 +95,7 @@ describe("WorkspacesService", () => {
   });
 
   it("create returns created workspace", () => {
-    const service = createWorkspacesService(makeRepo());
+    const service = createWorkspacesService(makeRepo(), "/tmp/workspaces");
     const ws = service.create({
       id: "ws-new",
       name: "New",
@@ -92,7 +108,7 @@ describe("WorkspacesService", () => {
   });
 
   it("create returns created bot workspace", () => {
-    const service = createWorkspacesService(makeRepo());
+    const service = createWorkspacesService(makeRepo(), "/tmp/workspaces");
     const ws = service.create({
       id: "ws-bot",
       name: "Bot",
@@ -106,6 +122,7 @@ describe("WorkspacesService", () => {
   it("create throws 409 on duplicate directory", () => {
     const service = createWorkspacesService(
       makeRepo([makeWorkspace({ directory: "/tmp/dup" })]),
+      "/tmp/workspaces",
     );
     expect(() =>
       service.create({
@@ -128,19 +145,25 @@ describe("WorkspacesService", () => {
   });
 
   it("update patches fields when found", () => {
-    const service = createWorkspacesService(makeRepo([makeWorkspace()]));
+    const service = createWorkspacesService(
+      makeRepo([makeWorkspace()]),
+      "/tmp/workspaces",
+    );
     const updated = service.update("ws-1", { name: "Renamed" });
     expect(updated.name).toBe("Renamed");
   });
 
   it("update patches type to bot", () => {
-    const service = createWorkspacesService(makeRepo([makeWorkspace()]));
+    const service = createWorkspacesService(
+      makeRepo([makeWorkspace()]),
+      "/tmp/workspaces",
+    );
     const updated = service.update("ws-1", { type: "bot" });
     expect(updated.type).toBe("bot");
   });
 
   it("update throws 404 when missing", () => {
-    const service = createWorkspacesService(makeRepo());
+    const service = createWorkspacesService(makeRepo(), "/tmp/workspaces");
     expect(() => service.update("nope", { name: "x" })).toThrow(
       expect.objectContaining({ status: 404 }),
     );
@@ -152,6 +175,7 @@ describe("WorkspacesService", () => {
         makeWorkspace({ id: "a", directory: "/tmp/a" }),
         makeWorkspace({ id: "b", directory: "/tmp/b" }),
       ]),
+      "/tmp/workspaces",
     );
     expect(() => service.update("a", { directory: "/tmp/b" })).toThrow(
       WorkspaceConflictError,
@@ -161,6 +185,7 @@ describe("WorkspacesService", () => {
   it("update allows keeping the same directory on the same row", () => {
     const service = createWorkspacesService(
       makeRepo([makeWorkspace({ id: "a", directory: "/tmp/a" })]),
+      "/tmp/workspaces",
     );
     expect(() =>
       service.update("a", { directory: "/tmp/a", name: "x" }),
@@ -168,14 +193,33 @@ describe("WorkspacesService", () => {
   });
 
   it("delete removes when found", () => {
-    const service = createWorkspacesService(makeRepo([makeWorkspace()]));
+    const service = createWorkspacesService(
+      makeRepo([makeWorkspace()]),
+      "/tmp/workspaces",
+    );
     expect(() => service.delete("ws-1")).not.toThrow();
   });
 
   it("delete throws 404 when missing", () => {
-    const service = createWorkspacesService(makeRepo());
+    const service = createWorkspacesService(makeRepo(), "/tmp/workspaces");
     expect(() => service.delete("nope")).toThrow(
       expect.objectContaining({ status: 404 }),
     );
+  });
+
+  it("createTemp creates and returns a generated workspace directory", async () => {
+    const root = await mkdtemp(path.join(os.tmpdir(), "cloudy-workspaces-"));
+    tempDirectories.push(root);
+    const tempWorkspaceDir = path.join(root, "nested", "workspaces");
+    const service = createWorkspacesService(makeRepo(), tempWorkspaceDir);
+
+    const workspace = await service.createTemp();
+
+    expect(workspace.directory).toBe(
+      path.join(tempWorkspaceDir, workspace.name),
+    );
+    expect(workspace.name).toMatch(/^[a-z0-9-]+$/);
+    expect((await stat(workspace.directory)).isDirectory()).toBe(true);
+    expect(await readdir(tempWorkspaceDir)).toEqual([workspace.name]);
   });
 });

@@ -17,6 +17,7 @@ export const testConfig: AppConfig = {
   port: 4122,
   cors: [],
   opencodeApiBase: "http://opencode.test",
+  tempWorkspaceDir: "/tmp/workspaces",
 };
 
 /**
@@ -38,7 +39,10 @@ export function createTestApp(configOverrides: Partial<AppConfig> = {}): {
   close: () => void;
 } {
   const db = createTestDb();
-  const container = createContainer({ ...testConfig, ...configOverrides }, db.db);
+  const container = createContainer(
+    { ...testConfig, ...configOverrides },
+    db.db,
+  );
   const app = createApp({ container });
   return { app, db, container, close: () => closeTestDb(db) };
 }

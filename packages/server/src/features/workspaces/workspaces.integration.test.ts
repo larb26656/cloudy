@@ -59,6 +59,17 @@ describe("workspaces integration", () => {
     expect(body.type).toBe("agent");
   });
 
+  it("POST /temp creates a temp workspace directory", async () => {
+    const res = await env.app.request("/api/workspaces/temp", {
+      method: "POST",
+    });
+    expect(res.status).toBe(201);
+
+    const body = await res.json();
+    expect(body.name).toMatch(/^[a-z0-9-]+$/);
+    expect(body.directory).toContain(`/tmp/workspaces/${body.name}`);
+  });
+
   it("POST creates a bot workspace when type is bot", async () => {
     const res = await env.app.request("/api/workspaces", {
       method: "POST",

@@ -17,6 +17,10 @@ import { loadFileConfig } from "./file-loader";
 const mockedLoadEnvConfig = vi.mocked(loadEnvConfig);
 const mockedLoadFileConfig = vi.mocked(loadFileConfig);
 
+function parseConfigurable(input: Record<string, unknown>) {
+  return ConfigurableSchema.parse({ tempWorkspaceDir: "/tmp", ...input });
+}
+
 beforeEach(() => {
   vi.clearAllMocks();
   mockedLoadEnvConfig.mockReturnValue({});
@@ -26,68 +30,54 @@ beforeEach(() => {
 describe("ConfigurableSchema", () => {
   describe("ui", () => {
     it("parses true boolean", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x", ui: true }).ui).toBe(
-        true,
-      );
+      expect(parseConfigurable({ dbPath: "/x", ui: true }).ui).toBe(true);
     });
 
     it("parses 'true' string as true", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x", ui: "true" }).ui).toBe(
-        true,
-      );
+      expect(parseConfigurable({ dbPath: "/x", ui: "true" }).ui).toBe(true);
     });
 
     it("parses false boolean", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x", ui: false }).ui).toBe(
-        false,
-      );
+      expect(parseConfigurable({ dbPath: "/x", ui: false }).ui).toBe(false);
     });
 
     it("parses 'false' string as false", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x", ui: "false" }).ui).toBe(
-        false,
-      );
+      expect(parseConfigurable({ dbPath: "/x", ui: "false" }).ui).toBe(false);
     });
 
     it("defaults to false when missing", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x" }).ui).toBe(false);
+      expect(parseConfigurable({ dbPath: "/x" }).ui).toBe(false);
     });
   });
 
   describe("port", () => {
     it("coerces numeric string to number", () => {
-      expect(
-        ConfigurableSchema.parse({ dbPath: "/x", port: "4122" }).port,
-      ).toBe(4122);
+      expect(parseConfigurable({ dbPath: "/x", port: "4122" }).port).toBe(4122);
     });
 
     it("accepts a number", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x", port: 3000 }).port).toBe(
-        3000,
-      );
+      expect(parseConfigurable({ dbPath: "/x", port: 3000 }).port).toBe(3000);
     });
 
     it("defaults to 4122 when missing", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x" }).port).toBe(4122);
+      expect(parseConfigurable({ dbPath: "/x" }).port).toBe(4122);
     });
   });
 
   describe("cors", () => {
     it("transforms empty string to undefined", () => {
       expect(
-        ConfigurableSchema.parse({ dbPath: "/x", cors: "" }).cors,
+        parseConfigurable({ dbPath: "/x", cors: "" }).cors,
       ).toBeUndefined();
     });
 
     it("keeps '*' as the string '*'", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x", cors: "*" }).cors).toBe(
-        "*",
-      );
+      expect(parseConfigurable({ dbPath: "/x", cors: "*" }).cors).toBe("*");
     });
 
     it("splits comma-separated origins and trims whitespace", () => {
       expect(
-        ConfigurableSchema.parse({
+        parseConfigurable({
           dbPath: "/x",
           cors: "a.com, b.com , c.com",
         }).cors,
@@ -95,19 +85,19 @@ describe("ConfigurableSchema", () => {
     });
 
     it("defaults to undefined", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x" }).cors).toBeUndefined();
+      expect(parseConfigurable({ dbPath: "/x" }).cors).toBeUndefined();
     });
   });
 
   describe("host", () => {
     it("defaults to localhost", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x" }).host).toBe("localhost");
+      expect(parseConfigurable({ dbPath: "/x" }).host).toBe("localhost");
     });
   });
 
   describe("opencodeApiBase", () => {
     it("defaults to http://localhost:4096", () => {
-      expect(ConfigurableSchema.parse({ dbPath: "/x" }).opencodeApiBase).toBe(
+      expect(parseConfigurable({ dbPath: "/x" }).opencodeApiBase).toBe(
         "http://localhost:4096",
       );
     });
@@ -121,12 +111,22 @@ describe("loadConfig", () => {
     expect(config.port).toBe(4122);
     expect(config.ui).toBe(false);
     expect(config.opencodeApiBase).toBe("http://localhost:4096");
+    expect(config.tempWorkspaceDir).toBe(
+      path.join(homedir(), ".config", "cloudy", "workspaces"),
+    );
     expect(config.cors).toBeUndefined();
   });
 
   it("composes dbPath from configDir + cloud.db", () => {
     const config = loadConfig({ configDir: "/custom/dir" });
     expect(config.dbPath).toBe(path.join("/custom/dir", "cloud.db"));
+  });
+
+  it("composes tempWorkspaceDir from configDir + workspaces", () => {
+    const config = loadConfig({ configDir: "/custom/dir" });
+    expect(config.tempWorkspaceDir).toBe(
+      path.join("/custom/dir", "workspaces"),
+    );
   });
 
   it("expands ~ in configDir against the user home, not the cwd", () => {
