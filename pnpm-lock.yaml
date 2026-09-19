@@ -32,9 +32,21 @@ importers:
       "@mozilla/readability":
         specifier: ^0.6.0
         version: 0.6.0
+      "@opencode-ai/sdk":
+        specifier: ^1.18.13
+        version: 1.18.13
+      "@repo/ui":
+        specifier: workspace:*
+        version: link:../../packages/ui
+      "@tailwindcss/vite":
+        specifier: ^4.3.0
+        version: 4.3.2(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
       "@types/turndown":
         specifier: ^5.0.6
         version: 5.0.6
+      "lucide-react":
+        specifier: ^1.14.0
+        version: 1.23.0(react@19.2.7)
       react:
         specifier: ^19.2.4
         version: 19.2.7
