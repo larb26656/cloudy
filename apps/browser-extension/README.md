@@ -1,3 +1,3 @@
-# WXT + React
+# Cloudy Browser Extension
 
-This template should help get you started developing with React in WXT.
+Browser extension for accessing Cloudy from the browser.

@@ -8,6 +8,9 @@ export default defineConfig({
     plugins: [tailwindcss()],
   }),
   manifest: {
+    name: "Cloudy",
+    short_name: "Cloudy",
+    description: "Chat with Cloudy from your browser.",
     permissions: ["sidePanel", "storage"],
     host_permissions: ["http://localhost:4122/*"],
   },
