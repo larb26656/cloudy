@@ -12,7 +12,7 @@ import {
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
 
-interface ExtensionSessionPickerProps {
+interface SessionPickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   sessions: Session[];
@@ -22,7 +22,7 @@ interface ExtensionSessionPickerProps {
   onSessionChange: (sessionId: string) => void;
 }
 
-export function ExtensionSessionPicker({
+export function SessionPicker({
   open,
   onOpenChange,
   sessions,
@@ -30,7 +30,7 @@ export function ExtensionSessionPicker({
   isLoading,
   error,
   onSessionChange,
-}: ExtensionSessionPickerProps) {
+}: SessionPickerProps) {
   const rootSessions = sessions.filter((session) => !session.parentID);
 
   function selectSession(id: string) {

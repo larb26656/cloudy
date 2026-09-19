@@ -15,6 +15,7 @@
     "postinstall": "wxt prepare"
   },
   "dependencies": {
+    "@fontsource/maitree": "^5.3.0",
     "@opencode-ai/sdk": "^1.18.13",
     "@repo/contracts": "workspace:*",
     "@repo/opencode": "workspace:*",

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Message } from "@repo/ui/components/message/types";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
@@ -8,11 +8,6 @@ import {
   sendPrompt,
 } from "./lib/opencode/sessions";
 import { dispatchStreamEvent, subscribeToEvents } from "./lib/opencode/events";
-import {
-  clearStoredSessionId,
-  getStoredSessionId,
-  storeSessionId,
-} from "./lib/session-storage";
 import {
   mergeMessages,
   reconcileMessages,
@@ -25,12 +20,13 @@ import {
 } from "./hooks/useBrowserWorkspace";
 import { useSessionMessages } from "./hooks/useSessionMessages";
 import { useSessions } from "./hooks/useSessions";
-import { ExtensionChatInput } from "./components/ExtensionChatInput";
-import type { ExtensionModel } from "./components/ExtensionModelSelector";
-import { ExtensionMessageList } from "./components/ExtensionMessageList";
-import { ExtensionSessionAppBar } from "./components/ExtensionSessionAppBar";
-import { ExtensionSessionStatusBar } from "./components/ExtensionSessionStatusBar";
+import { ChatInput } from "./components/ChatInput";
+import { MessageList } from "./components/MessageList";
+import { SessionAppBar } from "./components/SessionAppBar";
+import { SessionStatusBar } from "./components/SessionStatusBar";
 import { BrowserWorkspaceLanding } from "./components/BrowserWorkspaceLanding";
+import { useChatStore } from "./stores/chatStore";
+import { useSessionStore } from "./stores/sessionStore";
 import "./styles/App.css";
 
 function App() {
@@ -41,13 +37,18 @@ function App() {
     browserWorkspace.data?.initialized === true
       ? browserWorkspace.data.workspace.directory
       : null;
-  const [sessionId, setSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
-  const [model, setModel] = useState<ExtensionModel | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const sessionIdRef = useRef<string | null>(null);
+  const sessionId = useSessionStore((state) => state.sessionId);
+  const isSessionHydrating = useSessionStore((state) => state.isHydrating);
+  const hydrateSession = useSessionStore((state) => state.hydrate);
+  const selectSession = useSessionStore((state) => state.selectSession);
+  const clearSession = useSessionStore((state) => state.clearSession);
+  const model = useChatStore((state) => state.model);
+  const isGenerating = useChatStore((state) => state.isGenerating);
+  const error = useChatStore((state) => state.error);
+  const setModel = useChatStore((state) => state.setModel);
+  const setIsGenerating = useChatStore((state) => state.setIsGenerating);
+  const setError = useChatStore((state) => state.setError);
   const {
     data: messages = [],
     isLoading: isMessagesLoading,
@@ -66,45 +67,40 @@ function App() {
   );
 
   useEffect(() => {
-    sessionIdRef.current = sessionId;
-  }, [sessionId]);
-
-  useEffect(() => {
     if (!directory) return;
     let cancelled = false;
     let stop: (() => void) | undefined;
 
     void (async () => {
-      const storedId = await getStoredSessionId();
-      if (storedId) {
-        if (!cancelled) setSessionId(storedId);
-        setIsLoading(false);
-      } else {
-        setIsLoading(false);
-      }
+      await hydrateSession();
+      if (cancelled) return;
 
       stop = await subscribeToEvents(directory, (event) => {
-        const currentSessionId = sessionIdRef.current;
+        const currentSessionId = useSessionStore.getState().sessionId;
 
         if (
           event.payload.type === "session.status" &&
           event.payload.properties.sessionID === currentSessionId
         ) {
           const status = event.payload.properties.status.type;
-          setIsGenerating(status === "busy" || status === "retry");
+          useChatStore
+            .getState()
+            .setIsGenerating(status === "busy" || status === "retry");
         }
 
         if (
           event.payload.type === "session.error" &&
           event.payload.properties.sessionID === currentSessionId
         ) {
-          setIsGenerating(false);
-          setError("OpenCode reported an error");
+          useChatStore.getState().setIsGenerating(false);
+          useChatStore.getState().setError("OpenCode reported an error");
         }
 
         if (event.payload.type === "session.idle") {
           const idleSessionId = event.payload.properties.sessionID;
-          if (idleSessionId === currentSessionId) setIsGenerating(false);
+          if (idleSessionId === currentSessionId) {
+            useChatStore.getState().setIsGenerating(false);
+          }
           const streamedMessages = takeSessionStreaming(idleSessionId);
           queryClient.setQueryData<Message[]>(
             sessionMessageKeys.detail(directory, idleSessionId),
@@ -122,28 +118,30 @@ function App() {
       });
     })().catch((loadError: unknown) => {
       if (!cancelled)
-        setError(
-          loadError instanceof Error
-            ? loadError.message
-            : "Failed to connect to Cloudy",
-        );
+        useChatStore
+          .getState()
+          .setError(
+            loadError instanceof Error
+              ? loadError.message
+              : "Failed to connect to Cloudy",
+          );
     });
 
     return () => {
       cancelled = true;
       stop?.();
     };
-  }, [directory, queryClient, takeSessionStreaming]);
+  }, [directory, hydrateSession, queryClient, takeSessionStreaming]);
 
   useEffect(() => {
     if (!messagesError || !sessionId) return;
-    void clearStoredSessionId();
+    void clearSession();
     setError(
       messagesError instanceof Error
         ? messagesError.message
         : "Failed to load messages",
     );
-  }, [messagesError, sessionId]);
+  }, [clearSession, messagesError, sessionId]);
 
   const visibleMessages = useMemo(
     () => reconcileMessages(messages, streamingMessages?.values() ?? []),
@@ -157,14 +155,12 @@ function App() {
     setError(null);
     setInput("");
     try {
-      let currentSessionId = sessionIdRef.current;
+      let currentSessionId = useSessionStore.getState().sessionId;
       if (!currentSessionId) {
         if (!directory) throw new Error("Browser workspace is not initialized");
         const session = await createBotSession(directory, model);
         currentSessionId = session.id;
-        sessionIdRef.current = session.id;
-        setSessionId(session.id);
-        await storeSessionId(session.id);
+        await selectSession(session.id);
         void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
       }
       if (!currentSessionId) throw new Error("No session available");
@@ -182,7 +178,7 @@ function App() {
   }
 
   async function handleStop() {
-    const currentSessionId = sessionIdRef.current;
+    const currentSessionId = useSessionStore.getState().sessionId;
     if (!currentSessionId) return;
     try {
       if (!directory) return;
@@ -199,11 +195,9 @@ function App() {
   }
 
   function handleSessionChange(nextSessionId: string) {
-    sessionIdRef.current = nextSessionId;
-    setSessionId(nextSessionId);
     setIsGenerating(false);
     setError(null);
-    void storeSessionId(nextSessionId).catch((storageError: unknown) => {
+    void selectSession(nextSessionId).catch((storageError: unknown) => {
       setError(
         storageError instanceof Error
           ? storageError.message
@@ -213,11 +207,9 @@ function App() {
   }
 
   function handleNewChat() {
-    sessionIdRef.current = null;
-    setSessionId(null);
     setIsGenerating(false);
     setError(null);
-    void clearStoredSessionId().catch((storageError: unknown) => {
+    void clearSession().catch((storageError: unknown) => {
       setError(
         storageError instanceof Error
           ? storageError.message
@@ -252,7 +244,7 @@ function App() {
 
   return (
     <main className="chat-container">
-      <ExtensionSessionAppBar
+      <SessionAppBar
         sessions={sessions}
         sessionId={sessionId}
         isLoading={isSessionsLoading}
@@ -261,13 +253,13 @@ function App() {
         onNewChat={handleNewChat}
       />
       <MessageScrollerProvider autoScroll>
-        <ExtensionMessageList
+        <MessageList
           messages={visibleMessages}
-          isLoading={isLoading || isMessagesLoading}
+          isLoading={isSessionHydrating || isMessagesLoading}
           isGenerating={isGenerating}
           error={error}
         />
-        <ExtensionChatInput
+        <ChatInput
           value={input}
           isGenerating={isGenerating}
           directory={directory}
@@ -278,10 +270,7 @@ function App() {
           onStop={() => void handleStop()}
         />
       </MessageScrollerProvider>
-      <ExtensionSessionStatusBar
-        directory={directory}
-        isGenerating={isGenerating}
-      />
+      <SessionStatusBar directory={directory} isGenerating={isGenerating} />
     </main>
   );
 }

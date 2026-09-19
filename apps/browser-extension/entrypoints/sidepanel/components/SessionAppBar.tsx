@@ -3,9 +3,9 @@ import type { Session } from "@opencode-ai/sdk/v2/client";
 import { ChevronDown, MessageSquarePlus } from "lucide-react";
 import { AppBar } from "@repo/ui/components/app-bar";
 import { Button } from "@repo/ui/components/button";
-import { ExtensionSessionPicker } from "./ExtensionSessionPicker";
+import { SessionPicker } from "./SessionPicker";
 
-interface ExtensionSessionAppBarProps {
+interface SessionAppBarProps {
   sessions: Session[];
   sessionId: string | null;
   isLoading: boolean;
@@ -14,14 +14,14 @@ interface ExtensionSessionAppBarProps {
   onNewChat: () => void;
 }
 
-export function ExtensionSessionAppBar({
+export function SessionAppBar({
   sessions,
   sessionId,
   isLoading,
   error,
   onSessionChange,
   onNewChat,
-}: ExtensionSessionAppBarProps) {
+}: SessionAppBarProps) {
   const [pickerOpen, setPickerOpen] = useState(false);
   const rootSessions = sessions.filter((session) => !session.parentID);
   const activeSession = rootSessions.find(
@@ -52,7 +52,7 @@ export function ExtensionSessionAppBar({
         </AppBar.Actions>
       </AppBar>
 
-      <ExtensionSessionPicker
+      <SessionPicker
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         sessions={sessions}

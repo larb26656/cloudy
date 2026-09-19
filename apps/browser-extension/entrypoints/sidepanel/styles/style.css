@@ -1,3 +1,6 @@
+@import "@fontsource/maitree/500.css";
+@import "@fontsource/maitree/700.css";
+
 :root {
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -6,6 +9,11 @@
 
 * {
   box-sizing: border-box;
+}
+
+.font-content {
+  font-family: "Maitree", serif;
+  font-weight: 500;
 }
 
 body {

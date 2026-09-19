@@ -11,19 +11,19 @@ import {
   MessageScrollerViewport,
 } from "@repo/ui/components/message-scroller";
 
-interface ExtensionMessageListProps {
+interface MessageListProps {
   messages: Message[];
   isLoading: boolean;
   isGenerating: boolean;
   error: string | null;
 }
 
-export function ExtensionMessageList({
+export function MessageList({
   messages,
   isLoading,
   isGenerating,
   error,
-}: ExtensionMessageListProps) {
+}: MessageListProps) {
   return (
     <MessageScroller className="messages">
       <MessageScrollerViewport>

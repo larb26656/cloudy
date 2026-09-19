@@ -3,21 +3,21 @@ import type { KeyboardEvent } from "react";
 import { Button } from "@repo/ui/components/button";
 import { Textarea } from "@repo/ui/components/textarea";
 import { useMessageScroller } from "@repo/ui/components/message-scroller";
-import type { ExtensionModel } from "./ExtensionModelSelector";
-import { ExtensionModelSelector } from "./ExtensionModelSelector";
+import type { Model } from "./ModelSelector";
+import { ModelSelector } from "./ModelSelector";
 
-interface ExtensionChatInputProps {
+interface ChatInputProps {
   value: string;
   isGenerating: boolean;
   directory: string;
-  model: ExtensionModel | null;
+  model: Model | null;
   onChange: (value: string) => void;
-  onModelChange: (model: ExtensionModel | null) => void;
+  onModelChange: (model: Model | null) => void;
   onSubmit: () => void;
   onStop: () => void;
 }
 
-export function ExtensionChatInput({
+export function ChatInput({
   value,
   isGenerating,
   directory,
@@ -26,7 +26,7 @@ export function ExtensionChatInput({
   onModelChange,
   onSubmit,
   onStop,
-}: ExtensionChatInputProps) {
+}: ChatInputProps) {
   const { scrollToEnd } = useMessageScroller();
 
   function handleSubmit() {
@@ -64,7 +64,7 @@ export function ExtensionChatInput({
           </div>
           <div className="flex justify-between gap-2">
             <div className="flex min-w-0 items-center">
-              <ExtensionModelSelector
+              <ModelSelector
                 directory={directory}
                 value={model}
                 onChange={onModelChange}

@@ -1,12 +1,12 @@
-interface ExtensionSessionStatusBarProps {
+interface SessionStatusBarProps {
   directory: string;
   isGenerating: boolean;
 }
 
-export function ExtensionSessionStatusBar({
+export function SessionStatusBar({
   directory,
   isGenerating,
-}: ExtensionSessionStatusBarProps) {
+}: SessionStatusBarProps) {
   return (
     <footer className="session-status">
       <span className="directory" title={directory}>
