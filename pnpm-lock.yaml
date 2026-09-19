@@ -29,22 +29,31 @@ importers:
 
   apps/browser-extension:
     dependencies:
+      "@mozilla/readability":
+        specifier: ^0.6.0
+        version: 0.6.0
+      "@types/turndown":
+        specifier: ^5.0.6
+        version: 5.0.6
       react:
         specifier: ^19.2.4
         version: 19.2.7
       react-dom:
         specifier: ^19.2.4
         version: 19.2.7(react@19.2.7)
+      turndown:
+        specifier: ^7.2.4
+        version: 7.2.4
     devDependencies:
       "@types/react":
-        specifier: ^19.2.14
-        version: 19.3.0
+        specifier: 19.2.2
+        version: 19.2.2
       "@types/react-dom":
-        specifier: ^19.2.3
-        version: 19.3.0(@types/react@19.3.0)
+        specifier: 19.2.2
+        version: 19.2.2(@types/react@19.2.2)
       "@wxt-dev/module-react":
         specifier: ^1.1.5
-        version: 1.2.2(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(wxt@0.21.4(esbuild@0.28.1)(eslint@9.39.4(jiti@2.7.0))(oxc-parser@0.127.0)(rolldown@1.1.4)(rollup@4.62.2)(typescript@5.9.3)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(web-ext@10.6.0(express@5.2.1)(jiti@2.7.0)))
+        version: 1.2.2(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@8.0.0)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(wxt@0.21.4(esbuild@0.28.1)(eslint@9.39.4(jiti@2.7.0))(oxc-parser@0.127.0)(rolldown@1.1.4)(rollup@4.62.2)(typescript@5.9.3)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(web-ext@10.6.0(express@5.2.1)(jiti@2.7.0)))
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
@@ -136,7 +145,7 @@ importers:
         version: 19.2.2(@types/react@19.2.2)
       "@vitejs/plugin-react":
         specifier: ^6.0.1
-        version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
+        version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@8.0.0)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
       eslint:
         specifier: ^9.39.1
         version: 9.39.1(jiti@2.7.0)
@@ -344,7 +353,7 @@ importers:
         version: 5.2.1(storybook@10.5.3(@types/react@19.2.2)(prettier@3.7.4)(react@19.2.7))
       "@puppeteer/browsers":
         specifier: ^3.0.6
-        version: 3.0.6(proxy-agent@6.5.0)(yauzl@2.10.0)
+        version: 3.0.6(proxy-agent@6.5.0)(yauzl@3.4.0)
       "@repo/eslint-config":
         specifier: workspace:*
         version: link:../../packages/eslint-config
@@ -353,7 +362,7 @@ importers:
         version: link:../../packages/typescript-config
       "@rolldown/plugin-babel":
         specifier: ^0.2.3
-        version: 0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
+        version: 0.2.3(@babel/core@7.29.7)(@babel/runtime@8.0.0)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
       "@storybook/addon-a11y":
         specifier: ^10.5.3
         version: 10.5.3(storybook@10.5.3(@types/react@19.2.2)(prettier@3.7.4)(react@19.2.7))
@@ -395,7 +404,7 @@ importers:
         version: 19.2.2(@types/react@19.2.2)
       "@vitejs/plugin-react":
         specifier: ^6.0.1
-        version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
+        version: 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@8.0.0)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
       "@vitest/browser-playwright":
         specifier: 4.1.9
         version: 4.1.9(msw@2.15.0(@types/node@24.13.2)(typescript@5.9.2))(playwright@1.61.1)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(vitest@4.1.9)
@@ -2798,6 +2807,12 @@ packages:
         integrity: sha512-oYPyv8A4As1yH5Bx+04iQEQxXuIQDe0GKCNSRgao6z8AM9jixXIfP0vsppRLvGf+nKIOb9/LdpWA4YuJiVvESA==,
       }
 
+  "@mixmark-io/domino@2.2.0":
+    resolution:
+      {
+        integrity: sha512-Y28PR25bHXUg88kCV7nivXrP2Nj2RueZ3/l/jdx6J9f8J4nsEGcgX0Qe6lt7Pa+J79+kPiJU3LguR6O/6zrLOw==,
+      }
+
   "@modelcontextprotocol/sdk@1.29.0":
     resolution:
       {
@@ -2810,6 +2825,13 @@ packages:
     peerDependenciesMeta:
       "@cfworker/json-schema":
         optional: true
+
+  "@mozilla/readability@0.6.0":
+    resolution:
+      {
+        integrity: sha512-juG5VWh4qAivzTAeMzvY9xs9HY5rAcr2E4I7tiSSCokRFi7XIZCAu92ZkSTsIj1OPceCifL3cpfteP3pDT9/QQ==,
+      }
+    engines: { node: ">=14.0.0" }
 
   "@mswjs/interceptors@0.41.9":
     resolution:
@@ -5328,14 +5350,6 @@ packages:
     peerDependencies:
       "@types/react": ^19.2.0
 
-  "@types/react-dom@19.3.0":
-    resolution:
-      {
-        integrity: sha512-ZI7bU42mZXXKHn/qNLEw2IrbiINU7X5+vfgdixBHkCNpYWXjKgfQ/P+uyGb5CjOLB9UcnTeg3rylQtV2hym44Q==,
-      }
-    peerDependencies:
-      "@types/react": ^19.3.0
-
   "@types/react-speech-recognition@3.9.6":
     resolution:
       {
@@ -5346,12 +5360,6 @@ packages:
     resolution:
       {
         integrity: sha512-6mDvHUFSjyT2B2yeNx2nUgMxh9LtOWvkhIU3uePn2I2oyNymUAX1NIsdgviM4CH+JSrp2D2hsMvJOkxY+0wNRA==,
-      }
-
-  "@types/react@19.3.0":
-    resolution:
-      {
-        integrity: sha512-N0rFCuH9YoxG9/m61l9MfpJKfmLOVU0em7ipIz6TRgSSkvReLB9vL85GB+yr8Bs5leqpvg96JSwF4ZS1s4viQg==,
       }
 
   "@types/resolve@1.20.6":
@@ -5376,6 +5384,12 @@ packages:
     resolution:
       {
         integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==,
+      }
+
+  "@types/turndown@5.0.6":
+    resolution:
+      {
+        integrity: sha512-ru00MoyeeouE5BX4gRL+6m/BsDfbRayOskWqUvh7CLGW+UXxHQItqALa38kKnOiZPqJrtzJUgAC2+F0rL1S4Pg==,
       }
 
   "@types/unist@2.0.11":
@@ -13626,6 +13640,13 @@ packages:
       }
     hasBin: true
 
+  turndown@7.2.4:
+    resolution:
+      {
+        integrity: sha512-I8yFsfRzmzK0WV1pNNOA4A7y4RDfFxPRxb3t+e3ui14qSGOxGtiSP6GjeX+Y6CHb7HYaFj7ECUD7VE5kQMZWGQ==,
+      }
+    engines: { node: ">=18", npm: ">=9" }
+
   tw-animate-css@1.4.0:
     resolution:
       {
@@ -15705,6 +15726,8 @@ snapshots:
     dependencies:
       "@chevrotain/types": 11.1.2
 
+  "@mixmark-io/domino@2.2.0": {}
+
   "@modelcontextprotocol/sdk@1.29.0(zod@3.25.76)":
     dependencies:
       "@hono/node-server": 1.19.14(hono@4.12.27)
@@ -15726,6 +15749,8 @@ snapshots:
       zod-to-json-schema: 3.25.2(zod@3.25.76)
     transitivePeerDependencies:
       - supports-color
+
+  "@mozilla/readability@0.6.0": {}
 
   "@mswjs/interceptors@0.41.9":
     dependencies:
@@ -15957,13 +15982,13 @@ snapshots:
       - react-native-b4a
       - supports-color
 
-  "@puppeteer/browsers@3.0.6(proxy-agent@6.5.0)(yauzl@2.10.0)":
+  "@puppeteer/browsers@3.0.6(proxy-agent@6.5.0)(yauzl@3.4.0)":
     dependencies:
       modern-tar: 0.7.7
       yargs: 18.1.0
     optionalDependencies:
       proxy-agent: 6.5.0
-      yauzl: 2.10.0
+      yauzl: 3.4.0
 
   "@radix-ui/primitive@1.1.4": {}
 
@@ -16149,13 +16174,13 @@ snapshots:
   "@rolldown/binding-win32-x64-msvc@1.1.4":
     optional: true
 
-  "@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))":
+  "@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@8.0.0)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))":
     dependencies:
       "@babel/core": 7.29.7
       picomatch: 4.0.5
       rolldown: 1.1.4
     optionalDependencies:
-      "@babel/runtime": 7.29.7
+      "@babel/runtime": 8.0.0
       vite: 8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)
 
   "@rolldown/pluginutils@1.0.1": {}
@@ -17171,19 +17196,11 @@ snapshots:
     dependencies:
       "@types/react": 19.2.2
 
-  "@types/react-dom@19.3.0(@types/react@19.3.0)":
-    dependencies:
-      "@types/react": 19.3.0
-
   "@types/react-speech-recognition@3.9.6":
     dependencies:
       "@types/dom-speech-recognition": 0.0.12
 
   "@types/react@19.2.2":
-    dependencies:
-      csstype: 3.2.3
-
-  "@types/react@19.3.0":
     dependencies:
       csstype: 3.2.3
 
@@ -17197,6 +17214,8 @@ snapshots:
 
   "@types/trusted-types@2.0.7":
     optional: true
+
+  "@types/turndown@5.0.6": {}
 
   "@types/unist@2.0.11": {}
 
@@ -17409,12 +17428,12 @@ snapshots:
       valibot: 1.2.0(typescript@5.9.2)
     optional: true
 
-  "@vitejs/plugin-react@6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))":
+  "@vitejs/plugin-react@6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@8.0.0)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))":
     dependencies:
       "@rolldown/pluginutils": 1.0.1
       vite: 8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)
     optionalDependencies:
-      "@rolldown/plugin-babel": 0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
+      "@rolldown/plugin-babel": 0.2.3(@babel/core@7.29.7)(@babel/runtime@8.0.0)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
       babel-plugin-react-compiler: 1.0.0
 
   "@vitest/browser-playwright@4.1.9(msw@2.15.0(@types/node@22.15.3)(typescript@5.9.2))(playwright@1.61.1)(vite@6.4.3(@types/node@22.15.3)(jiti@2.7.0)(lightningcss@1.32.0)(tsx@4.23.0))(vitest@4.1.9)":
@@ -17586,9 +17605,9 @@ snapshots:
       "@types/filesystem": 0.0.36
       "@types/har-format": 1.2.16
 
-  "@wxt-dev/module-react@1.2.2(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(wxt@0.21.4(esbuild@0.28.1)(eslint@9.39.4(jiti@2.7.0))(oxc-parser@0.127.0)(rolldown@1.1.4)(rollup@4.62.2)(typescript@5.9.3)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(web-ext@10.6.0(express@5.2.1)(jiti@2.7.0)))":
+  "@wxt-dev/module-react@1.2.2(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@8.0.0)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(wxt@0.21.4(esbuild@0.28.1)(eslint@9.39.4(jiti@2.7.0))(oxc-parser@0.127.0)(rolldown@1.1.4)(rollup@4.62.2)(typescript@5.9.3)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(web-ext@10.6.0(express@5.2.1)(jiti@2.7.0)))":
     dependencies:
-      "@vitejs/plugin-react": 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@7.29.7)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
+      "@vitejs/plugin-react": 6.0.3(@rolldown/plugin-babel@0.2.3(@babel/core@7.29.7)(@babel/runtime@8.0.0)(rolldown@1.1.4)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)))(babel-plugin-react-compiler@1.0.0)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
       vite: 8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0)
       wxt: 0.21.4(esbuild@0.28.1)(eslint@9.39.4(jiti@2.7.0))(oxc-parser@0.127.0)(rolldown@1.1.4)(rollup@4.62.2)(typescript@5.9.3)(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))(web-ext@10.6.0(express@5.2.1)(jiti@2.7.0))
     transitivePeerDependencies:
@@ -22959,6 +22978,10 @@ snapshots:
       "@turbo/linux-arm64": 2.10.3
       "@turbo/windows-64": 2.10.3
       "@turbo/windows-arm64": 2.10.3
+
+  turndown@7.2.4:
+    dependencies:
+      "@mixmark-io/domino": 2.2.0
 
   tw-animate-css@1.4.0: {}
 
