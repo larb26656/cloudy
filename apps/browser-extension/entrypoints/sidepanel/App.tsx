@@ -12,14 +12,14 @@ import {
   sendPrompt,
   storeSessionId,
   subscribeToEvents,
-} from "./opencode";
+} from "./services/opencode";
 import { useStreamingMessagesStore } from "@repo/opencode";
-import { sessionMessageKeys } from "./query-keys";
-import { useSessionMessages } from "./useSessionMessages";
-import { ExtensionChatInput } from "./ExtensionChatInput";
-import { ExtensionMessageList } from "./ExtensionMessageList";
-import { ExtensionSessionStatusBar } from "./ExtensionSessionStatusBar";
-import "./App.css";
+import { sessionMessageKeys } from "./queries/query-keys";
+import { useSessionMessages } from "./hooks/useSessionMessages";
+import { ExtensionChatInput } from "./components/ExtensionChatInput";
+import { ExtensionMessageList } from "./components/ExtensionMessageList";
+import { ExtensionSessionStatusBar } from "./components/ExtensionSessionStatusBar";
+import "./styles/App.css";
 
 function App() {
   const [sessionId, setSessionId] = useState<string | null>(null);

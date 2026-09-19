@@ -1,4 +1,4 @@
-import { ASK_DIRECTORY } from "./opencode";
+import { ASK_DIRECTORY } from "../services/opencode";
 
 interface ExtensionSessionStatusBarProps {
   isGenerating: boolean;

@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { GlobalEvent, Part } from "@opencode-ai/sdk/v2/client";
 import type { Message } from "@repo/ui/components/message/types";
-import { applyStreamEvent, toMessage, type StreamState } from "./opencode";
+import {
+  applyStreamEvent,
+  toMessage,
+  type StreamState,
+} from "../services/opencode";
 
 const sessionId = "session-1";
 
