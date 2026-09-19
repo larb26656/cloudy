@@ -13,7 +13,11 @@ import {
   getStoredSessionId,
   storeSessionId,
 } from "./lib/session-storage";
-import { useStreamingMessagesStore } from "@repo/opencode";
+import {
+  mergeMessages,
+  reconcileMessages,
+  useStreamingMessagesStore,
+} from "@repo/opencode";
 import { sessionKeys, sessionMessageKeys } from "./queries/query-keys";
 import {
   useBrowserWorkspace,
@@ -22,6 +26,7 @@ import {
 import { useSessionMessages } from "./hooks/useSessionMessages";
 import { useSessions } from "./hooks/useSessions";
 import { ExtensionChatInput } from "./components/ExtensionChatInput";
+import type { ExtensionModel } from "./components/ExtensionModelSelector";
 import { ExtensionMessageList } from "./components/ExtensionMessageList";
 import { ExtensionSessionAppBar } from "./components/ExtensionSessionAppBar";
 import { ExtensionSessionStatusBar } from "./components/ExtensionSessionStatusBar";
@@ -38,6 +43,7 @@ function App() {
       : null;
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [input, setInput] = useState("");
+  const [model, setModel] = useState<ExtensionModel | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,7 +105,12 @@ function App() {
         if (event.payload.type === "session.idle") {
           const idleSessionId = event.payload.properties.sessionID;
           if (idleSessionId === currentSessionId) setIsGenerating(false);
-          takeSessionStreaming(idleSessionId);
+          const streamedMessages = takeSessionStreaming(idleSessionId);
+          queryClient.setQueryData<Message[]>(
+            sessionMessageKeys.detail(directory, idleSessionId),
+            (cachedMessages = []) =>
+              mergeMessages(cachedMessages, streamedMessages),
+          );
           void queryClient.invalidateQueries({
             queryKey: sessionMessageKeys.detail(directory, idleSessionId),
           });
@@ -134,15 +145,10 @@ function App() {
     );
   }, [messagesError, sessionId]);
 
-  const visibleMessages = useMemo<Message[]>(() => {
-    const merged = new Map(
-      messages.map((message) => [message.info.id, message]),
-    );
-    for (const message of streamingMessages?.values() ?? []) {
-      merged.set(message.info.id, message);
-    }
-    return Array.from(merged.values());
-  }, [messages, streamingMessages]);
+  const visibleMessages = useMemo(
+    () => reconcileMessages(messages, streamingMessages?.values() ?? []),
+    [messages, streamingMessages],
+  );
 
   async function handleSubmit() {
     const text = input.trim();
@@ -154,7 +160,7 @@ function App() {
       let currentSessionId = sessionIdRef.current;
       if (!currentSessionId) {
         if (!directory) throw new Error("Browser workspace is not initialized");
-        const session = await createBotSession(directory);
+        const session = await createBotSession(directory, model);
         currentSessionId = session.id;
         sessionIdRef.current = session.id;
         setSessionId(session.id);
@@ -164,7 +170,7 @@ function App() {
       if (!currentSessionId) throw new Error("No session available");
       setIsGenerating(true);
       if (!directory) throw new Error("Browser workspace is not initialized");
-      await sendPrompt(currentSessionId, text, directory);
+      await sendPrompt(currentSessionId, text, directory, model);
     } catch (sendError: unknown) {
       setIsGenerating(false);
       setError(
@@ -264,7 +270,10 @@ function App() {
         <ExtensionChatInput
           value={input}
           isGenerating={isGenerating}
+          directory={directory}
+          model={model}
           onChange={setInput}
+          onModelChange={setModel}
           onSubmit={() => void handleSubmit()}
           onStop={() => void handleStop()}
         />

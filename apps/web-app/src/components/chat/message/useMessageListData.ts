@@ -2,13 +2,13 @@ import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { SessionStatus } from "@opencode-ai/sdk/v2";
 import type { MessageDisplayItem } from "@repo/ui/components/message";
+import { pickFresher } from "@repo/opencode";
 import type { Message } from "@/types";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { useSessionErrorStore } from "@/stores/sessionErrorStore";
 import type { SessionErrorInfo } from "@repo/ui/components/message";
-import { pickFresher } from "@/lib/message";
 
 export type { MessageDisplayItem } from "@repo/ui/components/message";
 

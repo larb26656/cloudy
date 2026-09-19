@@ -2,10 +2,21 @@ import { type Session } from "@opencode-ai/sdk/v2/client";
 import type { Message } from "@repo/ui/components/message/types";
 import { createClient, getErrorMessage } from "./client";
 
-export async function createBotSession(directory: string): Promise<Session> {
+export interface SessionModel {
+  providerID: string;
+  modelID: string;
+}
+
+export async function createBotSession(
+  directory: string,
+  model?: SessionModel | null,
+): Promise<Session> {
   const result = await createClient(directory).session.create({
     directory,
-    agent: "bot",
+    agent: "browser",
+    model: model
+      ? { id: model.modelID, providerID: model.providerID }
+      : undefined,
   });
   if (result.error) throw new Error(getErrorMessage(result.error));
   return result.data;
@@ -41,11 +52,13 @@ export async function sendPrompt(
   sessionId: string,
   text: string,
   directory: string,
+  model?: SessionModel | null,
 ): Promise<void> {
   const result = await createClient(directory).session.promptAsync({
     sessionID: sessionId,
     directory,
-    agent: "bot",
+    agent: "browser",
+    model: model ?? undefined,
     parts: [{ type: "text", text }],
   });
   if (result.error) throw new Error(getErrorMessage(result.error));

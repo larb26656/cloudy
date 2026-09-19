@@ -12,8 +12,7 @@
 }
 
 .status,
-.directory,
-.composer-hint {
+.directory {
   color: var(--muted-foreground);
   font-size: 11px;
   overflow: hidden;
@@ -32,51 +31,6 @@
   margin: 0 auto;
   gap: 0;
   padding: 1rem;
-}
-
-.composer {
-  width: 100%;
-  max-width: 56rem;
-  margin: 0 auto;
-  padding: 1rem;
-}
-
-.composer-inner {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 0.5rem 1rem;
-  background: var(--muted);
-  border: 1px solid var(--border);
-  border-radius: 1rem;
-}
-
-.composer-textarea {
-  flex: 1;
-  min-height: 2.25rem;
-  max-height: 10rem;
-  padding: 0.5rem 0;
-  overflow-y: auto;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  resize: none;
-}
-
-.composer-textarea:focus-visible {
-  border: 0;
-  box-shadow: none;
-}
-
-.composer-actions {
-  flex-shrink: 0;
-}
-
-.composer-hint {
-  margin: 0.5rem 0 0;
-  text-align: center;
-  letter-spacing: 0;
 }
 
 .session-status {
