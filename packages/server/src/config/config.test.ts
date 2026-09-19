@@ -18,7 +18,11 @@ const mockedLoadEnvConfig = vi.mocked(loadEnvConfig);
 const mockedLoadFileConfig = vi.mocked(loadFileConfig);
 
 function parseConfigurable(input: Record<string, unknown>) {
-  return ConfigurableSchema.parse({ tempWorkspaceDir: "/tmp", ...input });
+  return ConfigurableSchema.parse({
+    tempWorkspaceDir: "/tmp",
+    extensionWorkspaceDir: "/tmp/extensions",
+    ...input,
+  });
 }
 
 beforeEach(() => {
@@ -114,6 +118,9 @@ describe("loadConfig", () => {
     expect(config.tempWorkspaceDir).toBe(
       path.join(homedir(), ".config", "cloudy", "workspaces"),
     );
+    expect(config.extensionWorkspaceDir).toBe(
+      path.join(homedir(), ".config", "cloudy", "extensions"),
+    );
     expect(config.cors).toBeUndefined();
   });
 
@@ -126,6 +133,13 @@ describe("loadConfig", () => {
     const config = loadConfig({ configDir: "/custom/dir" });
     expect(config.tempWorkspaceDir).toBe(
       path.join("/custom/dir", "workspaces"),
+    );
+  });
+
+  it("composes extensionWorkspaceDir from configDir + extensions", () => {
+    const config = loadConfig({ configDir: "/custom/dir" });
+    expect(config.extensionWorkspaceDir).toBe(
+      path.join("/custom/dir", "extensions"),
     );
   });
 

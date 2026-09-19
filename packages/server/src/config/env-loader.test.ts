@@ -86,6 +86,7 @@ describe("loadEnvConfig", () => {
         "opencodeApiBase",
         "publicDir",
         "tempWorkspaceDir",
+        "extensionWorkspaceDir",
       ].sort(),
     );
   });

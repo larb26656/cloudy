@@ -18,6 +18,7 @@ export const testConfig: AppConfig = {
   cors: [],
   opencodeApiBase: "http://opencode.test",
   tempWorkspaceDir: "/tmp/workspaces",
+  extensionWorkspaceDir: "/tmp/extensions",
 };
 
 /**

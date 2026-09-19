@@ -9,6 +9,7 @@ import { createProxyController } from "./features/proxy";
 import { createPtyController } from "./features/pty";
 import { createNotificationsController } from "./features/notifications";
 import { createWorkspacesController } from "./features/workspaces";
+import { createBrowserWorkspaceController } from "./features/browser-workspace";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
 
@@ -59,6 +60,10 @@ export function createApp({
     .route(
       "/api/workspaces",
       createWorkspacesController(container.workspacesService),
+    )
+    .route(
+      "/api/browser-workspace",
+      createBrowserWorkspaceController(container.browserWorkspaceService),
     )
     .route(
       "/api/notifications",

@@ -30,7 +30,7 @@ The browser extension needs a Cloudy-owned directory that contains its `browser`
 ## Context the new session needs
 
 - Do not add a `browser` value to `workspaceTypes`. The product decision is that this is a normal `type: "agent"` workspace which is visible in Home, selectable by the existing agent chat flow, and editable as an ordinary workspace. The browser extension alone will force `agent: "browser"`; extension changes are deliberately out of scope for this plan.
-- Use a fixed workspace ID, `browser-workspace`, as the singleton identity. The directory is `path.resolve(tempWorkspaceDir, "browser")`; `tempWorkspaceDir` already defaults to `<configDir>/workspaces` in `packages/server/src/config/config.ts:43-53`, so the production default is `~/.config/cloudy/workspaces/browser`. Do not introduce a new configuration field or database migration.
+- Use a fixed workspace ID, `browser-workspace`, as the singleton identity. The directory is `path.resolve(extensionWorkspaceDir, "browser")`; `extensionWorkspaceDir` defaults to `<configDir>/extensions`, so the production default is `~/.config/cloudy/extensions/browser`. Do not add a database migration.
 - The existing workspace persistence API already supplies `findById`, `findByDirectory`, and `create` in `packages/server/src/features/workspaces/workspaces.repository.ts:15-22`, while its service converts duplicate directories into `WorkspaceConflictError` at `workspaces.service.ts:33-38`. Inject `WorkspacesRepository` directly into the browser-workspace service and make the singleton handling explicit rather than routing internally through an HTTP controller.
 - The browser-workspace service must be framework-free, following the service/repository conventions in `packages/server/AGENTS.md`. It owns filesystem setup with `node:fs/promises`, but does not delete user files or delete the workspace.
 - Keep the template bundled as TypeScript string constants in `browser-workspace.templates.ts`, rather than source files copied relative to the package directory. `packages/server/tsup.config.ts:4-18` bundles only `src/index.ts` and explicitly copies only Drizzle migrations, so external template assets would otherwise need new build-pipeline work. Template contents should be based on `/Users/luckytime1996/Documents/Work/ask/AGENTS.md` and `/Users/luckytime1996/Documents/Work/ask/opencode.json`, but define agent name `browser`, description for a browser side-panel assistant, and the initial tool policy. For v1 preserve the Ask-style no-tools policy: every listed tool is `false`.
@@ -41,29 +41,29 @@ The browser extension needs a Cloudy-owned directory that contains its `browser`
 
 ## Tasks
 
-- [ ] 1. **Add a bundled Browser agent template and a Zod response model for the browser-workspace resource.**
+- [x] 1. **Add a bundled Browser agent template and a Zod response model for the browser-workspace resource.**
   - verify: `pnpm --filter @repo/server exec vitest --project unit run src/features/browser-workspace/browser-workspace.service.test.ts`
   - files: `packages/server/src/features/browser-workspace/browser-workspace.templates.ts`, `packages/server/src/features/browser-workspace/browser-workspace.model.ts`
-- [ ] 2. **Implement the singleton service that inspects the fixed ID, initializes the reserved directory without overwriting existing template files, and registers a normal agent workspace when necessary.**
+- [x] 2. **Implement the singleton service that inspects the fixed ID, initializes the reserved directory without overwriting existing template files, and registers a normal agent workspace when necessary.**
   - verify: `pnpm --filter @repo/server exec vitest --project unit run src/features/browser-workspace/browser-workspace.service.test.ts`
   - files: `packages/server/src/features/browser-workspace/browser-workspace.service.ts`, `packages/server/src/features/browser-workspace/browser-workspace.service.test.ts`
-- [ ] 3. **Expose GET status and idempotent POST initialize routes with the defined 200/201 response semantics.**
+- [x] 3. **Expose GET status and idempotent POST initialize routes with the defined 200/201 response semantics.**
   - verify: `pnpm --filter @repo/server exec vitest --project integration run src/features/browser-workspace/browser-workspace.integration.test.ts`
   - files: `packages/server/src/features/browser-workspace/browser-workspace.controller.ts`, `packages/server/src/features/browser-workspace/index.ts`, `packages/server/src/features/browser-workspace/browser-workspace.integration.test.ts`
-- [ ] 4. **Inject the browser-workspace service and mount its controller without changing the existing workspace CRUD API.**
+- [x] 4. **Inject the browser-workspace service and mount its controller without changing the existing workspace CRUD API.**
   - verify: `pnpm --filter @repo/server check-types && pnpm --filter @repo/server exec vitest --project integration run src/features/browser-workspace/browser-workspace.integration.test.ts`
   - files: `packages/server/src/container.ts`, `packages/server/src/server.ts`
-- [ ] 5. **Run the backend quality checks for the completed feature.**
+- [x] 5. **Run the backend quality checks for the completed feature.**
   - verify: `pnpm --filter @repo/server lint && pnpm --filter @repo/server check-types && pnpm --filter @repo/server test`
   - files: `packages/server/src/features/browser-workspace/browser-workspace.service.test.ts`, `packages/server/src/features/browser-workspace/browser-workspace.integration.test.ts`
 
 ## Done when
 
-- [ ] `GET /api/browser-workspace` returns `{ "initialized": false }` before initialization, and returns the stored agent workspace plus `agent: "browser"` afterwards.
-- [ ] The first `POST /api/browser-workspace/initialize` creates a normal `agent` workspace at `<tempWorkspaceDir>/browser`, creates both template files, and returns HTTP 201.
-- [ ] A subsequent initialize request returns HTTP 200 with the same workspace and does not overwrite either template file.
-- [ ] The service rejects a different workspace already registered at the reserved browser directory rather than mutating it.
-- [ ] `pnpm --filter @repo/server lint && pnpm --filter @repo/server check-types && pnpm --filter @repo/server test` exits successfully.
+- [x] `GET /api/browser-workspace` returns `{ "initialized": false }` before initialization, and returns the stored agent workspace plus `agent: "browser"` afterwards.
+- [x] The first `POST /api/browser-workspace/initialize` creates a normal `agent` workspace at `<extensionWorkspaceDir>/browser`, creates both template files, and returns HTTP 201.
+- [x] A subsequent initialize request returns HTTP 200 with the same workspace and does not overwrite either template file.
+- [x] The service rejects a different workspace already registered at the reserved browser directory rather than mutating it.
+- [x] `pnpm --filter @repo/server lint && pnpm --filter @repo/server check-types && pnpm --filter @repo/server test` exits successfully.
 
 ## Notes for implementer
 

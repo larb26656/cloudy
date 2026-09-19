@@ -6,6 +6,7 @@ import { createNotificationsRepository } from "./features/notifications/notifica
 import { createNotificationsService } from "./features/notifications/notifications.service";
 import { createWorkspacesRepository } from "./features/workspaces/workspaces.repository";
 import { createWorkspacesService } from "./features/workspaces/workspaces.service";
+import { createBrowserWorkspaceService } from "./features/browser-workspace/browser-workspace.service";
 import { createDb, runMigrations, type DbClient } from "./db";
 
 export function createContainer(config: AppConfig, overrideDb?: DbClient) {
@@ -21,6 +22,10 @@ export function createContainer(config: AppConfig, overrideDb?: DbClient) {
     workspacesRepository,
     config.tempWorkspaceDir,
   );
+  const browserWorkspaceService = createBrowserWorkspaceService(
+    workspacesRepository,
+    config.extensionWorkspaceDir,
+  );
 
   const notificationsRepository = createNotificationsRepository(db);
   const notificationsService = createNotificationsService(
@@ -33,6 +38,7 @@ export function createContainer(config: AppConfig, overrideDb?: DbClient) {
   return {
     db,
     workspacesService,
+    browserWorkspaceService,
     notificationsRepository,
     notificationsService,
     ptyService,
