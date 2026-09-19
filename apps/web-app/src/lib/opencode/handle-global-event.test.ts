@@ -450,7 +450,9 @@ describe("handleEvent", () => {
       );
 
       const state = useStreamingMessagesStore.getState();
-      expect(state.pendingDeltas.get("part_delta")).toBe("Hello world");
+      expect(state.pendingDeltas.get(SESSION_ID)?.get("part_delta")).toBe(
+        "Hello world",
+      );
     });
   });
 

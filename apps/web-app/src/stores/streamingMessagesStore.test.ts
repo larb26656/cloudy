@@ -3,7 +3,9 @@ import { useStreamingMessagesStore } from "./streamingMessagesStore";
 import type { Message } from "@/types";
 import type { Part, AssistantMessage } from "@opencode-ai/sdk/v2";
 
-const createMockAssistantMessage = (overrides: Partial<AssistantMessage> = {}): AssistantMessage =>
+const createMockAssistantMessage = (
+  overrides: Partial<AssistantMessage> = {},
+): AssistantMessage =>
   ({
     id: "msg_123",
     sessionID: "session_abc",
@@ -45,48 +47,80 @@ describe("streamingMessagesStore", () => {
 
   describe("initial state", () => {
     test("streamingMessages is empty Map", () => {
-      expect(useStreamingMessagesStore.getState().streamingMessages).toBeInstanceOf(Map);
-      expect(useStreamingMessagesStore.getState().streamingMessages.size).toBe(0);
+      expect(
+        useStreamingMessagesStore.getState().streamingMessages,
+      ).toBeInstanceOf(Map);
+      expect(useStreamingMessagesStore.getState().streamingMessages.size).toBe(
+        0,
+      );
     });
   });
 
   describe("onMessageInfoUpdated", () => {
     test("creates new session and message when session does not exist", () => {
       const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
       });
 
-      useStreamingMessagesStore.getState().onMessageInfoUpdated("session_1", message);
+      useStreamingMessagesStore
+        .getState()
+        .onMessageInfoUpdated("session_1", message);
 
       const state = useStreamingMessagesStore.getState();
       expect(state.streamingMessages.get("session_1")).toBeInstanceOf(Map);
-      expect(state.streamingMessages.get("session_1")!.get("msg_1")).toEqual(message);
+      expect(state.streamingMessages.get("session_1")!.get("msg_1")).toEqual(
+        message,
+      );
     });
 
     test("adds new message to existing session", () => {
       const message1 = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
       });
       const message2 = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_2", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_2",
+          sessionID: "session_1",
+        }),
       });
 
-      useStreamingMessagesStore.getState().onMessageInfoUpdated("session_1", message1);
-      useStreamingMessagesStore.getState().onMessageInfoUpdated("session_1", message2);
+      useStreamingMessagesStore
+        .getState()
+        .onMessageInfoUpdated("session_1", message1);
+      useStreamingMessagesStore
+        .getState()
+        .onMessageInfoUpdated("session_1", message2);
 
       const state = useStreamingMessagesStore.getState();
       expect(state.streamingMessages.get("session_1")!.size).toBe(2);
-      expect(state.streamingMessages.get("session_1")!.get("msg_1")).toEqual(message1);
-      expect(state.streamingMessages.get("session_1")!.get("msg_2")).toEqual(message2);
+      expect(state.streamingMessages.get("session_1")!.get("msg_1")).toEqual(
+        message1,
+      );
+      expect(state.streamingMessages.get("session_1")!.get("msg_2")).toEqual(
+        message2,
+      );
     });
 
     test("merges message info without overwriting existing parts", () => {
       const existingMessage = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [createTextPart({ id: "part_existing", text: "existing text" })],
       });
       const updatedMessage = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1", cost: 100 }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+          cost: 100,
+        }),
         parts: [],
       });
 
@@ -96,7 +130,9 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      useStreamingMessagesStore.getState().onMessageInfoUpdated("session_1", updatedMessage);
+      useStreamingMessagesStore
+        .getState()
+        .onMessageInfoUpdated("session_1", updatedMessage);
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
@@ -109,7 +145,10 @@ describe("streamingMessagesStore", () => {
   describe("onMessagePartUpdated", () => {
     test("adds new part to message", () => {
       const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
 
@@ -119,8 +158,14 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      const newPart = createTextPart({ id: "part_new", text: "New part", messageID: "msg_1" });
-      useStreamingMessagesStore.getState().onMessagePartUpdated("session_1", newPart);
+      const newPart = createTextPart({
+        id: "part_new",
+        text: "New part",
+        messageID: "msg_1",
+      });
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartUpdated("session_1", newPart);
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
@@ -130,8 +175,17 @@ describe("streamingMessagesStore", () => {
 
     test("replaces existing part with same id", () => {
       const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
-        parts: [createTextPart({ id: "part_1", text: "Original", messageID: "msg_1" })],
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
+        parts: [
+          createTextPart({
+            id: "part_1",
+            text: "Original",
+            messageID: "msg_1",
+          }),
+        ],
       });
 
       useStreamingMessagesStore.setState({
@@ -140,8 +194,14 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      const updatedPart = createTextPart({ id: "part_1", text: "Updated", messageID: "msg_1" });
-      useStreamingMessagesStore.getState().onMessagePartUpdated("session_1", updatedPart);
+      const updatedPart = createTextPart({
+        id: "part_1",
+        text: "Updated",
+        messageID: "msg_1",
+      });
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartUpdated("session_1", updatedPart);
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
@@ -176,7 +236,10 @@ describe("streamingMessagesStore", () => {
 
     test("creates skeleton message when message not found in existing session", () => {
       const existingMessage = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
 
@@ -211,7 +274,10 @@ describe("streamingMessagesStore", () => {
   describe("onMessagePartDeltaUpdated", () => {
     test("appends delta to existing text part", () => {
       const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [createTextPart({ id: "part_1", text: "Hello" })],
       });
 
@@ -221,7 +287,9 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      useStreamingMessagesStore.getState().onMessagePartDeltaUpdated("session_1", "msg_1", "part_1", ", world!");
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartDeltaUpdated("session_1", "msg_1", "part_1", ", world!");
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
@@ -229,20 +297,33 @@ describe("streamingMessagesStore", () => {
     });
 
     test("buffers delta in pendingDeltas when nothing exists", () => {
-      useStreamingMessagesStore.setState({ streamingMessages: new Map(), pendingDeltas: new Map() });
+      useStreamingMessagesStore.setState({
+        streamingMessages: new Map(),
+        pendingDeltas: new Map(),
+      });
 
       useStreamingMessagesStore
         .getState()
-        .onMessagePartDeltaUpdated("session_orphan", "msg_orphan", "part_orphan", "Hello");
+        .onMessagePartDeltaUpdated(
+          "session_orphan",
+          "msg_orphan",
+          "part_orphan",
+          "Hello",
+        );
 
       const state = useStreamingMessagesStore.getState();
       expect(state.streamingMessages.size).toBe(0);
-      expect(state.pendingDeltas.get("part_orphan")).toBe("Hello");
+      expect(
+        state.pendingDeltas.get("session_orphan")?.get("part_orphan"),
+      ).toBe("Hello");
     });
 
     test("buffers delta in pendingDeltas when message exists but part does not", () => {
       const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
 
@@ -260,12 +341,17 @@ describe("streamingMessagesStore", () => {
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
       expect(result.parts).toHaveLength(0);
-      expect(state.pendingDeltas.get("part_new")).toBe("Hello");
+      expect(state.pendingDeltas.get("session_1")?.get("part_new")).toBe(
+        "Hello",
+      );
     });
 
     test("returns state unchanged when part not found", () => {
       const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [createTextPart({ id: "part_1", text: "Hello" })],
       });
 
@@ -275,7 +361,14 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      useStreamingMessagesStore.getState().onMessagePartDeltaUpdated("session_1", "msg_1", "nonexistent_part", "!");
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartDeltaUpdated(
+          "session_1",
+          "msg_1",
+          "nonexistent_part",
+          "!",
+        );
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
@@ -293,7 +386,10 @@ describe("streamingMessagesStore", () => {
       } as const;
 
       const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [reasoningPart],
       });
 
@@ -304,16 +400,28 @@ describe("streamingMessagesStore", () => {
         pendingDeltas: new Map(),
       });
 
-      useStreamingMessagesStore.getState().onMessagePartDeltaUpdated("session_1", "msg_1", "reasoning_1", " more");
+      useStreamingMessagesStore
+        .getState()
+        .onMessagePartDeltaUpdated(
+          "session_1",
+          "msg_1",
+          "reasoning_1",
+          " more",
+        );
 
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
-      expect((result.parts[0] as { text: string }).text).toBe("thinking... more");
+      expect((result.parts[0] as { text: string }).text).toBe(
+        "thinking... more",
+      );
     });
 
     test("flushes pending delta when reasoning part arrives via onMessagePartUpdated", () => {
       const message = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
 
@@ -321,7 +429,9 @@ describe("streamingMessagesStore", () => {
         streamingMessages: new Map([
           ["session_1", new Map([["msg_1", message]])],
         ]),
-        pendingDeltas: new Map([["reasoning_1", "buffered thought"]]),
+        pendingDeltas: new Map([
+          ["session_1", new Map([["reasoning_1", "buffered thought"]])],
+        ]),
       });
 
       const reasoningPart: Part = {
@@ -340,19 +450,27 @@ describe("streamingMessagesStore", () => {
       const state = useStreamingMessagesStore.getState();
       const result = state.streamingMessages.get("session_1")!.get("msg_1")!;
       expect(result.parts).toHaveLength(1);
-      expect((result.parts[0] as { text: string }).text).toBe("basebuffered thought");
-      expect(state.pendingDeltas.has("reasoning_1")).toBe(false);
+      expect((result.parts[0] as { text: string }).text).toBe(
+        "basebuffered thought",
+      );
+      expect(state.pendingDeltas.has("session_1")).toBe(false);
     });
   });
 
   describe("takeSessionStreaming", () => {
     test("returns messages array and clears session from map", () => {
       const message1 = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
       const message2 = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_2", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_2",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
 
@@ -368,12 +486,16 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      const result = useStreamingMessagesStore.getState().takeSessionStreaming("session_1");
+      const result = useStreamingMessagesStore
+        .getState()
+        .takeSessionStreaming("session_1");
 
       expect(result).toHaveLength(2);
       expect(result[0]).toEqual(message1);
       expect(result[1]).toEqual(message2);
-      expect(useStreamingMessagesStore.getState().streamingMessages.has("session_1")).toBe(false);
+      expect(
+        useStreamingMessagesStore.getState().streamingMessages.has("session_1"),
+      ).toBe(false);
     });
 
     test("returns empty array when session not found", () => {
@@ -381,7 +503,9 @@ describe("streamingMessagesStore", () => {
         streamingMessages: new Map(),
       });
 
-      const result = useStreamingMessagesStore.getState().takeSessionStreaming("nonexistent_session");
+      const result = useStreamingMessagesStore
+        .getState()
+        .takeSessionStreaming("nonexistent_session");
 
       expect(result).toEqual([]);
     });
@@ -391,19 +515,29 @@ describe("streamingMessagesStore", () => {
         streamingMessages: new Map([["session_1", new Map()]]),
       });
 
-      const result = useStreamingMessagesStore.getState().takeSessionStreaming("session_1");
+      const result = useStreamingMessagesStore
+        .getState()
+        .takeSessionStreaming("session_1");
 
       expect(result).toEqual([]);
-      expect(useStreamingMessagesStore.getState().streamingMessages.has("session_1")).toBe(false);
+      expect(
+        useStreamingMessagesStore.getState().streamingMessages.has("session_1"),
+      ).toBe(false);
     });
 
     test("preserves other sessions when taking one session", () => {
       const messageA = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_a", sessionID: "session_A" }),
+        info: createMockAssistantMessage({
+          id: "msg_a",
+          sessionID: "session_A",
+        }),
         parts: [],
       });
       const messageB = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_b", sessionID: "session_B" }),
+        info: createMockAssistantMessage({
+          id: "msg_b",
+          sessionID: "session_B",
+        }),
         parts: [],
       });
 
@@ -416,20 +550,35 @@ describe("streamingMessagesStore", () => {
 
       useStreamingMessagesStore.getState().takeSessionStreaming("session_A");
 
-      expect(useStreamingMessagesStore.getState().streamingMessages.has("session_A")).toBe(false);
-      expect(useStreamingMessagesStore.getState().streamingMessages.has("session_B")).toBe(true);
-      expect(useStreamingMessagesStore.getState().streamingMessages.get("session_B")!.get("msg_b")).toEqual(messageB);
+      expect(
+        useStreamingMessagesStore.getState().streamingMessages.has("session_A"),
+      ).toBe(false);
+      expect(
+        useStreamingMessagesStore.getState().streamingMessages.has("session_B"),
+      ).toBe(true);
+      expect(
+        useStreamingMessagesStore
+          .getState()
+          .streamingMessages.get("session_B")!
+          .get("msg_b"),
+      ).toEqual(messageB);
     });
   });
 
   describe("removeStreamingMessage", () => {
     test("removes a single message while keeping others in the session", () => {
       const message1 = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
       const message2 = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_2", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_2",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
 
@@ -445,16 +594,23 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      useStreamingMessagesStore.getState().removeStreamingMessage("session_1", "msg_1");
+      useStreamingMessagesStore
+        .getState()
+        .removeStreamingMessage("session_1", "msg_1");
 
-      const sessionMap = useStreamingMessagesStore.getState().streamingMessages.get("session_1")!;
+      const sessionMap = useStreamingMessagesStore
+        .getState()
+        .streamingMessages.get("session_1")!;
       expect(sessionMap.has("msg_1")).toBe(false);
       expect(sessionMap.get("msg_2")).toEqual(message2);
     });
 
     test("removes the session entry when the last message is removed", () => {
       const message1 = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
 
@@ -464,22 +620,33 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      useStreamingMessagesStore.getState().removeStreamingMessage("session_1", "msg_1");
+      useStreamingMessagesStore
+        .getState()
+        .removeStreamingMessage("session_1", "msg_1");
 
-      expect(useStreamingMessagesStore.getState().streamingMessages.has("session_1")).toBe(false);
+      expect(
+        useStreamingMessagesStore.getState().streamingMessages.has("session_1"),
+      ).toBe(false);
     });
 
     test("is a no-op when the session does not exist", () => {
       const before = useStreamingMessagesStore.getState();
 
-      useStreamingMessagesStore.getState().removeStreamingMessage("nonexistent_session", "msg_1");
+      useStreamingMessagesStore
+        .getState()
+        .removeStreamingMessage("nonexistent_session", "msg_1");
 
-      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(before.streamingMessages);
+      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(
+        before.streamingMessages,
+      );
     });
 
     test("is a no-op when the message does not exist", () => {
       const message1 = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_1", sessionID: "session_1" }),
+        info: createMockAssistantMessage({
+          id: "msg_1",
+          sessionID: "session_1",
+        }),
         parts: [],
       });
 
@@ -490,18 +657,28 @@ describe("streamingMessagesStore", () => {
       });
       const before = useStreamingMessagesStore.getState();
 
-      useStreamingMessagesStore.getState().removeStreamingMessage("session_1", "nonexistent_msg");
+      useStreamingMessagesStore
+        .getState()
+        .removeStreamingMessage("session_1", "nonexistent_msg");
 
-      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(before.streamingMessages);
+      expect(useStreamingMessagesStore.getState().streamingMessages).toBe(
+        before.streamingMessages,
+      );
     });
 
     test("preserves other sessions", () => {
       const messageA = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_a", sessionID: "session_A" }),
+        info: createMockAssistantMessage({
+          id: "msg_a",
+          sessionID: "session_A",
+        }),
         parts: [],
       });
       const messageB = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_b", sessionID: "session_B" }),
+        info: createMockAssistantMessage({
+          id: "msg_b",
+          sessionID: "session_B",
+        }),
         parts: [],
       });
 
@@ -512,10 +689,19 @@ describe("streamingMessagesStore", () => {
         ]),
       });
 
-      useStreamingMessagesStore.getState().removeStreamingMessage("session_A", "msg_a");
+      useStreamingMessagesStore
+        .getState()
+        .removeStreamingMessage("session_A", "msg_a");
 
-      expect(useStreamingMessagesStore.getState().streamingMessages.has("session_A")).toBe(false);
-      expect(useStreamingMessagesStore.getState().streamingMessages.get("session_B")!.get("msg_b")).toEqual(messageB);
+      expect(
+        useStreamingMessagesStore.getState().streamingMessages.has("session_A"),
+      ).toBe(false);
+      expect(
+        useStreamingMessagesStore
+          .getState()
+          .streamingMessages.get("session_B")!
+          .get("msg_b"),
+      ).toEqual(messageB);
     });
   });
 });

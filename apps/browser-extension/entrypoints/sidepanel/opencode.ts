@@ -1,20 +1,20 @@
 import {
   createOpencodeClient,
   type GlobalEvent,
-  type Part,
   type Session,
 } from "@opencode-ai/sdk/v2/client";
 import type { Message } from "@repo/ui/components/message/types";
+import {
+  applyMessageStreamEvent,
+  useStreamingMessagesStore,
+  type MessageStreamState,
+} from "@repo/opencode";
 
 export const CLOUDY_PROXY_URL = "http://localhost:4122/oc";
 export const ASK_DIRECTORY = "/Users/luckytime1996/Documents/Work/ask";
 export const SESSION_STORAGE_KEY = "latest-session-id";
 
-export type StreamState = {
-  messages: Map<string, Message>;
-  pendingDeltas: Map<string, string>;
-  parts: Map<string, Map<string, Extract<Part, { type: "text" }>>>;
-};
+export type StreamState = MessageStreamState;
 
 const client = createOpencodeClient({
   baseUrl: CLOUDY_PROXY_URL,
@@ -60,12 +60,14 @@ export async function loadSessionMessages(
   });
   if (result.error) throw new Error(getErrorMessage(result.error));
 
-  return result.data.map((message) => ({
+  return result.data.map(toMessage);
+}
+
+export function toMessage(message: Message): Message {
+  return {
     info: message.info,
-    parts: message.parts.filter(
-      (part): part is Extract<Part, { type: "text" }> => part.type === "text",
-    ),
-  }));
+    parts: message.parts,
+  };
 }
 
 export async function sendPrompt(
@@ -114,91 +116,17 @@ export async function subscribeToEvents(
   };
 }
 
-function ensureMessage(
-  state: StreamState,
-  id: string,
-  role: "user" | "assistant",
-  sessionId: string,
-): Message {
-  return (
-    state.messages.get(id) ?? {
-      info: {
-        id,
-        sessionID: sessionId,
-        role,
-        time: { created: Date.now() },
-      } as Message["info"],
-      parts: [],
-    }
-  );
-}
-
 export function applyStreamEvent(
   state: StreamState,
   event: GlobalEvent,
   sessionId: string,
 ): StreamState {
-  const payload = event.payload;
-  const nextMessages = new Map(state.messages);
-  const pendingDeltas = new Map(state.pendingDeltas);
-  const parts = new Map(state.parts);
+  return applyMessageStreamEvent(state, event, sessionId);
+}
 
-  if (payload.type === "message.updated") {
-    if (payload.properties.info.sessionID !== sessionId) return state;
-    const current =
-      nextMessages.get(payload.properties.info.id) ??
-      ensureMessage(
-        state,
-        payload.properties.info.id,
-        payload.properties.info.role,
-        sessionId,
-      );
-    nextMessages.set(payload.properties.info.id, {
-      ...current,
-      info: payload.properties.info,
-    });
-  }
-
-  if (payload.type === "message.part.updated") {
-    if (
-      payload.properties.part.sessionID !== sessionId ||
-      payload.properties.part.type !== "text"
-    )
-      return state;
-    const part = payload.properties.part;
-    const messageParts = new Map(parts.get(part.messageID));
-    const pending = pendingDeltas.get(part.id) ?? "";
-    const nextPart = pending ? { ...part, text: part.text + pending } : part;
-    messageParts.set(part.id, nextPart);
-    parts.set(part.messageID, messageParts);
-    nextMessages.set(part.messageID, {
-      ...(nextMessages.get(part.messageID) ??
-        ensureMessage(state, part.messageID, "assistant", sessionId)),
-      parts: Array.from(messageParts.values()),
-    });
-    pendingDeltas.delete(part.id);
-  }
-
-  if (payload.type === "message.part.delta") {
-    if (payload.properties.sessionID !== sessionId) return state;
-    const { messageID, partID, delta } = payload.properties;
-    const messageParts = parts.get(messageID);
-    const currentPart = messageParts?.get(partID);
-    if (!messageParts || !currentPart) {
-      pendingDeltas.set(partID, (pendingDeltas.get(partID) ?? "") + delta);
-    } else {
-      const nextParts = new Map(messageParts);
-      nextParts.set(partID, { ...currentPart, text: currentPart.text + delta });
-      parts.set(messageID, nextParts);
-      const current =
-        nextMessages.get(messageID) ?? state.messages.get(messageID);
-      if (current)
-        nextMessages.set(messageID, {
-          ...current,
-          parts: Array.from(nextParts.values()),
-        });
-    }
-  }
-
-  return { messages: nextMessages, pendingDeltas, parts };
+export function dispatchStreamEvent(
+  event: GlobalEvent,
+  sessionId: string,
+): void {
+  useStreamingMessagesStore.getState().applyEvent(sessionId, event);
 }

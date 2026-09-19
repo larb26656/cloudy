@@ -1,39 +1,45 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Message } from "@repo/ui/components/message/types";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import {
   abortSession,
-  applyStreamEvent,
   ASK_DIRECTORY,
   clearStoredSessionId,
   createBotSession,
+  dispatchStreamEvent,
   getStoredSessionId,
-  loadSessionMessages,
   sendPrompt,
   storeSessionId,
   subscribeToEvents,
-  type StreamState,
 } from "./opencode";
+import { useStreamingMessagesStore } from "@repo/opencode";
+import { sessionMessageKeys } from "./query-keys";
+import { useSessionMessages } from "./useSessionMessages";
 import { ExtensionChatInput } from "./ExtensionChatInput";
 import { ExtensionMessageList } from "./ExtensionMessageList";
 import { ExtensionSessionStatusBar } from "./ExtensionSessionStatusBar";
 import "./App.css";
 
-const emptyStream: StreamState = {
-  messages: new Map(),
-  pendingDeltas: new Map(),
-  parts: new Map(),
-};
-
 function App() {
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [stream, setStream] = useState<StreamState>(emptyStream);
   const [input, setInput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const sessionIdRef = useRef<string | null>(null);
+  const queryClient = useQueryClient();
+  const {
+    data: messages = [],
+    isLoading: isMessagesLoading,
+    error: messagesError,
+  } = useSessionMessages(sessionId);
+  const streamingMessages = useStreamingMessagesStore((state) =>
+    state.streamingMessages.get(sessionId ?? ""),
+  );
+  const takeSessionStreaming = useStreamingMessagesStore(
+    (state) => state.takeSessionStreaming,
+  );
 
   useEffect(() => {
     sessionIdRef.current = sessionId;
@@ -46,17 +52,8 @@ function App() {
     void (async () => {
       const storedId = await getStoredSessionId();
       if (storedId) {
-        try {
-          const loaded = await loadSessionMessages(storedId);
-          if (!cancelled) {
-            setSessionId(storedId);
-            setMessages(loaded);
-          }
-          setIsLoading(false);
-        } catch {
-          await clearStoredSessionId();
-          setIsLoading(false);
-        }
+        if (!cancelled) setSessionId(storedId);
+        setIsLoading(false);
       } else {
         setIsLoading(false);
       }
@@ -86,27 +83,17 @@ function App() {
           event.payload.properties.sessionID === currentSessionId
         ) {
           setIsGenerating(false);
-          void loadSessionMessages(currentSessionId)
-            .then((loaded) => {
-              if (!cancelled) {
-                setMessages(loaded);
-                setStream(emptyStream);
-              }
-            })
-            .catch((loadError: unknown) => {
-              if (!cancelled)
-                setError(
-                  loadError instanceof Error
-                    ? loadError.message
-                    : "Failed to load messages",
-                );
-            });
+          takeSessionStreaming(currentSessionId);
+          void queryClient.invalidateQueries({
+            queryKey: sessionMessageKeys.detail(
+              ASK_DIRECTORY,
+              currentSessionId,
+            ),
+          });
           return;
         }
 
-        setStream((current) =>
-          applyStreamEvent(current, event, currentSessionId),
-        );
+        dispatchStreamEvent(event, currentSessionId);
       });
     })().catch((loadError: unknown) => {
       if (!cancelled)
@@ -121,17 +108,27 @@ function App() {
       cancelled = true;
       stop?.();
     };
-  }, []);
+  }, [queryClient, takeSessionStreaming]);
+
+  useEffect(() => {
+    if (!messagesError || !sessionId) return;
+    void clearStoredSessionId();
+    setError(
+      messagesError instanceof Error
+        ? messagesError.message
+        : "Failed to load messages",
+    );
+  }, [messagesError, sessionId]);
 
   const visibleMessages = useMemo<Message[]>(() => {
     const merged = new Map(
       messages.map((message) => [message.info.id, message]),
     );
-    for (const message of stream.messages.values()) {
+    for (const message of streamingMessages?.values() ?? []) {
       merged.set(message.info.id, message);
     }
     return Array.from(merged.values());
-  }, [messages, stream]);
+  }, [messages, streamingMessages]);
 
   async function handleSubmit() {
     const text = input.trim();
@@ -182,7 +179,7 @@ function App() {
       <MessageScrollerProvider autoScroll>
         <ExtensionMessageList
           messages={visibleMessages}
-          isLoading={isLoading}
+          isLoading={isLoading || isMessagesLoading}
           isGenerating={isGenerating}
           error={error}
         />
