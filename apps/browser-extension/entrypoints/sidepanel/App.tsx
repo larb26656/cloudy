@@ -14,10 +14,12 @@ import {
   subscribeToEvents,
 } from "./services/opencode";
 import { useStreamingMessagesStore } from "@repo/opencode";
-import { sessionMessageKeys } from "./queries/query-keys";
+import { sessionKeys, sessionMessageKeys } from "./queries/query-keys";
 import { useSessionMessages } from "./hooks/useSessionMessages";
+import { useSessions } from "./hooks/useSessions";
 import { ExtensionChatInput } from "./components/ExtensionChatInput";
 import { ExtensionMessageList } from "./components/ExtensionMessageList";
+import { ExtensionSessionAppBar } from "./components/ExtensionSessionAppBar";
 import { ExtensionSessionStatusBar } from "./components/ExtensionSessionStatusBar";
 import "./styles/App.css";
 
@@ -34,6 +36,11 @@ function App() {
     isLoading: isMessagesLoading,
     error: messagesError,
   } = useSessionMessages(sessionId);
+  const {
+    data: sessions = [],
+    isLoading: isSessionsLoading,
+    error: sessionsError,
+  } = useSessions();
   const streamingMessages = useStreamingMessagesStore((state) =>
     state.streamingMessages.get(sessionId ?? ""),
   );
@@ -60,7 +67,6 @@ function App() {
 
       stop = await subscribeToEvents((event) => {
         const currentSessionId = sessionIdRef.current;
-        if (!currentSessionId) return;
 
         if (
           event.payload.type === "session.status" &&
@@ -78,22 +84,18 @@ function App() {
           setError("OpenCode reported an error");
         }
 
-        if (
-          event.payload.type === "session.idle" &&
-          event.payload.properties.sessionID === currentSessionId
-        ) {
-          setIsGenerating(false);
-          takeSessionStreaming(currentSessionId);
+        if (event.payload.type === "session.idle") {
+          const idleSessionId = event.payload.properties.sessionID;
+          if (idleSessionId === currentSessionId) setIsGenerating(false);
+          takeSessionStreaming(idleSessionId);
           void queryClient.invalidateQueries({
-            queryKey: sessionMessageKeys.detail(
-              ASK_DIRECTORY,
-              currentSessionId,
-            ),
+            queryKey: sessionMessageKeys.detail(ASK_DIRECTORY, idleSessionId),
           });
+          void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
           return;
         }
 
-        dispatchStreamEvent(event, currentSessionId);
+        if (currentSessionId) dispatchStreamEvent(event, currentSessionId);
       });
     })().catch((loadError: unknown) => {
       if (!cancelled)
@@ -144,6 +146,7 @@ function App() {
         sessionIdRef.current = session.id;
         setSessionId(session.id);
         await storeSessionId(session.id);
+        void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
       }
       if (!currentSessionId) throw new Error("No session available");
       setIsGenerating(true);
@@ -174,8 +177,44 @@ function App() {
     }
   }
 
+  function handleSessionChange(nextSessionId: string) {
+    sessionIdRef.current = nextSessionId;
+    setSessionId(nextSessionId);
+    setIsGenerating(false);
+    setError(null);
+    void storeSessionId(nextSessionId).catch((storageError: unknown) => {
+      setError(
+        storageError instanceof Error
+          ? storageError.message
+          : "Failed to save session selection",
+      );
+    });
+  }
+
+  function handleNewChat() {
+    sessionIdRef.current = null;
+    setSessionId(null);
+    setIsGenerating(false);
+    setError(null);
+    void clearStoredSessionId().catch((storageError: unknown) => {
+      setError(
+        storageError instanceof Error
+          ? storageError.message
+          : "Failed to clear session selection",
+      );
+    });
+  }
+
   return (
     <main className="chat-container">
+      <ExtensionSessionAppBar
+        sessions={sessions}
+        sessionId={sessionId}
+        isLoading={isSessionsLoading}
+        error={sessionsError}
+        onSessionChange={handleSessionChange}
+        onNewChat={handleNewChat}
+      />
       <MessageScrollerProvider autoScroll>
         <ExtensionMessageList
           messages={visibleMessages}

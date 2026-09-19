@@ -51,6 +51,12 @@ export async function createBotSession(): Promise<Session> {
   return result.data;
 }
 
+export async function listSessions(): Promise<Session[]> {
+  const result = await client.session.list({ directory: ASK_DIRECTORY });
+  if (result.error) throw new Error(getErrorMessage(result.error));
+  return result.data;
+}
+
 export async function loadSessionMessages(
   sessionId: string,
 ): Promise<Message[]> {
