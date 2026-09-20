@@ -2,6 +2,9 @@ import { type Session } from "@opencode-ai/sdk/v2/client";
 import type { Message } from "@repo/ui/components/message/types";
 import { createClient, getErrorMessage } from "./client";
 
+export const INJECTED_CONTEXT_MARKER =
+  "<!-- cloudy:browser-extension:injected-context -->";
+
 export interface SessionModel {
   providerID: string;
   modelID: string;
@@ -46,6 +49,16 @@ export function toMessage(message: Message): Message {
     info: message.info,
     parts: message.parts,
   };
+}
+
+export function isInjectedContextMessage(message: Message): boolean {
+  return (
+    message.info.role === "user" &&
+    message.parts.some(
+      (part) =>
+        part.type === "text" && part.text.startsWith(INJECTED_CONTEXT_MARKER),
+    )
+  );
 }
 
 export async function injectContext(

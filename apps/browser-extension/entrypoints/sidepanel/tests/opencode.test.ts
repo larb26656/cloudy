@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 import type { GlobalEvent, Part } from "@opencode-ai/sdk/v2/client";
 import type { Message } from "@repo/ui/components/message/types";
 import { applyStreamEvent, type StreamState } from "../lib/opencode/events";
-import { toMessage } from "../lib/opencode/sessions";
+import {
+  INJECTED_CONTEXT_MARKER,
+  isInjectedContextMessage,
+  toMessage,
+} from "../lib/opencode/sessions";
 
 const sessionId = "session-1";
 
@@ -47,6 +51,60 @@ function part(
 }
 
 describe("extension OpenCode message assembly", () => {
+  it("identifies injected context user messages", () => {
+    const message = toMessage({
+      info: {
+        id: "context-message",
+        sessionID: sessionId,
+        role: "user",
+        time: { created: 1 },
+      } as Message["info"],
+      parts: [part("text", "text-1", `${INJECTED_CONTEXT_MARKER}\ncontent`)],
+    });
+
+    expect(isInjectedContextMessage(message)).toBe(true);
+  });
+
+  it("does not hide normal user or assistant messages", () => {
+    const userMessage = toMessage({
+      info: {
+        id: "user-message",
+        sessionID: sessionId,
+        role: "user",
+        time: { created: 1 },
+      } as Message["info"],
+      parts: [part("text", "text-1", "What is this page about?")],
+    });
+    const assistantMessage = toMessage({
+      info: {
+        id: "assistant-message",
+        sessionID: sessionId,
+        role: "assistant",
+        time: { created: 2 },
+      } as Message["info"],
+      parts: [part("text", "text-2", "It is a page about testing.")],
+    });
+
+    expect(isInjectedContextMessage(userMessage)).toBe(false);
+    expect(isInjectedContextMessage(assistantMessage)).toBe(false);
+  });
+
+  it("requires the marker at the start of a text part", () => {
+    const message = toMessage({
+      info: {
+        id: "user-message",
+        sessionID: sessionId,
+        role: "user",
+        time: { created: 1 },
+      } as Message["info"],
+      parts: [
+        part("text", "text-1", `quoted ${INJECTED_CONTEXT_MARKER} content`),
+      ],
+    });
+
+    expect(isInjectedContextMessage(message)).toBe(false);
+  });
+
   it("retains every loaded part", () => {
     const parts = [part("text", "text-1", "hello"), part("tool", "tool-1")];
     const message = toMessage({
