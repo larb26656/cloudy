@@ -4,6 +4,7 @@ import {
   areHashesEqual,
   buildPageContext,
   getInjectedContextTexts,
+  removeInjectedContextParts,
 } from "../lib/opencode/context";
 import { INJECTED_CONTEXT_MARKER } from "../lib/opencode/sessions";
 
@@ -25,6 +26,24 @@ describe("injected chat contexts", () => {
         message(`${INJECTED_CONTEXT_MARKER}\nassistant`, "assistant"),
       ]),
     ).toEqual([`${INJECTED_CONTEXT_MARKER}\nfirst`]);
+  });
+
+  it("extracts only marked parts from a message containing the user prompt", () => {
+    const context = `${INJECTED_CONTEXT_MARKER}\ncontext`;
+    const mixed = message(context);
+    mixed.parts.push({
+      id: "prompt",
+      sessionID: "session-1",
+      messageID: "mixed",
+      type: "text",
+      text: "Summarize this",
+    });
+
+    expect(getInjectedContextTexts([mixed])).toEqual([context]);
+    expect(removeInjectedContextParts(mixed)?.parts).toHaveLength(1);
+    expect(removeInjectedContextParts(mixed)?.parts[0]).toMatchObject({
+      text: "Summarize this",
+    });
   });
 
   it("builds page context as reference-only content", () => {

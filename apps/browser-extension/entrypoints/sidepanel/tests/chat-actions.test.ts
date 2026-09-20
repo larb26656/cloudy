@@ -19,8 +19,7 @@ describe("submitChatMessage", () => {
       .fn()
       .mockResolvedValueOnce(false)
       .mockResolvedValueOnce(true);
-    const injectContext = vi.fn().mockResolvedValue(undefined);
-    const sendPrompt = vi.fn().mockResolvedValue(undefined);
+    const prompt = vi.fn().mockResolvedValue(undefined);
     const setInput = vi.fn();
     const setIsGenerating = vi.fn();
     const setError = vi.fn();
@@ -33,8 +32,7 @@ describe("submitChatMessage", () => {
       createSession,
       getCurrentPageContent,
       isInContext,
-      injectContext,
-      sendPrompt,
+      prompt,
       setInput,
       setIsGenerating,
       setError,
@@ -46,9 +44,10 @@ describe("submitChatMessage", () => {
     expect(setIsGenerating).toHaveBeenCalledWith(true);
     expect(isInContext).toHaveBeenNthCalledWith(1, pageContext);
     expect(isInContext).toHaveBeenNthCalledWith(2, selectedTextContext);
-    expect(injectContext).toHaveBeenCalledOnce();
-    expect(injectContext).toHaveBeenCalledWith("session-1", pageContext);
-    expect(sendPrompt).toHaveBeenCalledWith("session-1", "Summarize this");
+    expect(prompt).toHaveBeenCalledWith("session-1", [
+      pageContext,
+      "Summarize this",
+    ]);
   });
 
   it("does not perform work for blank input or an active generation", async () => {
@@ -63,8 +62,7 @@ describe("submitChatMessage", () => {
       createSession,
       getCurrentPageContent: vi.fn(),
       isInContext: vi.fn(),
-      injectContext: vi.fn(),
-      sendPrompt: vi.fn(),
+      prompt: vi.fn(),
       setInput: vi.fn(),
       setIsGenerating: vi.fn(),
       setError,
@@ -86,8 +84,7 @@ describe("submitChatMessage", () => {
       createSession: vi.fn(),
       getCurrentPageContent: vi.fn().mockResolvedValue(undefined),
       isInContext: vi.fn(),
-      injectContext: vi.fn(),
-      sendPrompt: vi.fn().mockRejectedValue(new Error("Prompt failed")),
+      prompt: vi.fn().mockRejectedValue(new Error("Prompt failed")),
       setInput: vi.fn(),
       setIsGenerating,
       setError,

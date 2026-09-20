@@ -105,6 +105,23 @@ describe("extension OpenCode message assembly", () => {
     expect(isInjectedContextMessage(message)).toBe(false);
   });
 
+  it("recognizes a mixed context and prompt message as containing context", () => {
+    const message = toMessage({
+      info: {
+        id: "mixed-message",
+        sessionID: sessionId,
+        role: "user",
+        time: { created: 1 },
+      } as Message["info"],
+      parts: [
+        part("text", "context", `${INJECTED_CONTEXT_MARKER}\ncontent`),
+        part("text", "prompt", "What is this page about?"),
+      ],
+    });
+
+    expect(isInjectedContextMessage(message)).toBe(true);
+  });
+
   it("retains every loaded part", () => {
     const parts = [part("text", "text-1", "hello"), part("tool", "tool-1")];
     const message = toMessage({

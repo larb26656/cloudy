@@ -12,7 +12,7 @@ function AppBarRoot({ sticky, className, ...props }: AppBarProps) {
   return (
     <header
       className={cn(
-        "flex h-14 shrink-0 items-center border-b bg-background",
+        "flex h-14 shrink-0 items-center border-b border-border bg-background",
         sticky && "sticky top-0 z-10",
         className,
       )}

@@ -1,5 +1,5 @@
 import type { Message } from "@repo/ui/components/message/types";
-import { INJECTED_CONTEXT_MARKER, isInjectedContextMessage } from "./sessions";
+import { INJECTED_CONTEXT_MARKER } from "./sessions";
 
 export interface PageContent {
   title: string;
@@ -37,12 +37,24 @@ ${selectedText}
 
 export function getInjectedContextTexts(messages: Message[]) {
   return messages
-    .filter(isInjectedContextMessage)
+    .filter((message) => message.info.role === "user")
     .flatMap((message) =>
-      message.parts
-        .filter((part) => part.type === "text")
-        .map((part) => part.text),
+      message.parts.flatMap((part) =>
+        part.type === "text" && part.text.startsWith(INJECTED_CONTEXT_MARKER)
+          ? [part.text]
+          : [],
+      ),
     );
+}
+
+export function removeInjectedContextParts(message: Message): Message | null {
+  if (message.info.role !== "user") return message;
+
+  const parts = message.parts.filter(
+    (part) =>
+      part.type !== "text" || !part.text.startsWith(INJECTED_CONTEXT_MARKER),
+  );
+  return parts.length > 0 ? { ...message, parts } : null;
 }
 
 export function areHashesEqual(current: Set<string>, next: Set<string>) {

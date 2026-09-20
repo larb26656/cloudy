@@ -61,26 +61,9 @@ export function isInjectedContextMessage(message: Message): boolean {
   );
 }
 
-export async function injectContext(
+export async function promptSession(
   sessionId: string,
-  context: string,
-  directory: string,
-  model?: SessionModel | null,
-) {
-  const client = createClient(directory);
-  return client.session.promptAsync({
-    sessionID: sessionId,
-    directory,
-    agent: "browser",
-    noReply: true,
-    model: model ?? undefined,
-    parts: [{ type: "text", text: context }],
-  });
-}
-
-export async function sendPrompt(
-  sessionId: string,
-  text: string,
+  texts: string[],
   directory: string,
   model?: SessionModel | null,
 ): Promise<void> {
@@ -90,7 +73,7 @@ export async function sendPrompt(
     directory,
     agent: "browser",
     model: model ?? undefined,
-    parts: [{ type: "text", text }],
+    parts: texts.map((text) => ({ type: "text", text })),
   });
   if (result.error) throw new Error(getErrorMessage(result.error));
 }

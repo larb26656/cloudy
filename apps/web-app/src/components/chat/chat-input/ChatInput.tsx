@@ -256,7 +256,7 @@ export const ChatInput = memo(function ChatInput({
         <div className="flex flex-col gap-2">
           <div
             className={cn(
-              "flex flex-col gap-2 bg-muted border rounded-2xl px-4 py-2 w-full",
+              "flex w-full flex-col gap-2 rounded-2xl border border-border bg-muted px-4 py-2",
               !isFocused &&
                 "@max-compact:flex-row @max-compact:items-center min-w-0",
             )}

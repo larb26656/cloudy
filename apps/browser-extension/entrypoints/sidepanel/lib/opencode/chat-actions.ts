@@ -10,8 +10,7 @@ interface SubmitChatMessageOptions {
   createSession: () => Promise<string>;
   getCurrentPageContent: () => Promise<PageContent | undefined>;
   isInContext: (context: string) => Promise<boolean>;
-  injectContext: (sessionId: string, context: string) => Promise<void>;
-  sendPrompt: (sessionId: string, text: string) => Promise<void>;
+  prompt: (sessionId: string, texts: string[]) => Promise<void>;
   setInput: (input: string) => void;
   setIsGenerating: (isGenerating: boolean) => void;
   setError: (error: string | null) => void;
@@ -25,8 +24,7 @@ export async function submitChatMessage({
   createSession,
   getCurrentPageContent,
   isInContext,
-  injectContext,
-  sendPrompt,
+  prompt,
   setInput,
   setIsGenerating,
   setError,
@@ -47,12 +45,12 @@ export async function submitChatMessage({
       selectedText ? buildSelectedTextContext(selectedText) : null,
     ];
 
+    const newContexts: string[] = [];
     for (const context of contexts) {
-      if (!context || (await isInContext(context))) continue;
-      await injectContext(currentSessionId, context);
+      if (context && !(await isInContext(context))) newContexts.push(context);
     }
 
-    await sendPrompt(currentSessionId, text);
+    await prompt(currentSessionId, [...newContexts, text]);
   } catch (error: unknown) {
     setIsGenerating(false);
     setError(error instanceof Error ? error.message : "Failed to send message");

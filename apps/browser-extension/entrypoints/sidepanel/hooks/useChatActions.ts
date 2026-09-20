@@ -3,8 +3,7 @@ import type { SessionModel } from "../lib/opencode/sessions";
 import {
   abortSession,
   createBotSession,
-  injectContext,
-  sendPrompt,
+  promptSession,
 } from "../lib/opencode/sessions";
 import { submitChatMessage } from "../lib/opencode/chat-actions";
 import type { PageContent } from "../lib/opencode/context";
@@ -65,11 +64,8 @@ export function useChatActions({
       },
       getCurrentPageContent,
       isInContext,
-      injectContext: async (sessionId, context) => {
-        await injectContext(sessionId, context, directory, model);
-      },
-      sendPrompt: (sessionId, text) =>
-        sendPrompt(sessionId, text, directory, model),
+      prompt: (sessionId, texts) =>
+        promptSession(sessionId, texts, directory, model),
       setInput,
       setIsGenerating,
       setError,

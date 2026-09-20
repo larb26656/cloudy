@@ -8,7 +8,7 @@ import { useSessionEventStream } from "../hooks/useSessionEventStream";
 import { useChatActions } from "../hooks/useChatActions";
 import { useInjectedContexts } from "../hooks/useInjectedContexts";
 import { useSelectedText } from "../hooks/useSelectedText";
-import { isInjectedContextMessage } from "../lib/opencode/sessions";
+import { removeInjectedContextParts } from "../lib/opencode/context";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./MessageList";
 import { SessionAppBar } from "./SessionAppBar";
@@ -49,6 +49,10 @@ export function ChatApp({ directory }: ChatAppProps) {
 
   useSessionEventStream(directory);
 
+  const displayMessages = messages
+    .map(removeInjectedContextParts)
+    .filter((message): message is Message => message !== null);
+
   useEffect(() => {
     if (!messagesError || !sessionId) return;
     void clearSession();
@@ -60,9 +64,8 @@ export function ChatApp({ directory }: ChatAppProps) {
   }, [clearSession, messagesError, sessionId]);
 
   const { displayItems, streamingIds } = useStreamingMessageDisplayItems(
-    messages,
+    displayMessages,
     sessionId,
-    (message) => !isInjectedContextMessage(message),
   );
   const { isInContext } = useInjectedContexts(messages);
   const { submit, stop, changeSession, newChat } = useChatActions({
