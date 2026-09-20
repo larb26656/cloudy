@@ -2,6 +2,7 @@
 @import "@fontsource/maitree/700.css";
 
 :root {
+  font-size: 16px;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;

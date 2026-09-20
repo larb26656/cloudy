@@ -31,6 +31,7 @@
   margin: 0 auto;
   gap: 0;
   padding: 1rem;
+  user-select: text;
 }
 
 .session-status {
