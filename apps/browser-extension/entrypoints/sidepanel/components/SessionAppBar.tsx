@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { Session } from "@opencode-ai/sdk/v2/client";
-import { ChevronDown, MessageSquarePlus } from "lucide-react";
+import { ChevronDown, MessageSquarePlus, Settings } from "lucide-react";
 import { AppBar } from "@repo/ui/components/app-bar";
 import { Button } from "@repo/ui/components/button";
 import { SessionPicker } from "./SessionPicker";
@@ -44,6 +44,11 @@ export function SessionAppBar({
           </Button>
         </AppBar.Title>
         <AppBar.Actions>
+          <AppBar.ActionIcon
+            icon={Settings}
+            label="Settings"
+            onClick={() => void browser.runtime.openOptionsPage()}
+          />
           <AppBar.ActionIcon
             icon={MessageSquarePlus}
             label="New chat"

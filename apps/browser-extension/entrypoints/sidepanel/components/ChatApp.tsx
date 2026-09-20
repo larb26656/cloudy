@@ -81,6 +81,24 @@ export function ChatApp({ directory }: ChatAppProps) {
     clearSession,
   });
 
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (
+        event.isComposing ||
+        !event.metaKey ||
+        event.key.toLowerCase() !== "n"
+      ) {
+        return;
+      }
+
+      event.preventDefault();
+      newChat();
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [newChat]);
+
   return (
     <main className="chat-container">
       <SessionAppBar
