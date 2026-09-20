@@ -12,7 +12,6 @@ import { removeInjectedContextParts } from "../lib/opencode/context";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./MessageList";
 import { SessionAppBar } from "./SessionAppBar";
-import { SessionStatusBar } from "./SessionStatusBar";
 import { useChatStore } from "../stores/chatStore";
 import { useSessionStore } from "../stores/sessionStore";
 
@@ -113,7 +112,6 @@ export function ChatApp({ directory }: ChatAppProps) {
           onStop={() => void stop()}
         />
       </MessageScrollerProvider>
-      <SessionStatusBar directory={directory} isGenerating={isGenerating} />
     </main>
   );
 }
