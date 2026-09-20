@@ -17,10 +17,15 @@
     "@opencode-ai/sdk": "^1.18.13",
     "zustand": "^5.0.13"
   },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
   "devDependencies": {
+    "@types/react": "19.2.2",
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "eslint": "^9.39.1",
+    "react": "^19.2.5",
     "typescript": "5.9.2",
     "vitest": "^4.1.9"
   }

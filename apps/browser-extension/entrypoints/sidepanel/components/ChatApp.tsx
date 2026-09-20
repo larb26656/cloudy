@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
+import { useStreamingMessageDisplayItems } from "@repo/opencode";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import type { Message } from "@repo/ui/components/message/types";
 import { useSessionMessages } from "../hooks/useSessionMessages";
 import { useSessions } from "../hooks/useSessions";
-import { useChatMessages } from "../hooks/useVisibleMessages";
 import { useSessionEventStream } from "../hooks/useSessionEventStream";
 import { useChatActions } from "../hooks/useChatActions";
 import { useInjectedContexts } from "../hooks/useInjectedContexts";
@@ -59,13 +59,12 @@ export function ChatApp({ directory }: ChatAppProps) {
     );
   }, [clearSession, messagesError, sessionId]);
 
-  const chatMessages = useChatMessages(messages, sessionId);
-
-  const visibleMessages = useMemo(
-    () => chatMessages.filter((msg) => !isInjectedContextMessage(msg)),
-    [chatMessages],
+  const { displayItems, streamingIds } = useStreamingMessageDisplayItems(
+    messages,
+    sessionId,
+    (message) => !isInjectedContextMessage(message),
   );
-  const { isInContext } = useInjectedContexts(chatMessages);
+  const { isInContext } = useInjectedContexts(messages);
   const { submit, stop, changeSession, newChat } = useChatActions({
     directory,
     input,
@@ -92,7 +91,9 @@ export function ChatApp({ directory }: ChatAppProps) {
       />
       <MessageScrollerProvider autoScroll>
         <MessageList
-          messages={visibleMessages}
+          displayItems={displayItems}
+          streamingCount={streamingIds.length}
+          sessionId={sessionId}
           isLoading={isSessionHydrating || isMessagesLoading}
           isGenerating={isGenerating}
           error={error}

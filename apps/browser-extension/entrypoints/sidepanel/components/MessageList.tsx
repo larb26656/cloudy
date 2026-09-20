@@ -2,7 +2,7 @@ import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { MessageBubble, ThinkingAnimation } from "@repo/ui/components/message";
-import type { Message } from "@repo/ui/components/message/types";
+import type { StreamingMessageDisplayItem } from "@repo/opencode";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -10,16 +10,21 @@ import {
   MessageScrollerItem,
   MessageScrollerViewport,
 } from "@repo/ui/components/message-scroller";
+import { StreamingMessageBubble } from "./StreamingMessageBubble";
 
 interface MessageListProps {
-  messages: Message[];
+  displayItems: StreamingMessageDisplayItem[];
+  streamingCount: number;
+  sessionId: string | null;
   isLoading: boolean;
   isGenerating: boolean;
   error: string | null;
 }
 
 export function MessageList({
-  messages,
+  displayItems,
+  streamingCount,
+  sessionId,
   isLoading,
   isGenerating,
   error,
@@ -34,23 +39,32 @@ export function MessageList({
         >
           {isLoading ? (
             <LoadingState size="inline" title="Loading messages..." />
-          ) : messages.length === 0 ? (
+          ) : displayItems.length === 0 ? (
             <EmptyState
               size="inline"
               title="Ask Cloudy anything about this workspace."
             />
           ) : (
-            messages.map((message) => (
+            displayItems.map((item) => (
               <MessageScrollerItem
-                key={message.info.id}
-                messageId={message.info.id}
-                scrollAnchor={message.info.role === "user"}
+                key={item.id}
+                messageId={item.id}
+                scrollAnchor={
+                  item.kind === "remote" && item.message.info.role === "user"
+                }
               >
-                <MessageBubble message={message} />
+                {item.kind === "remote" ? (
+                  <MessageBubble message={item.message} />
+                ) : (
+                  <StreamingMessageBubble
+                    sessionId={sessionId ?? ""}
+                    messageId={item.id}
+                  />
+                )}
               </MessageScrollerItem>
             ))
           )}
-          {isGenerating && (
+          {isGenerating && streamingCount === 0 && (
             <MessageScrollerItem messageId="__thinking">
               <div className="thinking-message">
                 <ThinkingAnimation />
