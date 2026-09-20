@@ -1,5 +1,10 @@
-import { createHash } from "node:crypto";
+export async function hashText(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest(
+    "SHA-256",
+    new TextEncoder().encode(text),
+  );
 
-export function hashText(text: string): string {
-  return createHash("sha256").update(text, "utf8").digest("hex");
+  return Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, "0"),
+  ).join("");
 }

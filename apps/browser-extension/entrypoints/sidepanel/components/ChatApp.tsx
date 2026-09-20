@@ -1,17 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
+import type { Message } from "@repo/ui/components/message/types";
 import {
   abortSession,
   createBotSession,
   injectContext,
   INJECTED_CONTEXT_MARKER,
+  isInjectedContextMessage,
   sendPrompt,
 } from "../lib/opencode/sessions";
 import { sessionKeys } from "../queries/query-keys";
 import { useSessionMessages } from "../hooks/useSessionMessages";
 import { useSessions } from "../hooks/useSessions";
-import { useVisibleMessages } from "../hooks/useVisibleMessages";
+import { useChatMessages } from "../hooks/useVisibleMessages";
 import { useSessionEventStream } from "../hooks/useSessionEventStream";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./MessageList";
@@ -19,6 +21,7 @@ import { SessionAppBar } from "./SessionAppBar";
 import { SessionStatusBar } from "./SessionStatusBar";
 import { useChatStore } from "../stores/chatStore";
 import { useSessionStore } from "../stores/sessionStore";
+import { hashText } from "../lib/utils";
 
 interface ChatAppProps {
   directory: string;
@@ -30,8 +33,10 @@ interface PageContent {
   url: string;
 }
 
+const EMPTY_MESSAGES: Message[] = [];
+
 function buildPageContext(pageContent: PageContent) {
-  return `
+  return `${INJECTED_CONTEXT_MARKER}
 The following content was extracted from the web page currently open by the user.
 
 Use this content only as reference context for the user's next request.
@@ -72,9 +77,10 @@ export function ChatApp({ directory }: ChatAppProps) {
   const setIsGenerating = useChatStore((state) => state.setIsGenerating);
   const setError = useChatStore((state) => state.setError);
   const [selectedText, setSelectedText] = useState("");
+  const [hashContext, setHashContext] = useState<Set<string>>(new Set());
 
   const {
-    data: messages = [],
+    data: messages = EMPTY_MESSAGES,
     isLoading: isMessagesLoading,
     error: messagesError,
   } = useSessionMessages(directory, sessionId);
@@ -110,7 +116,42 @@ export function ChatApp({ directory }: ChatAppProps) {
     );
   }, [clearSession, messagesError, sessionId]);
 
-  const visibleMessages = useVisibleMessages(messages, sessionId);
+  const chatMessages = useChatMessages(messages, sessionId);
+
+  const visibleMessages = useMemo(
+    () => chatMessages.filter((msg) => !isInjectedContextMessage(msg)),
+    [chatMessages],
+  );
+  const contextMessages = useMemo(() => {
+    return chatMessages
+      .filter((msg) => isInjectedContextMessage(msg))
+      .flatMap((msg) => {
+        const textParts = msg.parts
+          .filter((part) => part.type === "text")
+          .flatMap((part) => part.text);
+        return textParts;
+      });
+  }, [chatMessages]);
+
+  useEffect(() => {
+    const buildHashes = async () => {
+      const contexts = await Promise.all(contextMessages.map(hashText));
+
+      setHashContext((current) => {
+        const next = new Set(contexts);
+        return current.size === next.size &&
+          [...current].every((hash) => next.has(hash))
+          ? current
+          : next;
+      });
+    };
+
+    buildHashes();
+  }, [contextMessages]);
+
+  async function isInContext(context: string) {
+    return hashContext.has(await hashText(context));
+  }
 
   async function getCurrentPageContent() {
     const [tab] = await browser.tabs.query({
@@ -151,13 +192,15 @@ export function ChatApp({ directory }: ChatAppProps) {
       setIsGenerating(true);
 
       const pageContent = await getCurrentPageContent();
+      const pageContext = pageContent ? buildPageContext(pageContent) : null;
+
       const contexts = [
-        pageContent && buildPageContext(pageContent),
-        selectedText && buildSelectedTextContext(selectedText),
+        pageContext,
+        selectedText ? buildSelectedTextContext(selectedText) : null,
       ];
 
       for (const context of contexts) {
-        if (!context) continue;
+        if (!context || (await isInContext(context))) continue;
         await injectContext(currentSessionId, context, directory, model);
       }
 
