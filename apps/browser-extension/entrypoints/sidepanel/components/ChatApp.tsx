@@ -80,9 +80,11 @@ export function ChatApp({ directory }: ChatAppProps) {
     selectSession,
     clearSession,
   });
+  const handleSubmit = () => void submit();
+  const handleStop = () => void stop();
 
   useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (
         event.isComposing ||
         !event.metaKey ||
@@ -93,7 +95,7 @@ export function ChatApp({ directory }: ChatAppProps) {
 
       event.preventDefault();
       newChat();
-    }
+    };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
@@ -126,8 +128,8 @@ export function ChatApp({ directory }: ChatAppProps) {
           selectedText={selectedText}
           onChange={setInput}
           onModelChange={setModel}
-          onSubmit={() => void submit()}
-          onStop={() => void stop()}
+          onSubmit={handleSubmit}
+          onStop={handleStop}
         />
       </MessageScrollerProvider>
     </main>

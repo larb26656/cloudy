@@ -33,10 +33,10 @@ export function SessionPicker({
 }: SessionPickerProps) {
   const rootSessions = sessions.filter((session) => !session.parentID);
 
-  function selectSession(id: string) {
+  const handleSessionSelect = (id: string) => {
     onSessionChange(id);
     onOpenChange(false);
-  }
+  };
 
   return (
     <CommandDialog
@@ -63,7 +63,7 @@ export function SessionPicker({
                       key={session.id}
                       value={`${session.title} ${session.id}`}
                       disabled={isCurrent}
-                      onSelect={() => selectSession(session.id)}
+                      onSelect={() => handleSessionSelect(session.id)}
                     >
                       <span className="truncate">
                         {session.title || "New Chat"}

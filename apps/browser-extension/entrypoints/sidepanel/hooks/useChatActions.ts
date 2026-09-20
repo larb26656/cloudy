@@ -50,7 +50,7 @@ export function useChatActions({
 }: UseChatActionsOptions) {
   const queryClient = useQueryClient();
 
-  async function submit() {
+  const submit = async () => {
     await submitChatMessage({
       input,
       selectedText,
@@ -70,9 +70,9 @@ export function useChatActions({
       setIsGenerating,
       setError,
     });
-  }
+  };
 
-  async function stop() {
+  const stop = async () => {
     const sessionId = useSessionStore.getState().sessionId;
     if (!sessionId) return;
 
@@ -85,9 +85,9 @@ export function useChatActions({
     } finally {
       setIsGenerating(false);
     }
-  }
+  };
 
-  function changeSession(sessionId: string) {
+  const changeSession = (sessionId: string) => {
     setIsGenerating(false);
     setError(null);
     void selectSession(sessionId).catch((error: unknown) => {
@@ -97,9 +97,9 @@ export function useChatActions({
           : "Failed to save session selection",
       );
     });
-  }
+  };
 
-  function newChat() {
+  const newChat = () => {
     setIsGenerating(false);
     setError(null);
     void clearSession().catch((error: unknown) => {
@@ -109,7 +109,7 @@ export function useChatActions({
           : "Failed to clear session selection",
       );
     });
-  }
+  };
 
   return { submit, stop, changeSession, newChat };
 }

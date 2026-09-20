@@ -37,13 +37,13 @@ export function ChatInput({
 }: ChatInputProps) {
   const { scrollToEnd } = useMessageScroller();
 
-  function handleSubmit() {
+  const handleSubmit = () => {
     if (!value.trim() || isGenerating) return;
     scrollToEnd();
     onSubmit();
-  }
+  };
 
-  function handleKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Escape" && isGenerating && !value.trim()) {
       event.preventDefault();
       onStop();
@@ -53,7 +53,7 @@ export function ChatInput({
       event.preventDefault();
       handleSubmit();
     }
-  }
+  };
 
   return (
     <div className="p-4">

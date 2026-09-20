@@ -16,6 +16,8 @@ export function BrowserWorkspaceGate({ children }: BrowserWorkspaceGateProps) {
     browserWorkspace.data?.initialized === true
       ? browserWorkspace.data.workspace.directory
       : null;
+  const handleInitialize = () => initializeWorkspace.mutate();
+  const handleRetryStatus = () => void browserWorkspace.refetch();
 
   if (browserWorkspace.isLoading || browserWorkspace.isError) {
     return (
@@ -24,7 +26,7 @@ export function BrowserWorkspaceGate({ children }: BrowserWorkspaceGateProps) {
         isInitializing={false}
         error={browserWorkspace.error}
         onInitialize={() => undefined}
-        onRetry={() => void browserWorkspace.refetch()}
+        onRetry={handleRetryStatus}
       />
     );
   }
@@ -35,8 +37,8 @@ export function BrowserWorkspaceGate({ children }: BrowserWorkspaceGateProps) {
         isLoading={false}
         isInitializing={initializeWorkspace.isPending}
         error={initializeWorkspace.error}
-        onInitialize={() => initializeWorkspace.mutate()}
-        onRetry={() => initializeWorkspace.mutate()}
+        onInitialize={handleInitialize}
+        onRetry={handleInitialize}
       />
     );
   }

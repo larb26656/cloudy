@@ -109,6 +109,18 @@ and typecheck commands when a change affects shared packages.
 - Keep popup and content-script behavior independent from side-panel chat
   changes unless the task explicitly includes them.
 
+## Component and hook handlers
+
+- Define component-local and hook-local event handlers as `const handleX = () => {}`
+  (or an equivalent typed arrow function) to match the web-app convention.
+- Extract inline callbacks when they contain side effects, branching, or more than
+  one operation; keep trivial value-forwarding callbacks inline when they remain
+  clearer at the call site.
+- Do not add `useCallback` solely to enforce this style. Preserve the existing
+  props, store actions, query behavior, and lifecycle semantics.
+- Use domain-oriented names such as `handleSessionSelect`, `handleNewChat`,
+  `handleSubmit`, and `handleClose` for handlers exposed to child components.
+
 ## Testing and manual verification
 
 - Unit tests should cover stream event ordering, especially deltas received

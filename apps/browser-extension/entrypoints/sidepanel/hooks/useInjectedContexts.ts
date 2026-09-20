@@ -22,9 +22,9 @@ export function useInjectedContexts(messages: Message[]) {
     });
   }, [contextTexts]);
 
-  async function isInContext(context: string) {
+  const isInContext = async (context: string) => {
     return contextHashes.has(await hashText(context));
-  }
+  };
 
   return { isInContext };
 }

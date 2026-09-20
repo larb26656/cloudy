@@ -28,6 +28,8 @@ export function SessionAppBar({
     (session) => session.id === sessionId,
   );
   const title = activeSession?.title || "New Chat";
+  const handleOpenPicker = () => setPickerOpen(true);
+  const handleOpenSettings = () => void browser.runtime.openOptionsPage();
 
   return (
     <>
@@ -36,7 +38,7 @@ export function SessionAppBar({
           <Button
             variant="ghost"
             className="h-9 min-w-0 justify-start gap-1.5 px-2 -ml-2"
-            onClick={() => setPickerOpen(true)}
+            onClick={handleOpenPicker}
             aria-label="Switch session"
           >
             <span className="truncate">{title}</span>
@@ -47,7 +49,7 @@ export function SessionAppBar({
           <AppBar.ActionIcon
             icon={Settings}
             label="Settings"
-            onClick={() => void browser.runtime.openOptionsPage()}
+            onClick={handleOpenSettings}
           />
           <AppBar.ActionIcon
             icon={MessageSquarePlus}
