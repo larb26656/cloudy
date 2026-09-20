@@ -18,6 +18,8 @@
     "generate:package": "npx tsx scripts/generate-package.ts",
     "dev:web-app": "turbo run dev --filter=web-app",
     "build:web-app": "turbo run build --filter=web-app",
+    "build:extension": "turbo run build --filter=cloudy-extension",
+    "build:extension:firefox": "pnpm --filter=cloudy-extension build:firefox",
     "check-types:web-app": "turbo run check-types --filter=web-app"
   },
   "devDependencies": {

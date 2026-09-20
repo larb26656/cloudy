@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
 import {
   ModelSelector as PureModelSelector,
   type ModelSelectorModel,
@@ -37,7 +36,6 @@ export function ModelSelector({
   onChange,
 }: ModelSelectorProps) {
   const favorites = useFavoriteModelsStore((state) => state.favorites);
-  const hydrateFavorites = useFavoriteModelsStore((state) => state.hydrate);
   const toggleFavorite = useFavoriteModelsStore(
     (state) => state.toggleFavorite,
   );
@@ -50,10 +48,6 @@ export function ModelSelector({
     queryFn: () => loadModels(directory),
     staleTime: 60_000,
   });
-
-  useEffect(() => {
-    void hydrateFavorites();
-  }, [hydrateFavorites]);
 
   const availableModelKeys = new Set(
     models.map((model) => `${model.providerID}::${model.modelID}`),

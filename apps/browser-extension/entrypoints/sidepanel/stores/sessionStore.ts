@@ -1,35 +1,42 @@
 import { create } from "zustand";
-
-const SESSION_STORAGE_KEY = "latest-session-id";
+import { createJSONStorage, persist } from "zustand/middleware";
+import { extensionStorage } from "../lib/storage";
 
 interface SessionStore {
   sessionId: string | null;
   isHydrating: boolean;
-  hydrate: () => Promise<void>;
   selectSession: (sessionId: string) => Promise<void>;
   clearSession: () => Promise<void>;
+  setHydrated: () => void;
 }
 
-export const useSessionStore = create<SessionStore>((set) => ({
-  sessionId: null,
-  isHydrating: true,
+export const useSessionStore = create<SessionStore>()(
+  persist(
+    (set) => ({
+      sessionId: null,
+      isHydrating: true,
 
-  hydrate: async () => {
-    const stored = await browser.storage.local.get(SESSION_STORAGE_KEY);
-    const value = stored[SESSION_STORAGE_KEY];
-    set({
-      sessionId: typeof value === "string" ? value : null,
-      isHydrating: false,
-    });
-  },
+      selectSession: async (sessionId) => {
+        set({ sessionId });
+      },
 
-  selectSession: async (sessionId) => {
-    await browser.storage.local.set({ [SESSION_STORAGE_KEY]: sessionId });
-    set({ sessionId });
-  },
+      clearSession: async () => {
+        set({ sessionId: null });
+      },
 
-  clearSession: async () => {
-    await browser.storage.local.remove(SESSION_STORAGE_KEY);
-    set({ sessionId: null });
-  },
-}));
+      setHydrated: () => {
+        set({ isHydrating: false });
+      },
+    }),
+    {
+      name: "latest-session-id",
+      storage: createJSONStorage(() => extensionStorage),
+      partialize: (state) => ({ sessionId: state.sessionId }),
+      version: 1,
+      migrate: (persistedState) => persistedState,
+      onRehydrateStorage: () => (state) => {
+        state?.setHydrated();
+      },
+    },
+  ),
+);

@@ -13,5 +13,8 @@ export default defineConfig({
     description: "Chat with Cloudy from your browser.",
     permissions: ["sidePanel", "storage"],
     host_permissions: ["http://localhost:5122/*", "http://localhost:4122/*"],
+    action: {
+      default_title: "Cloudy",
+    },
   },
 });

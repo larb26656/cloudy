@@ -9,19 +9,18 @@ import { useSessionStore } from "../stores/sessionStore";
 
 export function useSessionEventStream(directory: string) {
   const queryClient = useQueryClient();
-  const hydrateSession = useSessionStore((state) => state.hydrate);
+  const isSessionHydrating = useSessionStore((state) => state.isHydrating);
   const takeSessionStreaming = useStreamingMessagesStore(
     (state) => state.takeSessionStreaming,
   );
 
   useEffect(() => {
+    if (isSessionHydrating) return;
+
     let cancelled = false;
     let stop: (() => void) | undefined;
 
     void (async () => {
-      await hydrateSession();
-      if (cancelled) return;
-
       stop = await subscribeToEvents(directory, (event) => {
         const currentSessionId = useSessionStore.getState().sessionId;
 
@@ -78,5 +77,5 @@ export function useSessionEventStream(directory: string) {
       cancelled = true;
       stop?.();
     };
-  }, [directory, hydrateSession, queryClient, takeSessionStreaming]);
+  }, [directory, isSessionHydrating, queryClient, takeSessionStreaming]);
 }
