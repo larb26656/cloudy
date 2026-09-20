@@ -48,13 +48,31 @@ export function toMessage(message: Message): Message {
   };
 }
 
+export async function injectContext(
+  sessionId: string,
+  context: string,
+  directory: string,
+  model?: SessionModel | null,
+) {
+  const client = createClient(directory);
+  return client.session.promptAsync({
+    sessionID: sessionId,
+    directory,
+    agent: "browser",
+    noReply: true,
+    model: model ?? undefined,
+    parts: [{ type: "text", text: context }],
+  });
+}
+
 export async function sendPrompt(
   sessionId: string,
   text: string,
   directory: string,
   model?: SessionModel | null,
 ): Promise<void> {
-  const result = await createClient(directory).session.promptAsync({
+  const client = createClient(directory);
+  const result = await client.session.promptAsync({
     sessionID: sessionId,
     directory,
     agent: "browser",
