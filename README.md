@@ -17,6 +17,90 @@ pnpm run dev
 - API server: http://localhost:4122
 - Web app: http://localhost:3001
 
+## Browser Extension Development
+
+The browser extension lives in `apps/browser-extension` and is built with WXT.
+It connects to the local Cloudy API, so start the API server before loading the
+extension:
+
+```sh
+pnpm --dir apps/server dev
+```
+
+The extension uses `VITE_API_URL` for the API base URL. To use the default local
+extension development server port (`5122`), create
+`apps/browser-extension/.env.local` with:
+
+```sh
+VITE_API_URL=http://localhost:5122
+```
+
+Install dependencies and run the extension in development mode:
+
+```sh
+pnpm install
+pnpm --dir apps/browser-extension dev
+```
+
+### Chrome
+
+For automatic rebuild and extension reload, use:
+
+```sh
+pnpm --dir apps/browser-extension dev
+```
+
+To load the development build manually:
+
+1. Open `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Run `pnpm --dir apps/browser-extension build` for a production build, or use the dev command above.
+4. Click **Load unpacked**.
+5. Select `apps/browser-extension/.output/chrome-mv3-dev` for the dev build, or `apps/browser-extension/.output/chrome-mv3` for the production build.
+6. Open the extension from the toolbar and test the side panel.
+
+After changing the manifest or permissions, click **Reload** on the extension
+card. Inspect the side panel from its DevTools and inspect the background
+service worker from the extension card.
+
+### Firefox
+
+For Firefox development with WXT:
+
+```sh
+pnpm --dir apps/browser-extension dev:firefox
+```
+
+To load the build manually as a temporary add-on:
+
+1. Run `pnpm --dir apps/browser-extension build:firefox`.
+2. Open `about:debugging#/runtime/this-firefox`.
+3. Click **Load Temporary Add-on**.
+4. Select the generated `manifest.json` under `apps/browser-extension/.output/firefox-mv2`.
+5. Open the extension and test the side panel.
+
+The temporary add-on is removed when Firefox closes. Use **Reload** in
+`about:debugging` after rebuilding. Firefox extension DevTools can be opened
+from the add-on entry, and background errors are shown in the Browser Console.
+
+### Extension Commands
+
+Run these commands from the repository root:
+
+| Command                                             | Description                      |
+| --------------------------------------------------- | -------------------------------- |
+| `pnpm --dir apps/browser-extension dev`             | Start Chrome development mode    |
+| `pnpm --dir apps/browser-extension dev:firefox`     | Start Firefox development mode   |
+| `pnpm --dir apps/browser-extension compile`         | Type-check the extension         |
+| `pnpm --dir apps/browser-extension build`           | Build Chrome production output   |
+| `pnpm --dir apps/browser-extension build:firefox`   | Build Firefox output             |
+| `pnpm --dir apps/browser-extension exec vitest run` | Run extension tests              |
+| `pnpm --dir apps/browser-extension zip`             | Create a Chrome release archive  |
+| `pnpm --dir apps/browser-extension zip:firefox`     | Create a Firefox release archive |
+
+Generated `.output/` and `.wxt/` directories are local build artifacts and
+should not be committed.
+
 ## Build & Install CLI Locally
 
 Build everything and install the `cloudy` command globally on your machine via `pnpm pack` + `pnpm install -g` (simulates a real publish):
@@ -89,18 +173,18 @@ This keeps the package lean (~3.4 MB tarball) while better-sqlite3 handles SQLit
 
 ## Commands
 
-| Command | Description |
-| --- | --- |
-| `pnpm run dev` | Dev all apps concurrently |
-| `pnpm run dev:server` | Dev server only |
-| `pnpm run dev:web-app` | Dev web-app only |
-| `pnpm build:full` | Build all + bundle CLI + copy assets |
-| `pnpm publish:local` | Pack tarball + install `cloudy` globally (simulates real publish) |
-| `pnpm unpublish:local` | Remove globally installed `cloudy` |
-| `pnpm run lint` | Lint check |
-| `pnpm run check-types` | Type check |
-| `pnpm run format` | Format with Prettier |
-| `pnpm run clean:modules` | Remove all node_modules + lockfile |
+| Command                      | Description                                                       |
+| ---------------------------- | ----------------------------------------------------------------- |
+| `pnpm run dev`               | Dev all apps concurrently                                         |
+| `pnpm --dir apps/server dev` | Dev server only                                                   |
+| `pnpm run dev:web-app`       | Dev web-app only                                                  |
+| `pnpm build:full`            | Build all + bundle CLI + copy assets                              |
+| `pnpm publish:local`         | Pack tarball + install `cloudy` globally (simulates real publish) |
+| `pnpm unpublish:local`       | Remove globally installed `cloudy`                                |
+| `pnpm run lint`              | Lint check                                                        |
+| `pnpm run check-types`       | Type check                                                        |
+| `pnpm run format`            | Format with Prettier                                              |
+| `pnpm run clean:modules`     | Remove all node_modules + lockfile                                |
 
 ## Publishing (Future)
 

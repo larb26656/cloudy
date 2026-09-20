@@ -64,7 +64,7 @@ export function MessageList({
               </MessageScrollerItem>
             ))
           )}
-          {isGenerating && streamingCount === 0 && (
+          {isGenerating && (
             <MessageScrollerItem messageId="__thinking">
               <div className="thinking-message">
                 <ThinkingAnimation />
