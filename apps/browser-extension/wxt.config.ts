@@ -1,22 +1,11 @@
 import { defineConfig } from "wxt";
 import tailwindcss from "@tailwindcss/vite";
-import { fileURLToPath } from "node:url";
 
 // See https://wxt.dev/api/config.html
 export default defineConfig({
   modules: ["@wxt-dev/module-react"],
   vite: () => ({
     plugins: [tailwindcss()],
-    resolve: {
-      alias: {
-        "@repo/ui/components/markdown": fileURLToPath(
-          new URL(
-            "./entrypoints/sidepanel/components/LightweightMarkdownRenderer.tsx",
-            import.meta.url,
-          ),
-        ),
-      },
-    },
   }),
   manifest: {
     name: "Cloudy",
