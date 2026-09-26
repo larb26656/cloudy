@@ -20,7 +20,7 @@
     "build:web-app": "turbo run build --filter=web-app",
     "build:extension": "turbo run build --filter=cloudy-extension",
     "build:extension:firefox": "pnpm --filter=cloudy-extension build:firefox",
-    "xpi:extension:firefox": "pnpm --filter=cloudy-extension xpi:firefox",
+    "zip:extension:firefox": "pnpm --filter=cloudy-extension zip:firefox",
     "check-types:web-app": "turbo run check-types --filter=web-app"
   },
   "devDependencies": {

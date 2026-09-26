@@ -19,6 +19,9 @@ export default defineConfig({
     browser_specific_settings: {
       gecko: {
         id: "larb26656@gmail.com",
+        data_collection_permissions: {
+          required: ["websiteContent"],
+        },
         strict_min_version: "109.0",
       },
     },
