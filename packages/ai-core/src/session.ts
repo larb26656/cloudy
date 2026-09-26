@@ -1,0 +1,25 @@
+import type { AgentReference } from "./agent";
+import type { ModelReference } from "./model";
+
+export type RunStatus =
+  | "idle"
+  | "queued"
+  | "running"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
+export type SessionStatus = "idle" | "active" | "paused" | "closed";
+
+export interface ChatSession {
+  id: string;
+  title?: string;
+  status: SessionStatus;
+  runStatus: RunStatus;
+  providerId: string;
+  model?: ModelReference;
+  agent?: AgentReference;
+  createdAt: string;
+  updatedAt: string;
+  metadata?: Record<string, unknown>;
+}

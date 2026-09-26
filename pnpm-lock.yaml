@@ -496,8 +496,29 @@ importers:
         specifier: ^4.1.9
         version: 4.1.9(@types/node@24.13.2)(@vitest/browser-playwright@4.1.9)(@vitest/coverage-v8@4.1.9)(jsdom@29.1.1)(msw@2.15.0(@types/node@24.13.2)(typescript@5.9.2))(vite@8.1.4(@types/node@24.13.2)(esbuild@0.28.1)(jiti@2.7.0)(tsx@4.23.0))
 
+  packages/ai-core:
+    devDependencies:
+      "@repo/eslint-config":
+        specifier: workspace:*
+        version: link:../eslint-config
+      "@repo/typescript-config":
+        specifier: workspace:*
+        version: link:../typescript-config
+      eslint:
+        specifier: ^9.39.1
+        version: 9.39.1(jiti@2.7.0)
+      tsup:
+        specifier: ^8.0.0
+        version: 8.5.1(jiti@2.7.0)(postcss@8.5.16)(tsx@4.23.0)(typescript@5.9.2)
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+
   packages/contracts:
     dependencies:
+      "@repo/ai-core":
+        specifier: workspace:*
+        version: link:../ai-core
       "@repo/server":
         specifier: workspace:*
         version: link:../server
@@ -562,6 +583,9 @@ importers:
       "@opencode-ai/sdk":
         specifier: ^1.18.13
         version: 1.18.13
+      "@repo/ai-core":
+        specifier: workspace:*
+        version: link:../ai-core
       zustand:
         specifier: ^5.0.13
         version: 5.0.14(@types/react@19.2.2)(react@19.2.7)(use-sync-external-store@1.6.0(react@19.2.7))
