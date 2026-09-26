@@ -21,47 +21,53 @@ export function useSessionEventStream(directory: string) {
     let stop: (() => void) | undefined;
 
     void (async () => {
-      stop = await subscribeToEvents(directory, (event) => {
-        const currentSessionId = useSessionStore.getState().sessionId;
+      stop = await subscribeToEvents(
+        directory,
+        (event) => {
+          const currentSessionId = useSessionStore.getState().sessionId;
 
-        if (
-          event.payload.type === "session.status" &&
-          event.payload.properties.sessionID === currentSessionId
-        ) {
-          const status = event.payload.properties.status.type;
-          useChatStore
-            .getState()
-            .setIsGenerating(status === "busy" || status === "retry");
-        }
-
-        if (
-          event.payload.type === "session.error" &&
-          event.payload.properties.sessionID === currentSessionId
-        ) {
-          useChatStore.getState().setIsGenerating(false);
-          useChatStore.getState().setError("OpenCode reported an error");
-        }
-
-        if (event.payload.type === "session.idle") {
-          const idleSessionId = event.payload.properties.sessionID;
-          if (idleSessionId === currentSessionId) {
-            useChatStore.getState().setIsGenerating(false);
+          if (
+            event.payload.type === "session.status" &&
+            event.payload.properties.sessionID === currentSessionId
+          ) {
+            const status = event.payload.properties.status.type;
+            useChatStore
+              .getState()
+              .setIsGenerating(status === "busy" || status === "retry");
           }
-          const streamedMessages = takeSessionStreaming(idleSessionId);
-          queryClient.setQueryData<Message[]>(
-            sessionMessageKeys.detail(directory, idleSessionId),
-            (cachedMessages = []) =>
-              mergeMessages(cachedMessages, streamedMessages),
-          );
-          void queryClient.invalidateQueries({
-            queryKey: sessionMessageKeys.detail(directory, idleSessionId),
-          });
-          void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
-          return;
-        }
 
-        if (currentSessionId) dispatchStreamEvent(event, currentSessionId);
-      });
+          if (
+            event.payload.type === "session.error" &&
+            event.payload.properties.sessionID === currentSessionId
+          ) {
+            useChatStore.getState().setIsGenerating(false);
+            useChatStore.getState().setError("OpenCode reported an error");
+          }
+
+          if (event.payload.type === "session.idle") {
+            const idleSessionId = event.payload.properties.sessionID;
+            if (idleSessionId === currentSessionId) {
+              useChatStore.getState().setIsGenerating(false);
+            }
+            const streamedMessages = takeSessionStreaming(idleSessionId);
+            queryClient.setQueryData<Message[]>(
+              sessionMessageKeys.detail(directory, idleSessionId),
+              (cachedMessages = []) =>
+                mergeMessages(cachedMessages, streamedMessages),
+            );
+            void queryClient.invalidateQueries({
+              queryKey: sessionMessageKeys.detail(directory, idleSessionId),
+            });
+            void queryClient.invalidateQueries({
+              queryKey: sessionKeys.root(),
+            });
+            return;
+          }
+
+          if (currentSessionId) dispatchStreamEvent(event, currentSessionId);
+        },
+        () => cancelled,
+      );
     })().catch((loadError: unknown) => {
       if (!cancelled)
         useChatStore

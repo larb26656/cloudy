@@ -12,17 +12,26 @@ export type StreamState = MessageStreamState;
 export async function subscribeToEvents(
   directory: string,
   onEvent: (event: GlobalEvent) => void,
+  isCancelled: () => boolean,
 ): Promise<() => void> {
   const { stream } = await createClient(directory).global.event({
     sseMaxRetryAttempts: 5,
     sseMaxRetryDelay: 3000,
   });
+
+  if (isCancelled()) {
+    await stream.return(undefined);
+    return () => {};
+  }
+
   let stopped = false;
 
   void (async () => {
     try {
       for await (const event of stream) {
-        if (!stopped && event.directory === directory) onEvent(event);
+        if (!stopped && !isCancelled() && event.directory === directory) {
+          onEvent(event);
+        }
       }
     } catch (error) {
       if (!stopped) console.error("OpenCode event stream failed", error);
