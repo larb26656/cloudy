@@ -80,7 +80,9 @@ export function reconcileMessages(
 
 function isFinalized(message: Message): boolean {
   return (
-    message.info.role === "user" || message.info.time.completed !== undefined
+    (message.info.role === "user" && message.parts.length > 0) ||
+    ("completed" in message.info.time &&
+      message.info.time.completed !== undefined)
   );
 }
 

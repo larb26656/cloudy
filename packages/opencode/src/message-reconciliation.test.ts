@@ -64,6 +64,18 @@ describe("message reconciliation", () => {
     expect(reconcileMessages([remote], [streaming])).toEqual([remote]);
   });
 
+  test("keeps the streamed user message when the remote copy has no parts", () => {
+    const remote = message({ id: "user", role: "user" });
+    const streaming = message({
+      id: "user",
+      role: "user",
+      parts: [text("text", "hello")],
+    });
+
+    expect(pickFresher(remote, streaming)).toBe("streaming");
+    expect(reconcileMessages([remote], [streaming])).toEqual([streaming]);
+  });
+
   test("uses the longer in-progress assistant stream", () => {
     const remote = message({ id: "assistant", parts: [text("text", "hel")] });
     const streaming = message({
