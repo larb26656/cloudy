@@ -4,13 +4,13 @@ import { http, HttpResponse } from "msw";
 import { renderWithProviders, userEvent } from "@/test/utils";
 import { server } from "@/test/server";
 import { QuestionSheet } from "./QuestionSheet";
-import type { QuestionV2Request } from "@opencode-ai/sdk/v2";
+import type { QuestionRequest } from "@/types";
 
 const DEMO_DIRECTORY = "/demo/project";
 
 const createMockQuestion = (
-  overrides?: Partial<QuestionV2Request>,
-): QuestionV2Request => ({
+  overrides?: Partial<QuestionRequest>,
+): QuestionRequest => ({
   id: "que_test123",
   sessionID: "ses_test456",
   questions: [
@@ -42,7 +42,7 @@ const createMockQuestion = (
 });
 
 const renderQuestionSheet = (
-  question: QuestionV2Request,
+  question: QuestionRequest,
   {
     open = true,
     onOpenChange = vi.fn(),
@@ -174,7 +174,7 @@ describe("QuestionSheet", () => {
   });
 
   describe("Other Option", () => {
-    const questionWithOther: QuestionV2Request = createMockQuestion({
+    const questionWithOther: QuestionRequest = createMockQuestion({
       questions: [
         {
           question: "เลือกภาษาอื่น?",
@@ -236,7 +236,7 @@ describe("QuestionSheet", () => {
     });
 
     test("shows validation error when Other is selected without text", async () => {
-      const questionWithOther: QuestionV2Request = createMockQuestion({
+      const questionWithOther: QuestionRequest = createMockQuestion({
         questions: [
           {
             question: "เลือกภาษาอื่น?",

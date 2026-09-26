@@ -5,7 +5,9 @@ import { Button } from "@repo/ui/components/button";
 import { SessionViewDialog } from "./SessionViewDialog";
 import preview from "../../../../.storybook/preview";
 import type { Message } from "@/types/message";
-import type { AssistantMessage, UserMessage, Part } from "@opencode-ai/sdk/v2";
+type AssistantMessage = Record<string, unknown>;
+type UserMessage = Record<string, unknown>;
+type Part = Record<string, unknown>;
 
 const DEMO_DIRECTORY = "/demo/project";
 const DEMO_SESSION_ID = "ses_demo_123";

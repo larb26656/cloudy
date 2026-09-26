@@ -65,7 +65,7 @@ function FilePreviewBody({
     content = (
       <div className="h-full overflow-auto">
         <CodeView fileName={path} showLineNumbers>
-          {data.content}
+          {data.content ?? ""}
         </CodeView>
       </div>
     );

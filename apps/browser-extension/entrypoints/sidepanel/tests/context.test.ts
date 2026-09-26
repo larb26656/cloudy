@@ -16,11 +16,12 @@ import { INJECTED_CONTEXT_MARKER } from "../lib/opencode/sessions";
 
 function message(text: string, role: "user" | "assistant" = "user"): Message {
   return {
-    info: { id: text, sessionID: "session-1", role, time: { created: 1 } },
-    parts: [
-      { id: text, sessionID: "session-1", messageID: text, type: "text", text },
-    ],
-  } as Message;
+    id: text,
+    sessionId: "session-1",
+    role,
+    createdAt: new Date(1).toISOString(),
+    parts: [{ id: text, type: "text", text }],
+  };
 }
 
 describe("injected chat contexts", () => {
@@ -39,8 +40,6 @@ describe("injected chat contexts", () => {
     const mixed = message(context);
     mixed.parts.push({
       id: "prompt",
-      sessionID: "session-1",
-      messageID: "mixed",
       type: "text",
       text: "Summarize this",
     });

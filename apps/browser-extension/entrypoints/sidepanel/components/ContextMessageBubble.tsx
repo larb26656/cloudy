@@ -41,12 +41,9 @@ export function ContextMessageBubble({ message }: ContextMessageBubbleProps) {
   const displayMessage = removeInjectedContextParts(message);
 
   return (
-    <div data-message-id={message.info.id} className="context-message-group">
+    <div data-message-id={message.id} className="context-message-group">
       {contexts.map((context, index) => (
-        <ContextCard
-          key={`${message.info.id}-context-${index}`}
-          context={context}
-        />
+        <ContextCard key={`${message.id}-context-${index}`} context={context} />
       ))}
       {displayMessage && <MessageBubble message={displayMessage} />}
     </div>

@@ -1,9 +1,9 @@
-import type { Session } from "@opencode-ai/sdk/v2";
+import type { ChatSession } from "@/types";
 import { cn } from "@repo/ui/lib/utils";
 
 interface SessionItemProps {
-  session: Session;
-  onSelect: (session: Session) => void;
+  session: ChatSession;
+  onSelect: (session: ChatSession) => void;
 }
 
 export function SessionItem({ session, onSelect }: SessionItemProps) {

@@ -1,11 +1,11 @@
-import type { PatchPart as PatchPartType } from "@opencode-ai/sdk/v2";
+import type { DiffMessagePart } from "@repo/ai-core";
 import { GitCommit } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { PathText } from "@repo/ui/components/path-text";
 import { CollapsiblePart } from "./CollapsiblePart";
 
 interface PatchPartProps {
-  part: PatchPartType;
+  part: DiffMessagePart;
 }
 
 export function PatchPart({ part }: PatchPartProps) {
@@ -14,7 +14,7 @@ export function PatchPart({ part }: PatchPartProps) {
   return (
     <CollapsiblePart
       label="Patch"
-      detail={`${part.hash?.slice(0, 7)} (${fileCount} file${fileCount !== 1 ? "s" : ""})`}
+      detail={`${part.hash?.slice(0, 7) ?? part.path.slice(0, 7)} (${fileCount} file${fileCount !== 1 ? "s" : ""})`}
     >
       <Card>
         <CardContent className="p-3">
@@ -25,7 +25,7 @@ export function PatchPart({ part }: PatchPartProps) {
                 Patch
               </span>
               <span className="text-xs font-mono text-muted-foreground">
-                {part.hash}
+                {part.hash ?? part.path}
               </span>
             </div>
             {part.files && part.files.length > 0 && (

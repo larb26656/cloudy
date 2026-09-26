@@ -5,10 +5,13 @@ import { playwright } from "@vitest/browser-playwright";
 
 const projectResolve = () => ({
   tsconfigPaths: true,
+  alias: { "@": path.resolve(__dirname, "src") },
 });
 
 export default defineConfig({
-  resolve: projectResolve(),
+  resolve: {
+    ...projectResolve(),
+  },
   test: {
     projects: [
       {

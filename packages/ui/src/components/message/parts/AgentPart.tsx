@@ -1,10 +1,10 @@
-import type { AgentPart as AgentPartType } from "@opencode-ai/sdk/v2";
+import type { AgentMessagePart } from "@repo/ai-core";
 import { Bot, Code } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { CollapsiblePart } from "./CollapsiblePart";
 
 interface AgentPartProps {
-  part: AgentPartType;
+  part: AgentMessagePart;
 }
 
 export function AgentPart({ part }: AgentPartProps) {

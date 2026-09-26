@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { VcsFileDiff } from "@opencode-ai/sdk/v2";
+import type { VcsFileDiff } from "@/types";
 import { Badge } from "@repo/ui/components/badge";
 import { PathText } from "@repo/ui/components/path-text";
 import {
@@ -44,8 +44,9 @@ export function SingleFileChangesView({
     [files, selectedFile],
   );
   const selectedMeta = selected
-    ? (FILE_CHANGE_STATUS_META[selected.status ?? "modified"] ??
-      FILE_CHANGE_STATUS_META.modified)
+    ? (FILE_CHANGE_STATUS_META[
+        (selected.status ?? "modified") as keyof typeof FILE_CHANGE_STATUS_META
+      ] ?? FILE_CHANGE_STATUS_META.modified)
     : null;
 
   const handleSelect = (file: string) => {

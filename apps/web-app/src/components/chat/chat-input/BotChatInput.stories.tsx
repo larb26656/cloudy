@@ -5,7 +5,7 @@ import { ChatProvider } from "../ChatProvider";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import { BotChatInput } from "./BotChatInput";
 import preview from "@/storybook/preview";
-import type { SessionStatus } from "@opencode-ai/sdk/v2";
+import type { SessionRunStatus as SessionStatus } from "@/types";
 
 const SESSION_ID = "ses_story_bot_input";
 const DIRECTORY = "/demo/project";

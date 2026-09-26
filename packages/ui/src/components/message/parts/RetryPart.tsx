@@ -1,20 +1,22 @@
-import type { RetryPart as RetryPartType } from "@opencode-ai/sdk/v2";
+import type { RetryMessagePart } from "@repo/ai-core";
 import { RotateCcw, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { CollapsiblePart } from "./CollapsiblePart";
 import { formatTime } from "@repo/ui/lib/format";
 
 interface RetryPartProps {
-  part: RetryPartType;
+  part: RetryMessagePart;
 }
 
 export function RetryPart({ part }: RetryPartProps) {
-  const time = formatTime(part.time.created);
+  const time = part.createdAt
+    ? formatTime(new Date(part.createdAt).getTime())
+    : "";
 
   return (
     <CollapsiblePart
       label="Retry"
-      detail={`Attempt #${part.attempt} - ${part.error.data.message?.slice(0, 30) || ""}`}
+      detail={`Attempt #${part.attempt} - ${part.error.message?.slice(0, 30) || ""}`}
     >
       <Card>
         <CardContent className="p-3">
@@ -32,11 +34,11 @@ export function RetryPart({ part }: RetryPartProps) {
             <div className="space-y-1">
               <div className="flex items-start gap-2">
                 <AlertCircle className="size-3 text-destructive mt-0.5" />
-                <div className="text-xs">{part.error.data.message}</div>
+                <div className="text-xs">{part.error.message}</div>
               </div>
-              {part.error.data.statusCode && (
+              {part.error.statusCode && (
                 <div className="text-xs text-muted-foreground ml-5">
-                  Status: {part.error.data.statusCode}
+                  Status: {part.error.statusCode}
                 </div>
               )}
             </div>

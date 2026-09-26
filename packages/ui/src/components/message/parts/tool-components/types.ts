@@ -1,6 +1,6 @@
-import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
+import type { ToolMessagePartState } from "@repo/ai-core";
 
 export interface ToolComponentProps {
   tool: string;
-  state: ToolPartType["state"];
+  state: ToolMessagePartState;
 }

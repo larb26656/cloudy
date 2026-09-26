@@ -9,7 +9,19 @@ export type RunStatus =
   | "failed"
   | "cancelled";
 
-export type SessionStatus = "idle" | "active" | "paused" | "closed";
+export type SessionStatus =
+  | "idle"
+  | "active"
+  | "paused"
+  | "closed"
+  | SessionRetryStatus;
+
+export interface SessionRetryStatus {
+  type: "retry";
+  attempt: number;
+  message: string;
+  next: number;
+}
 
 export interface ChatSession {
   id: string;

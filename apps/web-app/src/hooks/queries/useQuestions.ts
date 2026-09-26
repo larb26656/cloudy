@@ -6,18 +6,19 @@ import {
   questionKeys,
   type SdkError,
 } from "@/lib/opencode";
-import type { QuestionV2Request, QuestionAnswer } from "@opencode-ai/sdk/v2";
+import { toQuestionAnswer, toQuestionRequest } from "@/lib/opencode/adapter";
+import type { QuestionAnswer, QuestionRequest } from "@/types";
 
 export function useQuestions({ directory }: { directory: string }) {
   return useQuery({
     queryKey: questionKeys.list(directory),
-    queryFn: async (): Promise<QuestionV2Request[]> => {
+    queryFn: async (): Promise<QuestionRequest[]> => {
       const oc = getOcClient();
       const result = await oc.question.list({ directory });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data ?? [];
+      return (result.data ?? []).map(toQuestionRequest);
     },
     enabled: !!directory,
     refetchInterval: CHAT_POLL_INTERVAL,
@@ -28,13 +29,13 @@ export function useQuestions({ directory }: { directory: string }) {
 export function useSessionQuestions({ sessionID }: { sessionID: string }) {
   return useQuery({
     queryKey: questionKeys.list(sessionID),
-    queryFn: async (): Promise<QuestionV2Request[]> => {
+    queryFn: async (): Promise<QuestionRequest[]> => {
       const oc = getOcClient();
       const result = await oc.v2.session.question.list({ sessionID });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data.data ?? [];
+      return (result.data.data ?? []).map(toQuestionRequest);
     },
     enabled: !!sessionID,
   });
@@ -55,7 +56,7 @@ export function useReplyQuestion() {
       const oc = getOcClient();
       const result = await oc.question.reply({
         requestID,
-        answers,
+        answers: answers.map(toQuestionAnswer),
         directory,
       });
       if (result.error) {

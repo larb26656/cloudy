@@ -1,4 +1,4 @@
-import type { VcsFileDiff } from "@opencode-ai/sdk/v2";
+import type { VcsFileDiff } from "@/types";
 import { Maximize2 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import {

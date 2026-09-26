@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { useState } from "react";
-import type { Session } from "@opencode-ai/sdk/v2";
+import type { ChatSession } from "@/types";
 
 import { Button } from "@repo/ui/components/button";
 import { ErrorState } from "@repo/ui/components/error-state";
@@ -32,7 +32,7 @@ function SessionList({
   const addTab = useTabStore((s) => s.addTab);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const handleSelect = (session: Session) => {
+  const handleSelect = (session: ChatSession) => {
     addTab(workspaceType === "bot" ? "bot-chat" : "chat", {
       sessionId: session.id,
       workspaceId,
@@ -61,7 +61,9 @@ function SessionList({
     return <ErrorState size="inline" bare message="Failed to load sessions" />;
   }
 
-  const rootSessions = sessions.filter((session: Session) => !session.parentID);
+  const rootSessions = sessions.filter(
+    (session: ChatSession) => !session.parentID,
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-1.5">
@@ -77,7 +79,7 @@ function SessionList({
           {workspaceType === "bot" ? "New bot chat" : "New chat"}
         </Button>
       )}
-      {rootSessions.map((session: Session) =>
+      {rootSessions.map((session: ChatSession) =>
         editingId === session.id ? (
           <SessionTitleInput
             key={session.id}

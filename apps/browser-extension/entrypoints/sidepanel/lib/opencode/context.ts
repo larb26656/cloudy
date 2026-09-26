@@ -118,7 +118,7 @@ function readContextAttribute(attributes: string, name: string): string | null {
 }
 
 export function getInjectedContexts(message: Message): InjectedContext[] {
-  if (message.info.role !== "user") return [];
+  if (message.role !== "user") return [];
 
   return message.parts.flatMap((part) => {
     if (
@@ -159,7 +159,7 @@ export function formatContextAttachmentSize(content: string): string {
 
 export function getInjectedContextTexts(messages: Message[]) {
   return messages
-    .filter((message) => message.info.role === "user")
+    .filter((message) => message.role === "user")
     .flatMap((message) =>
       message.parts.flatMap((part) =>
         part.type === "text" && part.text.startsWith(INJECTED_CONTEXT_MARKER)
@@ -170,7 +170,7 @@ export function getInjectedContextTexts(messages: Message[]) {
 }
 
 export function removeInjectedContextParts(message: Message): Message | null {
-  if (message.info.role !== "user") return message;
+  if (message.role !== "user") return message;
 
   const parts = message.parts.filter(
     (part) =>

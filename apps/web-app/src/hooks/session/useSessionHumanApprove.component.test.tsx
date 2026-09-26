@@ -6,8 +6,8 @@ import type { ReactNode } from "react";
 import type {
   QuestionRequest,
   PermissionRequest,
-  Session,
-} from "@opencode-ai/sdk/v2";
+  ChatSession as Session,
+} from "@/types";
 import { server } from "@/test/server";
 import { useSessionData } from "./useSessionHumanApprove";
 

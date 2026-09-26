@@ -1,18 +1,15 @@
-import type {
-  FilePart as FilePartType,
-  FilePartSource,
-} from "@opencode-ai/sdk/v2";
+import type { FileMessagePart, FileMessagePartSource } from "@repo/ai-core";
 import { Paperclip } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { PathText } from "@repo/ui/components/path-text";
 import { CollapsiblePart } from "./CollapsiblePart";
 
 interface FilePartProps {
-  part: FilePartType;
+  part: FileMessagePart;
 }
 
 interface FileSourceDisplayProps {
-  source: FilePartSource;
+  source: FileMessagePartSource;
 }
 
 function FileSourceDisplay({ source }: FileSourceDisplayProps) {
@@ -41,7 +38,10 @@ function FileSourceDisplay({ source }: FileSourceDisplayProps) {
 
 export function FilePart({ part }: FilePartProps) {
   return (
-    <CollapsiblePart label="File" detail={part.filename || "Untitled"}>
+    <CollapsiblePart
+      label="File"
+      detail={(part.filename ?? part.path) || "Untitled"}
+    >
       <Card>
         <CardContent className="p-3">
           <div className="flex flex-col gap-2">
@@ -51,13 +51,13 @@ export function FilePart({ part }: FilePartProps) {
                 File
               </span>
               <span className="text-sm font-medium">
-                {part.filename || "Untitled"}
+                {(part.filename ?? part.path) || "Untitled"}
               </span>
             </div>
             {part.source && <FileSourceDisplay source={part.source} />}
-            {part.mime && (
+            {part.mimeType && (
               <div className="text-xs text-muted-foreground">
-                MIME: {part.mime}
+                MIME: {part.mimeType}
               </div>
             )}
           </div>

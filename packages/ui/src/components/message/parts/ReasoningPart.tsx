@@ -1,4 +1,4 @@
-import type { ReasoningPart as ReasoningPartType } from "@opencode-ai/sdk/v2";
+import type { ReasoningMessagePart } from "@repo/ai-core";
 import { Brain } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { MarkdownRenderer } from "@repo/ui/components/markdown";
@@ -7,17 +7,18 @@ import { useElapsedTime } from "@repo/ui/hooks/use-elapsed-time";
 import { CollapsiblePart } from "./CollapsiblePart";
 
 interface ReasoningPartProps {
-  part: ReasoningPartType;
+  part: ReasoningMessagePart;
 }
 
 export function ReasoningPart({ part }: ReasoningPartProps) {
   const { autoExpandThinking } = useMessageSettings();
-  const isRunning = !part.time.end;
-  const finalSeconds = part.time.end
-    ? Math.round((part.time.end - part.time.start) / 1000)
-    : null;
+  const isRunning = part.completedAt === undefined;
+  const finalSeconds =
+    part.completedAt && part.startedAt
+      ? Math.round((part.completedAt - part.startedAt) / 1000)
+      : null;
   const liveSeconds = useElapsedTime({
-    start: part.time.start,
+    start: part.startedAt ?? Date.now(),
     active: isRunning,
   });
   const label = isRunning

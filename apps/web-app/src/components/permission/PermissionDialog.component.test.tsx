@@ -3,7 +3,7 @@ import { screen, waitFor } from "@testing-library/react";
 import { http, HttpResponse } from "msw";
 import { renderWithProviders, userEvent } from "@/test/utils";
 import { server } from "@/test/server";
-import type { PermissionRequest } from "@opencode-ai/sdk/v2";
+import type { PermissionRequest } from "@/types";
 import { toast } from "@repo/ui/components/sonner";
 import { PermissionDialog } from "./PermissionDialog";
 

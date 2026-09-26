@@ -5,7 +5,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
 import { ChatContainer } from "./ChatContainer";
 import { useChat } from "./ChatProvider";
-import type { QuestionV2Request, PermissionRequest } from "@opencode-ai/sdk/v2";
+import type { QuestionRequest, PermissionRequest } from "@/types";
 
 const mockToastError = vi.fn();
 vi.mock("@repo/ui/components/sonner", () => ({
@@ -137,7 +137,7 @@ const DIRECTORY = "/demo/project";
 const makeQuestion = (
   sessionID: string,
   numQuestions: number,
-): QuestionV2Request => ({
+): QuestionRequest => ({
   id: `que_${sessionID}`,
   sessionID,
   questions: Array.from({ length: numQuestions }, (_, i) => ({
@@ -182,7 +182,7 @@ function renderChat(sessionId: string | null) {
 
 describe("ChatCoatainer", () => {
   describe("question lookup", () => {
-    let questionsData: QuestionV2Request[];
+    let questionsData: QuestionRequest[];
 
     beforeEach(() => {
       questionsData = [];

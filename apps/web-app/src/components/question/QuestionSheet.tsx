@@ -14,7 +14,7 @@ import {
   useReplyQuestion,
   useRejectQuestion,
 } from "@/hooks/queries/useQuestions";
-import type { QuestionAnswer, QuestionV2Request } from "@opencode-ai/sdk/v2";
+import type { QuestionAnswer, QuestionRequest } from "@/types";
 import { CheckboxOptionList } from "./CheckboxOptionList";
 import { RadioOptionList } from "./RadioOptionList";
 import z from "zod";
@@ -78,7 +78,7 @@ export type QuestionFormValues = z.infer<typeof questionFormSchema>;
 interface QuestionSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  question: QuestionV2Request;
+  question: QuestionRequest;
   directory: string;
 }
 
@@ -104,7 +104,7 @@ export function QuestionSheet({
 
   const currentQuestion = question.questions[step];
   const isLastStep = step === question.questions.length - 1;
-  const isMultiple = currentQuestion.multiple;
+  const isMultiple = currentQuestion.multiple ?? false;
 
   const resetState = useCallback(() => {
     setStep(0);

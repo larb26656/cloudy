@@ -2,7 +2,7 @@ import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { MessageBubble, ThinkingAnimation } from "@repo/ui/components/message";
-import type { Message } from "@repo/ui/components/message/types";
+import type { StreamingMessageDisplayItem } from "@repo/opencode";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -13,10 +13,6 @@ import {
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
 import { ContextMessageBubble } from "./ContextMessageBubble";
 import { getInjectedContexts } from "../lib/opencode/context";
-
-type StreamingMessageDisplayItem =
-  | { id: string; kind: "remote"; message: Message }
-  | { id: string; kind: "streaming" };
 
 interface MessageListProps {
   displayItems: StreamingMessageDisplayItem[];
@@ -56,7 +52,7 @@ export function MessageList({
                 key={item.id}
                 messageId={item.id}
                 scrollAnchor={
-                  item.kind === "remote" && item.message.info.role === "user"
+                  item.kind === "remote" && item.message.role === "user"
                 }
               >
                 {item.kind === "remote" ? (

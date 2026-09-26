@@ -1,24 +1,8 @@
-import type {
-  AssistantMessage,
-  Message as OpencodeMessage,
-  Part,
-  UserMessage,
-} from "@opencode-ai/sdk/v2";
+import type { ChatMessage } from "@repo/ai-core";
 
-export interface Message {
-  info: OpencodeMessage;
-  parts: Array<Part>;
-}
-
-export interface UserSessionMessage {
-  info: UserMessage;
-  parts: Array<Part>;
-}
-
-export interface AssistantSessionMessage {
-  info: AssistantMessage;
-  parts: Array<Part>;
-}
+export type Message = ChatMessage;
+export type UserSessionMessage = ChatMessage;
+export type AssistantSessionMessage = ChatMessage;
 
 export interface MessageFileItem {
   name: string;

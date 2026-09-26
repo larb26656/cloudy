@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { FileContent, FileNode, VcsFileDiff } from "@opencode-ai/sdk/v2";
+import type { FileContent, FileNode, VcsFileDiff } from "@/types";
 import { http, HttpResponse } from "msw";
 import { expect, within } from "storybook/test";
 import preview from "@/storybook/preview";

@@ -7,13 +7,18 @@ import {
   type SdkError,
 } from "@/lib/opencode";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import type {
-  Session,
-  SessionStatus,
-  SessionV2Info,
-} from "@opencode-ai/sdk/v2";
+import {
+  toChatSession,
+  toRecentChatSession,
+  toSessionRunStatus,
+} from "@/lib/opencode/adapter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { ModelConfig } from "@/types";
+import type {
+  ChatSession,
+  ModelConfig,
+  RecentChatSession,
+  SessionRunStatus,
+} from "@/types";
 
 export function useSession({
   sessionId,
@@ -24,14 +29,14 @@ export function useSession({
 }) {
   return useQuery({
     queryKey: sessionKeys.detail(sessionId ?? ""),
-    queryFn: async (): Promise<Session | null> => {
+    queryFn: async (): Promise<ChatSession | null> => {
       if (!sessionId) return null;
       const oc = getOcClient();
       const result = await oc.session.get({ sessionID: sessionId, directory });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data;
+      return toChatSession(result.data);
     },
     enabled: !!sessionId,
     refetchInterval: CHAT_POLL_INTERVAL,
@@ -42,7 +47,7 @@ export function useSession({
 export function useSessions({ directory }: { directory: string }) {
   return useQuery({
     queryKey: sessionKeys.infinite(directory),
-    queryFn: async (): Promise<Session[]> => {
+    queryFn: async (): Promise<ChatSession[]> => {
       const oc = getOcClient();
       const result = await oc.session.list({ directory });
       if (result.error) {
@@ -50,7 +55,7 @@ export function useSessions({ directory }: { directory: string }) {
       }
       const data = result.data;
 
-      return data;
+      return data.map(toChatSession);
     },
     enabled: !!directory,
   });
@@ -65,13 +70,13 @@ export function useSessions({ directory }: { directory: string }) {
 export function useRecentSessions({ limit = 8 }: { limit?: number } = {}) {
   return useQuery({
     queryKey: sessionKeys.recent(limit),
-    queryFn: async (): Promise<SessionV2Info[]> => {
+    queryFn: async (): Promise<RecentChatSession[]> => {
       const oc = getOcClient();
       const result = await oc.v2.session.list({ limit });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data.data ?? [];
+      return (result.data.data ?? []).map(toRecentChatSession);
     },
   });
 }
@@ -85,7 +90,7 @@ export function useSessionChildren({
 }) {
   return useQuery({
     queryKey: sessionKeys.children(sessionId ?? ""),
-    queryFn: async (): Promise<Session[]> => {
+    queryFn: async (): Promise<ChatSession[]> => {
       if (!sessionId) return [];
       const oc = getOcClient();
       const result = await oc.session.children({
@@ -95,7 +100,7 @@ export function useSessionChildren({
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data ?? [];
+      return (result.data ?? []).map(toChatSession);
     },
     enabled: !!sessionId,
     refetchInterval: CHAT_POLL_INTERVAL,
@@ -106,14 +111,19 @@ export function useSessionChildren({
 export function useSessionStatuses({ directory }: { directory?: string }) {
   return useQuery({
     queryKey: sessionKeys.statuses(directory ?? ""),
-    queryFn: async (): Promise<Record<string, SessionStatus>> => {
+    queryFn: async (): Promise<Record<string, SessionRunStatus>> => {
       if (!directory) return {};
       const oc = getOcClient();
       const result = await oc.session.status({ directory });
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data ?? {};
+      return Object.fromEntries(
+        Object.entries(result.data ?? {}).map(([id, status]) => [
+          id,
+          toSessionRunStatus(status),
+        ]),
+      );
     },
     enabled: !!directory,
     refetchInterval: CHAT_POLL_INTERVAL,
@@ -136,9 +146,8 @@ export function useCreateSession() {
       title?: string;
       agent?: string;
       model?: ModelConfig;
-    }): Promise<Session> => {
+    }): Promise<ChatSession> => {
       const oc = getOcClient();
-      console.log(directory);
       const result = await oc.session.create(
         {
           directory,
@@ -158,7 +167,7 @@ export function useCreateSession() {
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data;
+      return toChatSession(result.data);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({
@@ -184,7 +193,7 @@ export function useUpdateSession() {
       directory?: string;
       title?: string;
       metadata?: Record<string, unknown>;
-    }): Promise<Session> => {
+    }): Promise<ChatSession> => {
       const oc = getOcClient();
       const result = await oc.session.update({
         sessionID,
@@ -195,7 +204,7 @@ export function useUpdateSession() {
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data;
+      return toChatSession(result.data);
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({
@@ -255,7 +264,7 @@ export function useForkSession() {
       sessionID: string;
       directory?: string;
       messageID?: string;
-    }): Promise<Session> => {
+    }): Promise<ChatSession> => {
       const oc = getOcClient();
       const result = await oc.session.fork({
         sessionID,
@@ -265,10 +274,10 @@ export function useForkSession() {
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data;
+      return toChatSession(result.data);
     },
     onSuccess: (data) => {
-      queryClient.setQueryData<Record<string, SessionStatus>>(
+      queryClient.setQueryData<Record<string, SessionRunStatus>>(
         sessionKeys.statuses(data.directory),
         (old) => ({ ...(old ?? {}), [data.id]: { type: "idle" } }),
       );

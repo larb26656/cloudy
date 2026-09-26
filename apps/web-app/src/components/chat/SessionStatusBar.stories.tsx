@@ -4,7 +4,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { SessionStatusBar } from "./SessionStatusBar";
 import preview from "../../../.storybook/preview";
-import type { Session } from "@opencode-ai/sdk/v2";
+import type { ChatSession as Session } from "@/types";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 
 const DEMO_DIRECTORY = "/demo/project";

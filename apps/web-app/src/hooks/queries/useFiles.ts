@@ -1,5 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { FileContent, FileNode, VcsFileDiff } from "@opencode-ai/sdk/v2";
+import {
+  toFileContent,
+  toFileNode,
+  toVcsFileDiff,
+} from "@/lib/opencode/adapter";
+import type { FileContent, FileNode, VcsFileDiff } from "@/types";
 import {
   fileKeys,
   getErrorMessage,
@@ -18,7 +23,7 @@ export function useVcsDiff({ directory }: { directory?: string }) {
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data ?? [];
+      return (result.data ?? []).map(toVcsFileDiff);
     },
     enabled: !!directory,
   });
@@ -40,7 +45,7 @@ export function useFileList({
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data ?? [];
+      return (result.data ?? []).map(toFileNode);
     },
     enabled: !!directory && !!path,
   });
@@ -67,7 +72,7 @@ export function useFileRead({
       if (!result.data) {
         throw new Error("File could not be read");
       }
-      return result.data;
+      return toFileContent(result.data);
     },
     enabled: !!directory && !!path,
   });

@@ -1,6 +1,5 @@
 import { MessageBubble } from "@repo/ui/components/message";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import { toUiMessage } from "@/types";
 
 interface StreamingMessageBubbleProps {
   sessionId: string;
@@ -17,5 +16,5 @@ export function StreamingMessageBubble({
 
   if (!message) return null;
 
-  return <MessageBubble message={toUiMessage(message)} />;
+  return <MessageBubble message={message} />;
 }

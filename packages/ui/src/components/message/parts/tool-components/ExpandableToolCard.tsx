@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
+import type { ToolMessagePartState } from "@repo/ai-core";
 import { Wrench } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { CollapsiblePart } from "../CollapsiblePart";
@@ -7,12 +7,12 @@ import { ToolStateDisplay } from "../ToolStateDisplay";
 
 interface ExpandableToolCardProps {
   tool: string;
-  state: ToolPartType["state"];
+  state: ToolMessagePartState;
   preview?: ReactNode;
   detail?: ReactNode;
 }
 
-function getStateLabel(status: ToolPartType["state"]["status"]): string {
+function getStateLabel(status: ToolMessagePartState["status"]): string {
   switch (status) {
     case "pending":
       return "Pending";

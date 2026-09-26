@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronRight, Folder, FolderOpen } from "lucide-react";
-import type { FileNode } from "@opencode-ai/sdk/v2";
+import type { FileNode } from "@/types";
 import type { ReactNode } from "react";
 import { useFileList } from "@/hooks/queries/useFiles";
 import { cn } from "@repo/ui/lib/utils";

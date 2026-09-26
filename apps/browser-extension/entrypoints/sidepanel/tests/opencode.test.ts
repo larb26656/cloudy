@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { GlobalEvent, Part } from "@opencode-ai/sdk/v2/client";
-import type { Message } from "@repo/ui/components/message/types";
+import type {
+  ChatMessage,
+  MessagePart,
+  OpenCodeMessageWithParts,
+} from "@repo/opencode";
 import { applyStreamEvent, type StreamState } from "../lib/opencode/events";
 import {
   INJECTED_CONTEXT_MARKER,
@@ -10,7 +14,7 @@ import {
 
 const sessionId = "session-1";
 
-function messageParts(message: Message): Part[] {
+function messageParts(message: ChatMessage): MessagePart[] {
   return message.parts;
 }
 
@@ -58,7 +62,7 @@ describe("extension OpenCode message assembly", () => {
         sessionID: sessionId,
         role: "user",
         time: { created: 1 },
-      } as Message["info"],
+      } as OpenCodeMessageWithParts["info"],
       parts: [part("text", "text-1", `${INJECTED_CONTEXT_MARKER}\ncontent`)],
     });
 
@@ -72,7 +76,7 @@ describe("extension OpenCode message assembly", () => {
         sessionID: sessionId,
         role: "user",
         time: { created: 1 },
-      } as Message["info"],
+      } as OpenCodeMessageWithParts["info"],
       parts: [part("text", "text-1", "What is this page about?")],
     });
     const assistantMessage = toMessage({
@@ -81,7 +85,7 @@ describe("extension OpenCode message assembly", () => {
         sessionID: sessionId,
         role: "assistant",
         time: { created: 2 },
-      } as Message["info"],
+      } as OpenCodeMessageWithParts["info"],
       parts: [part("text", "text-2", "It is a page about testing.")],
     });
 
@@ -96,7 +100,7 @@ describe("extension OpenCode message assembly", () => {
         sessionID: sessionId,
         role: "user",
         time: { created: 1 },
-      } as Message["info"],
+      } as OpenCodeMessageWithParts["info"],
       parts: [
         part("text", "text-1", `quoted ${INJECTED_CONTEXT_MARKER} content`),
       ],
@@ -112,7 +116,7 @@ describe("extension OpenCode message assembly", () => {
         sessionID: sessionId,
         role: "user",
         time: { created: 1 },
-      } as Message["info"],
+      } as OpenCodeMessageWithParts["info"],
       parts: [
         part("text", "context", `${INJECTED_CONTEXT_MARKER}\ncontent`),
         part("text", "prompt", "What is this page about?"),
@@ -130,11 +134,19 @@ describe("extension OpenCode message assembly", () => {
         sessionID: sessionId,
         role: "assistant",
         time: { created: 1 },
-      } as Message["info"],
+      } as OpenCodeMessageWithParts["info"],
       parts,
     });
 
-    expect(messageParts(message)).toEqual(parts);
+    expect(messageParts(message)).toEqual([
+      expect.objectContaining({ id: "text-1", type: "text", text: "hello" }),
+      expect.objectContaining({
+        id: "tool-1",
+        type: "tool",
+        toolName: "bash",
+        status: "pending",
+      }),
+    ]);
   });
 
   it("normalizes non-text updates", () => {

@@ -12,7 +12,7 @@ import {
 import { Button } from "@repo/ui/components/button";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { useReplyPermission } from "@/hooks/queries/usePermissions";
-import type { PermissionRequest } from "@opencode-ai/sdk/v2";
+import type { PermissionRequest } from "@/types";
 import { toast } from "@repo/ui/components/sonner";
 
 interface PermissionDialogProps {

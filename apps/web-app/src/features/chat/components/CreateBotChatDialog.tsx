@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import type { Session } from "@opencode-ai/sdk/v2";
+import type { ChatSession } from "@/types";
 import {
   Dialog,
   DialogContent,
@@ -104,7 +104,7 @@ export function CreateBotChatDialog({
                 />
               ) : (
                 <div className="flex flex-col gap-1 flex-1 min-h-0 overflow-y-auto">
-                  {rootSessions.map((session: Session) => (
+                  {rootSessions.map((session: ChatSession) => (
                     <SessionItem
                       key={session.id}
                       session={session}

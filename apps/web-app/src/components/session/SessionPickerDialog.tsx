@@ -1,4 +1,4 @@
-import type { Session } from "@opencode-ai/sdk/v2";
+import type { ChatSession } from "@/types";
 
 import {
   Command,
@@ -30,7 +30,7 @@ export function SessionPickerDialog({
 }: SessionPickerDialogProps) {
   const { data: sessions = [] } = useSessions({ directory });
 
-  const rootSessions = sessions.filter((s: Session) => !s.parentID);
+  const rootSessions = sessions.filter((s: ChatSession) => !s.parentID);
 
   const handleSelect = (id: string) => {
     onSessionChange(id);
@@ -70,7 +70,7 @@ export function SessionPickerDialog({
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground">
-                      {formatRelativeFromTimestamp(session.time.updated)}
+                      {formatRelativeFromTimestamp(session.updatedAt ?? 0)}
                     </span>
                   </div>
                   {isCurrent && (

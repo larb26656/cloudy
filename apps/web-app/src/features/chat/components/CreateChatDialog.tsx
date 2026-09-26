@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import type { Session } from "@opencode-ai/sdk/v2";
+import type { ChatSession } from "@/types";
 
 import {
   Dialog,
@@ -102,7 +102,7 @@ export function CreateChatDialog({
 
   const handleNewChat = () => resolveSession(null, "New Chat");
 
-  const handleSessionSelect = (session: Session) =>
+  const handleSessionSelect = (session: ChatSession) =>
     resolveSession(session.id, session.title || "New Chat");
 
   const handleClose = () => {
@@ -173,11 +173,11 @@ function SessionStep({
   onNewChat,
   onSelect,
 }: {
-  sessions: Session[];
+  sessions: ChatSession[];
   isLoading: boolean;
   onBack: () => void;
   onNewChat: () => void;
-  onSelect: (session: Session) => void;
+  onSelect: (session: ChatSession) => void;
 }) {
   const rootSessions = sessions.filter((s) => !s.parentID);
 

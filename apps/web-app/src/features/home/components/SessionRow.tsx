@@ -1,4 +1,4 @@
-import type { SessionV2Info } from "@opencode-ai/sdk/v2";
+import type { RecentChatSession } from "@/types";
 import { useState } from "react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
 import { cn } from "@repo/ui/lib/utils";
@@ -6,7 +6,7 @@ import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 
 interface SessionRowProps {
-  session: SessionV2Info;
+  session: RecentChatSession;
   workspaceName?: string;
   /** Filesystem path of the session. Used to show a fallback indicator when
    * the session has no matching cloudy workspace. */
@@ -60,7 +60,7 @@ export function SessionRow({
         workspaceId={workspaceId}
       />
       <span className="shrink-0 text-[11px] text-muted-foreground/80">
-        {formatRelativeFromTimestamp(session.time.updated)}
+        {formatRelativeFromTimestamp(session.updatedAt)}
       </span>
     </button>
   );

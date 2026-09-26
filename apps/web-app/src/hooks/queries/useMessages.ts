@@ -5,16 +5,12 @@ import {
   messageKeys,
   type ChatInputContent,
   type SdkError,
+  buildPromptParts,
 } from "@/lib/opencode";
 import { encodeCursor } from "@/lib/opencode/cursor";
 import type { Message, ModelConfig } from "@/types";
-import type {
-  AgentPartInput,
-  FilePartInput,
-  SubtaskPartInput,
-  TextPartInput,
-} from "@opencode-ai/sdk/v2/types";
-import type { SessionStatus } from "@opencode-ai/sdk/v2";
+import { toChatMessage } from "@repo/opencode";
+import type { SessionRunStatus } from "@/types";
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 
 const MESSAGES_LIMIT = 50;
@@ -24,7 +20,7 @@ export function useMessages({
   statusType,
 }: {
   sessionId: string;
-  statusType?: SessionStatus["type"];
+  statusType?: SessionRunStatus["type"];
 }) {
   return useInfiniteQuery({
     queryKey: messageKeys.infinite(sessionId),
@@ -38,7 +34,7 @@ export function useMessages({
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data;
+      return result.data.map(({ info, parts }) => toChatMessage(info, parts));
     },
     initialPageParam: undefined,
     getPreviousPageParam: undefined,
@@ -47,8 +43,8 @@ export function useMessages({
       const firstMsg = message[0];
 
       return encodeCursor({
-        id: firstMsg.info.id,
-        time: firstMsg.info.time.created,
+        id: firstMsg.id,
+        time: Date.parse(firstMsg.createdAt),
       });
     },
     select: (data) => ({
@@ -64,43 +60,7 @@ export function useMessages({
   });
 }
 
-export function buildParts(
-  directory: string,
-  content: ChatInputContent,
-): (TextPartInput | FilePartInput | AgentPartInput | SubtaskPartInput)[] {
-  const textPart: TextPartInput = { type: "text", text: content.text };
-
-  const mentionParts: FilePartInput[] = content.mentions.map((mention) => {
-    const filename = mention.id;
-    const path = `${directory}/${filename}`;
-    const url = `file://${path}`;
-
-    return {
-      type: "file",
-      mime: "text/plain",
-      url,
-      filename,
-      source: {
-        type: "file",
-        text: {
-          value: filename,
-          start: 0,
-          end: filename.length,
-        },
-        path,
-      },
-    };
-  });
-
-  const attachmentParts: FilePartInput[] = content.attachments.map((a) => ({
-    type: "file",
-    mime: a.mime,
-    url: a.dataUrl,
-    filename: a.filename,
-  }));
-
-  return [textPart, ...mentionParts, ...attachmentParts];
-}
+export const buildParts = buildPromptParts;
 
 export function useSendMessage() {
   return useMutation({
@@ -118,7 +78,7 @@ export function useSendMessage() {
       agent?: string | null;
     }) => {
       const oc = getOcClient();
-      const parts = buildParts(directory, content);
+      const parts = buildPromptParts(directory, content);
 
       const result = await oc.session.promptAsync({
         sessionID: sessionId,

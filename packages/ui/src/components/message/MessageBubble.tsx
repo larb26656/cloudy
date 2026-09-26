@@ -10,17 +10,17 @@ interface MessageBubbleProps {
 export const MessageBubble = memo(function MessageBubble({
   message,
 }: MessageBubbleProps) {
-  if (message.info.role === "user") {
+  if (message.role === "user") {
     return (
-      <div data-message-id={message.info.id}>
-        <UserMessageBubble info={message.info} parts={message.parts} />
+      <div data-message-id={message.id}>
+        <UserMessageBubble message={message} />
       </div>
     );
   }
 
   return (
-    <div data-message-id={message.info.id}>
-      <AssistantMessageBubble info={message.info} parts={message.parts} />
+    <div data-message-id={message.id}>
+      <AssistantMessageBubble message={message} />
     </div>
   );
 });

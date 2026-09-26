@@ -1,6 +1,6 @@
 import { ArrowDownIcon } from "lucide-react";
 import type { ReactNode } from "react";
-import type { SessionStatus } from "@opencode-ai/sdk/v2";
+import type { SessionStatus } from "@repo/ai-core";
 import { Center } from "@repo/ui/components/center";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { IsVisible } from "@repo/ui/components/is-visible";
@@ -107,7 +107,7 @@ export function MessageListView({
                 key={item.id}
                 messageId={item.id}
                 scrollAnchor={
-                  item.kind === "remote" && item.message.info.role === "user"
+                  item.kind === "remote" && item.message.role === "user"
                 }
               >
                 {item.kind === "remote" ? (
@@ -118,15 +118,16 @@ export function MessageListView({
               </MessageScrollerItem>
             ))}
 
-            {sessionStatus?.type === "retry" && (
-              <MessageScrollerItem messageId="__retry">
-                <RetryMessage
-                  attempt={sessionStatus.attempt}
-                  message={sessionStatus.message}
-                  next={sessionStatus.next}
-                />
-              </MessageScrollerItem>
-            )}
+            {typeof sessionStatus === "object" &&
+              sessionStatus.type === "retry" && (
+                <MessageScrollerItem messageId="__retry">
+                  <RetryMessage
+                    attempt={sessionStatus.attempt}
+                    message={sessionStatus.message}
+                    next={sessionStatus.next}
+                  />
+                </MessageScrollerItem>
+              )}
 
             {sessionError && (
               <MessageScrollerItem messageId="__session-error">

@@ -93,6 +93,43 @@ describe("OpenCode adapter", () => {
     });
   });
 
+  test("normalizes step lifecycle parts", () => {
+    const parts = [
+      {
+        id: "step-start-1",
+        type: "step-start",
+        snapshot: "snapshot-1",
+      },
+      {
+        id: "step-finish-1",
+        type: "step-finish",
+        reason: "stop",
+        cost: 0.001,
+        tokens: {
+          input: 10,
+          output: 20,
+          reasoning: 3,
+          cache: { read: 4, write: 5 },
+        },
+      },
+    ] as unknown as Part[];
+
+    expect(toChatMessage(message, parts).parts).toMatchObject([
+      { type: "step-start", snapshot: "snapshot-1" },
+      {
+        type: "step-finish",
+        reason: "stop",
+        cost: 0.001,
+        tokens: {
+          input: 10,
+          output: 20,
+          reasoning: 3,
+          cache: { read: 4, write: 5 },
+        },
+      },
+    ]);
+  });
+
   test("converts normalized streaming updates back to the OpenCode UI model", () => {
     const normalized = toChatMessage(message, [
       {

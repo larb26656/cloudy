@@ -1,14 +1,14 @@
-import type { CompactionPart as CompactionPartType } from "@opencode-ai/sdk/v2";
+import type { CompactionMessagePart } from "@repo/ai-core";
 import { Minimize2, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { CollapsiblePart } from "./CollapsiblePart";
 
 interface CompactionPartProps {
-  part: CompactionPartType;
+  part: CompactionMessagePart;
 }
 
 export function CompactionPart({ part }: CompactionPartProps) {
-  const detail = part.auto ? "Auto" : "Manual";
+  const detail = part.automatic ? "Auto" : "Manual";
 
   return (
     <CollapsiblePart label="Compaction" detail={detail}>
@@ -19,7 +19,7 @@ export function CompactionPart({ part }: CompactionPartProps) {
             <span className="text-xs font-medium text-muted-foreground">
               Compaction
             </span>
-            {part.auto ? (
+            {part.automatic ? (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <Sparkles className="size-3" />
                 <span>Auto</span>

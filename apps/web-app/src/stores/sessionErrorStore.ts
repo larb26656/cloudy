@@ -1,7 +1,5 @@
 import { create } from "zustand";
-import type { AssistantMessage } from "@opencode-ai/sdk/v2";
-
-export type SessionErrorInfo = NonNullable<AssistantMessage["error"]>;
+import type { SessionErrorInfo } from "@/types";
 
 interface SessionErrorStore {
   errors: Map<string, SessionErrorInfo>;

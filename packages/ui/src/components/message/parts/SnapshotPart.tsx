@@ -1,10 +1,10 @@
-import type { SnapshotPart as SnapshotPartType } from "@opencode-ai/sdk/v2";
+import type { SnapshotMessagePart } from "@repo/ai-core";
 import { Camera } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { CollapsiblePart } from "./CollapsiblePart";
 
 interface SnapshotPartProps {
-  part: SnapshotPartType;
+  part: SnapshotMessagePart;
 }
 
 export function SnapshotPart({ part }: SnapshotPartProps) {

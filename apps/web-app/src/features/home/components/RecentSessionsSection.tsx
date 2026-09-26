@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { SessionV2Info } from "@opencode-ai/sdk/v2";
+import type { RecentChatSession } from "@/types";
 import { useRecentSessions } from "@/hooks/queries/useSessions";
 import { useWorkspaces } from "@/hooks/queries";
 import { useTabStore } from "@/stores/tabStore";
@@ -17,8 +17,8 @@ export function RecentSessionsSection() {
   const directoryToWorkspace = (directory: string): Workspace | undefined =>
     workspaces.find((workspace) => workspace.directory === directory);
 
-  const handleOpen = (session: SessionV2Info) => {
-    const dir = session.location.directory;
+  const handleOpen = (session: RecentChatSession) => {
+    const dir = session.directory;
     const workspace = directoryToWorkspace(dir);
     addTab(workspace?.type === "bot" ? "bot-chat" : "chat", {
       sessionId: session.id,
@@ -45,7 +45,7 @@ export function RecentSessionsSection() {
     content = (
       <div className="flex flex-col gap-1.5">
         {sessions.map((session) => {
-          const dir = session.location.directory;
+          const dir = session.directory;
           const workspace = directoryToWorkspace(dir);
           return (
             <SessionRow

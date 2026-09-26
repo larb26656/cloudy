@@ -7,7 +7,7 @@ import {
   waitFor,
 } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { SessionStatus } from "@opencode-ai/sdk/v2";
+import type { SessionRunStatus as SessionStatus } from "@/types";
 import { ChatProvider } from "../ChatProvider";
 import { ChatInput } from "./ChatInput";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";

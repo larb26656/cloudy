@@ -1,7 +1,4 @@
-import type {
-  StepFinishPart as StepFinishPartType,
-  AssistantMessage,
-} from "@opencode-ai/sdk/v2";
+import type { ChatMessage, StepFinishMessagePart } from "@repo/ai-core";
 import { Info } from "lucide-react";
 import {
   Tooltip,
@@ -11,8 +8,8 @@ import {
 import { formatNumber, formatTime } from "@repo/ui/lib/format";
 
 interface StepFinishPartProps {
-  part: StepFinishPartType;
-  info?: AssistantMessage;
+  part: StepFinishMessagePart;
+  info?: ChatMessage;
 }
 
 export function StepFinishPart({ part, info }: StepFinishPartProps) {
@@ -21,7 +18,9 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
 
   const isLastMessage = part.reason === "stop";
 
-  const finishTimestamp = info?.time.completed || new Date().getTime();
+  const finishTimestamp = info?.updatedAt
+    ? new Date(info.updatedAt).getTime()
+    : new Date().getTime();
 
   if (!isLastMessage) {
     return null;
@@ -35,15 +34,15 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
         </span>
       )}
 
-      {info?.modelID && (
+      {typeof info?.metadata?.model === "string" && (
         <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-          {info.modelID}
+          {info.metadata.model}
         </span>
       )}
 
-      {info?.agent && (
+      {typeof info?.metadata?.agent === "string" && (
         <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-          {info.agent}
+          {info.metadata.agent}
         </span>
       )}
 

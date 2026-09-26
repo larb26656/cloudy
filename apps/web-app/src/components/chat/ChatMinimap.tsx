@@ -20,7 +20,7 @@ interface MinimapItem {
 }
 
 function extractPreview(message: Message): MinimapItem {
-  const role = message.info.role as "user" | "assistant";
+  const role = message.role === "user" ? "user" : "assistant";
   const partTypes: string[] = [];
   let preview = "";
 
@@ -59,7 +59,7 @@ function extractPreview(message: Message): MinimapItem {
   }
 
   return {
-    id: message.info.id,
+    id: message.id,
     role,
     preview,
   };

@@ -8,7 +8,7 @@ import { ChatInput } from "./ChatInput";
 import { useQuickPhrasesStore } from "@/stores/quickPhrasesStore";
 import preview from "@/storybook/preview";
 import type { ImageAttachment } from "@/lib/opencode";
-import type { SessionStatus } from "@opencode-ai/sdk/v2";
+import type { SessionRunStatus as SessionStatus } from "@/types";
 
 const SAMPLE_PHRASES = ["Explain this code", "Write a test", "Fix the bug"];
 

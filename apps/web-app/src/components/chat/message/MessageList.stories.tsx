@@ -20,12 +20,10 @@ import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { sessionKeys } from "@/lib/opencode/query-keys";
 import preview from "../../../../.storybook/preview";
 import type { Message } from "@/types";
-import type {
-  AssistantMessage,
-  Part,
-  SessionStatus,
-  UserMessage,
-} from "@opencode-ai/sdk/v2";
+import type { SessionRunStatus as SessionStatus } from "@/types";
+type Part = Record<string, unknown>;
+type AssistantMessage = Record<string, unknown>;
+type UserMessage = Record<string, unknown>;
 
 const SESSION_ID = "ses_story_stream";
 const DIRECTORY = "/demo/project";

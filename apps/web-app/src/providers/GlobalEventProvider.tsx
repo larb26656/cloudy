@@ -1,6 +1,5 @@
 import { useWindowFocus } from "@/hooks";
 import { getOcClient, handleEvent } from "@/lib/opencode";
-import type { GlobalEvent } from "@opencode-ai/sdk/v2";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
@@ -52,7 +51,7 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
 
   const subscribe = async (
     id: number,
-    onEvent: (event: GlobalEvent) => void,
+    onEvent: (event: Parameters<typeof handleEvent>[0]) => void,
     isCancelled: () => boolean,
   ) => {
     const oc = getOcClient();
@@ -82,7 +81,7 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
   useEffect(() => {
     const id = ++nextId;
     let cancelled = false;
-    let stream: AsyncGenerator<GlobalEvent> | undefined;
+    let stream: AsyncGenerator<Parameters<typeof handleEvent>[0]> | undefined;
 
     void (async () => {
       stream = await subscribe(

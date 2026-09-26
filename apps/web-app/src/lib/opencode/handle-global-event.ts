@@ -12,8 +12,14 @@ import {
   vcsKeys,
 } from "@/lib/opencode";
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
-import type { GlobalEvent, Session, SessionStatus } from "@opencode-ai/sdk/v2";
+import type { GlobalEvent } from "@opencode-ai/sdk/v2";
 import type { Message } from "@/types";
+import {
+  toChatSession,
+  toSessionError,
+  toSessionRunStatus,
+} from "@/lib/opencode/adapter";
+import type { ChatSession, SessionRunStatus } from "@/types";
 
 const KNOWN_EVENT_TYPES = new Set<string>([
   "session.updated",
@@ -57,15 +63,15 @@ export function handleEvent(
     case "session.updated": {
       const props = event.payload.properties;
       console.debug("[useStreamingMessages] session.updated:", props.sessionID);
-      const session = props.info;
+      const session = toChatSession(props.info);
 
-      queryClient.setQueryData<Session | null>(
+      queryClient.setQueryData<ChatSession | null>(
         sessionKeys.detail(props.sessionID),
         session,
       );
 
       if (event.directory) {
-        queryClient.setQueryData<Session[]>(
+        queryClient.setQueryData<ChatSession[]>(
           sessionKeys.infinite(event.directory),
           (old) =>
             (old ?? []).map((s) => (s.id === props.sessionID ? session : s)),
@@ -115,9 +121,12 @@ export function handleEvent(
 
     case "session.status": {
       const props = event.payload.properties;
-      queryClient.setQueryData<Record<string, SessionStatus>>(
+      queryClient.setQueryData<Record<string, SessionRunStatus>>(
         sessionKeys.statuses(event.directory),
-        (old) => ({ ...(old ?? {}), [props.sessionID]: props.status }),
+        (old) => ({
+          ...(old ?? {}),
+          [props.sessionID]: toSessionRunStatus(props.status),
+        }),
       );
 
       if (props.status.type === "busy" || props.status.type === "idle") {
@@ -132,7 +141,9 @@ export function handleEvent(
       console.debug("[useStreamingMessages] session.error:", props);
       if (!error) break;
       if (!props.sessionID) break;
-      useSessionErrorStore.getState().setError(props.sessionID, error);
+      useSessionErrorStore
+        .getState()
+        .setError(props.sessionID, toSessionError(error));
       break;
     }
 

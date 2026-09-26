@@ -1,12 +1,12 @@
 import { useState } from "react";
-import type { Session } from "@opencode-ai/sdk/v2/client";
 import { ChevronDown, MessageSquarePlus, Settings } from "lucide-react";
 import { AppBar } from "@repo/ui/components/app-bar";
 import { Button } from "@repo/ui/components/button";
+import type { ChatSession } from "../lib/opencode/sessions";
 import { SessionPicker } from "./SessionPicker";
 
 interface SessionAppBarProps {
-  sessions: Session[];
+  sessions: ChatSession[];
   sessionId: string | null;
   isLoading: boolean;
   error: Error | null;

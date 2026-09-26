@@ -28,6 +28,10 @@ function stringValue(value: unknown, fallback: string): string {
   return typeof value === "string" ? value : fallback;
 }
 
+function unknownProviderType(value: unknown): string {
+  return typeof value === "string" && value.length > 0 ? value : "<missing>";
+}
+
 function createdAt(info: OpencodeMessage): string {
   const time = asRecord(info.time);
   const created = time.created;
@@ -113,11 +117,70 @@ function mapPart(part: Part): MessagePart {
         type: "compaction",
         summary: typeof source.auto === "string" ? source.auto : undefined,
       };
+    case "step-start":
+      return {
+        ...base,
+        type: "step-start",
+        snapshot:
+          typeof source.snapshot === "string" ? source.snapshot : undefined,
+      };
+    case "step-finish": {
+      const tokens = asRecord(source.tokens);
+      const cache = asRecord(tokens.cache);
+      return {
+        ...base,
+        type: "step-finish",
+        reason: stringValue(source.reason, "unknown"),
+        cost: typeof source.cost === "number" ? source.cost : 0,
+        tokens: {
+          input: typeof tokens.input === "number" ? tokens.input : 0,
+          output: typeof tokens.output === "number" ? tokens.output : 0,
+          reasoning:
+            typeof tokens.reasoning === "number" ? tokens.reasoning : 0,
+          cache: {
+            read: typeof cache.read === "number" ? cache.read : 0,
+            write: typeof cache.write === "number" ? cache.write : 0,
+          },
+        },
+      };
+    }
+    case "snapshot":
+      return {
+        ...base,
+        type: "snapshot",
+        snapshot: stringValue(source.snapshot, ""),
+      };
+    case "agent":
+      return {
+        ...base,
+        type: "agent",
+        name: stringValue(source.name, "unknown"),
+      };
+    case "retry":
+      return {
+        ...base,
+        type: "retry",
+        attempt: typeof source.attempt === "number" ? source.attempt : 0,
+        error: asRecord(source.error) as {
+          message?: string;
+          statusCode?: number;
+        },
+      };
     default:
+      console.warn("[opencode] Unknown message part", {
+        providerType: unknownProviderType(source.type),
+        id: source.id,
+        sessionID: source.sessionID,
+        messageID: source.messageID,
+        tool: source.tool,
+        callID: source.callID,
+        keys: Object.keys(source),
+        part: source,
+      });
       return {
         ...base,
         type: "unknown",
-        providerType: stringValue(source.type, "unknown"),
+        providerType: unknownProviderType(source.type),
         data: source,
       };
   }
@@ -197,9 +260,31 @@ function toOpenCodePart(
         type: "compaction",
         auto: part.summary,
       } as unknown as Part;
+    case "step-start":
+      return { ...base, type: "step-start", snapshot: part.snapshot } as Part;
+    case "step-finish":
+      return {
+        ...base,
+        type: "step-finish",
+        reason: part.reason,
+        cost: part.cost,
+        tokens: part.tokens,
+      } as Part;
+    case "snapshot":
+      return { ...base, type: "snapshot", snapshot: part.snapshot } as Part;
+    case "agent":
+      return { ...base, type: "agent", name: part.name } as Part;
+    case "retry":
+      return {
+        ...base,
+        type: "retry",
+        attempt: part.attempt,
+        error: part.error,
+      } as Part;
     case "unknown":
       return { ...base, type: part.providerType } as Part;
   }
+  return { ...base, type: "unknown" } as unknown as Part;
 }
 
 export function toOpenCodeMessage(

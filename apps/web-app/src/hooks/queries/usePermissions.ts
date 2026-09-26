@@ -6,13 +6,10 @@ import {
   permissionKeys,
   type SdkError,
 } from "@/lib/opencode";
-import type { PermissionRequest } from "@opencode-ai/sdk/v2";
+import { toPermissionRequest } from "@/lib/opencode/adapter";
+import type { PermissionRequest } from "@/types";
 
-export function usePermissions({
-  directory,
-}: {
-  directory: string;
-}) {
+export function usePermissions({ directory }: { directory: string }) {
   return useQuery({
     queryKey: permissionKeys.request.list(directory),
     queryFn: async (): Promise<PermissionRequest[]> => {
@@ -21,7 +18,7 @@ export function usePermissions({
       if (result.error) {
         throw new Error(getErrorMessage(result.error as SdkError));
       }
-      return result.data ?? [];
+      return (result.data ?? []).map(toPermissionRequest);
     },
     enabled: !!directory,
     refetchInterval: CHAT_POLL_INTERVAL,
@@ -52,7 +49,9 @@ export function useReplyPermission() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: permissionKeys.request.root() });
+      queryClient.invalidateQueries({
+        queryKey: permissionKeys.request.root(),
+      });
     },
   });
 }

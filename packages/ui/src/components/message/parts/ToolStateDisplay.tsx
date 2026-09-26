@@ -1,10 +1,10 @@
 import { Loader2, CheckCircle, XCircle } from "lucide-react";
 import { Badge } from "@repo/ui/components/badge";
-import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
+import type { ToolMessagePartState } from "@repo/ai-core";
 import type { ReactNode } from "react";
 
 interface ToolStateDisplayProps {
-  state: ToolPartType["state"];
+  state: ToolMessagePartState;
   children: ReactNode;
 }
 
@@ -43,9 +43,10 @@ export function ToolStateDisplay({ state, children }: ToolStateDisplayProps) {
   }
 
   if (state.status === "completed") {
-    const duration = state.time.end
-      ? `${((state.time.end - state.time.start) / 1000).toFixed(2)}s`
-      : null;
+    const duration =
+      state.completedAt && state.startedAt
+        ? `${((state.completedAt - state.startedAt) / 1000).toFixed(2)}s`
+        : null;
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -63,9 +64,11 @@ export function ToolStateDisplay({ state, children }: ToolStateDisplayProps) {
           </div>
         )}
         {children}
-        {state.output && (
+        {state.output !== undefined && (
           <div className="text-xs font-mono bg-green-100 dark:bg-green-900/50 rounded p-2 overflow-x-auto">
-            {state.output}
+            {typeof state.output === "string"
+              ? state.output
+              : JSON.stringify(state.output)}
           </div>
         )}
         {state.attachments && state.attachments.length > 0 && (
@@ -82,9 +85,10 @@ export function ToolStateDisplay({ state, children }: ToolStateDisplayProps) {
   }
 
   if (state.status === "error") {
-    const duration = state.time.end
-      ? `${((state.time.end - state.time.start) / 1000).toFixed(2)}s`
-      : null;
+    const duration =
+      state.completedAt && state.startedAt
+        ? `${((state.completedAt - state.startedAt) / 1000).toFixed(2)}s`
+        : null;
     return (
       <div className="space-y-2">
         <div className="flex items-center gap-2">
@@ -96,7 +100,7 @@ export function ToolStateDisplay({ state, children }: ToolStateDisplayProps) {
         </div>
         {children}
         <div className="text-xs text-red-900 dark:text-red-100 bg-red-100 dark:bg-red-900/50 rounded p-2">
-          {state.error}
+          {state.error ?? "Unknown error"}
         </div>
       </div>
     );

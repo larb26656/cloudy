@@ -1,8 +1,8 @@
 import { useEffect, useMemo } from "react";
-import type { SessionStatus } from "@opencode-ai/sdk/v2";
+import type { SessionStatus } from "@repo/opencode";
 import type { MessageDisplayItem } from "@repo/ui/components/message";
 import { pickFresher, useStreamingMessageDisplayItems } from "@repo/opencode";
-import { toCoreMessage, toUiMessage, type Message } from "@/types";
+import type { Message } from "@/types";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
@@ -41,6 +41,13 @@ export function useMessageListData({
   const sessionStatus = selectedSessionId
     ? statuses?.[selectedSessionId]
     : undefined;
+  const uiSessionStatus: SessionStatus | undefined = sessionStatus
+    ? sessionStatus.type === "busy"
+      ? "active"
+      : sessionStatus.type === "retry"
+        ? sessionStatus
+        : "idle"
+    : undefined;
   const sessionError = useSessionErrorStore((s) =>
     selectedSessionId ? s.errors.get(selectedSessionId) : undefined,
   );
@@ -59,20 +66,10 @@ export function useMessageListData({
   });
 
   const remoteMessages = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);
-  const coreMessages = useMemo(
-    () =>
-      remoteMessages.map((message) =>
-        toCoreMessage(message.info, message.parts),
-      ),
-    [remoteMessages],
-  );
+  const coreMessages = remoteMessages;
   const { displayItems: coreDisplayItems, streamingIds } =
     useStreamingMessageDisplayItems(coreMessages, selectedSessionId);
-  const displayItems = coreDisplayItems.map((item) =>
-    item.kind === "remote"
-      ? { ...item, message: toUiMessage(item.message) }
-      : item,
-  );
+  const displayItems = coreDisplayItems;
 
   // Evict streaming entries that remote has definitively won (finalized, or
   // strictly fresher content). This is the safety net for a `session.idle`
@@ -106,7 +103,7 @@ export function useMessageListData({
     hasNextPage,
     isFetchingNextPage,
     fetchNextPage,
-    sessionStatus,
+    sessionStatus: uiSessionStatus,
     isStreaming,
     sessionError,
     clearError,

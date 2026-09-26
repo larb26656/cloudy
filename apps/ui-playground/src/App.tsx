@@ -19,21 +19,19 @@ import type { Message } from "@repo/ui/components/message/types";
 
 const messages = [
   {
-    info: {
-      id: "user-1",
-      role: "user",
-      time: { created: Date.now() - 12_000 },
-    },
+    id: "user-1",
+    sessionId: "playground",
+    role: "user",
+    createdAt: new Date(Date.now() - 12_000).toISOString(),
     parts: [
       { type: "text", text: "Can this package render outside the main app?" },
     ],
   },
   {
-    info: {
-      id: "assistant-1",
-      role: "assistant",
-      time: { created: Date.now() - 8_000 },
-    },
+    id: "assistant-1",
+    sessionId: "playground",
+    role: "assistant",
+    createdAt: new Date(Date.now() - 8_000).toISOString(),
     parts: [
       {
         type: "reasoning",
@@ -58,7 +56,7 @@ const messages = [
 ] as unknown as Message[];
 
 const displayItems: MessageDisplayItem[] = messages.map((message) => ({
-  id: message.info.id,
+  id: message.id,
   kind: "remote",
   message,
 }));

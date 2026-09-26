@@ -1,9 +1,9 @@
-import type { Part } from "@opencode-ai/sdk/v2";
+import type { MessagePart } from "@repo/ai-core";
 
-export function getTextFromParts(parts: Part[]): string {
+export function getTextFromParts(parts: MessagePart[]): string {
   const texts = parts
     .filter((part) => part.type === "text")
-    .map((part) => (part as unknown as { text: string }).text.trim());
+    .map((part) => part.text.trim());
 
   if (!texts.length) {
     return "";

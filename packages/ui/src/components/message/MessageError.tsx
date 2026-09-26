@@ -7,10 +7,8 @@ import {
   BrainCog,
   ServerCrash,
 } from "lucide-react";
-import type { AssistantMessage } from "@opencode-ai/sdk/v2";
+import type { MessageError as MessageErrorInfo } from "@repo/ai-core";
 import type { LucideIcon } from "lucide-react";
-
-type MessageErrorInfo = NonNullable<AssistantMessage["error"]>;
 
 interface ErrorConfig {
   icon: LucideIcon;

@@ -1,38 +1,33 @@
-import type { UserMessage, Part } from "@opencode-ai/sdk/v2";
+import type { Message } from "@/types";
 import preview from "../../../../.storybook/preview";
 import { UserMessageBubble } from "@repo/ui/components/message";
 
 const NOW = Date.now();
 
-const sampleInfo: UserMessage = {
-  id: "msg-user-1",
-  sessionID: "session-1",
-  role: "user",
-  time: { created: NOW },
-  agent: "build",
-  model: { providerID: "anthropic", modelID: "claude-sonnet" },
-};
-
-function textPart(text: string): Part {
+function makeMessage(text: string): Message {
   return {
-    id: "part-1",
-    sessionID: "session-1",
-    messageID: "msg-user-1",
-    type: "text",
-    text,
-  } as Part;
+    id: "msg-user-1",
+    sessionId: "session-1",
+    role: "user",
+    createdAt: new Date(NOW).toISOString(),
+    parts: [
+      {
+        id: "part-1",
+        type: "text",
+        text,
+      },
+    ],
+  };
 }
 
 interface UserMessageBubbleStoryProps {
   width: number;
-  info: UserMessage;
-  parts: Part[];
+  message: Message;
 }
 
 function UserMessageBubbleStory({
   width,
-  info,
-  parts,
+  message,
 }: UserMessageBubbleStoryProps) {
   return (
     <div
@@ -44,7 +39,7 @@ function UserMessageBubbleStory({
         padding: "12px",
       }}
     >
-      <UserMessageBubble info={info} parts={parts} />
+      <UserMessageBubble message={message} />
     </div>
   );
 }
@@ -67,35 +62,26 @@ export default meta;
 export const Default = meta.story({
   args: {
     width: 480,
-    info: sampleInfo,
-    parts: [
-      textPart(
-        "@apps/web-app/src/components/markdown/MarkdownRenderer.tsx สร้าง storybook หน่อยเอาแบบ ให้เห็น ทุก element ใน markdown จะเอาไว้ debug ปรับ style",
-      ),
-    ],
+    message: makeMessage(
+      "@apps/web-app/src/components/markdown/MarkdownRenderer.tsx สร้าง storybook หน่อยเอาแบบ ให้เห็น ทุก element ใน markdown จะเอาไว้ debug ปรับ style",
+    ),
   },
 });
 
 export const LongUnbreakableUrl = meta.story({
   args: {
     width: 480,
-    info: sampleInfo,
-    parts: [
-      textPart(
-        "ดูลิงก์นี้ทะลุจอแน่ ๆ https://example.com/very/long/path/that/cannot/be/broken/by-whitespace-pre-wrap/abcdefghijklmnopqrstuvwxyz0123456789/this-url-never-wraps-and-overflows",
-      ),
-    ],
+    message: makeMessage(
+      "ดูลิงก์นี้ทะลุจอแน่ ๆ https://example.com/very/long/path/that/cannot/be/broken/by-whitespace-pre-wrap/abcdefghijklmnopqrstuvwxyz0123456789/this-url-never-wraps-and-overflows",
+    ),
   },
 });
 
 export const NarrowContainer = meta.story({
   args: {
     width: 240,
-    info: sampleInfo,
-    parts: [
-      textPart(
-        "@apps/web-app/src/components/markdown/MarkdownRenderer.tsx สร้าง storybook หน่อย\n\nhttps://example.com/some/super/long/unbreakable/url ทะลุจอเลย",
-      ),
-    ],
+    message: makeMessage(
+      "@apps/web-app/src/components/markdown/MarkdownRenderer.tsx สร้าง storybook หน่อย\n\nhttps://example.com/some/super/long/unbreakable/url ทะลุจอเลย",
+    ),
   },
 });

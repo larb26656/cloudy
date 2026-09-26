@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import type { AssistantMessage, Part } from "@opencode-ai/sdk/v2";
+import type { ChatMessage } from "@repo/ai-core";
 import { MessageError } from "./MessageError";
 
 const MessageParts = lazy(() =>
@@ -9,21 +9,19 @@ const MessageParts = lazy(() =>
 );
 
 interface AssistantMessageBubbleProps {
-  info: AssistantMessage;
-  parts: Part[];
+  message: ChatMessage;
 }
 
 export function AssistantMessageBubble({
-  info,
-  parts,
+  message,
 }: AssistantMessageBubbleProps) {
   return (
     <div className="flex justify-start mb-4">
       <div className="w-full flex flex-col gap-2 font-content">
         <Suspense fallback={null}>
-          <MessageParts parts={parts} info={info} />
+          <MessageParts parts={message.parts} info={message} />
         </Suspense>
-        {info.error && <MessageError error={info.error} />}
+        {message.error && <MessageError error={message.error} />}
       </div>
     </div>
   );

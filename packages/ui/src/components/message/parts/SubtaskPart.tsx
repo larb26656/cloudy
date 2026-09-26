@@ -1,18 +1,18 @@
-import type { Part } from "@opencode-ai/sdk/v2";
+import type { SubtaskMessagePart } from "@repo/ai-core";
 import { Bot, Zap, ExternalLink } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { Card, CardContent } from "@repo/ui/components/card";
 import { useSessionViewDialog } from "../context";
 import { CollapsiblePart } from "./CollapsiblePart";
 
-export type SubtaskPart = Extract<Part, { type: "subtask" }>;
+export type SubtaskPart = SubtaskMessagePart;
 
 interface SubtaskPartProps {
   part: SubtaskPart;
 }
 
 export function SubtaskPart({ part }: SubtaskPartProps) {
-  const detail = part.agent || part.description?.slice(0, 30) || "";
+  const detail = part.agent || part.description.slice(0, 30) || "";
   const { openSessionView } = useSessionViewDialog();
 
   return (
@@ -24,7 +24,7 @@ export function SubtaskPart({ part }: SubtaskPartProps) {
           variant="ghost"
           size="icon-sm"
           className="text-orange-600 dark:text-orange-400 hover:text-orange-700 dark:hover:text-orange-300"
-          onClick={() => openSessionView(part.sessionID)}
+          onClick={() => part.sessionId && openSessionView(part.sessionId)}
         >
           <ExternalLink className="size-3.5" />
         </Button>

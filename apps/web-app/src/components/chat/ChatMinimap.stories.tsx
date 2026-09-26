@@ -11,14 +11,14 @@ import { ChatMinimap } from "./ChatMinimap";
 import { cn } from "@repo/ui/lib/utils";
 import preview from "../../../.storybook/preview";
 import type { Message } from "@/types";
-import type { AssistantMessage, Part, UserMessage } from "@opencode-ai/sdk/v2";
+type Part = Record<string, unknown>;
 
 const SESSION_ID = "ses_minimap_story";
 const DIRECTORY = "/demo/project";
 const NOW = Date.now();
 
 function makeUserMessage(id: string, text: string): Message {
-  const info: UserMessage = {
+  const info = {
     id,
     sessionID: SESSION_ID,
     role: "user",
@@ -33,7 +33,7 @@ function makeUserMessage(id: string, text: string): Message {
     type: "text" as const,
     text,
   };
-  return { info, parts: [textPart as Part] };
+  return { info, parts: [textPart] } as unknown as Message;
 }
 
 function makeAssistantMessage(
@@ -41,7 +41,7 @@ function makeAssistantMessage(
   parts: Part[],
   parentId: string,
 ): Message {
-  const info: AssistantMessage = {
+  const info = {
     id,
     sessionID: SESSION_ID,
     role: "assistant",
@@ -59,8 +59,8 @@ function makeAssistantMessage(
       reasoning: 0,
       cache: { read: 0, write: 0 },
     },
-  } as AssistantMessage;
-  return { info, parts };
+  };
+  return { info, parts } as unknown as Message;
 }
 
 function textPart(messageId: string, text: string): Part {

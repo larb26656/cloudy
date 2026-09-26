@@ -2,7 +2,7 @@ import { describe, test, expect, beforeEach, afterEach, vi } from "vitest";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { GlobalEvent } from "@opencode-ai/sdk/v2";
+type GlobalEvent = Parameters<typeof import("@/lib/opencode").handleEvent>[0];
 import { GlobalEventProvider, useGlobalEvent } from "./GlobalEventProvider";
 
 // --- Mocks ---

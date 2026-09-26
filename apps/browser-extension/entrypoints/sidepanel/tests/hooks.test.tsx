@@ -10,11 +10,12 @@ import { INJECTED_CONTEXT_MARKER } from "../lib/opencode/sessions";
 
 function message(text: string, role: "user" | "assistant" = "user"): Message {
   return {
-    info: { id: text, sessionID: "session-1", role, time: { created: 1 } },
-    parts: [
-      { id: text, sessionID: "session-1", messageID: text, type: "text", text },
-    ],
-  } as Message;
+    id: text,
+    sessionId: "session-1",
+    role,
+    createdAt: new Date(1).toISOString(),
+    parts: [{ id: text, type: "text", text }],
+  };
 }
 
 async function waitFor(expectation: () => void | Promise<void>) {

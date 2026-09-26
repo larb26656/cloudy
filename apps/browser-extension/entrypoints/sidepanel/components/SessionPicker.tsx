@@ -1,4 +1,3 @@
-import type { Session } from "@opencode-ai/sdk/v2/client";
 import { Check } from "lucide-react";
 import {
   Command,
@@ -11,11 +10,12 @@ import {
 } from "@repo/ui/components/command";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
+import type { ChatSession } from "../lib/opencode/sessions";
 
 interface SessionPickerProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  sessions: Session[];
+  sessions: ChatSession[];
   sessionId: string | null;
   isLoading: boolean;
   error: Error | null;

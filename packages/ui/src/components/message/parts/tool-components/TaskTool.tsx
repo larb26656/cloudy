@@ -4,14 +4,13 @@ import { useSessionViewDialog } from "../../context";
 import { ToolPreviewLabel } from "../ToolPreviewLabel";
 import { ExpandableToolCard } from "./ExpandableToolCard";
 import type { ToolComponentProps } from "./types";
-import type { ToolPart as ToolPartType } from "@opencode-ai/sdk/v2";
+import type { ToolMessagePartState } from "@repo/ai-core";
 
-function getSessionID(state: ToolPartType["state"]): string | undefined {
-  if (state.status === "pending") return undefined;
+function getSessionID(state: ToolMessagePartState): string | undefined {
   return state.metadata?.sessionId as string | undefined;
 }
 
-function TaskPreview({ state }: { state: ToolPartType["state"] }) {
+function TaskPreview({ state }: { state: ToolMessagePartState }) {
   const { openSessionView } = useSessionViewDialog();
   const sessionID = getSessionID(state);
   if (!sessionID) return null;

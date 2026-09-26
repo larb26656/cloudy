@@ -1,4 +1,4 @@
-import type { VcsFileDiff } from "@opencode-ai/sdk/v2";
+import type { VcsFileDiff } from "@/types";
 import { cn } from "@repo/ui/lib/utils";
 import { ScrollArea } from "@repo/ui/components/scroll-area";
 import { PathText } from "@repo/ui/components/path-text";

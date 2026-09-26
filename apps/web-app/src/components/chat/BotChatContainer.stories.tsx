@@ -4,12 +4,7 @@ import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { BotChatContainer } from "./BotChatContainer";
 import preview from "@/storybook/preview";
 import type { Message } from "@/types";
-import type {
-  AssistantMessage,
-  Part,
-  SessionStatus,
-  UserMessage,
-} from "@opencode-ai/sdk/v2";
+import type { SessionRunStatus as SessionStatus } from "@/types";
 
 const SESSION_ID = "ses_story_bot_container";
 const DIRECTORY = "/demo/project";
@@ -39,7 +34,7 @@ const SAMPLE_PROVIDERS = {
 };
 
 function makeUserMessage(): Message {
-  const info: UserMessage = {
+  const info = {
     id: "msg-user-1",
     sessionID: SESSION_ID,
     role: "user",
@@ -54,11 +49,11 @@ function makeUserMessage(): Message {
     type: "text" as const,
     text: "What can you do?",
   };
-  return { info, parts: [textPart as Part] };
+  return { info, parts: [textPart] } as unknown as Message;
 }
 
 function makeAssistantMessage(): Message {
-  const info: AssistantMessage = {
+  const info = {
     id: "msg-assistant-1",
     sessionID: SESSION_ID,
     role: "assistant",
@@ -76,7 +71,7 @@ function makeAssistantMessage(): Message {
       reasoning: 0,
       cache: { read: 0, write: 0 },
     },
-  } as AssistantMessage;
+  };
   const textPart = {
     id: "part-assistant-1",
     sessionID: SESSION_ID,
@@ -84,7 +79,7 @@ function makeAssistantMessage(): Message {
     type: "text" as const,
     text: "I'm a lightweight bot chat. Ask me anything and I'll answer right here in this panel.",
   };
-  return { info, parts: [textPart as Part] };
+  return { info, parts: [textPart] } as unknown as Message;
 }
 
 function createHandlers() {

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { http, HttpResponse, delay } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import type { QuestionV2Request } from "@opencode-ai/sdk/v2";
+import type { QuestionRequest } from "@/types";
 import { Button } from "@repo/ui/components/button";
 import { questionKeys } from "@/lib/opencode";
 import { useQuestions } from "@/hooks/queries/useQuestions";
@@ -10,7 +10,7 @@ import preview from "../../../.storybook/preview";
 
 const DEMO_DIRECTORY = "/demo/project";
 
-const initialQuestions: QuestionV2Request[] = [
+const initialQuestions: QuestionRequest[] = [
   {
     id: "que_f990d0d0c00105x6HHo1UQevzP",
     sessionID: "ses_066f50c05ffeKdaKvp34Y4sTEm",
@@ -150,7 +150,7 @@ const initialQuestions: QuestionV2Request[] = [
   },
 ];
 
-const longQuestion: QuestionV2Request = {
+const longQuestion: QuestionRequest = {
   id: "que_longquestion0000000000000001",
   sessionID: "ses_066f50c05ffeKdaKvp34Y4sTEm",
   questions: [
@@ -203,7 +203,7 @@ const longQuestion: QuestionV2Request = {
   },
 };
 
-let demoQuestions: QuestionV2Request[] = [...initialQuestions];
+let demoQuestions: QuestionRequest[] = [...initialQuestions];
 
 const resetDemo = () => {
   demoQuestions = [...initialQuestions];

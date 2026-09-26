@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import type { VcsFileDiff } from "@opencode-ai/sdk/v2";
+import type { VcsFileDiff } from "@/types";
 import { DiffView } from "@/components/markdown/DiffView";
 import {
   Accordion,
@@ -72,8 +72,10 @@ function VirtualizedChangesList({
           if (!file) return null;
 
           const meta =
-            FILE_CHANGE_STATUS_META[file.status ?? "modified"] ??
-            FILE_CHANGE_STATUS_META.modified;
+            FILE_CHANGE_STATUS_META[
+              (file.status ??
+                "modified") as keyof typeof FILE_CHANGE_STATUS_META
+            ] ?? FILE_CHANGE_STATUS_META.modified;
 
           return (
             <AccordionItem
