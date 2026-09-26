@@ -1,6 +1,6 @@
 import type { GlobalEvent, Message, Part } from "@opencode-ai/sdk/v2";
 import { describe, expect, test } from "vitest";
-import { toChatEvent, toChatMessage } from "./adapter";
+import { toChatEvent, toChatMessage, toOpenCodeMessage } from "./adapter";
 
 const message = {
   id: "message-1",
@@ -52,6 +52,29 @@ describe("OpenCode adapter", () => {
     });
   });
 
+  test("derives update session ids from nested OpenCode payloads", () => {
+    const event = {
+      payload: {
+        type: "message.part.updated",
+        properties: {
+          part: {
+            id: "part-1",
+            sessionID: "session-1",
+            messageID: "message-1",
+            type: "text",
+            text: "hello",
+          },
+        },
+      },
+    } as GlobalEvent;
+
+    expect(toChatEvent(event)).toMatchObject({
+      type: "message.part.updated",
+      sessionId: "session-1",
+      messageId: "message-1",
+    });
+  });
+
   test("maps unknown provider parts to the explicit fallback", () => {
     const parts = [
       {
@@ -67,6 +90,36 @@ describe("OpenCode adapter", () => {
       type: "unknown",
       providerType: "provider-specific",
       data: { value: true },
+    });
+  });
+
+  test("converts normalized streaming updates back to the OpenCode UI model", () => {
+    const normalized = toChatMessage(message, [
+      {
+        id: "part-1",
+        sessionID: "session-1",
+        messageID: "message-1",
+        type: "text",
+        text: "hello",
+      } as Part,
+    ]);
+    normalized.parts[0] = {
+      ...normalized.parts[0]!,
+      type: "text",
+      text: "hello world",
+    };
+
+    expect(toOpenCodeMessage(normalized)).toMatchObject({
+      info: message,
+      parts: [
+        {
+          id: "part-1",
+          sessionID: "session-1",
+          messageID: "message-1",
+          type: "text",
+          text: "hello world",
+        },
+      ],
     });
   });
 });

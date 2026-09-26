@@ -1,7 +1,12 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Message } from "@repo/ui/components/message/types";
-import { mergeMessages, useStreamingMessagesStore } from "@repo/opencode";
+import {
+  mergeMessages,
+  toChatMessage,
+  toOpenCodeMessage,
+  useStreamingMessagesStore,
+} from "@repo/opencode";
 import { dispatchStreamEvent, subscribeToEvents } from "../lib/opencode/events";
 import { sessionKeys, sessionMessageKeys } from "../queries/query-keys";
 import { useChatStore } from "../stores/chatStore";
@@ -51,7 +56,12 @@ export function useSessionEventStream(directory: string) {
           queryClient.setQueryData<Message[]>(
             sessionMessageKeys.detail(directory, idleSessionId),
             (cachedMessages = []) =>
-              mergeMessages(cachedMessages, streamedMessages),
+              mergeMessages(
+                cachedMessages.map((message) =>
+                  toChatMessage(message.info, message.parts),
+                ),
+                streamedMessages,
+              ).map(toOpenCodeMessage),
           );
           void queryClient.invalidateQueries({
             queryKey: sessionMessageKeys.detail(directory, idleSessionId),

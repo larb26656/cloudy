@@ -1,26 +1,26 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import type { Message } from "./message-stream";
+import type { ChatMessage } from "@repo/ai-core";
 import { pickFresher } from "./message-reconciliation";
 import { useStreamingMessagesStore } from "./streaming-store";
 
 export type StreamingMessageDisplayItem =
-  | { id: string; kind: "remote"; message: Message }
+  | { id: string; kind: "remote"; message: ChatMessage }
   | { id: string; kind: "streaming" };
 
 export function getStreamingMessageDisplayItems(
-  remoteMessages: Message[],
-  streamingMessages: Iterable<Message>,
-  shouldIncludeMessage: (message: Message) => boolean = () => true,
+  remoteMessages: ChatMessage[],
+  streamingMessages: Iterable<ChatMessage>,
+  shouldIncludeMessage: (message: ChatMessage) => boolean = () => true,
 ): StreamingMessageDisplayItem[] {
   const streamingById = new Map(
-    Array.from(streamingMessages, (message) => [message.info.id, message]),
+    Array.from(streamingMessages, (message) => [message.id, message]),
   );
-  const remoteIds = new Set(remoteMessages.map((message) => message.info.id));
+  const remoteIds = new Set(remoteMessages.map((message) => message.id));
   const displayItems: StreamingMessageDisplayItem[] = [];
 
   for (const remote of remoteMessages) {
-    const streaming = streamingById.get(remote.info.id);
+    const streaming = streamingById.get(remote.id);
     if (
       !shouldIncludeMessage(remote) ||
       (streaming && !shouldIncludeMessage(streaming))
@@ -28,10 +28,10 @@ export function getStreamingMessageDisplayItems(
       continue;
     }
     if (streaming && pickFresher(remote, streaming) === "streaming") {
-      displayItems.push({ id: remote.info.id, kind: "streaming" });
+      displayItems.push({ id: remote.id, kind: "streaming" });
     } else {
       displayItems.push({
-        id: remote.info.id,
+        id: remote.id,
         kind: "remote",
         message: remote,
       });
@@ -48,9 +48,9 @@ export function getStreamingMessageDisplayItems(
 }
 
 export function useStreamingMessageDisplayItems(
-  remoteMessages: Message[],
+  remoteMessages: ChatMessage[],
   sessionId: string | null,
-  shouldIncludeMessage?: (message: Message) => boolean,
+  shouldIncludeMessage?: (message: ChatMessage) => boolean,
 ) {
   const streamingIds = useStreamingMessagesStore(
     useShallow((state) => {

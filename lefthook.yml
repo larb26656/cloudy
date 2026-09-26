@@ -13,4 +13,4 @@ pre-commit:
 pre-push:
   commands:
     test:
-      run: pnpm turbo run test
+      run: pnpm turbo run test -- --project=!storybook

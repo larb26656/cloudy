@@ -2,7 +2,7 @@ import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { MessageBubble, ThinkingAnimation } from "@repo/ui/components/message";
-import type { StreamingMessageDisplayItem } from "@repo/opencode";
+import type { Message } from "@repo/ui/components/message/types";
 import {
   MessageScroller,
   MessageScrollerButton,
@@ -13,6 +13,10 @@ import {
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
 import { ContextMessageBubble } from "./ContextMessageBubble";
 import { getInjectedContexts } from "../lib/opencode/context";
+
+type StreamingMessageDisplayItem =
+  | { id: string; kind: "remote"; message: Message }
+  | { id: string; kind: "streaming" };
 
 interface MessageListProps {
   displayItems: StreamingMessageDisplayItem[];

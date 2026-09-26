@@ -1,12 +1,11 @@
-import type { Part } from "@opencode-ai/sdk/v2";
-import type { Message } from "./message-stream";
+import type { ChatMessage, MessagePart } from "@repo/ai-core";
 
 export type MessageSource = "remote" | "streaming";
 export type FreshnessResult = MessageSource | "neither";
 
 export function pickFresher(
-  remote: Message | undefined,
-  streaming: Message | undefined,
+  remote: ChatMessage | undefined,
+  streaming: ChatMessage | undefined,
 ): FreshnessResult {
   if (!remote && !streaming) return "neither";
   if (!streaming) return "remote";
@@ -21,9 +20,9 @@ export function pickFresher(
 }
 
 export function mergeMessageParts(
-  remote: Part[] | undefined,
-  streaming: Part[] | undefined,
-): Part[] {
+  remote: MessagePart[] | undefined,
+  streaming: MessagePart[] | undefined,
+): MessagePart[] {
   if (!streaming?.length) return remote ?? [];
   if (!remote?.length) return streaming;
 
@@ -33,42 +32,39 @@ export function mergeMessageParts(
 }
 
 export function mergeMessage(
-  remote: Message | undefined,
-  streaming: Message,
-): Message {
+  remote: ChatMessage | undefined,
+  streaming: ChatMessage,
+): ChatMessage {
   if (!remote) return streaming;
   return {
-    info: streaming.info,
+    ...streaming,
     parts: mergeMessageParts(remote.parts, streaming.parts),
   };
 }
 
 export function mergeMessages(
-  remote: Message[],
-  streaming: Iterable<Message>,
-): Message[] {
-  const messages = new Map(remote.map((message) => [message.info.id, message]));
+  remote: ChatMessage[],
+  streaming: Iterable<ChatMessage>,
+): ChatMessage[] {
+  const messages = new Map(remote.map((message) => [message.id, message]));
   for (const message of streaming) {
-    messages.set(
-      message.info.id,
-      mergeMessage(messages.get(message.info.id), message),
-    );
+    messages.set(message.id, mergeMessage(messages.get(message.id), message));
   }
   return Array.from(messages.values());
 }
 
 export function reconcileMessages(
-  remote: Message[],
-  streaming: Iterable<Message>,
-): Message[] {
+  remote: ChatMessage[],
+  streaming: Iterable<ChatMessage>,
+): ChatMessage[] {
   const streamingById = new Map(
-    Array.from(streaming, (message) => [message.info.id, message]),
+    Array.from(streaming, (message) => [message.id, message]),
   );
   const messages = remote.map((message) => {
-    const stream = streamingById.get(message.info.id);
+    const stream = streamingById.get(message.id);
     if (!stream) return message;
 
-    streamingById.delete(message.info.id);
+    streamingById.delete(message.id);
     if (pickFresher(message, stream) !== "streaming") {
       return message;
     }
@@ -78,15 +74,14 @@ export function reconcileMessages(
   return [...messages, ...streamingById.values()];
 }
 
-function isFinalized(message: Message): boolean {
+function isFinalized(message: ChatMessage): boolean {
   return (
-    (message.info.role === "user" && message.parts.length > 0) ||
-    ("completed" in message.info.time &&
-      message.info.time.completed !== undefined)
+    (message.role === "user" && message.parts.length > 0) ||
+    message.updatedAt !== undefined
   );
 }
 
-function contentScore(message: Message): number {
+function contentScore(message: ChatMessage): number {
   let textLength = 0;
   for (const part of message.parts) {
     if (part.type === "text" || part.type === "reasoning") {

@@ -1,6 +1,7 @@
 import { type GlobalEvent } from "@opencode-ai/sdk/v2/client";
 import {
-  applyMessageStreamEvent,
+  applyChatEvent,
+  toChatEvent,
   useStreamingMessagesStore,
   type MessageStreamState,
 } from "@repo/opencode";
@@ -39,12 +40,16 @@ export function applyStreamEvent(
   event: GlobalEvent,
   sessionId: string,
 ): StreamState {
-  return applyMessageStreamEvent(state, event, sessionId);
+  const chatEvent = toChatEvent(event);
+  return chatEvent ? applyChatEvent(state, chatEvent, sessionId) : state;
 }
 
 export function dispatchStreamEvent(
   event: GlobalEvent,
   sessionId: string,
 ): void {
-  useStreamingMessagesStore.getState().applyEvent(sessionId, event);
+  const chatEvent = toChatEvent(event);
+  if (chatEvent) {
+    useStreamingMessagesStore.getState().applyEvent(sessionId, chatEvent);
+  }
 }

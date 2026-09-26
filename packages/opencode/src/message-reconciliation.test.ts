@@ -1,6 +1,5 @@
 import { describe, expect, test } from "vitest";
-import type { Part } from "@opencode-ai/sdk/v2";
-import type { Message } from "./message-stream";
+import type { ChatMessage, MessagePart } from "@repo/ai-core";
 import {
   mergeMessage,
   mergeMessages,
@@ -12,44 +11,29 @@ function message({
   id,
   role = "assistant",
   parts = [],
-  completed,
+  completed = false,
 }: {
   id: string;
   role?: "assistant" | "user";
-  parts?: Part[];
-  completed?: number;
-}): Message {
+  parts?: MessagePart[];
+  completed?: boolean;
+}): ChatMessage {
   return {
-    info: {
-      id,
-      sessionID: "session",
-      role,
-      time: { created: 1, ...(completed ? { completed } : {}) },
-    } as Message["info"],
+    id,
+    sessionId: "session",
+    role,
     parts,
+    createdAt: "1970-01-01T00:00:00.001Z",
+    updatedAt: completed ? "1970-01-01T00:00:00.002Z" : undefined,
   };
 }
 
-function text(id: string, value: string): Part {
-  return {
-    id,
-    sessionID: "session",
-    messageID: "message",
-    type: "text",
-    text: value,
-  } as Part;
+function text(id: string, value: string): MessagePart {
+  return { id, type: "text", text: value };
 }
 
-function tool(id: string): Part {
-  return {
-    id,
-    sessionID: "session",
-    messageID: "message",
-    type: "tool",
-    callID: "call",
-    tool: "bash",
-    state: { status: "pending", input: {}, raw: "" },
-  } as Part;
+function tool(id: string): MessagePart {
+  return { id, type: "tool", toolName: "bash", status: "pending" };
 }
 
 describe("message reconciliation", () => {
@@ -85,6 +69,16 @@ describe("message reconciliation", () => {
 
     expect(pickFresher(remote, streaming)).toBe("streaming");
     expect(reconcileMessages([remote], [streaming])).toEqual([streaming]);
+  });
+
+  test("prefers a finalized durable assistant message", () => {
+    const remote = message({ id: "assistant", completed: true });
+    const streaming = message({
+      id: "assistant",
+      parts: [text("text", "hello")],
+    });
+
+    expect(pickFresher(remote, streaming)).toBe("remote");
   });
 
   test("merges durable parts with streamed parts without dropping either", () => {

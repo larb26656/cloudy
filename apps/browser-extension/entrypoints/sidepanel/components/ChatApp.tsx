@@ -1,5 +1,9 @@
 import { useEffect, useState } from "react";
-import { useStreamingMessageDisplayItems } from "@repo/opencode";
+import {
+  toChatMessage,
+  toOpenCodeMessage,
+  useStreamingMessageDisplayItems,
+} from "@repo/opencode";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import type { Message } from "@repo/ui/components/message/types";
 import { useSessionMessages } from "../hooks/useSessionMessages";
@@ -54,6 +58,9 @@ export function ChatApp({ directory }: ChatAppProps) {
   useSessionEventStream(directory);
 
   const displayMessages = messages;
+  const coreMessages = displayMessages.map((message) =>
+    toChatMessage(message.info, message.parts),
+  );
 
   useEffect(() => {
     if (!messagesError || !sessionId) return;
@@ -65,9 +72,12 @@ export function ChatApp({ directory }: ChatAppProps) {
     );
   }, [clearSession, messagesError, sessionId]);
 
-  const { displayItems, streamingIds } = useStreamingMessageDisplayItems(
-    displayMessages,
-    sessionId,
+  const { displayItems: coreDisplayItems, streamingIds } =
+    useStreamingMessageDisplayItems(coreMessages, sessionId);
+  const displayItems = coreDisplayItems.map((item) =>
+    item.kind === "remote"
+      ? { ...item, message: toOpenCodeMessage(item.message) }
+      : item,
   );
   const { isInContext } = useInjectedContexts(messages);
   const { submit, stop, changeSession, newChat } = useChatActions({

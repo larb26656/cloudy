@@ -2,7 +2,7 @@ import { useEffect, useMemo } from "react";
 import type { SessionStatus } from "@opencode-ai/sdk/v2";
 import type { MessageDisplayItem } from "@repo/ui/components/message";
 import { pickFresher, useStreamingMessageDisplayItems } from "@repo/opencode";
-import type { Message } from "@/types";
+import { toCoreMessage, toUiMessage, type Message } from "@/types";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
@@ -59,9 +59,19 @@ export function useMessageListData({
   });
 
   const remoteMessages = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);
-  const { displayItems, streamingIds } = useStreamingMessageDisplayItems(
-    remoteMessages,
-    selectedSessionId,
+  const coreMessages = useMemo(
+    () =>
+      remoteMessages.map((message) =>
+        toCoreMessage(message.info, message.parts),
+      ),
+    [remoteMessages],
+  );
+  const { displayItems: coreDisplayItems, streamingIds } =
+    useStreamingMessageDisplayItems(coreMessages, selectedSessionId);
+  const displayItems = coreDisplayItems.map((item) =>
+    item.kind === "remote"
+      ? { ...item, message: toUiMessage(item.message) }
+      : item,
   );
 
   // Evict streaming entries that remote has definitively won (finalized, or
@@ -76,12 +86,12 @@ export function useMessageListData({
       .streamingMessages.get(selectedSessionId);
     if (!sessionMap) return;
     for (const [id, streamMsg] of sessionMap) {
-      const remoteMsg = remoteMessages.find((m) => m.info.id === id);
+      const remoteMsg = coreMessages.find((message) => message.id === id);
       if (remoteMsg && pickFresher(remoteMsg, streamMsg) === "remote") {
         removeStreamingMessage(selectedSessionId, id);
       }
     }
-  }, [remoteMessages, streamingIds, selectedSessionId, removeStreamingMessage]);
+  }, [coreMessages, streamingIds, selectedSessionId, removeStreamingMessage]);
 
   const isStreaming =
     sessionStatus?.type === "busy" || sessionStatus?.type === "retry";

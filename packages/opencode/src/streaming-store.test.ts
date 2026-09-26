@@ -1,15 +1,9 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import type { Part } from "@opencode-ai/sdk/v2";
+import type { MessagePart } from "@repo/ai-core";
 import { useStreamingMessagesStore } from "./streaming-store";
 
-function textPart(sessionID: string, messageID: string, id: string): Part {
-  return {
-    id,
-    sessionID,
-    messageID,
-    type: "text",
-    text: "base",
-  } as Part;
+function textPart(id: string): MessagePart {
+  return { id, type: "text", text: "base" };
 }
 
 describe("streaming store", () => {
@@ -39,10 +33,7 @@ describe("streaming store", () => {
       "part-a",
       "delta",
     );
-    store.onMessagePartUpdated(
-      "session-a",
-      textPart("session-a", "message-a", "part-a"),
-    );
+    store.onMessagePartUpdated("session-a", "message-a", textPart("part-a"));
 
     expect(
       useStreamingMessagesStore
@@ -60,6 +51,22 @@ describe("streaming store", () => {
     ).toBe(false);
   });
 
+  test("applies normalized events", () => {
+    useStreamingMessagesStore.getState().applyEvent("session-a", {
+      type: "message.part.updated",
+      sessionId: "session-a",
+      messageId: "message-a",
+      part: textPart("part-a"),
+    });
+
+    expect(
+      useStreamingMessagesStore
+        .getState()
+        .streamingMessages.get("session-a")
+        ?.get("message-a")?.parts,
+    ).toEqual([textPart("part-a")]);
+  });
+
   test("notifies selectors with a new session map for updates", () => {
     const selected: unknown[] = [];
     const unsubscribe = useStreamingMessagesStore.subscribe((state) => {
@@ -68,10 +75,7 @@ describe("streaming store", () => {
 
     useStreamingMessagesStore
       .getState()
-      .onMessagePartUpdated(
-        "session-a",
-        textPart("session-a", "message-a", "part-a"),
-      );
+      .onMessagePartUpdated("session-a", "message-a", textPart("part-a"));
 
     unsubscribe();
     expect(selected).toHaveLength(1);

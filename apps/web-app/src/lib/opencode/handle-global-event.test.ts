@@ -1,6 +1,7 @@
 import { describe, test, expect, beforeEach, vi } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
+import { toCoreMessage } from "@/types";
 import {
   handleEvent,
   messageKeys,
@@ -223,7 +224,10 @@ describe("handleEvent", () => {
       const message = createMockMessage();
       useStreamingMessagesStore
         .getState()
-        .onMessageInfoUpdated(SESSION_ID, message);
+        .onMessageInfoUpdated(
+          SESSION_ID,
+          toCoreMessage(message.info, message.parts),
+        );
 
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
@@ -251,7 +255,10 @@ describe("handleEvent", () => {
       const message = createMockMessage();
       useStreamingMessagesStore
         .getState()
-        .onMessageInfoUpdated(SESSION_ID, message);
+        .onMessageInfoUpdated(
+          SESSION_ID,
+          toCoreMessage(message.info, message.parts),
+        );
 
       handleEvent(
         buildEvent({
@@ -304,7 +311,10 @@ describe("handleEvent", () => {
       });
       useStreamingMessagesStore
         .getState()
-        .onMessageInfoUpdated(SESSION_ID, streamingMessage);
+        .onMessageInfoUpdated(
+          SESSION_ID,
+          toCoreMessage(streamingMessage.info, streamingMessage.parts),
+        );
 
       handleEvent(
         buildEvent({
@@ -382,7 +392,11 @@ describe("handleEvent", () => {
       const state = useStreamingMessagesStore.getState();
       const buffered = state.streamingMessages.get(SESSION_ID)?.get(MESSAGE_ID);
       expect(buffered).toBeDefined();
-      expect(buffered!.info).toEqual(info);
+      expect(buffered).toMatchObject({
+        id: info.id,
+        sessionId: info.sessionID,
+        role: info.role,
+      });
       expect(buffered!.parts).toEqual([]);
     });
 
@@ -428,7 +442,11 @@ describe("handleEvent", () => {
       const buffered = state.streamingMessages.get(SESSION_ID)?.get(MESSAGE_ID);
       expect(buffered).toBeDefined();
       expect(buffered!.parts).toHaveLength(1);
-      expect(buffered!.parts[0]).toEqual(part);
+      expect(buffered!.parts[0]).toMatchObject({
+        id: part.id,
+        type: part.type,
+        text: "Updated text",
+      });
     });
   });
 

@@ -1,25 +1,14 @@
 import { describe, expect, test } from "vitest";
-import type { Part } from "@opencode-ai/sdk/v2";
-import type { Message } from "./message-stream";
+import type { ChatMessage } from "@repo/ai-core";
 import { getStreamingMessageDisplayItems } from "./streaming-display-items";
 
-function message({ id, text }: { id: string; text: string }): Message {
+function message({ id, text }: { id: string; text: string }): ChatMessage {
   return {
-    info: {
-      id,
-      sessionID: "session",
-      role: "assistant",
-      time: { created: 1 },
-    } as Message["info"],
-    parts: [
-      {
-        id: `${id}-part`,
-        sessionID: "session",
-        messageID: id,
-        type: "text",
-        text,
-      } as Part,
-    ],
+    id,
+    sessionId: "session",
+    role: "assistant",
+    createdAt: "1970-01-01T00:00:00.001Z",
+    parts: [{ id: `${id}-part`, type: "text", text }],
   };
 }
 
@@ -45,7 +34,7 @@ describe("streaming message display items", () => {
       getStreamingMessageDisplayItems(
         [visible, hidden],
         [hidden],
-        (item) => item.info.id !== "hidden",
+        (item) => item.id !== "hidden",
       ),
     ).toEqual([{ id: "visible", kind: "remote", message: visible }]);
   });

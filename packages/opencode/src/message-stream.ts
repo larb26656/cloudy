@@ -1,16 +1,7 @@
-import type {
-  GlobalEvent,
-  Message as OpencodeMessage,
-  Part,
-} from "@opencode-ai/sdk/v2";
-
-export interface Message {
-  info: OpencodeMessage;
-  parts: Part[];
-}
+import type { ChatEvent, ChatMessage, MessagePart } from "@repo/ai-core";
 
 export interface MessageStreamState {
-  messages: Map<string, Message>;
+  messages: Map<string, ChatMessage>;
   pendingDeltas: Map<string, string>;
 }
 
@@ -22,34 +13,32 @@ function ensureMessage(
   state: MessageStreamState,
   id: string,
   sessionId: string,
-): Message {
+): ChatMessage {
   return (
     state.messages.get(id) ?? {
-      info: {
-        id,
-        sessionID: sessionId,
-        role: "assistant",
-        time: { created: 0 },
-      } as Message["info"],
+      id,
+      sessionId,
+      role: "assistant",
       parts: [],
+      createdAt: new Date(0).toISOString(),
     }
   );
 }
 
 function canAppendDelta(
-  part: Part,
-): part is Extract<Part, { type: "text" | "reasoning" }> {
+  part: MessagePart,
+): part is Extract<MessagePart, { type: "text" | "reasoning" }> {
   return part.type === "text" || part.type === "reasoning";
 }
 
 export function applyMessageInfo(
   state: MessageStreamState,
-  message: Message,
+  message: ChatMessage,
 ): MessageStreamState {
-  const existing = state.messages.get(message.info.id);
+  const existing = state.messages.get(message.id);
   const nextMessages = new Map(state.messages);
   nextMessages.set(
-    message.info.id,
+    message.id,
     existing ? { ...message, parts: existing.parts } : message,
   );
   return { ...state, messages: nextMessages };
@@ -58,9 +47,10 @@ export function applyMessageInfo(
 export function applyMessagePart(
   state: MessageStreamState,
   sessionId: string,
-  part: Part,
+  messageId: string,
+  part: MessagePart,
 ): MessageStreamState {
-  const target = ensureMessage(state, part.messageID, sessionId);
+  const target = ensureMessage(state, messageId, sessionId);
   const pending = state.pendingDeltas.get(part.id);
   const nextPart =
     pending && canAppendDelta(part)
@@ -74,7 +64,7 @@ export function applyMessagePart(
           index === existingIndex ? nextPart : item,
         );
   const nextMessages = new Map(state.messages);
-  nextMessages.set(part.messageID, { ...target, parts: nextParts });
+  nextMessages.set(messageId, { ...target, parts: nextParts });
   const pendingDeltas = new Map(state.pendingDeltas);
   pendingDeltas.delete(part.id);
   return { messages: nextMessages, pendingDeltas };
@@ -108,30 +98,24 @@ export function applyMessagePartDelta(
   return { ...state, messages: nextMessages };
 }
 
-export function applyMessageStreamEvent(
+export function applyChatEvent(
   state: MessageStreamState,
-  event: GlobalEvent,
+  event: ChatEvent,
   sessionId: string,
 ): MessageStreamState {
-  const payload = event.payload;
-  if (payload.type === "message.updated") {
-    if (payload.properties.info.sessionID !== sessionId) return state;
-    return applyMessageInfo(state, {
-      info: payload.properties.info,
-      parts: [],
-    });
+  if (event.sessionId !== sessionId) return state;
+  if (event.type === "message.updated") {
+    return applyMessageInfo(state, event.message);
   }
-  if (payload.type === "message.part.updated") {
-    if (payload.properties.part.sessionID !== sessionId) return state;
-    return applyMessagePart(state, sessionId, payload.properties.part);
+  if (event.type === "message.part.updated") {
+    return applyMessagePart(state, sessionId, event.messageId, event.part);
   }
-  if (payload.type === "message.part.delta") {
-    if (payload.properties.sessionID !== sessionId) return state;
+  if (event.type === "message.delta") {
     return applyMessagePartDelta(
       state,
-      payload.properties.messageID,
-      payload.properties.partID,
-      payload.properties.delta,
+      event.messageId,
+      event.partId,
+      event.delta,
     );
   }
   return state;

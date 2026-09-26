@@ -1,4 +1,5 @@
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import { toChatEvent } from "@repo/opencode";
 import { cloudyClient } from "@/lib/api";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { useSessionErrorStore } from "@/stores/sessionErrorStore";
@@ -147,36 +148,36 @@ export function handleEvent(
         return;
       }
 
-      useStreamingMessagesStore
-        .getState()
-        .onMessageInfoUpdated(props.info.sessionID, {
-          info: props.info,
-          parts: [],
-        });
+      const chatEvent = toChatEvent(event);
+      if (chatEvent) {
+        useStreamingMessagesStore
+          .getState()
+          .applyEvent(props.info.sessionID, chatEvent);
+      }
       break;
     }
 
     case "message.part.updated": {
       const props = event.payload.properties;
       console.debug("[POC] message.part.updated:", props);
-      useStreamingMessagesStore
-        .getState()
-        .onMessagePartUpdated(props.part.sessionID, props.part);
+      const chatEvent = toChatEvent(event);
+      if (chatEvent) {
+        useStreamingMessagesStore
+          .getState()
+          .applyEvent(props.part.sessionID, chatEvent);
+      }
       break;
     }
 
     case "message.part.delta": {
       const props = event.payload.properties;
       console.debug("[POC] message.part.delta:", props);
-      useStreamingMessagesStore
-        .getState()
-        .onMessagePartDeltaUpdated(
-          props.sessionID,
-          props.messageID,
-          props.partID,
-          props.delta,
-          props.field,
-        );
+      const chatEvent = toChatEvent(event);
+      if (chatEvent) {
+        useStreamingMessagesStore
+          .getState()
+          .applyEvent(props.sessionID, chatEvent);
+      }
       break;
     }
 

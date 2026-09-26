@@ -1,20 +1,23 @@
 import { create } from "zustand";
-import type { GlobalEvent, Part } from "@opencode-ai/sdk/v2";
+import type { ChatEvent, ChatMessage, MessagePart } from "@repo/ai-core";
 import {
+  applyChatEvent,
   applyMessageInfo,
   applyMessagePart,
   applyMessagePartDelta,
-  applyMessageStreamEvent,
-  type Message,
   type MessageStreamState,
 } from "./message-stream";
 
 export interface StreamingMessagesStore {
-  streamingMessages: Map<string, Map<string, Message>>;
+  streamingMessages: Map<string, Map<string, ChatMessage>>;
   pendingDeltas: Map<string, Map<string, string>>;
-  applyEvent: (sessionId: string, event: GlobalEvent) => void;
-  onMessageInfoUpdated: (sessionId: string, message: Message) => void;
-  onMessagePartUpdated: (sessionId: string, part: Part) => void;
+  applyEvent: (sessionId: string, event: ChatEvent) => void;
+  onMessageInfoUpdated: (sessionId: string, message: ChatMessage) => void;
+  onMessagePartUpdated: (
+    sessionId: string,
+    messageId: string,
+    part: MessagePart,
+  ) => void;
   onMessagePartDeltaUpdated: (
     sessionId: string,
     messageId: string,
@@ -22,12 +25,12 @@ export interface StreamingMessagesStore {
     delta: string,
     field?: string,
   ) => void;
-  takeSessionStreaming: (sessionId: string) => Message[];
+  takeSessionStreaming: (sessionId: string) => ChatMessage[];
   removeStreamingMessage: (sessionId: string, messageId: string) => void;
 }
 
 function stateFor(
-  messages: Map<string, Map<string, Message>>,
+  messages: Map<string, Map<string, ChatMessage>>,
   pendingDeltas: Map<string, Map<string, string>>,
   sessionId: string,
 ): MessageStreamState {
@@ -74,15 +77,15 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
       streamingMessages: new Map(),
       pendingDeltas: new Map(),
       applyEvent: (sessionId, event) => {
-        update(sessionId, (state) =>
-          applyMessageStreamEvent(state, event, sessionId),
-        );
+        update(sessionId, (state) => applyChatEvent(state, event, sessionId));
       },
       onMessageInfoUpdated: (sessionId, message) => {
         update(sessionId, (state) => applyMessageInfo(state, message));
       },
-      onMessagePartUpdated: (sessionId, part) => {
-        update(sessionId, (state) => applyMessagePart(state, sessionId, part));
+      onMessagePartUpdated: (sessionId, messageId, part) => {
+        update(sessionId, (state) =>
+          applyMessagePart(state, sessionId, messageId, part),
+        );
       },
       onMessagePartDeltaUpdated: (sessionId, messageId, partId, delta) => {
         update(sessionId, (state) =>
@@ -90,7 +93,7 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
         );
       },
       takeSessionStreaming: (sessionId) => {
-        let result: Message[] = [];
+        let result: ChatMessage[] = [];
         set((state) => {
           const sessionMessages = state.streamingMessages.get(sessionId);
           if (!sessionMessages) return state;

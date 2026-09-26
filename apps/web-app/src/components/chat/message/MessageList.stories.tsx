@@ -15,6 +15,7 @@ import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { Button } from "@repo/ui/components/button";
 import { MessageList } from "./MessageList";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
+import { toChatMessage } from "@repo/opencode";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { sessionKeys } from "@/lib/opencode/query-keys";
 import preview from "../../../../.storybook/preview";
@@ -113,6 +114,25 @@ function makeReasoningPart(messageId: string, text: string): Part {
     text,
     time: { start: Date.now() - 3000, end: Date.now() },
   } as Part;
+}
+
+function addStreamingMessage(messageId: string) {
+  useStreamingMessagesStore
+    .getState()
+    .onMessageInfoUpdated(
+      SESSION_ID,
+      toChatMessage(makeAssistantInfo(messageId)),
+    );
+}
+
+function updateStreamingPart(messageId: string, part: Part) {
+  useStreamingMessagesStore
+    .getState()
+    .onMessagePartUpdated(
+      SESSION_ID,
+      messageId,
+      toChatMessage(makeAssistantInfo(messageId), [part]).parts[0]!,
+    );
 }
 
 function tokenize(text: string): string[] {
@@ -340,10 +360,7 @@ function StreamingSimulator() {
       const partId = nextPartId();
       await wait(800);
       if (cancelledRef.current) return;
-      useStreamingMessagesStore.getState().onMessageInfoUpdated(SESSION_ID, {
-        info: makeAssistantInfo(msgId),
-        parts: [],
-      });
+      addStreamingMessage(msgId);
       await streamTokens(msgId, partId, MARKDOWN_KITCHEN_SINK, speed);
     });
   }, [runScenario, streamTokens, speed]);
@@ -354,10 +371,7 @@ function StreamingSimulator() {
       const partId = nextPartId();
       await wait(800);
       if (cancelledRef.current) return;
-      useStreamingMessagesStore.getState().onMessageInfoUpdated(SESSION_ID, {
-        info: makeAssistantInfo(msgId),
-        parts: [],
-      });
+      addStreamingMessage(msgId);
       await streamTokens(msgId, partId, CODE_EXPLANATION, speed);
     });
   }, [runScenario, streamTokens, speed]);
@@ -368,10 +382,7 @@ function StreamingSimulator() {
       const partId = nextPartId();
       await wait(800);
       if (cancelledRef.current) return;
-      useStreamingMessagesStore.getState().onMessageInfoUpdated(SESSION_ID, {
-        info: makeAssistantInfo(msgId),
-        parts: [],
-      });
+      addStreamingMessage(msgId);
       await streamTokens(msgId, partId, SHORT_ANSWER, speed);
     });
   }, [runScenario, streamTokens, speed]);
@@ -381,10 +392,7 @@ function StreamingSimulator() {
       const msgId = nextMsgId();
       await wait(800);
       if (cancelledRef.current) return;
-      useStreamingMessagesStore.getState().onMessageInfoUpdated(SESSION_ID, {
-        info: makeAssistantInfo(msgId),
-        parts: [],
-      });
+      addStreamingMessage(msgId);
 
       const part1 = nextPartId();
       await streamTokens(msgId, part1, TOOL_ANSWER_BEFORE, speed);
@@ -396,9 +404,7 @@ function StreamingSimulator() {
         { command: "ls -la src/" },
         "drwxr-xr-x  10 user  staff   320 Jul 30 10:00 .\n-rw-r--r--   1 user  staff  1234 Jul 30 09:00 App.tsx\n-rw-r--r--   1 user  staff   567 Jul 30 09:00 main.tsx",
       );
-      useStreamingMessagesStore
-        .getState()
-        .onMessagePartUpdated(SESSION_ID, toolPart);
+      updateStreamingPart(msgId, toolPart);
       await wait(400);
       if (cancelledRef.current) return;
 
@@ -412,9 +418,7 @@ function StreamingSimulator() {
         },
         undefined,
       );
-      useStreamingMessagesStore
-        .getState()
-        .onMessagePartUpdated(SESSION_ID, writePart);
+      updateStreamingPart(msgId, writePart);
       await wait(400);
       if (cancelledRef.current) return;
 
@@ -428,18 +432,13 @@ function StreamingSimulator() {
       const msgId = nextMsgId();
       await wait(800);
       if (cancelledRef.current) return;
-      useStreamingMessagesStore.getState().onMessageInfoUpdated(SESSION_ID, {
-        info: makeAssistantInfo(msgId),
-        parts: [],
-      });
+      addStreamingMessage(msgId);
 
       const reasoningPart = makeReasoningPart(
         msgId,
         "The user wants to see reasoning + streaming. I'll show my thought process first, then provide the answer with markdown formatting.",
       );
-      useStreamingMessagesStore
-        .getState()
-        .onMessagePartUpdated(SESSION_ID, reasoningPart);
+      updateStreamingPart(msgId, reasoningPart);
       await wait(500);
       if (cancelledRef.current) return;
 

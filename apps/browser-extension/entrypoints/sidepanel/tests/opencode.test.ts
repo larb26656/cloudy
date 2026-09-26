@@ -137,7 +137,7 @@ describe("extension OpenCode message assembly", () => {
     expect(messageParts(message)).toEqual(parts);
   });
 
-  it("stores non-text updates without changing their shape", () => {
+  it("normalizes non-text updates", () => {
     const next = applyStreamEvent(
       state(),
       event({
@@ -152,7 +152,12 @@ describe("extension OpenCode message assembly", () => {
     );
 
     expect(next.messages.get("message-1")?.parts).toEqual([
-      part("tool", "tool-1"),
+      expect.objectContaining({
+        id: "tool-1",
+        type: "tool",
+        toolName: "bash",
+        status: "pending",
+      }),
     ]);
   });
 
@@ -185,7 +190,11 @@ describe("extension OpenCode message assembly", () => {
     );
 
     expect(next.messages.get("message-1")?.parts).toEqual([
-      part("text", "text-1", " worldhello"),
+      expect.objectContaining({
+        id: "text-1",
+        type: "text",
+        text: " worldhello",
+      }),
     ]);
     expect(next.pendingDeltas.has("text-1")).toBe(false);
   });
@@ -219,7 +228,11 @@ describe("extension OpenCode message assembly", () => {
     );
 
     expect(next.messages.get("message-1")?.parts).toEqual([
-      part("reasoning", "reasoning-1", "think more"),
+      expect.objectContaining({
+        id: "reasoning-1",
+        type: "reasoning",
+        text: "think more",
+      }),
     ]);
   });
 });

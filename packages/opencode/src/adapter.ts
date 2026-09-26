@@ -13,6 +13,11 @@ import type {
 
 type RecordValue = Record<string, unknown>;
 
+export interface OpenCodeMessageWithParts {
+  info: OpencodeMessage;
+  parts: Part[];
+}
+
 function asRecord(value: unknown): RecordValue {
   return typeof value === "object" && value !== null
     ? (value as RecordValue)
@@ -29,6 +34,13 @@ function createdAt(info: OpencodeMessage): string {
   return typeof created === "number"
     ? new Date(created).toISOString()
     : new Date(0).toISOString();
+}
+
+function updatedAt(info: OpencodeMessage): string | undefined {
+  const completed = asRecord(info.time).completed;
+  return typeof completed === "number"
+    ? new Date(completed).toISOString()
+    : undefined;
 }
 
 function mapStatus(value: unknown): RunStatus {
@@ -124,7 +136,94 @@ export function toChatMessage(
     role,
     parts: parts.map(mapPart),
     createdAt: createdAt(info),
+    updatedAt: updatedAt(info),
     metadata: { provider: "opencode", raw: info },
+  };
+}
+
+function timestamp(value: string): number {
+  const result = Date.parse(value);
+  return Number.isNaN(result) ? 0 : result;
+}
+
+function toOpenCodePart(
+  part: MessagePart,
+  sessionId: string,
+  messageId: string,
+): Part {
+  const raw = asRecord(part.metadata?.raw);
+  const base = {
+    ...raw,
+    id: part.id,
+    sessionID: sessionId,
+    messageID: messageId,
+  };
+
+  switch (part.type) {
+    case "text":
+    case "reasoning":
+      return { ...base, type: part.type, text: part.text } as Part;
+    case "tool":
+      return {
+        ...base,
+        type: "tool",
+        tool: part.toolName,
+        callID: part.callId,
+      } as Part;
+    case "file":
+      return {
+        ...base,
+        type: "file",
+        filename: part.path,
+        mime: part.mimeType,
+        url: part.url ?? part.path,
+      } as Part;
+    case "diff":
+      return {
+        ...base,
+        type: "patch",
+        file: part.path,
+        patch: part.patch,
+      } as unknown as Part;
+    case "subtask":
+      return {
+        ...base,
+        type: "subtask",
+        description: part.description,
+      } as Part;
+    case "compaction":
+      return {
+        ...base,
+        type: "compaction",
+        auto: part.summary,
+      } as unknown as Part;
+    case "unknown":
+      return { ...base, type: part.providerType } as Part;
+  }
+}
+
+export function toOpenCodeMessage(
+  message: ChatMessage,
+): OpenCodeMessageWithParts {
+  const raw = asRecord(message.metadata?.raw);
+  const rawTime = asRecord(raw.time);
+  const time = {
+    ...rawTime,
+    created: timestamp(message.createdAt),
+    ...(message.updatedAt ? { completed: timestamp(message.updatedAt) } : {}),
+  };
+
+  return {
+    info: {
+      ...raw,
+      id: message.id,
+      sessionID: message.sessionId,
+      role: message.role,
+      time,
+    } as OpencodeMessage,
+    parts: message.parts.map((part) =>
+      toOpenCodePart(part, message.sessionId, message.id),
+    ),
   };
 }
 
@@ -145,20 +244,22 @@ export function toChatEvent(event: GlobalEvent): ChatEvent | undefined {
     case "message.part.updated": {
       const part = properties.part;
       if (!part || typeof part !== "object") return undefined;
+      const partRecord = asRecord(part);
       return {
         type: "message.part.updated",
-        sessionId,
-        messageId: stringValue(asRecord(part).messageID, ""),
+        sessionId: stringValue(partRecord.sessionID, sessionId),
+        messageId: stringValue(partRecord.messageID, ""),
         part: mapPart(part as Part),
       };
     }
     case "message.updated": {
       const info = properties.info;
       if (!info || typeof info !== "object") return undefined;
+      const message = toChatMessage(info as OpencodeMessage);
       return {
         type: "message.updated",
-        sessionId,
-        message: toChatMessage(info as OpencodeMessage),
+        sessionId: message.sessionId || sessionId,
+        message,
       };
     }
     case "session.status": {

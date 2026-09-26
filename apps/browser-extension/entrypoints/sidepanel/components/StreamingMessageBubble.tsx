@@ -1,4 +1,4 @@
-import { useStreamingMessagesStore } from "@repo/opencode";
+import { toOpenCodeMessage, useStreamingMessagesStore } from "@repo/opencode";
 import { getInjectedContexts } from "../lib/opencode/context";
 import { ContextMessageBubble } from "./ContextMessageBubble";
 import { MessageBubble } from "@repo/ui/components/message";
@@ -15,7 +15,7 @@ export function StreamingMessageBubble({
   const message = useStreamingMessagesStore((state) =>
     state.streamingMessages.get(sessionId)?.get(messageId),
   );
-  const displayMessage = message;
+  const displayMessage = message ? toOpenCodeMessage(message) : undefined;
 
   if (!displayMessage) return null;
 

@@ -1,10 +1,12 @@
 import { describe, expect, test } from "vitest";
 import type { InfiniteData } from "@tanstack/react-query";
 import { appendStreamingMessages } from "./appendStreamingMessages";
-import type { Message } from "@/types";
+import { toCoreMessage, type Message } from "@/types";
 import type { AssistantMessage, Part } from "@opencode-ai/sdk/v2";
 
-const makeInfo = (overrides: Partial<AssistantMessage> = {}): AssistantMessage =>
+const makeInfo = (
+  overrides: Partial<AssistantMessage> = {},
+): AssistantMessage =>
   ({
     id: "msg_1",
     sessionID: "session_1",
@@ -36,6 +38,9 @@ const makeMessage = (overrides: Partial<Message> = {}): Message => ({
   ...overrides,
 });
 
+const makeCoreMessage = (message: Message) =>
+  toCoreMessage(message.info, message.parts);
+
 const makeInfiniteData = (
   pages: Message[][],
 ): InfiniteData<Message[], string | undefined> => ({
@@ -51,7 +56,7 @@ describe("appendStreamingMessages", () => {
 
   test("returns newMessages as single page when old is undefined", () => {
     const msg = makeMessage();
-    const result = appendStreamingMessages(undefined, [msg]);
+    const result = appendStreamingMessages(undefined, [makeCoreMessage(msg)]);
     expect(result).toEqual({ pages: [[msg]], pageParams: [undefined] });
   });
 
@@ -60,7 +65,7 @@ describe("appendStreamingMessages", () => {
     const streaming = makeMessage({ info: makeInfo({ id: "msg_b" }) });
     const old = makeInfiniteData([[existing]]);
 
-    const result = appendStreamingMessages(old, [streaming]);
+    const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
     expect(result.pages[0]).toHaveLength(2);
     expect(result.pages[0]?.[0]).toEqual(existing);
@@ -78,19 +83,26 @@ describe("appendStreamingMessages", () => {
     });
     const old = makeInfiniteData([[cached]]);
 
-    const result = appendStreamingMessages(old, [streaming]);
+    const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
     expect(result.pages[0]).toHaveLength(1);
     const merged = result.pages[0]?.[0];
     expect((merged?.info as AssistantMessage).cost).toBe(100);
     expect(merged?.parts).toHaveLength(1);
     expect(merged?.parts[0]).toEqual(
-      makeTextPart({ id: "part_text", text: "streamed text" }),
+      makeTextPart({
+        id: "part_text",
+        messageID: "msg_a",
+        text: "streamed text",
+      }),
     );
   });
 
   test("preserves cache-only parts when merging", () => {
-    const cachedPart = makeTextPart({ id: "part_step_start", type: "step-start" });
+    const cachedPart = makeTextPart({
+      id: "part_step_start",
+      type: "step-start",
+    });
     const cached = makeMessage({
       info: makeInfo({ id: "msg_a" }),
       parts: [cachedPart],
@@ -101,7 +113,7 @@ describe("appendStreamingMessages", () => {
     });
     const old = makeInfiniteData([[cached]]);
 
-    const result = appendStreamingMessages(old, [streaming]);
+    const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
     const merged = result.pages[0]?.[0];
     expect(merged?.parts).toHaveLength(2);
@@ -121,7 +133,7 @@ describe("appendStreamingMessages", () => {
     });
     const old = makeInfiniteData([[cached]]);
 
-    const result = appendStreamingMessages(old, [streaming]);
+    const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
     const merged = result.pages[0]?.[0];
     expect(merged?.parts).toHaveLength(1);
@@ -139,7 +151,7 @@ describe("appendStreamingMessages", () => {
     });
     const old = makeInfiniteData([[cached]]);
 
-    const result = appendStreamingMessages(old, [streaming]);
+    const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
     const merged = result.pages[0]?.[0];
     expect(merged?.parts).toHaveLength(1);
@@ -152,7 +164,7 @@ describe("appendStreamingMessages", () => {
     const old = makeInfiniteData([page0, page1]);
 
     const streaming = makeMessage({ info: makeInfo({ id: "msg_new" }) });
-    const result = appendStreamingMessages(old, [streaming]);
+    const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
     expect(result.pages).toHaveLength(2);
     expect(result.pages[1]).toEqual(page1);
