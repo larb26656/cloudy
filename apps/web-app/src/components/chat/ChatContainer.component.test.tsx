@@ -160,7 +160,19 @@ const makePermission = (sessionID: string): PermissionRequest => ({
 });
 
 const childrenHandler = (children: { id: string }[] = []) =>
-  http.get(/\/oc\/session\/[^/]+\/children/, () => HttpResponse.json(children));
+  http.get(/\/oc\/session\/[^/]+\/children/, () =>
+    HttpResponse.json(
+      children.map(({ id }) => ({
+        id,
+        slug: id,
+        projectID: "proj_test",
+        directory: DIRECTORY,
+        title: id,
+        version: "1.0.0",
+        time: { created: 0, updated: 0 },
+      })),
+    ),
+  );
 
 function renderChat(sessionId: string | null) {
   const queryClient = new QueryClient({

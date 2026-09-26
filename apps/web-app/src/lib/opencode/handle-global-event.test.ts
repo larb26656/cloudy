@@ -12,7 +12,7 @@ import {
 import type { GlobalEvent, Session, SessionStatus } from "@opencode-ai/sdk/v2";
 import type { AssistantMessage, Part } from "@opencode-ai/sdk/v2";
 import type { InfiniteData } from "@tanstack/react-query";
-import type { Message } from "@/types";
+import type { ChatSession, Message } from "@/types";
 
 const { postNotificationMock } = vi.hoisted(() => ({
   postNotificationMock: vi.fn(() => Promise.resolve({ ok: true })),
@@ -76,11 +76,25 @@ function createTextPart(overrides: Partial<Part> = {}): Part {
   } as Part;
 }
 
-function createMockMessage(overrides: Partial<Message> = {}): Message {
+function createMockMessage({
+  info = createMockAssistantMessage(),
+  parts = [],
+}: {
+  info?: AssistantMessage;
+  parts?: Part[];
+} = {}): Message {
+  return toCoreMessage(info, parts);
+}
+
+function expectedChatSession(session: Session): ChatSession {
   return {
-    info: createMockAssistantMessage(),
-    parts: [],
-    ...overrides,
+    id: session.id,
+    title: session.title,
+    parentID: session.parentID,
+    directory: session.directory,
+    updatedAt: session.time.updated,
+    cost: session.cost,
+    tokens: session.tokens,
   };
 }
 
@@ -140,8 +154,8 @@ describe("handleEvent", () => {
       );
 
       expect(
-        queryClient.getQueryData<Session>(sessionKeys.detail(SESSION_ID)),
-      ).toEqual(session);
+        queryClient.getQueryData<ChatSession>(sessionKeys.detail(SESSION_ID)),
+      ).toEqual(expectedChatSession(session));
     });
 
     test("replaces existing session in infinite list", () => {
@@ -151,9 +165,9 @@ describe("handleEvent", () => {
         title: "Other",
       });
       const updatedSession = createMockSession({ title: "New Title" });
-      queryClient.setQueryData<Session[]>(
+      queryClient.setQueryData<ChatSession[]>(
         sessionKeys.infinite(DEMO_DIRECTORY),
-        [oldSession, otherSession],
+        [expectedChatSession(oldSession), expectedChatSession(otherSession)],
       );
 
       handleEvent(
@@ -165,12 +179,16 @@ describe("handleEvent", () => {
         queryClient,
       );
 
-      const list = queryClient.getQueryData<Session[]>(
+      const list = queryClient.getQueryData<ChatSession[]>(
         sessionKeys.infinite(DEMO_DIRECTORY),
       );
       expect(list).toHaveLength(2);
-      expect(list!.find((s) => s.id === SESSION_ID)).toEqual(updatedSession);
-      expect(list!.find((s) => s.id === "ses_other")).toEqual(otherSession);
+      expect(list!.find((s) => s.id === SESSION_ID)).toEqual(
+        expectedChatSession(updatedSession),
+      );
+      expect(list!.find((s) => s.id === "ses_other")).toEqual(
+        expectedChatSession(otherSession),
+      );
     });
 
     test("does not append session when not in infinite list", () => {
@@ -179,9 +197,9 @@ describe("handleEvent", () => {
         title: "Other",
       });
       const updatedSession = createMockSession({ title: "New Title" });
-      queryClient.setQueryData<Session[]>(
+      queryClient.setQueryData<ChatSession[]>(
         sessionKeys.infinite(DEMO_DIRECTORY),
-        [otherSession],
+        [expectedChatSession(otherSession)],
       );
 
       handleEvent(
@@ -193,7 +211,7 @@ describe("handleEvent", () => {
         queryClient,
       );
 
-      const list = queryClient.getQueryData<Session[]>(
+      const list = queryClient.getQueryData<ChatSession[]>(
         sessionKeys.infinite(DEMO_DIRECTORY),
       );
       expect(list).toHaveLength(1);
@@ -212,7 +230,7 @@ describe("handleEvent", () => {
         queryClient,
       );
 
-      const list = queryClient.getQueryData<Session[]>(
+      const list = queryClient.getQueryData<ChatSession[]>(
         sessionKeys.infinite(DEMO_DIRECTORY),
       );
       expect(list).toEqual([]);
@@ -224,10 +242,7 @@ describe("handleEvent", () => {
       const message = createMockMessage();
       useStreamingMessagesStore
         .getState()
-        .onMessageInfoUpdated(
-          SESSION_ID,
-          toCoreMessage(message.info, message.parts),
-        );
+        .onMessageInfoUpdated(SESSION_ID, message);
 
       const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
 
@@ -244,7 +259,7 @@ describe("handleEvent", () => {
         InfiniteData<Message[], string | undefined>
       >(messageKeys.infinite(SESSION_ID));
       expect(data?.pages[0]).toHaveLength(1);
-      expect(data?.pages[0][0].info.id).toBe(MESSAGE_ID);
+      expect(data?.pages[0][0].id).toBe(MESSAGE_ID);
 
       expect(invalidateSpy).toHaveBeenCalledWith({
         queryKey: sessionKeys.infinite(DEMO_DIRECTORY),
@@ -255,10 +270,7 @@ describe("handleEvent", () => {
       const message = createMockMessage();
       useStreamingMessagesStore
         .getState()
-        .onMessageInfoUpdated(
-          SESSION_ID,
-          toCoreMessage(message.info, message.parts),
-        );
+        .onMessageInfoUpdated(SESSION_ID, message);
 
       handleEvent(
         buildEvent({
@@ -311,10 +323,7 @@ describe("handleEvent", () => {
       });
       useStreamingMessagesStore
         .getState()
-        .onMessageInfoUpdated(
-          SESSION_ID,
-          toCoreMessage(streamingMessage.info, streamingMessage.parts),
-        );
+        .onMessageInfoUpdated(SESSION_ID, streamingMessage);
 
       handleEvent(
         buildEvent({
