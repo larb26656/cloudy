@@ -8,7 +8,12 @@ import { useSessionEventStream } from "../hooks/useSessionEventStream";
 import { useChatActions } from "../hooks/useChatActions";
 import { useInjectedContexts } from "../hooks/useInjectedContexts";
 import { useSelectedText } from "../hooks/useSelectedText";
-import { removeInjectedContextParts } from "../lib/opencode/context";
+import { getCurrentPageContent } from "../lib/browser/page-content";
+import type { ContextAttachment } from "../lib/opencode/context";
+import {
+  createPageAttachment,
+  removeInjectedContextParts,
+} from "../lib/opencode/context";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./MessageList";
 import { SessionAppBar } from "./SessionAppBar";
@@ -33,7 +38,10 @@ export function ChatApp({ directory }: ChatAppProps) {
   const setModel = useChatStore((state) => state.setModel);
   const setIsGenerating = useChatStore((state) => state.setIsGenerating);
   const setError = useChatStore((state) => state.setError);
-  const selectedText = useSelectedText();
+  const [pageContext, setPageContext] = useState<ContextAttachment | null>(
+    null,
+  );
+  const { selectionDraft, dismissSelection } = useSelectedText();
 
   const {
     data: messages = EMPTY_MESSAGES,
@@ -71,10 +79,13 @@ export function ChatApp({ directory }: ChatAppProps) {
     directory,
     input,
     model,
-    selectedText,
+    pageContext,
+    selectionText: selectionDraft?.text ?? null,
     isGenerating,
     isInContext,
     setInput,
+    setPageContext,
+    dismissSelection,
     setIsGenerating,
     setError,
     selectSession,
@@ -82,6 +93,20 @@ export function ChatApp({ directory }: ChatAppProps) {
   });
   const handleSubmit = () => void submit();
   const handleStop = () => void stop();
+
+  const handleAddPageAttachment = async () => {
+    try {
+      const pageContent = await getCurrentPageContent();
+      if (!pageContent) return;
+      setPageContext(createPageAttachment(pageContent));
+    } catch (error: unknown) {
+      setError(
+        error instanceof Error ? error.message : "Failed to attach page",
+      );
+    }
+  };
+
+  const handleRemovePageContext = () => setPageContext(null);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -125,11 +150,15 @@ export function ChatApp({ directory }: ChatAppProps) {
           isGenerating={isGenerating}
           directory={directory}
           model={model}
-          selectedText={selectedText}
+          pageContext={pageContext}
+          selectionDraft={selectionDraft}
           onChange={setInput}
           onModelChange={setModel}
           onSubmit={handleSubmit}
           onStop={handleStop}
+          onAddPageAttachment={handleAddPageAttachment}
+          onDismissSelection={dismissSelection}
+          onRemovePageContext={handleRemovePageContext}
         />
       </MessageScrollerProvider>
     </main>

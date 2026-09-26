@@ -16,5 +16,11 @@ export default defineConfig({
     action: {
       default_title: "Cloudy",
     },
+    browser_specific_settings: {
+      gecko: {
+        id: "larb26656@gmail.com",
+        strict_min_version: "109.0",
+      },
+    },
   },
 });

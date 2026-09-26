@@ -1,31 +1,38 @@
 import type { SessionModel } from "./sessions";
-import type { PageContent } from "./context";
-import { buildPageContext, buildSelectedTextContext } from "./context";
+import type { ContextAttachment } from "./context";
+import {
+  buildContextAttachmentText,
+  buildSelectionContextText,
+} from "./context";
 
 interface SubmitChatMessageOptions {
   input: string;
-  selectedText: string;
+  pageContext: ContextAttachment | null;
+  selectionText: string | null;
   isGenerating: boolean;
   sessionId: string | null;
   createSession: () => Promise<string>;
-  getCurrentPageContent: () => Promise<PageContent | undefined>;
   isInContext: (context: string) => Promise<boolean>;
   prompt: (sessionId: string, texts: string[]) => Promise<void>;
   setInput: (input: string) => void;
+  setPageContext: (pageContext: ContextAttachment | null) => void;
+  dismissSelection: () => void;
   setIsGenerating: (isGenerating: boolean) => void;
   setError: (error: string | null) => void;
 }
 
 export async function submitChatMessage({
   input,
-  selectedText,
+  pageContext,
+  selectionText,
   isGenerating,
   sessionId,
   createSession,
-  getCurrentPageContent,
   isInContext,
   prompt,
   setInput,
+  setPageContext,
+  dismissSelection,
   setIsGenerating,
   setError,
 }: SubmitChatMessageOptions) {
@@ -34,20 +41,21 @@ export async function submitChatMessage({
 
   setError(null);
   setInput("");
+  setPageContext(null);
+  dismissSelection();
 
   try {
     const currentSessionId = sessionId ?? (await createSession());
     setIsGenerating(true);
 
-    const pageContent = await getCurrentPageContent();
-    const contexts = [
-      pageContent ? buildPageContext(pageContent) : null,
-      selectedText ? buildSelectedTextContext(selectedText) : null,
-    ];
-
     const newContexts: string[] = [];
-    for (const context of contexts) {
-      if (context && !(await isInContext(context))) newContexts.push(context);
+    if (pageContext) {
+      const context = buildContextAttachmentText(pageContext);
+      if (!(await isInContext(context))) newContexts.push(context);
+    }
+    if (selectionText) {
+      const context = buildSelectionContextText(selectionText);
+      if (!(await isInContext(context))) newContexts.push(context);
     }
 
     await prompt(currentSessionId, [...newContexts, text]);

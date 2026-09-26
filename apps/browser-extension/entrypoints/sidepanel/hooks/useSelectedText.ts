@@ -1,7 +1,14 @@
 import { useEffect, useState } from "react";
 
+export interface SelectionDraft {
+  text: string;
+  receivedAt: number;
+}
+
 export function useSelectedText() {
-  const [selectedText, setSelectedText] = useState("");
+  const [selectionDraft, setSelectionDraft] = useState<SelectionDraft | null>(
+    null,
+  );
 
   useEffect(() => {
     const listener = (message: unknown) => {
@@ -13,7 +20,9 @@ export function useSelectedText() {
         "text" in message &&
         typeof message.text === "string"
       ) {
-        setSelectedText(message.text);
+        setSelectionDraft(
+          message.text ? { text: message.text, receivedAt: Date.now() } : null,
+        );
       }
     };
 
@@ -21,5 +30,7 @@ export function useSelectedText() {
     return () => browser.runtime.onMessage.removeListener(listener);
   }, []);
 
-  return selectedText;
+  const dismissSelection = () => setSelectionDraft(null);
+
+  return { selectionDraft, dismissSelection };
 }

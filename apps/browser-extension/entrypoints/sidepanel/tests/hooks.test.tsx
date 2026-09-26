@@ -4,6 +4,7 @@ import { createRoot } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Message } from "@repo/ui/components/message/types";
 import { useInjectedContexts } from "../hooks/useInjectedContexts";
+import type { SelectionDraft } from "../hooks/useSelectedText";
 import { useSelectedText } from "../hooks/useSelectedText";
 import { INJECTED_CONTEXT_MARKER } from "../lib/opencode/sessions";
 
@@ -76,7 +77,7 @@ describe("sidepanel hooks", () => {
     });
   });
 
-  it("updates from valid text selection messages and removes its listener", () => {
+  it("tracks the latest selection as a dismissible draft and removes its listener", () => {
     const listeners = new Set<(message: unknown) => void>();
     const addListener = vi.fn((listener: (message: unknown) => void) => {
       listeners.add(listener);
@@ -88,9 +89,13 @@ describe("sidepanel hooks", () => {
       runtime: { onMessage: { addListener, removeListener } },
     });
 
-    let selectedText = "";
+    const state: {
+      draft: SelectionDraft | null;
+      dismiss: () => void;
+    } = { draft: null, dismiss: () => {} };
     function Probe() {
-      selectedText = useSelectedText();
+      ({ selectionDraft: state.draft, dismissSelection: state.dismiss } =
+        useSelectedText());
       return null;
     }
 
@@ -101,13 +106,35 @@ describe("sidepanel hooks", () => {
     expect(addListener).toHaveBeenCalledTimes(1);
     act(() => {
       for (const listener of listeners) {
-        listener({ type: "TEXT_SELECTED", text: "selected content" });
         listener({ type: "OTHER", text: "ignored" });
         listener({ type: "TEXT_SELECTED", text: 1 });
       }
     });
+    expect(state.draft).toBeNull();
 
-    expect(selectedText).toBe("selected content");
+    act(() => {
+      for (const listener of listeners) {
+        listener({ type: "TEXT_SELECTED", text: "selected content" });
+      }
+    });
+    expect(state.draft?.text).toBe("selected content");
+
+    act(() => {
+      for (const listener of listeners) {
+        listener({ type: "TEXT_SELECTED", text: "" });
+      }
+    });
+    expect(state.draft).toBeNull();
+
+    act(() => {
+      for (const listener of listeners) {
+        listener({ type: "TEXT_SELECTED", text: "another selection" });
+      }
+    });
+    expect(state.draft?.text).toBe("another selection");
+
+    act(() => state.dismiss());
+    expect(state.draft).toBeNull();
 
     act(() => root?.unmount());
     root = undefined;
