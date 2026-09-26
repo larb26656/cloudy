@@ -34,15 +34,15 @@ export function StepFinishPart({ part, info }: StepFinishPartProps) {
         </span>
       )}
 
-      {typeof info?.metadata?.model === "string" && (
+      {part.modelID && (
         <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-          {info.metadata.model}
+          {part.modelID}
         </span>
       )}
 
-      {typeof info?.metadata?.agent === "string" && (
+      {part.agent && (
         <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded">
-          {info.metadata.agent}
+          {part.agent}
         </span>
       )}
 

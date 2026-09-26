@@ -131,6 +131,9 @@ function mapPart(part: Part): MessagePart {
         ...base,
         type: "step-finish",
         reason: stringValue(source.reason, "unknown"),
+        modelID:
+          typeof source.modelID === "string" ? source.modelID : undefined,
+        agent: typeof source.agent === "string" ? source.agent : undefined,
         cost: typeof source.cost === "number" ? source.cost : 0,
         tokens: {
           input: typeof tokens.input === "number" ? tokens.input : 0,
@@ -190,14 +193,25 @@ export function toChatMessage(
   info: OpencodeMessage,
   parts: Part[] = [],
 ): ChatMessage {
+  const source = asRecord(info);
   const sessionId = stringValue(info.sessionID, "");
   const role = info.role === "user" ? "user" : "assistant";
+  const modelID =
+    typeof source.modelID === "string" ? source.modelID : undefined;
+  const agent = typeof source.agent === "string" ? source.agent : undefined;
 
   return {
     id: info.id,
     sessionId,
     role,
-    parts: parts.map(mapPart),
+    parts: parts.map(mapPart).map((part) => {
+      if (part.type !== "step-finish") return part;
+      return {
+        ...part,
+        modelID: part.modelID ?? modelID,
+        agent: part.agent ?? agent,
+      };
+    }),
     createdAt: createdAt(info),
     updatedAt: updatedAt(info),
     metadata: { provider: "opencode", raw: info },

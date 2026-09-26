@@ -68,10 +68,10 @@ export const WithModelInfo = meta.story({
           write: 0,
         },
       },
-      cost: 0.0015,
-    } as any,
-    info: {
+      reason: "stop",
       modelID: "claude-3-opus",
+      agent: "build",
+      cost: 0.0015,
     } as any,
   },
 });

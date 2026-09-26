@@ -30,6 +30,49 @@ describe("OpenCode adapter", () => {
     });
   });
 
+  test("normalizes optional model and agent fields on step finishes", () => {
+    const parts = [
+      {
+        id: "step-finish-1",
+        type: "step-finish",
+        reason: "stop",
+        modelID: "claude-3-opus",
+        agent: "build",
+        cost: 0,
+        tokens: {
+          input: 0,
+          output: 0,
+          reasoning: 0,
+          cache: { read: 0, write: 0 },
+        },
+      },
+    ] as unknown as Part[];
+
+    expect(toChatMessage(message, parts).parts[0]).toMatchObject({
+      modelID: "claude-3-opus",
+      agent: "build",
+    });
+
+    const messageWithExecutionInfo = {
+      ...message,
+      modelID: "claude-3-opus",
+      agent: "build",
+    } as Message;
+    const stepFinishWithoutExecutionInfo = {
+      ...parts[0],
+      modelID: undefined,
+      agent: undefined,
+    } as unknown as Part;
+
+    expect(
+      toChatMessage(messageWithExecutionInfo, [stepFinishWithoutExecutionInfo])
+        .parts[0],
+    ).toMatchObject({
+      modelID: "claude-3-opus",
+      agent: "build",
+    });
+  });
+
   test("normalizes message deltas without exposing SDK field names", () => {
     const event = {
       payload: {

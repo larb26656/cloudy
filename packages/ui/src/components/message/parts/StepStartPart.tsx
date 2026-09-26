@@ -1,33 +1,10 @@
 import type { StepStartMessagePart } from "@repo/ai-core";
-import { Play } from "lucide-react";
-import { Card, CardContent } from "@repo/ui/components/card";
-import { CollapsiblePart } from "./CollapsiblePart";
 
 interface StepStartPartProps {
   part: StepStartMessagePart;
 }
 
-export function StepStartPart({ part }: StepStartPartProps) {
-  return (
-    <CollapsiblePart
-      label="Step Started"
-      detail={part.snapshot?.slice(0, 50) || ""}
-    >
-      <Card>
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2">
-            <Play className="size-4 text-muted-foreground" />
-            <span className="text-xs font-medium text-muted-foreground">
-              Step Started
-            </span>
-          </div>
-          {part.snapshot && (
-            <div className="mt-2 text-xs font-mono bg-muted rounded p-2 overflow-x-auto">
-              {part.snapshot}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </CollapsiblePart>
-  );
+export function StepStartPart(_props: StepStartPartProps) {
+  void _props;
+  return null;
 }

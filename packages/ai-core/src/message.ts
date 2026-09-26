@@ -95,6 +95,8 @@ export interface StepStartMessagePart extends MessagePartBase {
 export interface StepFinishMessagePart extends MessagePartBase {
   type: "step-finish";
   reason: string;
+  modelID?: string;
+  agent?: string;
   cost: number;
   tokens: {
     input: number;
