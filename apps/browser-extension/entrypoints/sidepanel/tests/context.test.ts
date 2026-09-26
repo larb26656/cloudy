@@ -7,6 +7,7 @@ import {
   createPageAttachment,
   formatContextAttachmentSize,
   getContextSourceDomain,
+  getInjectedContexts,
   getInjectedContextTexts,
   MAX_CONTEXT_ATTACHMENT_LENGTH,
   removeInjectedContextParts,
@@ -77,6 +78,32 @@ describe("injected chat contexts", () => {
     expect(text).toContain('type="selection"');
     expect(text).not.toContain("source=");
     expect(text).toContain("Selected content");
+  });
+
+  it("summarizes injected context without exposing the wrapper instructions", () => {
+    const context = buildContextAttachmentText(
+      createPageAttachment({
+        title: "Example article",
+        content: "Page content",
+        url: "https://example.com/article",
+      }),
+    );
+
+    expect(getInjectedContexts(message(context))).toEqual([
+      {
+        kind: "page",
+        sourceUrl: "https://example.com/article",
+        title: "Example article",
+        content: "Page content",
+      },
+    ]);
+  });
+
+  it("keeps context-only messages available for the transcript", () => {
+    const context = buildSelectionContextText("Selected content");
+
+    expect(removeInjectedContextParts(message(context))).toBeNull();
+    expect(getInjectedContexts(message(context))).toHaveLength(1);
   });
 
   it("labels page attachments with the source domain", () => {

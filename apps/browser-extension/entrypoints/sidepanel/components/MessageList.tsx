@@ -11,6 +11,8 @@ import {
   MessageScrollerViewport,
 } from "@repo/ui/components/message-scroller";
 import { StreamingMessageBubble } from "./StreamingMessageBubble";
+import { ContextMessageBubble } from "./ContextMessageBubble";
+import { getInjectedContexts } from "../lib/opencode/context";
 
 interface MessageListProps {
   displayItems: StreamingMessageDisplayItem[];
@@ -54,7 +56,11 @@ export function MessageList({
                 }
               >
                 {item.kind === "remote" ? (
-                  <MessageBubble message={item.message} />
+                  getInjectedContexts(item.message).length > 0 ? (
+                    <ContextMessageBubble message={item.message} />
+                  ) : (
+                    <MessageBubble message={item.message} />
+                  )
                 ) : (
                   <StreamingMessageBubble
                     sessionId={sessionId ?? ""}

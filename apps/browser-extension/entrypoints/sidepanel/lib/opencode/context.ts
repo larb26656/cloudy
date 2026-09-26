@@ -17,6 +17,13 @@ export interface ContextAttachment {
   addedAt: number;
 }
 
+export interface InjectedContext {
+  kind: "page" | "selection";
+  sourceUrl: string | null;
+  title: string | null;
+  content: string;
+}
+
 export const MAX_CONTEXT_ATTACHMENT_LENGTH = 20_000;
 
 const UNTRUSTED_REFERENCE_INSTRUCTION = [
@@ -103,6 +110,43 @@ export function buildSelectionContextText(text: string): string {
     sourceUrl: null,
     title: null,
     content: text,
+  });
+}
+
+function readContextAttribute(attributes: string, name: string): string | null {
+  return attributes.match(new RegExp(`${name}="([^"]*)"`))?.[1] ?? null;
+}
+
+export function getInjectedContexts(message: Message): InjectedContext[] {
+  if (message.info.role !== "user") return [];
+
+  return message.parts.flatMap((part) => {
+    if (
+      part.type !== "text" ||
+      !part.text.startsWith(INJECTED_CONTEXT_MARKER)
+    ) {
+      return [];
+    }
+
+    const openingTag = part.text.match(/<cloudy:untrusted-context\s+([^>]+)>/);
+    const content = part.text.match(
+      /<cloudy:untrusted-context\s+[^>]+>([\s\S]*?)<\/cloudy:untrusted-context>/,
+    )?.[1];
+    if (!openingTag || content === undefined) return [];
+    const attributes = openingTag[1];
+    if (attributes === undefined) return [];
+
+    return [
+      {
+        kind:
+          readContextAttribute(attributes, "type") === "selection"
+            ? "selection"
+            : "page",
+        sourceUrl: readContextAttribute(attributes, "source"),
+        title: readContextAttribute(attributes, "title"),
+        content: content.trim(),
+      },
+    ];
   });
 }
 

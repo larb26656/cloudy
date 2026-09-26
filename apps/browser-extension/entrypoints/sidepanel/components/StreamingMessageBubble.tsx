@@ -1,6 +1,7 @@
 import { useStreamingMessagesStore } from "@repo/opencode";
+import { getInjectedContexts } from "../lib/opencode/context";
+import { ContextMessageBubble } from "./ContextMessageBubble";
 import { MessageBubble } from "@repo/ui/components/message";
-import { removeInjectedContextParts } from "../lib/opencode/context";
 
 interface StreamingMessageBubbleProps {
   sessionId: string;
@@ -14,9 +15,13 @@ export function StreamingMessageBubble({
   const message = useStreamingMessagesStore((state) =>
     state.streamingMessages.get(sessionId)?.get(messageId),
   );
-  const displayMessage = message ? removeInjectedContextParts(message) : null;
+  const displayMessage = message;
 
   if (!displayMessage) return null;
 
-  return <MessageBubble message={displayMessage} />;
+  return getInjectedContexts(displayMessage).length > 0 ? (
+    <ContextMessageBubble message={displayMessage} />
+  ) : (
+    <MessageBubble message={displayMessage} />
+  );
 }

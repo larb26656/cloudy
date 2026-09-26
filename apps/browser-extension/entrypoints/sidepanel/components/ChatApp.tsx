@@ -10,10 +10,7 @@ import { useInjectedContexts } from "../hooks/useInjectedContexts";
 import { useSelectedText } from "../hooks/useSelectedText";
 import { getCurrentPageContent } from "../lib/browser/page-content";
 import type { ContextAttachment } from "../lib/opencode/context";
-import {
-  createPageAttachment,
-  removeInjectedContextParts,
-} from "../lib/opencode/context";
+import { createPageAttachment } from "../lib/opencode/context";
 import { ChatInput } from "./ChatInput";
 import { MessageList } from "./MessageList";
 import { SessionAppBar } from "./SessionAppBar";
@@ -56,9 +53,7 @@ export function ChatApp({ directory }: ChatAppProps) {
 
   useSessionEventStream(directory);
 
-  const displayMessages = messages
-    .map(removeInjectedContextParts)
-    .filter((message): message is Message => message !== null);
+  const displayMessages = messages;
 
   useEffect(() => {
     if (!messagesError || !sessionId) return;

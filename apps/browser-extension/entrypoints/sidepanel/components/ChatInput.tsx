@@ -201,8 +201,8 @@ export function ChatInput({
           )}
           {pageContext && (
             <p className="text-[11px] leading-snug text-muted-foreground">
-              Page context is sent with your next message and retained in this
-              chat session, hidden from the transcript.
+              Page context is sent with your next message and shown as a
+              collapsible context card in this chat session.
             </p>
           )}
 
