@@ -2,7 +2,6 @@ export { TextPart } from "./TextPart";
 export { SubtaskPart } from "./SubtaskPart";
 export { ReasoningPart } from "./ReasoningPart";
 export { FilePart } from "./FilePart";
-export { ToolPart } from "./ToolPart";
 export { StepStartPart } from "./StepStartPart";
 export { StepFinishPart } from "./StepFinishPart";
 export { SnapshotPart } from "./SnapshotPart";

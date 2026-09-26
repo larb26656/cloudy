@@ -3,7 +3,6 @@ export { MessageBubble } from "./MessageBubble";
 export { MessageError } from "./MessageError";
 export { MessageListView } from "./MessageListView";
 export type { MessageDisplayItem } from "./MessageListView";
-export { MessageParts } from "./MessageParts";
 export { RetryMessage } from "./RetryMessage";
 export { SessionErrorMessage } from "./SessionErrorMessage";
 export type { SessionErrorInfo } from "./SessionErrorMessage";

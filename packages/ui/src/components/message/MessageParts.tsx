@@ -1,10 +1,10 @@
 import type { Part, AssistantMessage } from "@opencode-ai/sdk/v2";
+import { lazy } from "react";
 import {
   TextPart,
   SubtaskPart,
   ReasoningPart,
   FilePart,
-  ToolPart,
   StepFinishPart,
   SnapshotPart,
   PatchPart,
@@ -12,6 +12,12 @@ import {
   RetryPart,
   CompactionPart,
 } from "./parts";
+
+const ToolPart = lazy(() =>
+  import("./parts/ToolPart").then((module) => ({
+    default: module.ToolPart,
+  })),
+);
 
 interface MessagePartsProps {
   parts: Part[];

@@ -1,6 +1,12 @@
+import { lazy, Suspense } from "react";
 import type { AssistantMessage, Part } from "@opencode-ai/sdk/v2";
-import { MessageParts } from "./MessageParts";
 import { MessageError } from "./MessageError";
+
+const MessageParts = lazy(() =>
+  import("./MessageParts").then((module) => ({
+    default: module.MessageParts,
+  })),
+);
 
 interface AssistantMessageBubbleProps {
   info: AssistantMessage;
@@ -14,7 +20,9 @@ export function AssistantMessageBubble({
   return (
     <div className="flex justify-start mb-4">
       <div className="w-full flex flex-col gap-2 font-content">
-        <MessageParts parts={parts} info={info} />
+        <Suspense fallback={null}>
+          <MessageParts parts={parts} info={info} />
+        </Suspense>
         {info.error && <MessageError error={info.error} />}
       </div>
     </div>
