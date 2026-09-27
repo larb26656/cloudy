@@ -65,7 +65,7 @@ describe("CreateChatDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Next" }));
 
     expect(screen.getByText("Sessions in my-app")).toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "+New Chat" }));
+    fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
 
     expect(onSubmit).toHaveBeenCalledWith({
       workspaceId: null,
@@ -127,7 +127,7 @@ describe("CreateChatDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cloudy workspace" }));
     expect(screen.getByText("Sessions in Cloudy")).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "+New Chat" }));
+    fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
     expect(onSubmit).toHaveBeenCalledWith({
       workspaceId: "workspace-1",
       directory: "/work/cloudy",
