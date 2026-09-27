@@ -111,6 +111,27 @@ export const ProvidersModel = {
     directory: z.string().optional(),
     sessionId: z.string().optional(),
   }),
+  filesQuerySchema: z.object({
+    directory: z.string().min(1),
+    path: z.string().min(1),
+  }),
+  fileReadQuerySchema: z.object({
+    directory: z.string().min(1),
+    path: z.string().min(1),
+  }),
+  fileSearchQuerySchema: z.object({
+    directory: z.string().min(1),
+    query: z.string(),
+    limit: z.coerce.number().int().positive().max(100).optional(),
+  }),
+  diffQuerySchema: z.object({ directory: z.string().min(1) }),
+  commandsQuerySchema: z.object({ directory: z.string().min(1) }),
+  commandInputSchema: z.object({
+    sessionId: z.string().min(1),
+    command: z.string().min(1),
+    arguments: z.string().optional(),
+    directory: z.string().min(1),
+  }),
 };
 
 export type ProviderDto = z.infer<typeof providerSchema>;

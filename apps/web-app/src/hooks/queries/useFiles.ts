@@ -1,29 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
-import {
-  toFileContent,
-  toFileNode,
-  toVcsFileDiff,
-} from "@/lib/opencode/adapter";
 import type { FileContent, FileNode, VcsFileDiff } from "@/types";
-import {
-  fileKeys,
-  getErrorMessage,
-  getOcClient,
-  vcsKeys,
-  type SdkError,
-} from "@/lib/opencode";
+import { fileKeys, vcsKeys } from "@/lib/opencode";
+import { providerApi } from "@/lib/cloudy/provider";
+
+async function json<T>(response: Response): Promise<T> {
+  if (!response.ok) throw new Error(await response.text());
+  return response.json() as Promise<T>;
+}
 
 export function useVcsDiff({ directory }: { directory?: string }) {
   return useQuery({
     queryKey: vcsKeys.diff(directory ?? ""),
     queryFn: async (): Promise<VcsFileDiff[]> => {
       if (!directory) return [];
-      const oc = getOcClient();
-      const result = await oc.vcs.diff({ directory, mode: "git" });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return (result.data ?? []).map(toVcsFileDiff);
+      return json<VcsFileDiff[]>(await providerApi.diff(directory));
     },
     enabled: !!directory,
   });
@@ -40,12 +30,7 @@ export function useFileList({
     queryKey: fileKeys.list(directory ?? "", path ?? ""),
     queryFn: async (): Promise<FileNode[]> => {
       if (!directory || !path) return [];
-      const oc = getOcClient();
-      const result = await oc.file.list({ directory, path });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return (result.data ?? []).map(toFileNode);
+      return json<FileNode[]>(await providerApi.files(directory, path));
     },
     enabled: !!directory && !!path,
   });
@@ -64,15 +49,7 @@ export function useFileRead({
       if (!directory || !path) {
         throw new Error("Directory and path are required");
       }
-      const oc = getOcClient();
-      const result = await oc.file.read({ directory, path });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      if (!result.data) {
-        throw new Error("File could not be read");
-      }
-      return toFileContent(result.data);
+      return json<FileContent>(await providerApi.readFile(directory, path));
     },
     enabled: !!directory && !!path,
   });
@@ -89,12 +66,7 @@ export function useFileSearch({
     queryKey: fileKeys.search(directory ?? "", query),
     queryFn: async (): Promise<string[]> => {
       if (!directory || !query.trim()) return [];
-      const oc = getOcClient();
-      const result = await oc.find.files({ directory, query });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return result.data ?? [];
+      return json<string[]>(await providerApi.searchFiles(directory, query));
     },
     enabled: !!directory && query.trim().length >= 2,
   });

@@ -52,13 +52,16 @@ describe("PermissionDialog", () => {
     lastReply = undefined;
     vi.clearAllMocks();
     server.use(
-      http.post(/\/permission\/([^/]+)\/reply/, async ({ request }) => {
-        lastReply = {
-          url: new URL(request.url),
-          body: await request.json().catch(() => undefined),
-        };
-        return new HttpResponse(null, { status: 200 });
-      }),
+      http.post(
+        /\/api\/providers\/opencode\/interactions/,
+        async ({ request }) => {
+          lastReply = {
+            url: new URL(request.url),
+            body: await request.json().catch(() => undefined),
+          };
+          return new HttpResponse(null, { status: 200 });
+        },
+      ),
     );
   });
 
@@ -134,11 +137,12 @@ describe("PermissionDialog", () => {
       await userEvent.click(screen.getByRole("button", { name: /deny/i }));
       await waitFor(() => {
         expect(lastReply?.url.pathname).toMatch(
-          /\/permission\/per_test123\/reply$/,
+          /\/api\/providers\/opencode\/interactions$/,
         );
-        expect(lastReply?.url.searchParams.get("directory")).toBe(
-          DEMO_DIRECTORY,
-        );
+        expect(lastReply?.body).toMatchObject({
+          interactionId: "per_test123",
+          value: { reply: "reject", directory: DEMO_DIRECTORY },
+        });
       });
     });
 
@@ -148,9 +152,10 @@ describe("PermissionDialog", () => {
         screen.getByRole("button", { name: /allow once/i }),
       );
       await waitFor(() => {
-        expect(lastReply?.url.pathname).toMatch(
-          /\/permission\/per_test123\/reply$/,
-        );
+        expect(lastReply?.body).toMatchObject({
+          interactionId: "per_test123",
+          value: { reply: "once" },
+        });
       });
     });
 
@@ -160,9 +165,10 @@ describe("PermissionDialog", () => {
         screen.getByRole("button", { name: /allow always/i }),
       );
       await waitFor(() => {
-        expect(lastReply?.url.pathname).toMatch(
-          /\/permission\/per_test123\/reply$/,
-        );
+        expect(lastReply?.body).toMatchObject({
+          interactionId: "per_test123",
+          value: { reply: "always" },
+        });
       });
     });
 
@@ -179,7 +185,7 @@ describe("PermissionDialog", () => {
   describe("Error Handling", () => {
     beforeEach(() => {
       server.use(
-        http.post(/\/permission\/([^/]+)\/reply/, () =>
+        http.post(/\/api\/providers\/opencode\/interactions/, () =>
           HttpResponse.json(
             { message: "Failed to reply to permission (mock 500)" },
             { status: 500 },
@@ -193,7 +199,7 @@ describe("PermissionDialog", () => {
       await userEvent.click(screen.getByRole("button", { name: /deny/i }));
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith(
-          "Failed to reply to permission (mock 500)",
+          '{"message":"Failed to reply to permission (mock 500)"}',
         );
       });
     });
@@ -204,7 +210,7 @@ describe("PermissionDialog", () => {
       await userEvent.click(screen.getByRole("button", { name: /deny/i }));
       await waitFor(() => {
         expect(toast.error).toHaveBeenCalledWith(
-          "Failed to reply to permission (mock 500)",
+          '{"message":"Failed to reply to permission (mock 500)"}',
         );
       });
       expect(onOpenChange).not.toHaveBeenCalledWith(false);

@@ -24,7 +24,7 @@ It talks to **two** backends (see [Data layer](#data-layer)) and is the only app
 React 19, TanStack Router (file-based, auto code-split) + TanStack Query, Zustand,
 Tailwind v4 via `@tailwindcss/vite` (no `tailwind.config.js`), shadcn/ui primitives in
 `src/components/ui/`, `lucide-react` icons, `@xyflow/react` for the Desk canvas,
-`@tiptap/*` for rich text, `@opencode-ai/sdk` for the opencode backend, `hono/client`
+`@tiptap/*` for rich text, `hono/client`
 for the cloudy RPC. `react-hook-form` + `zod` for forms. `next-themes` for dark/light.
 
 ## Directory map
@@ -40,8 +40,8 @@ src/
   components/               shared/cross-feature UI (chat/ orchestration, ui/, layout/, markdown/, ...)
   stores/                   Zustand stores (one file per store)
   hooks/                    react-query hooks (queries/) + misc hooks (session/, device, ...)
-  lib/                      framework-agnostic helpers: api client, opencode SDK, commands, ...
-  config/env.ts             env-derived URLs (VITE_API_URL, VITE_OPENCODE_URL, VITE_OC_INSTANCE_URL)
+  lib/                      framework-agnostic helpers: api client, provider API, commands, ...
+  config/env.ts             env-derived API URL (VITE_API_URL)
   constants/                small const bags (sheet.ts)
   test/                     vitest setup (jsdom setup file lives here)
   storybook/preview.ts      one-line shim re-exporting .storybook/preview for the @/ alias
@@ -193,25 +193,21 @@ so future schema changes have a hook point.
 
 ## Data layer
 
-`web-app` talks to **two** separate backends. Don't confuse them:
+`web-app` talks to the Cloudy API; provider-specific integrations stay behind the server boundary:
 
 ```
 ┌─────────────────────────── browser ───────────────────────────┐
 │                                                               │
-│  cloudyClient (Hono RPC)         getOcClient() (opencode SDK) │
-│  src/lib/api.ts                  src/lib/opencode/oc-instance.ts
-│      │                               │                        │
-│      ▼                               ▼                        │
-│  env.getApiUrl()                 env.getOpencodeApiUrl()      │
-│  (VITE_API_URL / origin)         (VITE_OPENCODE_URL / origin/api/oc)
-│      │                               │   + getOcInstanceUrl() │
-│      │                               │   (VITE_OC_INSTANCE_URL │
-│      │                               │    / 127.0.0.1:4096)    │
-└──────┼───────────────────────────────┼────────────────────────┘
-       │                               │
-       ▼                               ▼
-   cloudy server              opencode proxy on cloudy ──► real opencode instance
-   (apps/server, 4122)        (paths under /api/oc)        (default :4096, for raw WS/PTY)
+│  cloudyClient (Hono RPC) + providerApi                       │
+│  src/lib/api.ts and src/lib/cloudy/provider.ts               │
+│      │                                                        │
+│      ▼                                                        │
+│  env.getApiUrl()                                              │
+│  (VITE_API_URL / origin)                                      │
+└──────────────────────────────┼────────────────────────────────┘
+                               ▼
+                         cloudy server
+                         provider adapters
 ```
 
 ### `cloudyClient` — typed Hono RPC to the cloudy server
@@ -224,18 +220,11 @@ so future schema changes have a hook point.
 - Use this for cloudy-native resources (workspaces, app config, anything new you add to
   `packages/server`).
 
-### `getOcClient()` — opencode SDK client
+### `providerApi` — normalized provider API
 
-- `src/lib/opencode/oc-instance.ts` returns a cached singleton of `OCClient`
-  (`createOpencodeClient` from `@opencode-ai/sdk/v2/client`, configured with the cloudy
-  proxy base URL and the `X-OpenCode-API-Base` header).
-- Two URL surfaces, intentionally distinct:
-  - `env.getOpencodeApiUrl()` → `/api/oc` on the cloudy server (the **proxy**). Use for
-    normal HTTP/SSE calls — they go through cloudy and inherit its CORS/auth.
-  - `getOcInstanceUrl()` → `127.0.0.1:4096` direct. Use **only** for transports the proxy
-    can't carry (e.g. the PTY WebSocket). Documented in `oc-instance.ts`.
-- Error normalization: `getErrorMessage(error: SdkError)` in `client.ts` — prefer it over
-  reaching into raw SDK errors.
+- `src/lib/cloudy/provider.ts` calls Cloudy's provider-neutral routes for sessions, messages,
+  files, commands, interactions, catalogs, and normalized events.
+- Provider SDK types and URL details are confined to the server adapter.
 
 ### React Query
 
@@ -245,18 +234,17 @@ so future schema changes have a hook point.
   `useWorkspace`, `useCreateWorkspace`, `useUpdateWorkspace`, `useDeleteWorkspace`).
 - Query keys for cloudy-backed resources live in `src/lib/cloudy/query-keys.ts`
   (`ptyKeys`, `workspaceKeys`).
-- Query keys for opencode-backed resources live in `src/lib/opencode/query-keys.ts`.
+- Query keys for provider-backed resources live in `src/lib/opencode/query-keys.ts`.
 - Use TanStack Query for **all server state**. Do not mirror server data into Zustand —
   Zustand is for _client-only_ state (tabs, flows, sidebar, selection).
 
 ### Global SSE event stream
 
 `GlobalEventProvider` (`src/providers/GlobalEventProvider.tsx`) is the bridge between
-opencode's realtime events and React Query:
+Cloudy's normalized provider events and React Query:
 
-1. On mount, opens an async generator stream via `oc.global.event(...)` with retry config
-   (`sseMaxRetryAttempts: 5`, `sseMaxRetryDelay: 3000`).
-2. For each `GlobalEvent`, calls `handleEvent(event, queryClient)` (in
+1. On mount, opens the Cloudy provider SSE endpoint with abort cleanup.
+2. For each normalized event, calls `handleEvent(event, queryClient)` (in
    `src/lib/opencode/handle-global-event.ts`) which **invalidates the relevant query keys**
    so the query hooks refetch.
 3. Exposes `{ status, reconnect }` via context — read with `useGlobalEvent()`. Status is
@@ -588,11 +576,9 @@ export const nodeTypes = nodeTemplates.reduce((acc, t) => {
 
 There is **no Vite proxy** — requests go directly to the API origin:
 
-| Surface                  | Dev default                 | Env override           |
-| ------------------------ | --------------------------- | ---------------------- |
-| cloudy API               | `window.origin`             | `VITE_API_URL`         |
-| cloudy opencode proxy    | `window.origin + "/api/oc"` | `VITE_OPENCODE_URL`    |
-| opencode direct instance | `http://127.0.0.1:4096`     | `VITE_OC_INSTANCE_URL` |
+| Surface    | Dev default     | Env override   |
+| ---------- | --------------- | -------------- |
+| cloudy API | `window.origin` | `VITE_API_URL` |
 
 For local full-stack dev, run the root `pnpm run dev` (boots cloudy server on 4122 and
 this app on 3001). Because dev origins differ (3001 vs 4122), the cloudy server's CORS

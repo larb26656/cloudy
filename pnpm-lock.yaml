@@ -218,15 +218,9 @@ importers:
       "@iconify/react":
         specifier: ^6.0.2
         version: 6.0.2(react@19.2.7)
-      "@opencode-ai/sdk":
-        specifier: ^1.18.13
-        version: 1.18.13
       "@repo/contracts":
         specifier: workspace:*
         version: link:../../packages/contracts
-      "@repo/opencode":
-        specifier: workspace:*
-        version: link:../../packages/opencode
       "@repo/ui":
         specifier: workspace:*
         version: link:../../packages/ui
@@ -623,15 +617,15 @@ importers:
       "@hono/zod-validator":
         specifier: ^0.8.0
         version: 0.8.0(hono@4.12.27)(zod@4.4.3)
+      "@lydell/node-pty":
+        specifier: ^1.2.0-beta.14
+        version: 1.2.0-beta.14
       "@opencode-ai/sdk":
         specifier: ^1.18.13
         version: 1.18.13
       "@repo/ai-core":
         specifier: workspace:*
         version: link:../ai-core
-      "@lydell/node-pty":
-        specifier: ^1.2.0-beta.14
-        version: 1.2.0-beta.14
       "@scalar/hono-api-reference":
         specifier: ^0.10.16
         version: 0.10.20(hono@4.12.27)
@@ -713,6 +707,9 @@ importers:
       "@fontsource-variable/geist":
         specifier: ^5.2.8
         version: 5.2.9
+      "@repo/ai-core":
+        specifier: workspace:*
+        version: link:../ai-core
       "@shadcn/react":
         specifier: ^0.2.1
         version: 0.2.1(@types/react@19.2.2)(react@19.2.7)
@@ -777,9 +774,6 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
     devDependencies:
-      "@opencode-ai/sdk":
-        specifier: ^1.18.13
-        version: 1.18.13
       "@repo/eslint-config":
         specifier: workspace:*
         version: link:../eslint-config

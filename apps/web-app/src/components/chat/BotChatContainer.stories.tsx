@@ -84,22 +84,31 @@ function makeAssistantMessage(): Message {
 
 function createHandlers() {
   return [
-    http.get("*/oc/session/status", () => HttpResponse.json(idleStatus)),
-    http.get(`*/oc/session/${SESSION_ID}/message`, ({ request }) => {
-      const before = new URL(request.url).searchParams.get("before");
-      if (before) return HttpResponse.json([]);
-      return HttpResponse.json([makeUserMessage(), makeAssistantMessage()]);
-    }),
-    http.get("*/oc/config/providers", () =>
-      HttpResponse.json(SAMPLE_PROVIDERS),
+    http.get("*/api/providers/opencode/sessions/status", () =>
+      HttpResponse.json(idleStatus),
     ),
-    http.post("*/oc/session/*/prompt_async", () =>
+    http.get(
+      `*/api/providers/opencode/sessions/${SESSION_ID}/messages`,
+      ({ request }) => {
+        const before = new URL(request.url).searchParams.get("before");
+        if (before) return HttpResponse.json([]);
+        return HttpResponse.json([makeUserMessage(), makeAssistantMessage()]);
+      },
+    ),
+    http.get("*/api/providers", () => HttpResponse.json(SAMPLE_PROVIDERS)),
+    http.post("*/api/providers/opencode/messages", () =>
       HttpResponse.json({ id: "msg_story_sent" }),
     ),
-    http.post("*/oc/session/*/abort", () => HttpResponse.json(null)),
-    http.get("*/oc/session/*/children", () => HttpResponse.json([])),
-    http.get("*/oc/question", () => HttpResponse.json([])),
-    http.get("*/oc/permission", () => HttpResponse.json([])),
+    http.post("*/api/providers/opencode/sessions/*/abort", () =>
+      HttpResponse.json(null),
+    ),
+    http.get("*/api/providers/opencode/sessions/*/children", () =>
+      HttpResponse.json([]),
+    ),
+    http.get("*/api/providers/opencode/questions", () => HttpResponse.json([])),
+    http.get("*/api/providers/opencode/permissions", () =>
+      HttpResponse.json([]),
+    ),
   ];
 }
 

@@ -1,6 +1,7 @@
 import { env } from "@/config/env";
 
 const basePath = `${env.getApiUrl()}/api/providers/opencode`;
+const providersPath = `${env.getApiUrl()}/api/providers`;
 
 async function request(path: string, init?: RequestInit): Promise<Response> {
   return fetch(`${basePath}${path}`, {
@@ -65,4 +66,18 @@ export const providerApi = {
   questions: (directory?: string, sessionId?: string) =>
     request(`/questions${query({ directory, sessionId })}`),
   interaction: (body: unknown) => request("/interactions", jsonInit(body)),
+  catalog: () =>
+    fetch(providersPath, {
+      credentials: "include",
+      headers: { Accept: "application/json" },
+    }),
+  files: (directory: string, path: string) =>
+    request(`/files${query({ directory, path })}`),
+  readFile: (directory: string, path: string) =>
+    request(`/file${query({ directory, path })}`),
+  searchFiles: (directory: string, queryValue: string, limit?: number) =>
+    request(`/file-search${query({ directory, query: queryValue, limit })}`),
+  diff: (directory: string) => request(`/diff${query({ directory })}`),
+  commands: (directory: string) => request(`/commands${query({ directory })}`),
+  executeCommand: (body: unknown) => request("/command", jsonInit(body)),
 };

@@ -1,7 +1,8 @@
 import { useEffect, useMemo } from "react";
-import type { SessionStatus } from "@repo/opencode";
+import type { SessionStatus } from "@repo/contracts";
 import type { MessageDisplayItem } from "@repo/ui/components/message";
-import { pickFresher, useStreamingMessageDisplayItems } from "@repo/opencode";
+import { pickFresher } from "@/lib/streaming/message-reconciliation";
+import { useStreamingMessageDisplayItems } from "@/lib/streaming/display-items";
 import type { Message } from "@/types";
 import { useMessages } from "@/hooks/queries/useMessages";
 import { useSessionStatuses } from "@/hooks/queries/useSessions";

@@ -46,7 +46,9 @@ const sessionDetailPattern = /\/oc\/session\/[^/]+$/;
 
 function createHandlers(session: Partial<Session>) {
   return [
-    http.get("/oc/session/status", () => HttpResponse.json({})),
+    http.get("/api/providers/opencode/sessions/status", () =>
+      HttpResponse.json({}),
+    ),
     http.get(sessionDetailPattern, () => HttpResponse.json(session)),
   ];
 }

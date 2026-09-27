@@ -1,1 +1,1 @@
-export { useStreamingMessagesStore } from "@repo/opencode";
+export { useStreamingMessagesStore } from "@/lib/streaming/streaming-store";

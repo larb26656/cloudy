@@ -1,37 +1,33 @@
 import { describe, expect, test } from "vitest";
 import type { InfiniteData } from "@tanstack/react-query";
 import { appendStreamingMessages } from "./appendStreamingMessages";
-import { toCoreMessage, type Message } from "@/types";
-type AssistantMessage = Record<string, unknown>;
-type Part = Record<string, unknown>;
+import type { Message, MessagePart } from "@/types";
 
 const makeInfo = (
-  overrides: Partial<AssistantMessage> = {},
-): AssistantMessage =>
-  ({
-    id: "msg_1",
-    sessionID: "session_1",
-    role: "assistant",
-    time: { created: 1 },
-    modelID: "glm-5.2",
-    providerID: "zai",
-    mode: "build",
-    agent: "build",
-    path: { cwd: "/tmp", root: "/tmp" },
-    cost: 0,
-    tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
-    ...overrides,
-  }) as AssistantMessage;
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> => ({
+  id: "msg_1",
+  sessionID: "session_1",
+  role: "assistant",
+  time: { created: 1 },
+  modelID: "glm-5.2",
+  providerID: "zai",
+  mode: "build",
+  agent: "build",
+  path: { cwd: "/tmp", root: "/tmp" },
+  cost: 0,
+  tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+  ...overrides,
+});
 
-const makeTextPart = (overrides: Partial<Part> = {}): Part =>
-  ({
-    id: "part_1",
-    sessionID: "session_1",
-    messageID: "msg_1",
-    type: "text",
-    text: "hello",
-    ...overrides,
-  }) as Part;
+const makeTextPart = (
+  overrides: Partial<Extract<MessagePart, { type: "text" }>> = {},
+): Extract<MessagePart, { type: "text" }> => ({
+  id: "part_1",
+  type: "text",
+  text: "hello",
+  ...overrides,
+});
 
 const makeMessage = (overrides: Partial<Message> = {}): Message => ({
   id: "msg_1",
@@ -39,15 +35,10 @@ const makeMessage = (overrides: Partial<Message> = {}): Message => ({
   role: "assistant",
   createdAt: new Date(1).toISOString(),
   parts: [],
-  metadata: { raw: makeInfo() },
   ...overrides,
 });
 
-const makeCoreMessage = (message: Message) =>
-  toCoreMessage(
-    message.metadata?.raw as AssistantMessage,
-    message.parts as unknown as Part[],
-  );
+const makeCoreMessage = (message: Message) => message;
 
 const makeInfiniteData = (
   pages: Message[][],

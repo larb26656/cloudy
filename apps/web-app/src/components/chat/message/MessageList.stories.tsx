@@ -15,7 +15,7 @@ import { TooltipProvider } from "@repo/ui/components/tooltip";
 import { Button } from "@repo/ui/components/button";
 import { MessageList } from "./MessageList";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
-import { toChatMessage } from "@repo/opencode";
+import type { MessagePart } from "@repo/contracts";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { sessionKeys } from "@/lib/opencode/query-keys";
 import preview from "../../../../.storybook/preview";
@@ -54,6 +54,34 @@ function makeAssistantInfo(id: string): AssistantMessage {
       cache: { read: 0, write: 0 },
     },
   } as AssistantMessage;
+}
+
+function toChatMessage(info: AssistantMessage, parts: Part[] = []): Message {
+  return {
+    id: String(info.id),
+    sessionId: SESSION_ID,
+    role: "assistant",
+    createdAt: new Date().toISOString(),
+    parts: parts.map((part) => {
+      const value = part as Record<string, unknown>;
+      const type = value.type;
+      if (type === "reasoning")
+        return { id: String(value.id), type, text: String(value.text ?? "") };
+      if (type === "tool")
+        return {
+          id: String(value.id),
+          type,
+          toolName: String(value.tool ?? "tool"),
+          status: "completed" as const,
+          input: {},
+        };
+      return {
+        id: String(value.id),
+        type: "text" as const,
+        text: String(value.text ?? ""),
+      };
+    }) as MessagePart[],
+  };
 }
 
 function makeUserMessage(): Message {
@@ -146,8 +174,10 @@ const idleStatus: Record<string, SessionStatus> = {
 
 function createHandlers() {
   return [
-    http.get("*/oc/session/status", () => HttpResponse.json(idleStatus)),
-    http.get(`*/oc/session/${SESSION_ID}/message`, () =>
+    http.get("*/api/providers/opencode/sessions/status", () =>
+      HttpResponse.json(idleStatus),
+    ),
+    http.get(`*/api/providers/opencode/sessions/${SESSION_ID}/messages`, () =>
       HttpResponse.json([makeUserMessage()]),
     ),
   ];

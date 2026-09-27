@@ -10,6 +10,10 @@ import type {
   PermissionRequest,
   ProviderQuestionRequest,
   ChatSession,
+  CommandInfo,
+  FileContent,
+  FileNode,
+  VcsFileDiff,
 } from "@repo/ai-core";
 import {
   ProviderNotFoundError,
@@ -137,6 +141,53 @@ export function createProviderRegistry({ providers }: ProviderRegistryOptions) {
       input: { directory?: string; sessionId?: string },
     ): Promise<ProviderQuestionRequest[]> {
       const operation = requireOperation(providerId, "listQuestions");
+      return operation.call(get(providerId), input);
+    },
+    listFiles(
+      providerId: string,
+      input: { directory: string; path: string },
+    ): Promise<FileNode[]> {
+      const operation = requireOperation(providerId, "listFiles");
+      return operation.call(get(providerId), input);
+    },
+    readFile(
+      providerId: string,
+      input: { directory: string; path: string },
+    ): Promise<FileContent> {
+      const operation = requireOperation(providerId, "readFile");
+      return operation.call(get(providerId), input);
+    },
+    searchFiles(
+      providerId: string,
+      input: { directory: string; query: string; limit?: number },
+    ): Promise<string[]> {
+      const operation = requireOperation(providerId, "searchFiles");
+      return operation.call(get(providerId), input);
+    },
+    listDiff(
+      providerId: string,
+      input: { directory: string },
+    ): Promise<VcsFileDiff[]> {
+      const operation = requireOperation(providerId, "listDiff");
+      return operation.call(get(providerId), input);
+    },
+    listCommands(
+      providerId: string,
+      input: { directory: string },
+    ): Promise<CommandInfo[]> {
+      const operation = requireOperation(providerId, "listCommands");
+      return operation.call(get(providerId), input);
+    },
+    executeCommand(
+      providerId: string,
+      input: {
+        sessionId: string;
+        command: string;
+        arguments?: string;
+        directory: string;
+      },
+    ): Promise<unknown> {
+      const operation = requireOperation(providerId, "executeCommand");
       return operation.call(get(providerId), input);
     },
     subscribeEvents(

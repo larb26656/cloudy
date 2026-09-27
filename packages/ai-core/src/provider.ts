@@ -9,6 +9,8 @@ import type {
   SendMessageInput,
 } from "./interaction";
 import type { ChatEvent } from "./event";
+import type { CommandInfo } from "./command";
+import type { FileContent, FileNode, VcsFileDiff } from "./files";
 import type { ChatSession, RunStatus } from "./session";
 
 export interface ProviderCapabilities {
@@ -104,5 +106,20 @@ export interface ProviderAdapter {
     directory?: string;
     sessionId?: string;
   }): Promise<ProviderQuestionRequest[]>;
+  listFiles?(input: { directory: string; path: string }): Promise<FileNode[]>;
+  readFile?(input: { directory: string; path: string }): Promise<FileContent>;
+  searchFiles?(input: {
+    directory: string;
+    query: string;
+    limit?: number;
+  }): Promise<string[]>;
+  listDiff?(input: { directory: string }): Promise<VcsFileDiff[]>;
+  listCommands?(input: { directory: string }): Promise<CommandInfo[]>;
+  executeCommand?(input: {
+    sessionId: string;
+    command: string;
+    arguments?: string;
+    directory: string;
+  }): Promise<unknown>;
   subscribeEvents(input?: ProviderEventsInput): AsyncIterable<ChatEvent>;
 }

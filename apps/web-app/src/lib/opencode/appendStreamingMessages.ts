@@ -1,6 +1,6 @@
 import type { InfiniteData } from "@tanstack/react-query";
-import { mergeMessages } from "@repo/opencode";
-import type { ChatMessage } from "@repo/opencode";
+import { mergeMessages } from "@/lib/streaming/message-reconciliation";
+import type { ChatMessage } from "@repo/contracts";
 import type { Message } from "@/types";
 
 export function appendStreamingMessages(

@@ -1,5 +1,7 @@
 export type * from "./agent";
+export type * from "./command";
 export type * from "./event";
+export type * from "./files";
 export type * from "./interaction";
 export type * from "./message";
 export type * from "./model";

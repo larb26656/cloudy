@@ -248,5 +248,77 @@ export function createProvidersController(registry: ProviderRegistry) {
             c.req.valid("json"),
           ),
         ),
+    )
+    .get(
+      "/:providerId/files",
+      zValidator("param", providerParamSchema),
+      zValidator("query", ProvidersModel.filesQuerySchema),
+      async (c) =>
+        c.json(
+          await registry.listFiles(
+            c.req.valid("param").providerId,
+            c.req.valid("query"),
+          ),
+        ),
+    )
+    .get(
+      "/:providerId/file",
+      zValidator("param", providerParamSchema),
+      zValidator("query", ProvidersModel.fileReadQuerySchema),
+      async (c) =>
+        c.json(
+          await registry.readFile(
+            c.req.valid("param").providerId,
+            c.req.valid("query"),
+          ),
+        ),
+    )
+    .get(
+      "/:providerId/file-search",
+      zValidator("param", providerParamSchema),
+      zValidator("query", ProvidersModel.fileSearchQuerySchema),
+      async (c) =>
+        c.json(
+          await registry.searchFiles(
+            c.req.valid("param").providerId,
+            c.req.valid("query"),
+          ),
+        ),
+    )
+    .get(
+      "/:providerId/diff",
+      zValidator("param", providerParamSchema),
+      zValidator("query", ProvidersModel.diffQuerySchema),
+      async (c) =>
+        c.json(
+          await registry.listDiff(
+            c.req.valid("param").providerId,
+            c.req.valid("query"),
+          ),
+        ),
+    )
+    .get(
+      "/:providerId/commands",
+      zValidator("param", providerParamSchema),
+      zValidator("query", ProvidersModel.commandsQuerySchema),
+      async (c) =>
+        c.json(
+          await registry.listCommands(
+            c.req.valid("param").providerId,
+            c.req.valid("query"),
+          ),
+        ),
+    )
+    .post(
+      "/:providerId/command",
+      zValidator("param", providerParamSchema),
+      zValidator("json", ProvidersModel.commandInputSchema),
+      async (c) =>
+        c.json(
+          await registry.executeCommand(
+            c.req.valid("param").providerId,
+            c.req.valid("json"),
+          ),
+        ),
     );
 }

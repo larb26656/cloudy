@@ -14,6 +14,10 @@ import type {
   PermissionRequest,
   ProviderQuestionRequest,
   RunStatus,
+  CommandInfo,
+  FileContent,
+  FileNode,
+  VcsFileDiff,
 } from "@repo/ai-core";
 import {
   toAgentInfo,
@@ -237,6 +241,77 @@ export function createOpenCodeAdapter({
       if (result.error) throw result.error;
       const data = "data" in result.data ? result.data.data : result.data;
       return (data ?? []).map(toQuestionRequest);
+    },
+    async listFiles(input: {
+      directory: string;
+      path: string;
+    }): Promise<FileNode[]> {
+      const result = await client.file.list(input);
+      if (result.error) throw result.error;
+      return (result.data ?? []).map((file) => ({
+        name: file.name,
+        path: file.path,
+        absolute: file.absolute,
+        type: file.type,
+        ignored: file.ignored,
+      }));
+    },
+    async readFile(input: {
+      directory: string;
+      path: string;
+    }): Promise<FileContent> {
+      const result = await client.file.read(input);
+      if (result.error) throw result.error;
+      return { type: result.data.type, content: result.data.content };
+    },
+    async searchFiles(input: {
+      directory: string;
+      query: string;
+      limit?: number;
+    }): Promise<string[]> {
+      const result = await client.find.files(input);
+      if (result.error) throw result.error;
+      return result.data ?? [];
+    },
+    async listDiff(input: { directory: string }): Promise<VcsFileDiff[]> {
+      const result = await client.vcs.diff({ ...input, mode: "git" });
+      if (result.error) throw result.error;
+      return (result.data ?? []).map((diff) => ({
+        file: diff.file,
+        additions: diff.additions,
+        deletions: diff.deletions,
+        status: diff.status,
+        patch: diff.patch,
+      }));
+    },
+    async listCommands(input: { directory: string }): Promise<CommandInfo[]> {
+      const result = await client.command.list(input);
+      if (result.error) throw result.error;
+      return (result.data ?? []).map((command) => ({
+        name: command.name,
+        description: command.description,
+        agent: command.agent,
+        model: command.model,
+        source: command.source,
+        template: command.template,
+        subtask: command.subtask,
+        hints: command.hints,
+      }));
+    },
+    async executeCommand(input: {
+      sessionId: string;
+      command: string;
+      arguments?: string;
+      directory: string;
+    }): Promise<unknown> {
+      const result = await client.session.command({
+        sessionID: input.sessionId,
+        command: input.command,
+        arguments: input.arguments,
+        directory: input.directory,
+      });
+      if (result.error) throw result.error;
+      return result.data;
     },
     async getInfo(): Promise<ProviderInfo> {
       const [providerResult, agentResult] = await Promise.all([

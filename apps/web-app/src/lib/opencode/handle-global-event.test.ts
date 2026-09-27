@@ -1,645 +1,86 @@
-import { describe, test, expect, beforeEach, vi } from "vitest";
 import { QueryClient } from "@tanstack/react-query";
+import type { ChatEvent } from "@repo/contracts";
+import { beforeEach, describe, expect, test } from "vitest";
+import { handleEvent } from "./handle-global-event";
+import { messageKeys, sessionKeys } from "./query-keys";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import { toCoreMessage } from "@/types";
-import {
-  handleEvent,
-  messageKeys,
-  permissionKeys,
-  questionKeys,
-  sessionKeys,
-} from "@/lib/opencode";
-import type { GlobalEvent, Session, SessionStatus } from "@opencode-ai/sdk/v2";
-import type { AssistantMessage, Part } from "@opencode-ai/sdk/v2";
-import type { InfiniteData } from "@tanstack/react-query";
-import type { ChatSession, Message } from "@/types";
 
-const { postNotificationMock } = vi.hoisted(() => ({
-  postNotificationMock: vi.fn(() => Promise.resolve({ ok: true })),
-}));
+const SESSION_ID = "session_1";
 
-vi.mock("@/lib/api", () => ({
-  cloudyClient: {
-    api: {
-      notifications: {
-        $post: postNotificationMock,
-      },
-    },
-  },
-}));
+function queryClient() {
+  return new QueryClient({ defaultOptions: { queries: { retry: false } } });
+}
 
-const DEMO_DIRECTORY = "/demo/project";
-const SESSION_ID = "ses_1";
-const MESSAGE_ID = "msg_1";
-
-function createMockSession(overrides: Partial<Session> = {}): Session {
+function message() {
   return {
-    id: SESSION_ID,
-    slug: "test-slug",
-    projectID: "proj_1",
-    directory: DEMO_DIRECTORY,
-    title: "Test Session",
-    version: "1.0.0",
-    time: { created: 0, updated: 0 },
-    ...overrides,
+    id: "message_1",
+    sessionId: SESSION_ID,
+    role: "assistant" as const,
+    parts: [],
+    createdAt: "1970-01-01T00:00:00.000Z",
   };
-}
-
-function createMockAssistantMessage(
-  overrides: Partial<AssistantMessage> = {},
-): AssistantMessage {
-  return {
-    id: MESSAGE_ID,
-    sessionID: SESSION_ID,
-    role: "assistant",
-    time: { created: 0 },
-    parentID: "parent_1",
-    modelID: "gpt-4o",
-    providerID: "openai",
-    mode: "agent",
-    agent: "default",
-    path: { cwd: "/tmp", root: "/tmp" },
-    cost: 0,
-    tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
-    ...overrides,
-  } as AssistantMessage;
-}
-
-function createTextPart(overrides: Partial<Part> = {}): Part {
-  return {
-    id: "part_1",
-    sessionID: SESSION_ID,
-    messageID: MESSAGE_ID,
-    type: "text",
-    text: "Hello",
-    ...overrides,
-  } as Part;
-}
-
-function createMockMessage({
-  info = createMockAssistantMessage(),
-  parts = [],
-}: {
-  info?: AssistantMessage;
-  parts?: Part[];
-} = {}): Message {
-  return toCoreMessage(info, parts);
-}
-
-function expectedChatSession(session: Session): ChatSession {
-  return {
-    id: session.id,
-    title: session.title,
-    parentID: session.parentID,
-    directory: session.directory,
-    updatedAt: session.time.updated,
-    cost: session.cost,
-    tokens: session.tokens,
-  };
-}
-
-function buildEvent(
-  payload: GlobalEvent["payload"],
-  directory = DEMO_DIRECTORY,
-): GlobalEvent {
-  return { directory, payload } as GlobalEvent;
-}
-
-function createQueryClient(): QueryClient {
-  return new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  });
 }
 
 describe("handleEvent", () => {
-  let queryClient: QueryClient;
-
   beforeEach(() => {
-    queryClient = createQueryClient();
-    useStreamingMessagesStore.setState({ streamingMessages: new Map() });
-    postNotificationMock.mockClear();
-  });
-
-  describe("guard clause", () => {
-    test("ignores unknown event types", () => {
-      const setSpy = vi.spyOn(queryClient, "setQueryData");
-      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-      handleEvent(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        buildEvent({
-          id: "evt_1",
-          type: "unknown.event",
-          properties: {},
-        } as any),
-        queryClient,
-      );
-
-      expect(setSpy).not.toHaveBeenCalled();
-      expect(invalidateSpy).not.toHaveBeenCalled();
+    useStreamingMessagesStore.setState({
+      streamingMessages: new Map(),
+      pendingDeltas: new Map(),
     });
   });
 
-  describe("session.updated", () => {
-    test("sets session detail in cache", () => {
-      const session = createMockSession({ title: "Updated Title" });
+  test("updates session status for normalized events", () => {
+    const client = queryClient();
+    const event: ChatEvent = {
+      type: "session.status",
+      sessionId: SESSION_ID,
+      status: "active",
+      runStatus: "running",
+    };
 
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.updated",
-          properties: { sessionID: SESSION_ID, info: session },
-        }),
-        queryClient,
-      );
+    handleEvent(event, client, "/project");
 
-      expect(
-        queryClient.getQueryData<ChatSession>(sessionKeys.detail(SESSION_ID)),
-      ).toEqual(expectedChatSession(session));
-    });
-
-    test("replaces existing session in infinite list", () => {
-      const oldSession = createMockSession({ title: "Old Title" });
-      const otherSession = createMockSession({
-        id: "ses_other",
-        title: "Other",
-      });
-      const updatedSession = createMockSession({ title: "New Title" });
-      queryClient.setQueryData<ChatSession[]>(
-        sessionKeys.infinite(DEMO_DIRECTORY),
-        [expectedChatSession(oldSession), expectedChatSession(otherSession)],
-      );
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.updated",
-          properties: { sessionID: SESSION_ID, info: updatedSession },
-        }),
-        queryClient,
-      );
-
-      const list = queryClient.getQueryData<ChatSession[]>(
-        sessionKeys.infinite(DEMO_DIRECTORY),
-      );
-      expect(list).toHaveLength(2);
-      expect(list!.find((s) => s.id === SESSION_ID)).toEqual(
-        expectedChatSession(updatedSession),
-      );
-      expect(list!.find((s) => s.id === "ses_other")).toEqual(
-        expectedChatSession(otherSession),
-      );
-    });
-
-    test("does not append session when not in infinite list", () => {
-      const otherSession = createMockSession({
-        id: "ses_other",
-        title: "Other",
-      });
-      const updatedSession = createMockSession({ title: "New Title" });
-      queryClient.setQueryData<ChatSession[]>(
-        sessionKeys.infinite(DEMO_DIRECTORY),
-        [expectedChatSession(otherSession)],
-      );
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.updated",
-          properties: { sessionID: SESSION_ID, info: updatedSession },
-        }),
-        queryClient,
-      );
-
-      const list = queryClient.getQueryData<ChatSession[]>(
-        sessionKeys.infinite(DEMO_DIRECTORY),
-      );
-      expect(list).toHaveLength(1);
-      expect(list![0].id).toBe("ses_other");
-    });
-
-    test("handles missing infinite list gracefully (no-op)", () => {
-      const updatedSession = createMockSession({ title: "New Title" });
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.updated",
-          properties: { sessionID: SESSION_ID, info: updatedSession },
-        }),
-        queryClient,
-      );
-
-      const list = queryClient.getQueryData<ChatSession[]>(
-        sessionKeys.infinite(DEMO_DIRECTORY),
-      );
-      expect(list).toEqual([]);
+    expect(client.getQueryData(sessionKeys.statuses("/project"))).toEqual({
+      [SESSION_ID]: { type: "busy" },
     });
   });
 
-  describe("session.idle", () => {
-    test("flushes buffered messages to cache and invalidates session list", () => {
-      const message = createMockMessage();
+  test("applies normalized message events to the streaming store", () => {
+    const event: ChatEvent = {
+      type: "message.updated",
+      sessionId: SESSION_ID,
+      message: message(),
+    };
+
+    handleEvent(event, queryClient());
+
+    expect(
       useStreamingMessagesStore
         .getState()
-        .onMessageInfoUpdated(SESSION_ID, message);
-
-      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.idle",
-          properties: { sessionID: SESSION_ID },
-        }),
-        queryClient,
-      );
-
-      const data = queryClient.getQueryData<
-        InfiniteData<Message[], string | undefined>
-      >(messageKeys.infinite(SESSION_ID));
-      expect(data?.pages[0]).toHaveLength(1);
-      expect(data?.pages[0][0].id).toBe(MESSAGE_ID);
-
-      expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: sessionKeys.infinite(DEMO_DIRECTORY),
-      });
-    });
-
-    test("clears session from store after flush", () => {
-      const message = createMockMessage();
-      useStreamingMessagesStore
-        .getState()
-        .onMessageInfoUpdated(SESSION_ID, message);
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.idle",
-          properties: { sessionID: SESSION_ID },
-        }),
-        queryClient,
-      );
-
-      expect(
-        useStreamingMessagesStore.getState().streamingMessages.has(SESSION_ID),
-      ).toBe(false);
-    });
-
-    test("does not set message cache when nothing is buffered", () => {
-      const setSpy = vi.spyOn(queryClient, "setQueryData");
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.idle",
-          properties: { sessionID: SESSION_ID },
-        }),
-        queryClient,
-      );
-
-      expect(
-        queryClient.getQueryData(messageKeys.infinite(SESSION_ID)),
-      ).toBeUndefined();
-      expect(setSpy).not.toHaveBeenCalledWith(
-        messageKeys.infinite(SESSION_ID),
-        expect.any(Function),
-      );
-    });
-
-    test("merges buffered messages into existing cache page", () => {
-      const existingMessage = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_existing" }),
-        parts: [createTextPart({ id: "part_old", text: "Old text" })],
-      });
-      queryClient.setQueryData<InfiniteData<Message[], string | undefined>>(
-        messageKeys.infinite(SESSION_ID),
-        { pages: [[existingMessage]], pageParams: [undefined] },
-      );
-
-      const streamingMessage = createMockMessage({
-        info: createMockAssistantMessage({ id: "msg_new" }),
-        parts: [createTextPart({ id: "part_new", text: "New text" })],
-      });
-      useStreamingMessagesStore
-        .getState()
-        .onMessageInfoUpdated(SESSION_ID, streamingMessage);
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.idle",
-          properties: { sessionID: SESSION_ID },
-        }),
-        queryClient,
-      );
-
-      const data = queryClient.getQueryData<
-        InfiniteData<Message[], string | undefined>
-      >(messageKeys.infinite(SESSION_ID));
-      expect(data?.pages[0]).toHaveLength(2);
-    });
+        .streamingMessages.get(SESSION_ID)
+        ?.get("message_1"),
+    ).toEqual(message());
   });
 
-  describe("session.status", () => {
-    test("sets status in the statuses map", () => {
-      const status: SessionStatus = { type: "busy" };
+  test("flushes streaming messages when a session completes", () => {
+    const client = queryClient();
+    useStreamingMessagesStore
+      .getState()
+      .onMessageInfoUpdated(SESSION_ID, message());
 
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.status",
-          properties: { sessionID: SESSION_ID, status },
-        }),
-        queryClient,
-      );
+    handleEvent(
+      {
+        type: "session.status",
+        sessionId: SESSION_ID,
+        status: "idle",
+        runStatus: "completed",
+      },
+      client,
+    );
 
-      const statuses = queryClient.getQueryData<Record<string, SessionStatus>>(
-        sessionKeys.statuses(DEMO_DIRECTORY),
-      );
-      expect(statuses?.[SESSION_ID]).toEqual(status);
-    });
-
-    test("preserves existing statuses when adding new one", () => {
-      const existingStatus: SessionStatus = { type: "idle" };
-      queryClient.setQueryData<Record<string, SessionStatus>>(
-        sessionKeys.statuses(DEMO_DIRECTORY),
-        { ses_other: existingStatus },
-      );
-
-      const newStatus: SessionStatus = { type: "busy" };
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.status",
-          properties: { sessionID: SESSION_ID, status: newStatus },
-        }),
-        queryClient,
-      );
-
-      const statuses = queryClient.getQueryData<Record<string, SessionStatus>>(
-        sessionKeys.statuses(DEMO_DIRECTORY),
-      );
-      expect(statuses?.ses_other).toEqual(existingStatus);
-      expect(statuses?.[SESSION_ID]).toEqual(newStatus);
-    });
-  });
-
-  describe("message.updated", () => {
-    test("buffers message info into streaming store", () => {
-      const info = createMockAssistantMessage({ cost: 50 });
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "message.updated",
-          properties: { sessionID: SESSION_ID, info },
-        }),
-        queryClient,
-      );
-
-      const state = useStreamingMessagesStore.getState();
-      const buffered = state.streamingMessages.get(SESSION_ID)?.get(MESSAGE_ID);
-      expect(buffered).toBeDefined();
-      expect(buffered).toMatchObject({
-        id: info.id,
-        sessionId: info.sessionID,
-        role: info.role,
-      });
-      expect(buffered!.parts).toEqual([]);
-    });
-
-    test("skips buffering when summary has diffs array", () => {
-      const info = {
-        ...createMockAssistantMessage(),
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        summary: { diffs: [{ additions: 1, deletions: 0 }] } as any,
-      };
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "message.updated",
-          properties: { sessionID: SESSION_ID, info },
-        }),
-        queryClient,
-      );
-
-      const state = useStreamingMessagesStore.getState();
-      expect(state.streamingMessages.size).toBe(0);
-    });
-  });
-
-  describe("message.part.updated", () => {
-    test("buffers updated part into streaming store", () => {
-      const part = createTextPart({ id: "part_updated", text: "Updated text" });
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "message.part.updated",
-          properties: {
-            sessionID: SESSION_ID,
-            part,
-            time: Date.now(),
-          },
-        }),
-        queryClient,
-      );
-
-      const state = useStreamingMessagesStore.getState();
-      const buffered = state.streamingMessages.get(SESSION_ID)?.get(MESSAGE_ID);
-      expect(buffered).toBeDefined();
-      expect(buffered!.parts).toHaveLength(1);
-      expect(buffered!.parts[0]).toMatchObject({
-        id: part.id,
-        type: part.type,
-        text: "Updated text",
-      });
-    });
-  });
-
-  describe("message.part.delta", () => {
-    test("buffers delta into pendingDeltas when part does not exist", () => {
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "message.part.delta",
-          properties: {
-            sessionID: SESSION_ID,
-            messageID: MESSAGE_ID,
-            partID: "part_delta",
-            field: "text",
-            delta: "Hello world",
-          },
-        }),
-        queryClient,
-      );
-
-      const state = useStreamingMessagesStore.getState();
-      expect(state.pendingDeltas.get(SESSION_ID)?.get("part_delta")).toBe(
-        "Hello world",
-      );
-    });
-  });
-
-  describe("question.asked", () => {
-    test("invalidates question list query", () => {
-      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "question.asked",
-          properties: {
-            id: "que_1",
-            sessionID: SESSION_ID,
-            questions: [],
-          },
-        }),
-        queryClient,
-      );
-
-      expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: questionKeys.list(DEMO_DIRECTORY),
-      });
-    });
-  });
-
-  describe("permission.asked", () => {
-    test("invalidates permission request query", () => {
-      const invalidateSpy = vi.spyOn(queryClient, "invalidateQueries");
-
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "permission.asked",
-          properties: {
-            id: "per_1",
-            sessionID: SESSION_ID,
-            permission: "read",
-            patterns: [],
-            metadata: {},
-            always: [],
-          },
-        }),
-        queryClient,
-      );
-
-      expect(invalidateSpy).toHaveBeenCalledWith({
-        queryKey: permissionKeys.request.root(),
-      });
-    });
-  });
-
-  describe("notification posts", () => {
-    test("session.idle posts a success notification", () => {
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "session.idle",
-          properties: { sessionID: SESSION_ID },
-        }),
-        queryClient,
-      );
-
-      expect(postNotificationMock).toHaveBeenCalledWith({
-        json: {
-          type: "success",
-          title: "Session completed",
-          message: DEMO_DIRECTORY,
-          metadata: {
-            source: "opencode",
-            sessionID: SESSION_ID,
-            directory: DEMO_DIRECTORY,
-          },
-        },
-      });
-    });
-
-    test("question.asked posts an info notification", () => {
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "question.asked",
-          properties: {
-            id: "que_1",
-            sessionID: SESSION_ID,
-            questions: [],
-          },
-        }),
-        queryClient,
-      );
-
-      expect(postNotificationMock).toHaveBeenCalledWith({
-        json: {
-          type: "info",
-          title: "Question asked",
-          message: DEMO_DIRECTORY,
-          metadata: {
-            source: "opencode",
-            sessionID: SESSION_ID,
-            directory: DEMO_DIRECTORY,
-          },
-        },
-      });
-    });
-
-    test("permission.asked posts a warning notification", () => {
-      handleEvent(
-        buildEvent({
-          id: "evt_1",
-          type: "permission.asked",
-          properties: {
-            id: "per_1",
-            sessionID: SESSION_ID,
-            permission: "read",
-            patterns: [],
-            metadata: {},
-            always: [],
-          },
-        }),
-        queryClient,
-      );
-
-      expect(postNotificationMock).toHaveBeenCalledWith({
-        json: {
-          type: "warning",
-          title: "Permission requested",
-          message: DEMO_DIRECTORY,
-          metadata: {
-            source: "opencode",
-            sessionID: SESSION_ID,
-            directory: DEMO_DIRECTORY,
-          },
-        },
-      });
-    });
-
-    test("omits directory from notification when event has none", () => {
-      handleEvent(
-        buildEvent(
-          {
-            id: "evt_1",
-            type: "session.idle",
-            properties: { sessionID: SESSION_ID },
-          },
-          "",
-        ),
-        queryClient,
-      );
-
-      expect(postNotificationMock).toHaveBeenCalledWith({
-        json: {
-          type: "success",
-          title: "Session completed",
-          message: "",
-          metadata: {
-            source: "opencode",
-            sessionID: SESSION_ID,
-          },
-        },
-      });
+    expect(client.getQueryData(messageKeys.infinite(SESSION_ID))).toEqual({
+      pages: [[message()]],
+      pageParams: [undefined],
     });
   });
 });

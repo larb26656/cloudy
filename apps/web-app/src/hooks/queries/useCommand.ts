@@ -1,5 +1,5 @@
-import { getErrorMessage, getOcClient, type SdkError } from "@/lib/opencode";
 import { useMutation } from "@tanstack/react-query";
+import { providerApi } from "@/lib/cloudy/provider";
 
 export function useExecuteCommand() {
   return useMutation({
@@ -14,18 +14,14 @@ export function useExecuteCommand() {
       args?: string;
       directory: string;
     }) => {
-      const oc = getOcClient();
-
-      const result = await oc.session.command({
-        sessionID: sessionId,
+      const response = await providerApi.executeCommand({
+        sessionId,
         command,
         arguments: args,
         directory,
       });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return result;
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
     },
   });
 }

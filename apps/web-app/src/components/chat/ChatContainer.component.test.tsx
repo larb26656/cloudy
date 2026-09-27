@@ -159,8 +159,26 @@ const makePermission = (sessionID: string): PermissionRequest => ({
   tool: { messageID: `msg_${sessionID}`, callID: `call_${sessionID}` },
 });
 
+const toProviderQuestion = (question: QuestionRequest) => ({
+  id: question.id,
+  sessionId: question.sessionID,
+  questions: question.questions,
+});
+
+const toProviderPermission = (permission: PermissionRequest) => ({
+  id: permission.id,
+  sessionId: permission.sessionID,
+  permission: permission.permission,
+  patterns: permission.patterns,
+  metadata: permission.metadata,
+  always: permission.always,
+  tool: permission.tool
+    ? { messageId: permission.tool.messageID, callId: permission.tool.callID }
+    : undefined,
+});
+
 const childrenHandler = (children: { id: string }[] = []) =>
-  http.get(/\/oc\/session\/[^/]+\/children/, () =>
+  http.get(/\/api\/providers\/opencode\/sessions\/[^/]+\/children/, () =>
     HttpResponse.json(
       children.map(({ id }) => ({
         id,
@@ -199,10 +217,12 @@ describe("ChatCoatainer", () => {
     beforeEach(() => {
       questionsData = [];
       server.use(
-        http.get(/\/oc\/question(\?.*)?$/, () =>
-          HttpResponse.json(questionsData),
+        http.get(/\/api\/providers\/opencode\/questions(\?.*)?$/, () =>
+          HttpResponse.json(questionsData.map(toProviderQuestion)),
         ),
-        http.get(/\/oc\/permission(\?.*)?$/, () => HttpResponse.json([])),
+        http.get(/\/api\/providers\/opencode\/permissions(\?.*)?$/, () =>
+          HttpResponse.json([]),
+        ),
         childrenHandler([]),
       );
     });
@@ -297,9 +317,11 @@ describe("ChatCoatainer", () => {
     beforeEach(() => {
       permissionsData = [];
       server.use(
-        http.get(/\/oc\/question(\?.*)?$/, () => HttpResponse.json([])),
-        http.get(/\/oc\/permission(\?.*)?$/, () =>
-          HttpResponse.json(permissionsData),
+        http.get(/\/api\/providers\/opencode\/questions(\?.*)?$/, () =>
+          HttpResponse.json([]),
+        ),
+        http.get(/\/api\/providers\/opencode\/permissions(\?.*)?$/, () =>
+          HttpResponse.json(permissionsData.map(toProviderPermission)),
         ),
         childrenHandler([]),
       );
@@ -405,15 +427,19 @@ describe("ChatCoatainer", () => {
     beforeEach(() => {
       vi.clearAllMocks();
       server.use(
-        http.get(/\/oc\/question(\?.*)?$/, () => HttpResponse.json([])),
-        http.get(/\/oc\/permission(\?.*)?$/, () => HttpResponse.json([])),
+        http.get(/\/api\/providers\/opencode\/questions(\?.*)?$/, () =>
+          HttpResponse.json([]),
+        ),
+        http.get(/\/api\/providers\/opencode\/permissions(\?.*)?$/, () =>
+          HttpResponse.json([]),
+        ),
         childrenHandler([]),
       );
     });
 
     test("shows toast error when send message fails", async () => {
       server.use(
-        http.post(/\/oc\/session\/[^/]+\/prompt_async/, () =>
+        http.post(/\/api\/providers\/opencode\/messages/, () =>
           HttpResponse.json({ message: "Server exploded" }, { status: 500 }),
         ),
       );
@@ -424,7 +450,9 @@ describe("ChatCoatainer", () => {
       trigger.click();
 
       await waitFor(() => {
-        expect(mockToastError).toHaveBeenCalledWith("Server exploded");
+        expect(mockToastError).toHaveBeenCalledWith(
+          '{"message":"Server exploded"}',
+        );
       });
     });
 
@@ -432,7 +460,7 @@ describe("ChatCoatainer", () => {
       const pendingPromise = new Promise<Response>(() => {});
 
       server.use(
-        http.post(/\/oc\/session\/[^/]+\/prompt_async/, async () => {
+        http.post(/\/api\/providers\/opencode\/messages/, async () => {
           await pendingPromise;
           return HttpResponse.json(null, { status: 200 });
         }),
@@ -453,11 +481,11 @@ describe("ChatCoatainer", () => {
       const abortGeneration = vi.fn();
 
       server.use(
-        http.post(/\/oc\/session\/[^/]+\/prompt_async/, async () => {
+        http.post(/\/api\/providers\/opencode\/messages/, async () => {
           await pendingPromise;
           return HttpResponse.json(null, { status: 200 });
         }),
-        http.post(/\/oc\/session\/[^/]+\/abort/, () => {
+        http.post(/\/api\/providers\/opencode\/sessions\/[^/]+\/abort/, () => {
           abortGeneration();
           return HttpResponse.json(null, { status: 200 });
         }),
@@ -480,8 +508,12 @@ describe("ChatCoatainer", () => {
     beforeEach(() => {
       mockExecute.mockClear();
       server.use(
-        http.get(/\/oc\/question(\?.*)?$/, () => HttpResponse.json([])),
-        http.get(/\/oc\/permission(\?.*)?$/, () => HttpResponse.json([])),
+        http.get(/\/api\/providers\/opencode\/questions(\?.*)?$/, () =>
+          HttpResponse.json([]),
+        ),
+        http.get(/\/api\/providers\/opencode\/permissions(\?.*)?$/, () =>
+          HttpResponse.json([]),
+        ),
         childrenHandler([]),
       );
     });

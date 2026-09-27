@@ -88,13 +88,23 @@ function setupDefaultHandlers(overrides?: {
   children?: Session[];
 }) {
   server.use(
-    http.get(/\/question(\?|$)/, () =>
-      HttpResponse.json(overrides?.questions ?? mockQuestions),
+    http.get(/\/api\/providers\/opencode\/questions(\?|$)/, () =>
+      HttpResponse.json(
+        (overrides?.questions ?? mockQuestions).map((question) => ({
+          ...question,
+          sessionId: question.sessionID,
+        })),
+      ),
     ),
-    http.get(/\/permission(\?|$)/, () =>
-      HttpResponse.json(overrides?.permissions ?? mockPermissions),
+    http.get(/\/api\/providers\/opencode\/permissions(\?|$)/, () =>
+      HttpResponse.json(
+        (overrides?.permissions ?? mockPermissions).map((permission) => ({
+          ...permission,
+          sessionId: permission.sessionID,
+        })),
+      ),
     ),
-    http.get(/\/session\/([^/]+)\/children/, () =>
+    http.get(/\/api\/providers\/opencode\/sessions\/([^/]+)\/children/, () =>
       HttpResponse.json(overrides?.children ?? mockChildSessions),
     ),
   );

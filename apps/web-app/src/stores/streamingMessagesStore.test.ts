@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, test } from "vitest";
-import type { ChatMessage, MessagePart } from "@repo/opencode";
+import type { ChatMessage, MessagePart } from "@repo/contracts";
 import { useStreamingMessagesStore } from "./streamingMessagesStore";
 
 function message(id: string): ChatMessage {

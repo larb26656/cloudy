@@ -69,20 +69,24 @@ describe("QuestionSheet", () => {
     lastReply = undefined;
     lastReject = undefined;
     server.use(
-      http.post(/\/question\/([^/]+)\/reply/, async ({ request }) => {
-        lastReply = {
-          url: new URL(request.url),
-          body: await request.json().catch(() => undefined),
-        };
-        return new HttpResponse(null, { status: 200 });
-      }),
-      http.post(/\/question\/([^/]+)\/reject/, async ({ request }) => {
-        lastReject = {
-          url: new URL(request.url),
-          body: await request.json().catch(() => undefined),
-        };
-        return new HttpResponse(null, { status: 200 });
-      }),
+      http.post(
+        /\/api\/providers\/opencode\/interactions/,
+        async ({ request }) => {
+          const body = await request.json().catch(() => undefined);
+          const entry = { url: new URL(request.url), body };
+          if (
+            typeof body === "object" &&
+            body !== null &&
+            "value" in body &&
+            typeof body.value === "object" &&
+            body.value !== null &&
+            "reject" in body.value
+          )
+            lastReject = entry;
+          else lastReply = entry;
+          return new HttpResponse(null, { status: 200 });
+        },
+      ),
     );
   });
 
@@ -331,7 +335,7 @@ describe("QuestionSheet", () => {
         await userEvent.click(screen.getByRole("button", { name: /submit/i }));
         await waitFor(() => {
           expect(lastReply?.body).toEqual(
-            expect.objectContaining({ answers: expectedAnswers }),
+            expect.objectContaining({ value: expectedAnswers }),
           );
         });
       },
@@ -374,11 +378,16 @@ describe("QuestionSheet", () => {
       await userEvent.click(screen.getByRole("button", { name: /reject/i }));
       await waitFor(() => {
         expect(lastReject?.url.pathname).toMatch(
-          /\/question\/que_test123\/reject$/,
+          /\/api\/providers\/opencode\/interactions$/,
         );
-        expect(lastReject?.url.searchParams.get("directory")).toBe(
-          DEMO_DIRECTORY,
-        );
+        expect(lastReject?.body).toMatchObject({
+          interactionId: "que_test123",
+          value: { reject: true },
+        });
+        expect(lastReject?.body).toMatchObject({
+          interactionId: "que_test123",
+          value: { reject: true },
+        });
       });
     });
 

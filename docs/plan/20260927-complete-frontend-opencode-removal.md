@@ -60,27 +60,27 @@ execute those plans in dependency order, then complete the remaining frontend ru
 
 ## Tasks
 
-- [ ] 1. Implement the AI-core types and backend provider registry plans in dependency order.
+- [x] 1. Implement the AI-core types and backend provider registry plans in dependency order.
   - verify: `pnpm --filter @repo/ai-core check-types && pnpm --filter @repo/server test`
   - files: `packages/ai-core/**`, `packages/server/src/providers/**`, `packages/server/src/features/providers/**`
-- [ ] 2. Complete the model catalog and chat/session migration plans, including normalized SSE,
+- [x] 2. Complete the model catalog and chat/session migration plans, including normalized SSE,
      permissions, questions, and query invalidation behavior.
   - verify: `pnpm --filter web-app exec vitest run src/hooks/queries src/providers src/components/permission src/components/question`
   - files: `apps/web-app/src/hooks/queries/**`, `apps/web-app/src/providers/**`, `apps/web-app/src/components/permission/**`, `apps/web-app/src/components/question/**`
-- [ ] 3. Add provider-neutral routes/contracts for agents, files/VCS, commands, and file/command
+- [x] 3. Add provider-neutral routes/contracts for agents, files/VCS, commands, and file/command
      suggestions, then migrate their frontend consumers away from `getOcClient()`.
   - verify: `pnpm --filter @repo/server test && pnpm --filter web-app check-types`; search finds no `getOcClient` in `apps/web-app/src/hooks` or `apps/web-app/src/components`
   - files: `packages/server/src/providers/**`, `packages/server/src/features/providers/**`, `apps/web-app/src/hooks/queries/useAgents.ts`, `apps/web-app/src/hooks/queries/useFiles.ts`, `apps/web-app/src/hooks/queries/useCommand.ts`, `apps/web-app/src/components/chat/extensions/suggestion.ts`
-- [ ] 4. Finish the OpenCode-type boundary migration in the web app, shared UI, tests, and
+- [x] 4. Finish the OpenCode-type boundary migration in the web app, shared UI, tests, and
      Storybook fixtures without changing visible chat/file behavior.
   - verify: `pnpm --filter @repo/ui check-types && pnpm --filter web-app check-types && pnpm --filter web-app exec vitest run`
   - files: `apps/web-app/src/types/**`, `apps/web-app/src/lib/opencode/**`, `apps/web-app/src/**/*.test.ts*`, `apps/web-app/src/**/*.stories.tsx`, `packages/ui/src/components/message/**`
-- [ ] 5. Remove the browser OpenCode client and obsolete `/oc` configuration after migration;
+- [x] 5. Remove the browser OpenCode client and obsolete `/oc` configuration after migration;
      replace any remaining env access with the Cloudy API origin and delete unused SDK/package
      references from manifests and lockfile.
   - verify: `pnpm install --lockfile-only` followed by `pnpm --filter web-app lint && pnpm --filter web-app check-types`; `rg -n '(@opencode-ai/sdk|@repo/opencode|VITE_OPENCODE_URL|VITE_OC_INSTANCE_URL|/api/oc|/oc/|getOcClient)' apps/web-app packages/ui/src` returns no supported runtime references
   - files: `apps/web-app/src/lib/opencode/oc-instance.ts`, `apps/web-app/src/lib/opencode/client.ts`, `apps/web-app/src/lib/opencode/index.ts`, `apps/web-app/src/config/env.ts`, `apps/web-app/.env`, `apps/web-app/.env.production`, `apps/web-app/package.json`, `pnpm-lock.yaml`
-- [ ] 6. Remove or rename stale OpenCode-only docs and mocks, while retaining explicit backend
+- [x] 6. Remove or rename stale OpenCode-only docs and mocks, while retaining explicit backend
      adapter tests that intentionally cover the OpenCode integration.
   - verify: `rg -n 'OpenCode SDK|/oc/|VITE_OPENCODE_URL|VITE_OC_INSTANCE_URL' apps/web-app/src apps/web-app/AGENTS.md` returns no frontend runtime/config references
   - files: `apps/web-app/AGENTS.md`, `apps/web-app/src/**/*.stories.tsx`, `apps/web-app/src/**/*.test.ts*`
@@ -91,13 +91,13 @@ execute those plans in dependency order, then complete the remaining frontend ru
 
 ## Done when
 
-- [ ] All browser API calls go through Cloudy's typed RPC/provider API; no frontend runtime code
+- [x] All browser API calls go through Cloudy's typed RPC/provider API; no frontend runtime code
       instantiates or imports the OpenCode SDK.
-- [ ] OpenCode-specific types and field names are confined to backend/provider adapters and
+- [x] OpenCode-specific types and field names are confined to backend/provider adapters and
       explicitly scoped integration tests.
-- [ ] `@opencode-ai/sdk`, `@repo/opencode`, `VITE_OPENCODE_URL`, `VITE_OC_INSTANCE_URL`, and
+- [x] `@opencode-ai/sdk`, `@repo/opencode`, `VITE_OPENCODE_URL`, `VITE_OC_INSTANCE_URL`, and
       `/oc` are absent from supported web-app runtime/config code.
-- [ ] Chat streaming, sessions, files, commands, agents, permissions, questions, model
+- [x] Chat streaming, sessions, files, commands, agents, permissions, questions, model
       selection, Storybook mocks, and persisted UI behavior remain covered by passing tests.
 - [ ] Repository lint, typecheck, backend tests, frontend tests, and web-app production build
       pass.

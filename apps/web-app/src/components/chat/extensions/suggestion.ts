@@ -11,7 +11,7 @@ import type {
 import type { MentionNodeAttrs } from "@tiptap/extension-mention";
 import { systemCommands } from "@/lib/commands";
 import { type Command, type CommandSource } from "@/lib/command";
-import { getOcClient } from "@/lib/opencode";
+import { providerApi } from "@/lib/cloudy/provider";
 
 type MentionItem = string;
 
@@ -45,13 +45,9 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
 export function createMentionSuggestion(directory: string) {
   return {
     items: async ({ query }: { query: string }): Promise<string[]> => {
-      const oc = getOcClient();
-      const result = await oc.find.files({
-        directory,
-        query,
-        limit: 20,
-      });
-      return result.data ?? [];
+      const response = await providerApi.searchFiles(directory, query, 20);
+      if (!response.ok) throw new Error(await response.text());
+      return (await response.json()) as string[];
     },
 
     render: () => {
@@ -101,11 +97,16 @@ export function createCommandSuggestion(
 ) {
   return {
     items: async ({ query }: { query: string }): Promise<CommandItem[]> => {
-      const oc = getOcClient();
-      const result = await oc.command.list({
-        directory,
-      });
-      const openCodeCommands = result.data ?? [];
+      const response = await providerApi.commands(directory);
+      if (!response.ok) throw new Error(await response.text());
+      const openCodeCommands = (await response.json()) as Array<{
+        name: string;
+        description?: string;
+        source?: string;
+        template?: string;
+        hints?: string[];
+        immediate?: boolean;
+      }>;
 
       const systemCommandItems: Command[] = systemCommands.map((cmd) => ({
         name: cmd.name,
@@ -116,7 +117,17 @@ export function createCommandSuggestion(
         immediate: cmd.immediate,
       }));
 
-      const commands = [...systemCommandItems, ...openCodeCommands];
+      const commands: Command[] = [
+        ...systemCommandItems,
+        ...openCodeCommands.map((cmd) => ({
+          name: cmd.name,
+          description: cmd.description,
+          source: (cmd.source ?? "command") as CommandSource,
+          template: cmd.template ?? "",
+          hints: cmd.hints ?? [],
+          immediate: cmd.immediate,
+        })),
+      ];
 
       return commands
         .filter((cmd) => cmd.name.includes(query))
