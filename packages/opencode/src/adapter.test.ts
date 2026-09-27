@@ -73,6 +73,26 @@ describe("OpenCode adapter", () => {
     });
   });
 
+  test("preserves OpenCode patch metadata", () => {
+    const parts = [
+      {
+        id: "patch-1",
+        sessionID: "session-1",
+        messageID: "message-1",
+        type: "patch",
+        hash: "abc123456789",
+        files: ["src/index.ts", "src/app.ts"],
+      },
+    ] as Part[];
+
+    expect(toChatMessage(message, parts).parts[0]).toMatchObject({
+      type: "diff",
+      path: "src/index.ts",
+      hash: "abc123456789",
+      files: ["src/index.ts", "src/app.ts"],
+    });
+  });
+
   test("normalizes message deltas without exposing SDK field names", () => {
     const event = {
       payload: {

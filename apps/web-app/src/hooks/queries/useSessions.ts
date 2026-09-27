@@ -101,11 +101,29 @@ export function useSessionChildren({
   });
 }
 
-export function useSessionStatus({ sessionId }: { sessionId: string | null }) {
+export function useSessionStatus({
+  sessionId,
+  directory,
+}: {
+  sessionId: string | null;
+  directory?: string;
+}) {
   return useQuery<SessionRunStatus | undefined>({
     queryKey: sessionKeys.status(sessionId ?? ""),
-    queryFn: async () => undefined,
-    enabled: false,
+    queryFn: async () => {
+      if (!sessionId) return undefined;
+      const statuses = await json<
+        Record<string, "running" | "queued" | "idle">
+      >(await providerApi.sessionStatuses(directory));
+      const status = statuses[sessionId];
+      if (status === "running") return { type: "busy" };
+      if (status === "queued")
+        return { type: "retry", attempt: 0, message: "", next: 0 };
+      return { type: "idle" };
+    },
+    enabled: !!sessionId,
+    refetchInterval: CHAT_POLL_INTERVAL,
+    refetchIntervalInBackground: false,
   });
 }
 

@@ -28,6 +28,11 @@ function stringValue(value: unknown, fallback: string): string {
   return typeof value === "string" ? value : fallback;
 }
 
+function stringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  return value.filter((item): item is string => typeof item === "string");
+}
+
 function unknownProviderType(value: unknown): string {
   return typeof value === "string" && value.length > 0 ? value : "<missing>";
 }
@@ -94,13 +99,17 @@ function mapPart(part: Part): MessagePart {
         mimeType: typeof source.mime === "string" ? source.mime : undefined,
         url: typeof source.url === "string" ? source.url : undefined,
       };
-    case "patch":
+    case "patch": {
+      const files = stringArray(source.files);
       return {
         ...base,
         type: "diff",
-        path: stringValue(source.file, "unknown"),
+        path: stringValue(source.file, files?.[0] ?? "unknown"),
         patch: stringValue(source.patch, ""),
+        hash: typeof source.hash === "string" ? source.hash : undefined,
+        files,
       };
+    }
     case "subtask":
       return {
         ...base,
@@ -259,8 +268,8 @@ function toOpenCodePart(
       return {
         ...base,
         type: "patch",
-        file: part.path,
-        patch: part.patch,
+        hash: part.hash,
+        files: part.files ?? [part.path],
       } as unknown as Part;
     case "subtask":
       return {

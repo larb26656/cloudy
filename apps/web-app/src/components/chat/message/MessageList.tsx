@@ -20,6 +20,7 @@ interface MessageListProps {
 
 export const MessageList = memo(function MessageList({
   selectedSessionId,
+  directory,
   isShowEmptyState = true,
   onSnippetSelect,
   minimapOpen = false,
@@ -40,7 +41,7 @@ export const MessageList = memo(function MessageList({
     isStreaming,
     sessionError,
     clearError,
-  } = useMessageListData({ selectedSessionId });
+  } = useMessageListData({ selectedSessionId, directory });
 
   return (
     <MessageSettingsContext.Provider value={{ autoExpandThinking }}>

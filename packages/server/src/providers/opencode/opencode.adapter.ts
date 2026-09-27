@@ -28,6 +28,22 @@ import {
   toPermissionRequest,
   toQuestionRequest,
 } from "./opencode.mapper";
+import { NotFoundError } from "../../shared/domain-error";
+
+function throwInteractionError(error: unknown): never {
+  if (typeof error === "object" && error !== null) {
+    const value = error as { _tag?: unknown; message?: unknown };
+    const message =
+      typeof value.message === "string"
+        ? value.message
+        : "Interaction not found";
+    if (value._tag === "QuestionNotFoundError") {
+      throw new NotFoundError(message);
+    }
+    throw new Error(message);
+  }
+  throw error instanceof Error ? error : new Error(String(error));
+}
 
 export interface OpenCodeAdapterOptions {
   baseUrl: string;
@@ -220,7 +236,7 @@ export function createOpenCodeAdapter({
               requestID: response.interactionId,
               answers: response.value as Array<string[]>,
             });
-        if (result.error) throw result.error;
+        if (result.error) throwInteractionError(result.error);
       }
       return { interactionId: response.interactionId, value: null };
     },

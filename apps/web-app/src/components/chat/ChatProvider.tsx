@@ -103,7 +103,7 @@ export function ChatProvider({
   const { mutateAsync: createSessionAsync } = useCreateSession();
   const systemCommands = useSystemCommands();
 
-  const { data: sessionStatus } = useSessionStatus({ sessionId });
+  const { data: sessionStatus } = useSessionStatus({ sessionId, directory });
   const isStreaming = useMemo(() => {
     return sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
   }, [sessionStatus]);

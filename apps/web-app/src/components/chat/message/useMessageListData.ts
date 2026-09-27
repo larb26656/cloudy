@@ -30,14 +30,17 @@ export interface MessageListData {
 
 export function useMessageListData({
   selectedSessionId,
+  directory,
 }: {
   selectedSessionId: string | null;
+  directory?: string;
 }): MessageListData {
   const removeStreamingMessage = useStreamingMessagesStore(
     (s) => s.removeStreamingMessage,
   );
   const { data: sessionStatus } = useSessionStatus({
     sessionId: selectedSessionId,
+    directory,
   });
   const uiSessionStatus: SessionStatus | undefined = sessionStatus
     ? sessionStatus.type === "busy"
