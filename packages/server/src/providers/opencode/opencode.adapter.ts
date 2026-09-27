@@ -1,0 +1,314 @@
+import {
+  createOpencodeClient,
+  type OpencodeClient,
+} from "@opencode-ai/sdk/v2/client";
+import type {
+  ChatEvent,
+  ChatSession,
+  ProviderAdapter,
+  ProviderMessageRequest,
+  ProviderMessagesInput,
+  ProviderSessionInput,
+  ProviderEventsInput,
+  ProviderInfo,
+  PermissionRequest,
+  ProviderQuestionRequest,
+  RunStatus,
+} from "@repo/ai-core";
+import {
+  toAgentInfo,
+  toChatEvent,
+  toChatMessage,
+  toChatSession,
+  toModelInfo,
+  toPermissionRequest,
+  toQuestionRequest,
+} from "./opencode.mapper";
+
+export interface OpenCodeAdapterOptions {
+  baseUrl: string;
+  client?: OpencodeClient;
+}
+
+export function createOpenCodeAdapter({
+  baseUrl,
+  client = createOpencodeClient({ baseUrl }),
+}: OpenCodeAdapterOptions): ProviderAdapter {
+  const adapter = {
+    id: "opencode",
+    capabilities: {
+      streaming: true,
+      attachments: true,
+      tools: true,
+      reasoning: true,
+      models: true,
+      agents: true,
+    },
+    async listSessions(input: {
+      directory?: string;
+      limit?: number;
+    }): Promise<ChatSession[]> {
+      const result = await client.v2.session.list(input);
+      if (result.error) throw result.error;
+      return result.data.data.map((session) => toChatSession(session));
+    },
+    async getSession(input: {
+      sessionId: string;
+      directory?: string;
+    }): Promise<ChatSession> {
+      const result = await client.session.get({
+        sessionID: input.sessionId,
+        directory: input.directory,
+      });
+      if (result.error) throw result.error;
+      return toChatSession(result.data);
+    },
+    async getSessionChildren(input: {
+      sessionId: string;
+      directory?: string;
+    }): Promise<ChatSession[]> {
+      const result = await client.session.children({
+        sessionID: input.sessionId,
+        directory: input.directory,
+      });
+      if (result.error) throw result.error;
+      return result.data.map((session) => toChatSession(session));
+    },
+    async getSessionStatuses(input: {
+      directory?: string;
+    }): Promise<Record<string, RunStatus>> {
+      const result = await client.session.status({
+        directory: input.directory,
+      });
+      if (result.error) throw result.error;
+      return Object.fromEntries(
+        Object.entries(result.data ?? {}).map(([id, status]) => [
+          id,
+          status.type === "busy"
+            ? "running"
+            : status.type === "retry"
+              ? "queued"
+              : "idle",
+        ]),
+      );
+    },
+    async listMessages(input: ProviderMessagesInput) {
+      const result = await client.session.messages({
+        sessionID: input.sessionId,
+        directory: input.directory,
+        limit: input.limit,
+        before: input.before,
+      });
+      if (result.error) throw result.error;
+      return {
+        messages: result.data.map(({ info, parts }) =>
+          toChatMessage(info, parts),
+        ),
+      };
+    },
+    async createSession(input: ProviderSessionInput): Promise<ChatSession> {
+      const result = await client.session.create({
+        directory: input.directory,
+        parentID: input.parentId,
+        title: input.title,
+        agent: input.agentId,
+        model: input.model
+          ? { providerID: input.model.providerId, id: input.model.modelId }
+          : undefined,
+        metadata: input.metadata,
+      });
+      if (result.error) throw result.error;
+      return toChatSession(result.data);
+    },
+    async updateSession(input: ProviderSessionInput): Promise<ChatSession> {
+      const result = await client.session.update({
+        sessionID: input.sessionId ?? "",
+        directory: input.directory,
+        title: input.title,
+        metadata: input.metadata,
+      });
+      if (result.error) throw result.error;
+      return toChatSession(result.data);
+    },
+    async deleteSession(input: {
+      sessionId: string;
+      directory?: string;
+    }): Promise<void> {
+      const result = await client.session.delete({
+        sessionID: input.sessionId,
+        directory: input.directory,
+      });
+      if (result.error) throw result.error;
+    },
+    async forkSession(input: ProviderSessionInput): Promise<ChatSession> {
+      const result = await client.session.fork({
+        sessionID: input.sessionId ?? "",
+        directory: input.directory,
+        messageID: input.messageId,
+      });
+      if (result.error) throw result.error;
+      return toChatSession(result.data);
+    },
+    async abortSession(input: {
+      sessionId: string;
+      directory?: string;
+    }): Promise<void> {
+      const result = await client.session.abort({
+        sessionID: input.sessionId,
+        directory: input.directory,
+      });
+      if (result.error) throw result.error;
+    },
+    async sendMessage(request: ProviderMessageRequest) {
+      const parts = [
+        { type: "text" as const, text: request.content },
+        ...(request.attachments ?? []).map((attachment) => ({
+          type: "file" as const,
+          mime: attachment.mimeType ?? "application/octet-stream",
+          url:
+            typeof attachment.data === "string"
+              ? attachment.data
+              : (attachment.url ?? ""),
+          filename: attachment.name,
+        })),
+      ];
+      const result = await client.session.promptAsync({
+        sessionID: request.sessionId,
+        directory: request.directory,
+        model: request.model
+          ? {
+              providerID: request.model.providerId,
+              modelID: request.model.modelId,
+            }
+          : undefined,
+        agent: request.agentId,
+        parts,
+      });
+      if (result.error) throw result.error;
+      return { interactionId: request.sessionId, value: result.data };
+    },
+    async respondToInteraction(response) {
+      if (response.kind === "permission") {
+        const result = await client.permission.reply({
+          requestID: response.interactionId,
+          directory:
+            typeof response.value === "object" &&
+            response.value !== null &&
+            "directory" in response.value
+              ? String(response.value.directory)
+              : undefined,
+          reply:
+            typeof response.value === "object" &&
+            response.value !== null &&
+            "reply" in response.value
+              ? (response.value.reply as "once" | "always" | "reject")
+              : "reject",
+        });
+        if (result.error) throw result.error;
+      } else {
+        const isReject =
+          typeof response.value === "object" &&
+          response.value !== null &&
+          "reject" in response.value;
+        const result = isReject
+          ? await client.question.reject({ requestID: response.interactionId })
+          : await client.question.reply({
+              requestID: response.interactionId,
+              answers: response.value as Array<string[]>,
+            });
+        if (result.error) throw result.error;
+      }
+      return { interactionId: response.interactionId, value: null };
+    },
+    async listPermissions(input: {
+      directory?: string;
+    }): Promise<PermissionRequest[]> {
+      const result = await client.permission.list(input);
+      if (result.error) throw result.error;
+      return (result.data ?? []).map(toPermissionRequest);
+    },
+    async listQuestions(input: {
+      directory?: string;
+      sessionId?: string;
+    }): Promise<ProviderQuestionRequest[]> {
+      const result = input.sessionId
+        ? await client.v2.session.question.list({ sessionID: input.sessionId })
+        : await client.question.list({ directory: input.directory });
+      if (result.error) throw result.error;
+      const data = "data" in result.data ? result.data.data : result.data;
+      return (data ?? []).map(toQuestionRequest);
+    },
+    async getInfo(): Promise<ProviderInfo> {
+      const [providerResult, agentResult] = await Promise.all([
+        client.config.providers(),
+        client.v2.agent.list({}),
+      ]);
+
+      if (providerResult.error) throw providerResult.error;
+      if (agentResult.error) throw agentResult.error;
+
+      const agents = agentResult.data.data.map(toAgentInfo);
+      const providers = providerResult.data.providers;
+      return {
+        id: "opencode",
+        name: "OpenCode",
+        capabilities: adapter.capabilities,
+        models: providers.flatMap((provider) =>
+          Object.values(provider.models).map((model) => ({
+            ...toModelInfo("opencode", model),
+            metadata: {
+              provider: "opencode",
+              upstreamProviderId: provider.id,
+            },
+          })),
+        ),
+        agents,
+        metadata: {
+          providerCount: providers.length,
+          baseUrl,
+        },
+      };
+    },
+    subscribeEvents(input: ProviderEventsInput = {}): AsyncIterable<ChatEvent> {
+      return streamEvents(client, input);
+    },
+  } satisfies ProviderAdapter;
+
+  return adapter;
+}
+
+async function* streamEvents(
+  client: OpencodeClient,
+  input: ProviderEventsInput,
+): AsyncGenerator<ChatEvent> {
+  const result = await client.global.event({
+    sseMaxRetryAttempts: 5,
+    sseMaxRetryDelay: 3000,
+  });
+  const stream = result.stream;
+  let stopped = false;
+  const stop = () => {
+    stopped = true;
+    void stream.return(undefined);
+  };
+
+  if (input.signal?.aborted) {
+    stop();
+    return;
+  }
+  input.signal?.addEventListener("abort", stop, { once: true });
+
+  try {
+    for await (const event of stream) {
+      if (stopped) break;
+      if (input.directory && event.directory !== input.directory) continue;
+      const normalized = toChatEvent(event);
+      if (!normalized) continue;
+      if (input.sessionId && normalized.sessionId !== input.sessionId) continue;
+      yield normalized;
+    }
+  } finally {
+    input.signal?.removeEventListener("abort", stop);
+    stop();
+  }
+}

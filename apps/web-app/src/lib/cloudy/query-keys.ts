@@ -25,3 +25,8 @@ export const notificationKeys = {
   root: () => ["notifications"] as const,
   list: () => [...notificationKeys.root(), "list"] as const,
 };
+
+export const providerKeys = {
+  root: () => ["providers"] as const,
+  catalog: () => [...providerKeys.root(), "catalog"] as const,
+};

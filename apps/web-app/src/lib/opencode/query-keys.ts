@@ -19,11 +19,6 @@ export const agentKeys = {
     ["agents", "list", directory ?? "global"] as const,
 };
 
-export const modelKeys = {
-  root: () => ["models"] as const,
-  providers: () => ["models", "providers"] as const,
-};
-
 export const permissionKeys = {
   root: () => ["permissions"] as const,
   request: {

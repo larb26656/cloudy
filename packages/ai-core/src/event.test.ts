@@ -32,8 +32,8 @@ export const eventFixtures = [
     request: {
       id: "approval",
       sessionId: "session",
-      message: "Allow?",
-      options: [],
+      permission: "file.read",
+      patterns: [],
     },
   },
   {

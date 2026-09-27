@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ChatProvider, useChat } from "./ChatProvider";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 
 const mocks = vi.hoisted(() => ({
   abort: vi.fn(),
@@ -40,18 +40,20 @@ vi.mock("@repo/ui/components/sonner", () => ({
   toast: { error: mocks.toastError },
 }));
 
-const model: ModelConfig = {
-  providerID: "openai",
-  modelID: "gpt-5",
+const model: ModelInfo = {
+  providerId: "openai",
+  modelId: "gpt-5",
   name: "GPT-5",
-  maxTokens: 128_000,
-  supportsStreaming: true,
-  supportsTools: true,
+  capabilities: {
+    maxInputTokens: 128_000,
+    streaming: true,
+    tools: true,
+  },
 };
 
-const altModel: ModelConfig = {
+const altModel: ModelInfo = {
   ...model,
-  modelID: "claude-sonnet",
+  modelId: "claude-sonnet",
   name: "Claude Sonnet",
 };
 
@@ -120,12 +122,12 @@ function ControlledWrapper({
   onModelChange,
 }: {
   initialAgent: string | null;
-  initialModel: ModelConfig | null;
+  initialModel: ModelInfo | null;
   onAgentChange: (agent: string | null) => void;
-  onModelChange: (model: ModelConfig | null) => void;
+  onModelChange: (model: ModelInfo | null) => void;
 }) {
   const [agent, setAgent] = useState<string | null>(initialAgent);
-  const [model, setModel] = useState<ModelConfig | null>(initialModel);
+  const [model, setModel] = useState<ModelInfo | null>(initialModel);
   return (
     <ChatProvider
       workspace={null}
@@ -152,8 +154,8 @@ type ChatProviderOptions = {
   onSessionChange?: (sessionId: string | null) => void;
   agent?: string | null;
   onAgentChange?: (agent: string | null) => void;
-  model?: ModelConfig | null;
-  onModelChange?: (model: ModelConfig | null) => void;
+  model?: ModelInfo | null;
+  onModelChange?: (model: ModelInfo | null) => void;
 };
 
 function renderChat(

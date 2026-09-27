@@ -1,5 +1,6 @@
 import { useWindowFocus } from "@/hooks";
-import { getOcClient, handleEvent } from "@/lib/opencode";
+import { env } from "@/config/env";
+import { handleEvent } from "@/lib/opencode";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
@@ -23,82 +24,85 @@ export const GlobalEventContext = createContext<GlobalEventType>({
   reconnect: () => {},
 });
 
-interface GlobalEventProviderProps {
-  children: ReactNode;
-}
-
 let nextId = 0;
 
-export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
+async function consumeEvents(
+  response: Response,
+  onEvent: (event: unknown) => void,
+  signal: AbortSignal,
+) {
+  if (!response.ok || !response.body)
+    throw new Error(`Provider event stream failed: ${response.status}`);
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  while (!signal.aborted) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const frames = buffer.split("\n\n");
+    buffer = frames.pop() ?? "";
+    for (const frame of frames) {
+      const data = frame
+        .split("\n")
+        .find((line) => line.startsWith("data:"))
+        ?.slice(5)
+        .trim();
+      if (data) onEvent(JSON.parse(data));
+    }
+  }
+  await reader.cancel();
+}
+
+export function GlobalEventProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [status, setStatus] = useState<ServerStatus>("PENDING");
   const [reconnectTick, setReconnectTick] = useState(0);
-
   const reconnect = useCallback(() => {
     setStatus("PENDING");
-    setReconnectTick((t) => t + 1);
+    setReconnectTick((tick) => tick + 1);
   }, []);
-
   const focused = useWindowFocus();
   const prevFocused = useRef(focused);
 
   useEffect(() => {
-    if (!prevFocused.current && focused && status === "DISCONNECTED") {
+    if (!prevFocused.current && focused && status === "DISCONNECTED")
       reconnect();
-    }
     prevFocused.current = focused;
-  }, [focused, status, reconnect]);
-
-  const subscribe = async (
-    id: number,
-    onEvent: (event: Parameters<typeof handleEvent>[0]) => void,
-    isCancelled: () => boolean,
-  ) => {
-    const oc = getOcClient();
-    const { stream } = await oc.global.event({
-      sseMaxRetryAttempts: 5,
-      sseMaxRetryDelay: 3000,
-    });
-    console.debug(`[${id}] connected`);
-
-    if (isCancelled()) {
-      console.debug(`[${id}] cancel because skip`);
-      await stream.return(undefined);
-      return;
-    }
-
-    for await (const event of stream) {
-      onEvent(event);
-    }
-
-    if (!isCancelled()) {
-      setStatus("DISCONNECTED");
-    }
-
-    return stream;
-  };
+  }, [focused, reconnect, status]);
 
   useEffect(() => {
     const id = ++nextId;
+    const controller = new AbortController();
     let cancelled = false;
-    let stream: AsyncGenerator<Parameters<typeof handleEvent>[0]> | undefined;
-
-    void (async () => {
-      stream = await subscribe(
-        id,
-        (event) => {
-          setStatus("CONNETED");
-
-          handleEvent(event, queryClient);
-        },
-        () => cancelled,
-      );
-    })();
-
+    void fetch(`${env.getApiUrl()}/api/providers/opencode/events`, {
+      headers: { Accept: "text/event-stream" },
+      signal: controller.signal,
+    })
+      .then((response) =>
+        consumeEvents(
+          response,
+          (event) => {
+            if (cancelled) return;
+            setStatus("CONNETED");
+            handleEvent(
+              event as Parameters<typeof handleEvent>[0],
+              queryClient,
+            );
+          },
+          controller.signal,
+        ),
+      )
+      .catch(() => {
+        if (!cancelled) setStatus("DISCONNECTED");
+      })
+      .finally(() => {
+        if (!cancelled) setStatus("DISCONNECTED");
+      });
     return () => {
-      console.debug(`[${id}] unsub`);
       cancelled = true;
-      void stream?.return(undefined);
+      controller.abort();
+      void id;
     };
   }, [queryClient, reconnectTick]);
 
@@ -110,11 +114,5 @@ export function GlobalEventProvider({ children }: GlobalEventProviderProps) {
 }
 
 export function useGlobalEvent() {
-  const context = useContext(GlobalEventContext);
-
-  if (!context) {
-    throw new Error("useGlobalEvent must be used within GlobalEventProvider");
-  }
-
-  return context;
+  return useContext(GlobalEventContext);
 }

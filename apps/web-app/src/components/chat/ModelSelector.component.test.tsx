@@ -5,71 +5,61 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ModelSelector } from "./ModelSelector";
 import { useFavoriteModelsStore } from "@/stores/favoriteModelsStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
-import type { ModelConfig, ModelProvider } from "@/types";
+import type { ModelInfo, ProviderInfo } from "@repo/contracts";
 
-const fixtures: ModelProvider[] = [
+const fixtures: ProviderInfo[] = [
   {
     id: "openai",
     name: "OpenAI",
+    capabilities: { streaming: true },
     models: [
       {
-        providerID: "openai",
-        modelID: "gpt-5",
+        providerId: "openai",
+        modelId: "gpt-5",
         name: "GPT-5",
         description: "flagship",
-        supportsStreaming: true,
-        supportsTools: true,
       },
       {
-        providerID: "openai",
-        modelID: "gpt-5-mini",
+        providerId: "openai",
+        modelId: "gpt-5-mini",
         name: "GPT-5 mini",
         description: "fast",
-        supportsStreaming: true,
-        supportsTools: false,
       },
     ],
   },
   {
     id: "anthropic",
     name: "Anthropic",
+    capabilities: { streaming: true },
     models: [
       {
-        providerID: "anthropic",
-        modelID: "claude-sonnet",
+        providerId: "anthropic",
+        modelId: "claude-sonnet",
         name: "Claude Sonnet",
         description: "balanced",
-        supportsStreaming: true,
-        supportsTools: true,
       },
       {
-        providerID: "anthropic",
-        modelID: "claude-opus",
+        providerId: "anthropic",
+        modelId: "claude-opus",
         name: "Claude Opus",
         description: "deep",
-        supportsStreaming: true,
-        supportsTools: true,
       },
     ],
   },
 ];
 
-const gpt5: ModelConfig = {
-  providerID: "openai",
-  modelID: "gpt-5",
+const gpt5: ModelInfo = {
+  providerId: "openai",
+  modelId: "gpt-5",
   name: "GPT-5",
   description: "flagship",
-  supportsStreaming: true,
-  supportsTools: true,
 };
 
-const sonnet: ModelConfig = {
-  providerID: "anthropic",
-  modelID: "claude-sonnet",
+const sonnet: ModelInfo = {
+  providerId: "anthropic",
+  modelId: "claude-sonnet",
   name: "Claude Sonnet",
   description: "balanced",
-  supportsStreaming: true,
-  supportsTools: true,
 };
 
 const originalInnerWidth = window.innerWidth;
@@ -80,7 +70,7 @@ vi.mock("@/hooks/queries/useModels", () => ({
 
 const mocks = vi.hoisted(() => ({
   setModel: vi.fn(),
-  effectiveModel: null as ModelConfig | null,
+  effectiveModel: null as ModelInfo | null,
 }));
 
 vi.mock("./ChatProvider", () => ({
@@ -235,12 +225,10 @@ describe("ModelSelector — favorites", () => {
   });
 
   test("stale favorites (model no longer in providers list) are hidden but kept in storage", () => {
-    const stale: ModelConfig = {
-      providerID: "openai",
-      modelID: "gpt-99-deleted",
+    const stale: ModelInfo = {
+      providerId: "openai",
+      modelId: "gpt-99-deleted",
       name: "GPT-99 (gone)",
-      supportsStreaming: true,
-      supportsTools: true,
     };
     useFavoriteModelsStore.setState({ favorites: [stale, gpt5] });
     renderOpen();
@@ -278,8 +266,8 @@ describe("ModelSelector — favorites", () => {
 
     expect(mocks.setModel).toHaveBeenCalledWith(
       expect.objectContaining({
-        providerID: "anthropic",
-        modelID: "claude-opus",
+        providerId: "anthropic",
+        modelId: "claude-opus",
       }),
     );
   });
@@ -302,7 +290,7 @@ describe("ModelSelector — favorites", () => {
     await user.click(modelButton);
 
     expect(mocks.setModel).toHaveBeenCalledWith(
-      expect.objectContaining({ modelID: "claude-opus" }),
+      expect.objectContaining({ modelId: "claude-opus" }),
     );
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });

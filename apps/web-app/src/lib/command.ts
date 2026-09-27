@@ -1,5 +1,5 @@
 import type { ChatInputContent } from "./opencode";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 
 export interface SlashCommandState {
   state: {
@@ -57,7 +57,7 @@ export interface SendMessageParams {
   directory: string;
   sessionId: string;
   content: ChatInputContent;
-  model?: ModelConfig | null;
+  model?: ModelInfo | null;
   agent?: string | null;
 }
 
@@ -74,4 +74,3 @@ export type Command = {
   hints: Array<string>;
   immediate?: boolean;
 };
-

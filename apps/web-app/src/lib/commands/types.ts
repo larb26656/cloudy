@@ -1,11 +1,11 @@
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 
 export interface SystemCommandContext {
   directory: string;
   sessionId: string | null;
   onSessionChange?: (id: string | null) => void;
   openSessionPicker?: () => void;
-  model?: ModelConfig | null;
+  model?: ModelInfo | null;
   agent?: string | null;
 }
 

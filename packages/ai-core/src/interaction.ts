@@ -9,6 +9,7 @@ export interface MessageAttachment {
 
 export interface SendMessageInput {
   sessionId: string;
+  directory?: string;
   content: string;
   attachments?: MessageAttachment[];
   model?: { providerId: string; modelId: string };
@@ -50,7 +51,39 @@ export interface QuestionRequest {
   expiresAt?: string;
 }
 
+export interface PermissionRequest {
+  id: string;
+  sessionId: string;
+  permission: string;
+  patterns: string[];
+  always?: string[];
+  tool?: { messageId: string };
+  metadata?: Record<string, unknown>;
+}
+
+export interface QuestionItem {
+  header: string;
+  question: string;
+  multiple?: boolean;
+  options: QuestionOption[];
+}
+
+export interface ProviderQuestionRequest {
+  id: string;
+  sessionId: string;
+  questions: QuestionItem[];
+  expiresAt?: string;
+  metadata?: Record<string, unknown>;
+}
+
 export interface InteractionResponse {
+  interactionId: string;
+  value: unknown;
+}
+
+export interface InteractionResponseInput {
+  kind?: "permission" | "question";
+  sessionId: string;
   interactionId: string;
   value: unknown;
 }

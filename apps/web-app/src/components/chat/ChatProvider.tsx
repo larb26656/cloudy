@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import type { PropsWithChildren } from "react";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import {
   useAbortGeneration,
@@ -30,12 +30,12 @@ type ChatContextValue = {
   directory: string;
   sessionId: string | null;
   effectiveAgent: string | null;
-  effectiveModel: ModelConfig | null;
+  effectiveModel: ModelInfo | null;
   setAgent: (agent: string | null) => void;
-  setModel: (model: ModelConfig | null) => void;
+  setModel: (model: ModelInfo | null) => void;
   sendMessage: (
     content: ChatInputContent,
-    model?: ModelConfig | null,
+    model?: ModelInfo | null,
     agent?: string | null,
   ) => Promise<void>;
   abortGeneration: () => void;
@@ -72,8 +72,8 @@ type ChatProviderProps = PropsWithChildren<{
    * Model chosen in this chat context. Same controlled/uncontrolled contract
    * as `agent` / `onAgentChange`.
    */
-  model?: ModelConfig | null;
-  onModelChange?: (model: ModelConfig | null) => void;
+  model?: ModelInfo | null;
+  onModelChange?: (model: ModelInfo | null) => void;
 }>;
 
 export function ChatProvider({
@@ -89,7 +89,7 @@ export function ChatProvider({
 }: ChatProviderProps) {
   const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
   const [localAgent, setLocalAgent] = useState<string | null>(null);
-  const [localModel, setLocalModel] = useState<ModelConfig | null>(null);
+  const [localModel, setLocalModel] = useState<ModelInfo | null>(null);
   const defaultAgent = useDefaultAgentStore((state) => state.defaultAgent);
   const defaultModel = useDefaultModelStore((state) => state.defaultModel);
   const isAgentControlled = onAgentChange !== undefined;
@@ -122,7 +122,7 @@ export function ChatProvider({
   const ensureSessionId = useCallback(
     async (
       agent?: string | null,
-      model?: ModelConfig | null,
+      model?: ModelInfo | null,
     ): Promise<string> => {
       if (sessionId) {
         return sessionId;
@@ -152,7 +152,7 @@ export function ChatProvider({
   );
 
   const setModel = useCallback(
-    (model: ModelConfig | null) => {
+    (model: ModelInfo | null) => {
       onModelChange?.(model);
       if (!isModelControlled) {
         setLocalModel(model);
@@ -164,7 +164,7 @@ export function ChatProvider({
   const sendMessage = useCallback(
     async (
       content: ChatInputContent,
-      model?: ModelConfig | null,
+      model?: ModelInfo | null,
       agent?: string | null,
     ) => {
       const text = content.text.trim();

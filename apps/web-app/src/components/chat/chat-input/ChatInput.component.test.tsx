@@ -117,9 +117,9 @@ const SESSION_ID = "ses_test";
 type RenderInputOptions = {
   initialValue?: string;
   initialAgent?: string | null;
-  initialModel?: import("@/types").ModelConfig | null;
+  initialModel?: import("@repo/contracts").ModelInfo | null;
   onAgentChange?: (agent: string | null) => void;
-  onModelChange?: (model: import("@/types").ModelConfig | null) => void;
+  onModelChange?: (model: import("@repo/contracts").ModelInfo | null) => void;
 };
 
 function renderInput(options: RenderInputOptions = {}) {

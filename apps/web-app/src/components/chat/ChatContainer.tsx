@@ -10,7 +10,7 @@ import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useSessionData } from "@/hooks/session/useSessionHumanApprove";
 import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
 import type { Workspace } from "@/lib/cloudy/workspaces";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
 import { ChatProvider, useChat } from "./ChatProvider";
@@ -23,8 +23,8 @@ interface ChatContainerProps {
   onSessionChange?: (sessionId: string | null) => void;
   agent?: string | null;
   onAgentChange?: (agent: string | null) => void;
-  model?: ModelConfig | null;
-  onModelChange?: (model: ModelConfig | null) => void;
+  model?: ModelInfo | null;
+  onModelChange?: (model: ModelInfo | null) => void;
 }
 
 export function ChatContainer({

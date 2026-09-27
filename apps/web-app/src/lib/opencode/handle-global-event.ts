@@ -1,5 +1,5 @@
 import { useQueryClient, type InfiniteData } from "@tanstack/react-query";
-import { toChatEvent } from "@repo/opencode";
+import type { ChatEvent } from "@repo/contracts";
 import { cloudyClient } from "@/lib/api";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { useSessionErrorStore } from "@/stores/sessionErrorStore";
@@ -12,214 +12,109 @@ import {
   vcsKeys,
 } from "@/lib/opencode";
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
-import type { GlobalEvent } from "@opencode-ai/sdk/v2";
-import type { Message } from "@/types";
-import {
-  toChatSession,
-  toSessionError,
-  toSessionRunStatus,
-} from "@/lib/opencode/adapter";
-import type { ChatSession, SessionRunStatus } from "@/types";
+import type { Message, SessionErrorInfo, SessionRunStatus } from "@/types";
 
-const KNOWN_EVENT_TYPES = new Set<string>([
-  "session.updated",
-  "session.idle",
-  "session.status",
-  "session.error",
-  "message.part.updated",
-  "message.part.delta",
-  "message.updated",
-  "question.asked",
-  "permission.asked",
-]);
-
-function postOpencodeNotification(
+function postNotification(
   type: "info" | "success" | "warning",
   title: string,
-  sessionID: string,
-  directory: string | undefined,
+  sessionId: string,
+  directory?: string,
 ) {
-  const metadata: Record<string, string> = { source: "opencode", sessionID };
-  if (directory) metadata.directory = directory;
   void cloudyClient.api.notifications
-    .$post({ json: { type, title, message: directory ?? "", metadata } })
-    .then((res) => {
-      if (!res.ok) {
-        console.debug("[notifications] create failed:", res.status);
-      }
+    .$post({
+      json: {
+        type,
+        title,
+        message: directory ?? "",
+        metadata: {
+          source: "opencode",
+          sessionID: sessionId,
+          ...(directory ? { directory } : {}),
+        },
+      },
     })
-    .catch((error) => {
-      console.debug("[notifications] create failed:", error);
-    });
+    .catch(() => undefined);
+}
+
+function statusFor(
+  event: Extract<ChatEvent, { type: "session.status" }>,
+): SessionRunStatus {
+  if (event.runStatus === "running") return { type: "busy" };
+  if (event.runStatus === "queued")
+    return { type: "retry", attempt: 0, message: "", next: 0 };
+  return { type: "idle" };
 }
 
 export function handleEvent(
-  event: GlobalEvent,
+  event: ChatEvent,
   queryClient: ReturnType<typeof useQueryClient>,
+  directory?: string,
 ) {
-  if (!KNOWN_EVENT_TYPES.has(event.payload.type)) return;
-
-  switch (event.payload.type) {
-    case "session.updated": {
-      const props = event.payload.properties;
-      console.debug("[useStreamingMessages] session.updated:", props.sessionID);
-      const session = toChatSession(props.info);
-
-      queryClient.setQueryData<ChatSession | null>(
-        sessionKeys.detail(props.sessionID),
-        session,
-      );
-
-      if (event.directory) {
-        queryClient.setQueryData<ChatSession[]>(
-          sessionKeys.infinite(event.directory),
-          (old) =>
-            (old ?? []).map((s) => (s.id === props.sessionID ? session : s)),
-        );
-      }
-      break;
-    }
-
-    case "session.idle": {
-      const props = event.payload.properties;
-      console.debug("[useStreamingMessages] session.idle:", props.sessionID);
-      const sessionId = props.sessionID;
-
-      const flushed = useStreamingMessagesStore
-        .getState()
-        .takeSessionStreaming(sessionId);
-
-      if (flushed.length > 0) {
-        queryClient.setQueryData<InfiniteData<Message[], string | undefined>>(
-          messageKeys.infinite(sessionId),
-          (old) => appendStreamingMessages(old, flushed),
-        );
-      }
-
-      useSessionErrorStore.getState().clearError(sessionId);
-
-      if (event.directory) {
-        queryClient.invalidateQueries({
-          queryKey: sessionKeys.infinite(event.directory),
-        });
-        queryClient.invalidateQueries({
-          queryKey: vcsKeys.diff(event.directory),
-        });
-        queryClient.invalidateQueries({
-          queryKey: fileKeys.root(),
-        });
-      }
-
-      postOpencodeNotification(
-        "success",
-        "Session completed",
-        sessionId,
-        event.directory,
-      );
-      break;
-    }
-
+  switch (event.type) {
     case "session.status": {
-      const props = event.payload.properties;
       queryClient.setQueryData<Record<string, SessionRunStatus>>(
-        sessionKeys.statuses(event.directory),
-        (old) => ({
-          ...(old ?? {}),
-          [props.sessionID]: toSessionRunStatus(props.status),
-        }),
+        sessionKeys.statuses(directory ?? ""),
+        (old) => ({ ...(old ?? {}), [event.sessionId]: statusFor(event) }),
       );
-
-      if (props.status.type === "busy" || props.status.type === "idle") {
-        useSessionErrorStore.getState().clearError(props.sessionID);
-      }
-      break;
-    }
-
-    case "session.error": {
-      const props = event.payload.properties;
-      const error = props.error;
-      console.debug("[useStreamingMessages] session.error:", props);
-      if (!error) break;
-      if (!props.sessionID) break;
-      useSessionErrorStore
-        .getState()
-        .setError(props.sessionID, toSessionError(error));
-      break;
-    }
-
-    case "message.updated": {
-      const props = event.payload.properties;
-      console.debug("[POC] message.updated:", props);
-
-      const summary = props.info.summary;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const isShouldSkip = summary && Array.isArray((summary as any).diffs);
-
-      if (isShouldSkip) {
-        return;
-      }
-
-      const chatEvent = toChatEvent(event);
-      if (chatEvent) {
-        useStreamingMessagesStore
+      if (event.runStatus === "completed" || event.status === "idle") {
+        const flushed = useStreamingMessagesStore
           .getState()
-          .applyEvent(props.info.sessionID, chatEvent);
+          .takeSessionStreaming(event.sessionId);
+        if (flushed.length > 0)
+          queryClient.setQueryData<InfiniteData<Message[], string | undefined>>(
+            messageKeys.infinite(event.sessionId),
+            (old) => appendStreamingMessages(old, flushed),
+          );
+        useSessionErrorStore.getState().clearError(event.sessionId);
+        if (directory) {
+          void queryClient.invalidateQueries({
+            queryKey: sessionKeys.infinite(directory),
+          });
+          void queryClient.invalidateQueries({
+            queryKey: vcsKeys.diff(directory),
+          });
+          void queryClient.invalidateQueries({ queryKey: fileKeys.root() });
+        }
+        postNotification(
+          "success",
+          "Session completed",
+          event.sessionId,
+          directory,
+        );
       }
       break;
     }
-
-    case "message.part.updated": {
-      const props = event.payload.properties;
-      console.debug("[POC] message.part.updated:", props);
-      const chatEvent = toChatEvent(event);
-      if (chatEvent) {
-        useStreamingMessagesStore
-          .getState()
-          .applyEvent(props.part.sessionID, chatEvent);
-      }
+    case "message.updated":
+    case "message.part.updated":
+    case "message.delta":
+      useStreamingMessagesStore.getState().applyEvent(event.sessionId, event);
       break;
-    }
-
-    case "message.part.delta": {
-      const props = event.payload.properties;
-      console.debug("[POC] message.part.delta:", props);
-      const chatEvent = toChatEvent(event);
-      if (chatEvent) {
-        useStreamingMessagesStore
-          .getState()
-          .applyEvent(props.sessionID, chatEvent);
-      }
-      break;
-    }
-
-    case "question.asked": {
-      const props = event.payload.properties;
-      console.debug("[useStreamingMessages] session.question.asked:", props);
-      queryClient.invalidateQueries({
-        queryKey: questionKeys.list(event.directory),
-      });
-      postOpencodeNotification(
-        "info",
-        "Question asked",
-        props.sessionID,
-        event.directory,
-      );
-      break;
-    }
-
-    case "permission.asked": {
-      const props = event.payload.properties;
-      console.debug("[useStreamingMessages] permission.asked:", props);
-      queryClient.invalidateQueries({
+    case "approval.requested":
+      void queryClient.invalidateQueries({
         queryKey: permissionKeys.request.root(),
       });
-      postOpencodeNotification(
+      postNotification(
         "warning",
         "Permission requested",
-        props.sessionID,
-        event.directory,
+        event.sessionId,
+        directory,
       );
       break;
-    }
+    case "question.requested":
+      void queryClient.invalidateQueries({
+        queryKey: questionKeys.list(directory ?? ""),
+      });
+      postNotification("info", "Question asked", event.sessionId, directory);
+      break;
+    case "run.failed":
+      useSessionErrorStore.getState().setError(event.sessionId, {
+        name: "SessionError",
+        message: event.message,
+        data:
+          typeof event.error === "object" && event.error !== null
+            ? (event.error as SessionErrorInfo["data"])
+            : {},
+      });
+      break;
   }
 }

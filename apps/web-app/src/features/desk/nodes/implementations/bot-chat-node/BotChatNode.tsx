@@ -2,7 +2,7 @@ import { BotChatContainer } from "@/components/chat/BotChatContainer";
 import { Center } from "@/components/layout";
 import { useSession, useUpdateSession, useWorkspace } from "@/hooks/queries";
 import { useTabStore } from "@/stores/tabStore";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 import { ErrorState } from "@repo/ui/components/error-state";
 import type { Node, NodeProps } from "@xyflow/react";
 import { useReactFlow } from "@xyflow/react";
@@ -15,7 +15,7 @@ type BotChatNodeProps = Node<
     workspaceId: string;
     sessionId: string | null;
     sessionName?: string;
-    model?: ModelConfig | null;
+    model?: ModelInfo | null;
   },
   "bot-chat"
 >;
@@ -45,7 +45,7 @@ export function BotChatNode({
   );
 
   const handleModelChange = useCallback(
-    (model: ModelConfig | null) => {
+    (model: ModelInfo | null) => {
       updateNodeData(id, { model });
     },
     [id, updateNodeData],

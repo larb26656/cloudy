@@ -10,6 +10,7 @@ import { createPtyController } from "./features/pty";
 import { createNotificationsController } from "./features/notifications";
 import { createWorkspacesController } from "./features/workspaces";
 import { createBrowserWorkspaceController } from "./features/browser-workspace";
+import { createProvidersController } from "./features/providers";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
 
@@ -56,6 +57,10 @@ export function createApp({
     .onError(domainErrorHandler)
     .get("/api/health", (c) => c.json({ status: "ok" }))
     .route("/oc", createProxyController(container.proxyService))
+    .route(
+      "/api/providers",
+      createProvidersController(container.providerRegistry),
+    )
     .route("/api/pty", createPtyController(container.ptyService))
     .route(
       "/api/workspaces",

@@ -1,24 +1,40 @@
-import {
-  CHAT_POLL_INTERVAL,
-  getErrorMessage,
-  getOcClient,
-  messageKeys,
-  sessionKeys,
-  type SdkError,
-} from "@/lib/opencode";
-import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import {
-  toChatSession,
-  toRecentChatSession,
-  toSessionRunStatus,
-} from "@/lib/opencode/adapter";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
-  ChatSession,
-  ModelConfig,
-  RecentChatSession,
-  SessionRunStatus,
-} from "@/types";
+  ChatSession as CoreChatSession,
+  ModelInfo,
+} from "@repo/contracts";
+import { providerApi } from "@/lib/cloudy/provider";
+import { CHAT_POLL_INTERVAL, messageKeys, sessionKeys } from "@/lib/opencode";
+import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
+import type { ChatSession, RecentChatSession, SessionRunStatus } from "@/types";
+
+function toChatSession(session: CoreChatSession): ChatSession {
+  return {
+    id: session.id,
+    title: session.title,
+    parentID: session.parentId,
+    directory: session.directory ?? "",
+    updatedAt: Date.parse(session.updatedAt),
+    cost: session.cost,
+    tokens: session.tokens,
+  };
+}
+
+function toSessionRunStatus(status: string): SessionRunStatus {
+  if (status === "running") return { type: "busy" };
+  if (status === "queued")
+    return { type: "retry", attempt: 0, message: "", next: 0 };
+  return { type: "idle" };
+}
+
+async function json<T>(response: Response): Promise<T> {
+  if (!response.ok) throw new Error(await response.text());
+  return response.json() as Promise<T>;
+}
+
+async function empty(response: Response): Promise<void> {
+  if (!response.ok) throw new Error(await response.text());
+}
 
 export function useSession({
   sessionId,
@@ -31,12 +47,11 @@ export function useSession({
     queryKey: sessionKeys.detail(sessionId ?? ""),
     queryFn: async (): Promise<ChatSession | null> => {
       if (!sessionId) return null;
-      const oc = getOcClient();
-      const result = await oc.session.get({ sessionID: sessionId, directory });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return toChatSession(result.data);
+      return toChatSession(
+        await json<CoreChatSession>(
+          await providerApi.getSession(sessionId, directory),
+        ),
+      );
     },
     enabled: !!sessionId,
     refetchInterval: CHAT_POLL_INTERVAL,
@@ -47,37 +62,26 @@ export function useSession({
 export function useSessions({ directory }: { directory: string }) {
   return useQuery({
     queryKey: sessionKeys.infinite(directory),
-    queryFn: async (): Promise<ChatSession[]> => {
-      const oc = getOcClient();
-      const result = await oc.session.list({ directory });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      const data = result.data;
-
-      return data.map(toChatSession);
-    },
+    queryFn: async (): Promise<ChatSession[]> =>
+      (
+        await json<CoreChatSession[]>(await providerApi.listSessions(directory))
+      ).map(toChatSession),
     enabled: !!directory,
   });
 }
 
-/**
- * Global recent sessions across all projects/workspaces, sorted by the
- * opencode server by most-recently-updated. Each item carries a `directory`
- * field that callers can map back to a workspace name. Omits the `directory`
- * parameter so the server returns sessions for every project.
- */
 export function useRecentSessions({ limit = 8 }: { limit?: number } = {}) {
   return useQuery({
     queryKey: sessionKeys.recent(limit),
-    queryFn: async (): Promise<RecentChatSession[]> => {
-      const oc = getOcClient();
-      const result = await oc.v2.session.list({ limit });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return (result.data.data ?? []).map(toRecentChatSession);
-    },
+    queryFn: async (): Promise<RecentChatSession[]> =>
+      (
+        await json<CoreChatSession[]>(
+          await providerApi.listSessions(undefined, limit),
+        )
+      ).map((session) => ({
+        ...toChatSession(session),
+        updatedAt: Date.parse(session.updatedAt),
+      })),
   });
 }
 
@@ -92,15 +96,11 @@ export function useSessionChildren({
     queryKey: sessionKeys.children(sessionId ?? ""),
     queryFn: async (): Promise<ChatSession[]> => {
       if (!sessionId) return [];
-      const oc = getOcClient();
-      const result = await oc.session.children({
-        sessionID: sessionId,
-        directory,
-      });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return (result.data ?? []).map(toChatSession);
+      return (
+        await json<CoreChatSession[]>(
+          await providerApi.children(sessionId, directory),
+        )
+      ).map(toChatSession);
     },
     enabled: !!sessionId,
     refetchInterval: CHAT_POLL_INTERVAL,
@@ -113,13 +113,11 @@ export function useSessionStatuses({ directory }: { directory?: string }) {
     queryKey: sessionKeys.statuses(directory ?? ""),
     queryFn: async (): Promise<Record<string, SessionRunStatus>> => {
       if (!directory) return {};
-      const oc = getOcClient();
-      const result = await oc.session.status({ directory });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
+      const statuses = await json<Record<string, string>>(
+        await providerApi.statuses(directory),
+      );
       return Object.fromEntries(
-        Object.entries(result.data ?? {}).map(([id, status]) => [
+        Object.entries(statuses).map(([id, status]) => [
           id,
           toSessionRunStatus(status),
         ]),
@@ -145,35 +143,24 @@ export function useCreateSession() {
       parentID?: string;
       title?: string;
       agent?: string;
-      model?: ModelConfig;
-    }): Promise<ChatSession> => {
-      const oc = getOcClient();
-      const result = await oc.session.create(
-        {
-          directory,
-          parentID,
-          title,
-          agent,
-          model: model
-            ? { id: model.modelID, providerID: model.providerID }
-            : undefined,
-        },
-        {
-          headers: {
-            "x-opencode-directory": directory,
-          },
-        },
-      );
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return toChatSession(result.data);
-    },
+      model?: ModelInfo;
+    }): Promise<ChatSession> =>
+      toChatSession(
+        await json<CoreChatSession>(
+          await providerApi.createSession({
+            directory,
+            parentId: parentID,
+            title,
+            agentId: agent,
+            model: model
+              ? { modelId: model.modelId, providerId: model.providerId }
+              : undefined,
+          }),
+        ),
+      ),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: sessionKeys.root(),
-      });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
+      void queryClient.invalidateQueries({
         queryKey: sessionKeys.infinite(data.directory),
       });
     },
@@ -193,27 +180,22 @@ export function useUpdateSession() {
       directory?: string;
       title?: string;
       metadata?: Record<string, unknown>;
-    }): Promise<ChatSession> => {
-      const oc = getOcClient();
-      const result = await oc.session.update({
-        sessionID,
-        directory,
-        title,
-        metadata,
-      });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return toChatSession(result.data);
-    },
+    }): Promise<ChatSession> =>
+      toChatSession(
+        await json<CoreChatSession>(
+          await providerApi.updateSession(sessionID, {
+            directory,
+            title,
+            metadata,
+          }),
+        ),
+      ),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({
-        queryKey: sessionKeys.root(),
-      });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
+      void queryClient.invalidateQueries({
         queryKey: sessionKeys.infinite(data.directory),
       });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: sessionKeys.detail(data.id),
       });
     },
@@ -230,25 +212,14 @@ export function useDeleteSession() {
       sessionID: string;
       directory?: string;
     }): Promise<void> => {
-      const oc = getOcClient();
-      const result = await oc.session.delete({
-        sessionID,
-        directory,
-      });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
+      await empty(await providerApi.deleteSession(sessionID, directory));
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: sessionKeys.root(),
-      });
-
-      if (variables.directory) {
-        queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
+      if (variables.directory)
+        void queryClient.invalidateQueries({
           queryKey: sessionKeys.infinite(variables.directory),
         });
-      }
     },
   });
 }
@@ -264,31 +235,26 @@ export function useForkSession() {
       sessionID: string;
       directory?: string;
       messageID?: string;
-    }): Promise<ChatSession> => {
-      const oc = getOcClient();
-      const result = await oc.session.fork({
-        sessionID,
-        directory,
-        messageID,
-      });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return toChatSession(result.data);
-    },
+    }): Promise<ChatSession> =>
+      toChatSession(
+        await json<CoreChatSession>(
+          await providerApi.fork(sessionID, {
+            directory,
+            messageId: messageID,
+          }),
+        ),
+      ),
     onSuccess: (data) => {
       queryClient.setQueryData<Record<string, SessionRunStatus>>(
         sessionKeys.statuses(data.directory),
         (old) => ({ ...(old ?? {}), [data.id]: { type: "idle" } }),
       );
       useStreamingMessagesStore.getState().takeSessionStreaming(data.id);
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         queryKey: messageKeys.infinite(data.id),
       });
-      queryClient.invalidateQueries({
-        queryKey: sessionKeys.root(),
-      });
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
+      void queryClient.invalidateQueries({
         queryKey: sessionKeys.infinite(data.directory),
       });
     },

@@ -33,5 +33,14 @@ export interface ChatSession {
   agent?: AgentReference;
   createdAt: string;
   updatedAt: string;
+  directory?: string;
+  parentId?: string;
+  cost?: number;
+  tokens?: {
+    input: number;
+    output: number;
+    reasoning: number;
+    cache: { read: number; write: number };
+  };
   metadata?: Record<string, unknown>;
 }

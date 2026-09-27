@@ -1,6 +1,6 @@
 import { MessageCircle } from "lucide-react";
 import { useState } from "react";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 import type { TabTemplate, TabTitleProps } from "../../template";
 import { useSession } from "@/hooks/queries/useSessions";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
@@ -19,7 +19,7 @@ export type ChatData = {
   /** Agent chosen in this chat tab. Null/undefined = use global default. */
   agent?: string | null;
   /** Model chosen in this chat tab. Null/undefined = use global default. */
-  model?: ModelConfig | null;
+  model?: ModelInfo | null;
 };
 
 function ChatTabTitle({ data }: TabTitleProps<ChatData>) {

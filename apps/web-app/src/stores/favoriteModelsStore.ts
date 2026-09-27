@@ -1,39 +1,38 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
+import { toModelInfo } from "@/lib/models";
 
 type FavoriteModelsStore = {
-  favorites: ModelConfig[];
-  isFavorite: (providerID: string, modelID: string) => boolean;
-  toggleFavorite: (model: ModelConfig) => void;
-  removeFavorite: (providerID: string, modelID: string) => void;
+  favorites: ModelInfo[];
+  isFavorite: (providerId: string, modelId: string) => boolean;
+  toggleFavorite: (model: ModelInfo) => void;
+  removeFavorite: (providerId: string, modelId: string) => void;
 };
-
-const identity = <T>(value: T): T => value;
 
 export const useFavoriteModelsStore = create<FavoriteModelsStore>()(
   persist(
     (set, get) => ({
       favorites: [],
 
-      isFavorite: (providerID, modelID) =>
+      isFavorite: (providerId, modelId) =>
         get().favorites.some(
-          (m) => m.providerID === providerID && m.modelID === modelID,
+          (m) => m.providerId === providerId && m.modelId === modelId,
         ),
 
       toggleFavorite: (model) =>
         set((state) => {
           const exists = state.favorites.some(
             (m) =>
-              m.providerID === model.providerID && m.modelID === model.modelID,
+              m.providerId === model.providerId && m.modelId === model.modelId,
           );
           if (exists) {
             return {
               favorites: state.favorites.filter(
                 (m) =>
                   !(
-                    m.providerID === model.providerID &&
-                    m.modelID === model.modelID
+                    m.providerId === model.providerId &&
+                    m.modelId === model.modelId
                   ),
               ),
             };
@@ -41,17 +40,23 @@ export const useFavoriteModelsStore = create<FavoriteModelsStore>()(
           return { favorites: [model, ...state.favorites] };
         }),
 
-      removeFavorite: (providerID, modelID) =>
+      removeFavorite: (providerId, modelId) =>
         set((state) => ({
           favorites: state.favorites.filter(
-            (m) => !(m.providerID === providerID && m.modelID === modelID),
+            (m) => !(m.providerId === providerId && m.modelId === modelId),
           ),
         })),
     }),
     {
       name: "favorite-models",
-      version: 1,
-      migrate: identity,
+      version: 2,
+      migrate: (persisted) => {
+        const state = persisted as { favorites?: unknown[] } | null;
+        const favorites = (state?.favorites ?? [])
+          .map(toModelInfo)
+          .filter((m): m is ModelInfo => m !== null);
+        return { favorites } as unknown as FavoriteModelsStore;
+      },
     },
   ),
 );

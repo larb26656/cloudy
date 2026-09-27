@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { arrayMove } from "@dnd-kit/sortable";
+import { toModelInfo } from "@/lib/models";
 import { generateId } from "@/lib/id";
 import {
   tabTypeMap,
@@ -112,7 +113,7 @@ export const useTabStore = create<TabStore>()(
     }),
     {
       name: "tabs",
-      version: 10,
+      version: 11,
       migrate: (persistedState, version) => {
         // Persisted shapes may predate the current `Tab` union, so read them
         // through a looser type. Old versions stored `type: "session"` which
@@ -254,6 +255,21 @@ export const useTabStore = create<TabStore>()(
 
         if (version < 10) {
           tabs = migrateBotTabType(tabs);
+        }
+
+        // v10 -> v11: persisted per-tab model selections moved from the
+        // legacy `providerID`/`modelID` shape to the canonical `ModelInfo`
+        // contract (`providerId`/`modelId`). Entries without a usable
+        // identity fall back to null (the global default).
+        if (version < 11) {
+          tabs = tabs.map((t) => {
+            if (t.type !== "chat" && t.type !== "bot-chat") return t;
+            const data = t.data as { model?: unknown } | null;
+            return {
+              ...t,
+              data: { ...data, model: toModelInfo(data?.model) },
+            };
+          });
         }
 
         // v0 -> v1: drop stale "files" tabs missing a workspaceId.

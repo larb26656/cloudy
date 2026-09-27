@@ -1,25 +1,34 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  CHAT_POLL_INTERVAL,
-  getOcClient,
-  getErrorMessage,
-  questionKeys,
-  type SdkError,
-} from "@/lib/opencode";
-import { toQuestionAnswer, toQuestionRequest } from "@/lib/opencode/adapter";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { ProviderQuestionRequest } from "@repo/contracts";
+import { providerApi } from "@/lib/cloudy/provider";
+import { CHAT_POLL_INTERVAL, questionKeys } from "@/lib/opencode";
 import type { QuestionAnswer, QuestionRequest } from "@/types";
+
+async function json<T>(response: Response): Promise<T> {
+  if (!response.ok) throw new Error(await response.text());
+  return response.json() as Promise<T>;
+}
+
+function toQuestion(request: ProviderQuestionRequest): QuestionRequest {
+  return {
+    id: request.id,
+    sessionID: request.sessionId,
+    questions: request.questions.map((question) => ({
+      ...question,
+      multiple: question.multiple ?? false,
+    })),
+  };
+}
 
 export function useQuestions({ directory }: { directory: string }) {
   return useQuery({
     queryKey: questionKeys.list(directory),
-    queryFn: async (): Promise<QuestionRequest[]> => {
-      const oc = getOcClient();
-      const result = await oc.question.list({ directory });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return (result.data ?? []).map(toQuestionRequest);
-    },
+    queryFn: async (): Promise<QuestionRequest[]> =>
+      (
+        await json<ProviderQuestionRequest[]>(
+          await providerApi.questions(directory),
+        )
+      ).map(toQuestion),
     enabled: !!directory,
     refetchInterval: CHAT_POLL_INTERVAL,
     refetchIntervalInBackground: false,
@@ -29,14 +38,12 @@ export function useQuestions({ directory }: { directory: string }) {
 export function useSessionQuestions({ sessionID }: { sessionID: string }) {
   return useQuery({
     queryKey: questionKeys.list(sessionID),
-    queryFn: async (): Promise<QuestionRequest[]> => {
-      const oc = getOcClient();
-      const result = await oc.v2.session.question.list({ sessionID });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return (result.data.data ?? []).map(toQuestionRequest);
-    },
+    queryFn: async (): Promise<QuestionRequest[]> =>
+      (
+        await json<ProviderQuestionRequest[]>(
+          await providerApi.questions(undefined, sessionID),
+        )
+      ).map(toQuestion),
     enabled: !!sessionID,
   });
 }
@@ -53,21 +60,19 @@ export function useReplyQuestion() {
       directory: string;
       answers: Array<QuestionAnswer>;
     }): Promise<void> => {
-      const oc = getOcClient();
-      const result = await oc.question.reply({
-        requestID,
-        answers: answers.map(toQuestionAnswer),
-        directory,
+      void directory;
+      const response = await providerApi.interaction({
+        kind: "question",
+        sessionId: "",
+        interactionId: requestID,
+        value: answers,
       });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
+      if (!response.ok) throw new Error(await response.text());
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+    onSuccess: (_, variables) =>
+      void queryClient.invalidateQueries({
         queryKey: questionKeys.list(variables.directory),
-      });
-    },
+      }),
   });
 }
 
@@ -81,19 +86,17 @@ export function useRejectQuestion() {
       requestID: string;
       directory: string;
     }): Promise<void> => {
-      const oc = getOcClient();
-      const result = await oc.question.reject({
-        requestID,
-        directory,
+      void directory;
+      const response = await providerApi.interaction({
+        kind: "question",
+        interactionId: requestID,
+        value: { reject: true },
       });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
+      if (!response.ok) throw new Error(await response.text());
     },
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({
+    onSuccess: (_, variables) =>
+      void queryClient.invalidateQueries({
         queryKey: questionKeys.list(variables.directory),
-      });
-    },
+      }),
   });
 }

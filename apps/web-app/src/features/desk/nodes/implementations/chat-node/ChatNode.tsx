@@ -8,7 +8,7 @@ import { ExternalLink } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { Center } from "@/components/layout";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 
 type ChatNodeProps = Node<
   {
@@ -18,7 +18,7 @@ type ChatNodeProps = Node<
     sessionId: string | null;
     sessionName?: string;
     agent?: string | null;
-    model?: ModelConfig | null;
+    model?: ModelInfo | null;
   },
   "chat"
 >;
@@ -48,7 +48,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   );
 
   const handleModelChange = useCallback(
-    (model: ModelConfig | null) => {
+    (model: ModelInfo | null) => {
       updateNodeData(id, { model });
     },
     [id, updateNodeData],

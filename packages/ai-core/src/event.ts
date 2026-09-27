@@ -1,4 +1,4 @@
-import type { ApprovalRequest, QuestionRequest } from "./interaction";
+import type { PermissionRequest, ProviderQuestionRequest } from "./interaction";
 import type { ChatMessage, MessagePart } from "./message";
 import type { RunStatus, SessionStatus } from "./session";
 
@@ -33,13 +33,13 @@ export interface MessageDeltaEvent {
 export interface ApprovalRequestedEvent {
   type: "approval.requested";
   sessionId: string;
-  request: ApprovalRequest;
+  request: PermissionRequest;
 }
 
 export interface QuestionRequestedEvent {
   type: "question.requested";
   sessionId: string;
-  request: QuestionRequest;
+  request: ProviderQuestionRequest;
 }
 
 export interface RunFailedEvent {

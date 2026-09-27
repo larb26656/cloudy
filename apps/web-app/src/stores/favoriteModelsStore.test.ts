@@ -1,29 +1,23 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { useFavoriteModelsStore } from "./favoriteModelsStore";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 
-const gpt: ModelConfig = {
-  providerID: "openai",
-  modelID: "gpt-5",
+const gpt: ModelInfo = {
+  providerId: "openai",
+  modelId: "gpt-5",
   name: "GPT-5",
-  supportsStreaming: true,
-  supportsTools: true,
 };
 
-const sonnet: ModelConfig = {
-  providerID: "anthropic",
-  modelID: "claude-sonnet",
+const sonnet: ModelInfo = {
+  providerId: "anthropic",
+  modelId: "claude-sonnet",
   name: "Claude Sonnet",
-  supportsStreaming: true,
-  supportsTools: true,
 };
 
-const opus: ModelConfig = {
-  providerID: "anthropic",
-  modelID: "claude-opus",
+const opus: ModelInfo = {
+  providerId: "anthropic",
+  modelId: "claude-opus",
   name: "Claude Opus",
-  supportsStreaming: true,
-  supportsTools: true,
 };
 
 describe("favoriteModelsStore", () => {
@@ -72,11 +66,11 @@ describe("favoriteModelsStore", () => {
     ).toBe(false);
   });
 
-  it("toggleFavorite uses the latest ModelConfig payload on re-add", () => {
+  it("toggleFavorite uses the latest ModelInfo payload on re-add", () => {
     const { toggleFavorite } = useFavoriteModelsStore.getState();
     toggleFavorite(gpt);
 
-    const updated: ModelConfig = { ...gpt, description: "newer description" };
+    const updated: ModelInfo = { ...gpt, description: "newer description" };
     toggleFavorite(updated);
     toggleFavorite(updated);
 
@@ -86,7 +80,7 @@ describe("favoriteModelsStore", () => {
     );
   });
 
-  it("removeFavorite removes by providerID+modelID only", () => {
+  it("removeFavorite removes by providerId+modelId only", () => {
     const { toggleFavorite, removeFavorite } =
       useFavoriteModelsStore.getState();
     toggleFavorite(gpt);
@@ -110,9 +104,9 @@ describe("favoriteModelsStore", () => {
     expect(useFavoriteModelsStore.getState().favorites).toEqual([gpt]);
   });
 
-  it("isFavorite differentiates by providerID", () => {
+  it("isFavorite differentiates by providerId", () => {
     const { toggleFavorite, isFavorite } = useFavoriteModelsStore.getState();
-    const localCopy: ModelConfig = { ...gpt, providerID: "local" };
+    const localCopy: ModelInfo = { ...gpt, providerId: "local" };
     toggleFavorite(localCopy);
 
     expect(isFavorite("local", "gpt-5")).toBe(true);

@@ -5,7 +5,7 @@ import type {
   ModelSelectorModel,
 } from "@repo/ui/components/model-selector";
 import { ModelSelector as PureModelSelector } from "@repo/ui/components/model-selector";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 import { useModels } from "@/hooks/queries/useModels";
 import { useFavoriteModelsStore } from "@/stores/favoriteModelsStore";
 import { useDeviceType } from "@/hooks/useDeviceType";
@@ -28,7 +28,22 @@ interface ModelSelectorProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-type SelectorModel = ModelConfig & ModelSelectorModel;
+type SelectorModel = ModelInfo & ModelSelectorModel;
+
+function toSelectorModel(model: ModelInfo): SelectorModel {
+  return { ...model, providerID: model.providerId, modelID: model.modelId };
+}
+
+function fromSelectorModel(model: SelectorModel): ModelInfo {
+  return {
+    providerId: model.providerId,
+    modelId: model.modelId,
+    name: model.name,
+    description: model.description,
+    capabilities: model.capabilities,
+    metadata: model.metadata,
+  };
+}
 
 export function ModelSelector({ open, onOpenChange }: ModelSelectorProps) {
   const [internalOpen, setInternalOpen] = useState(false);
@@ -51,29 +66,31 @@ export function ModelSelector({ open, onOpenChange }: ModelSelectorProps) {
           {providerNames[provider.id] ?? provider.name}
         </>
       ),
-      models: provider.models,
+      models: (provider.models ?? []).map(toSelectorModel),
     }),
   );
   const models = groups.flatMap((group) => group.models);
   const availableModelKeys = new Set(
-    models.map((model) => `${model.providerID}::${model.modelID}`),
+    models.map((model) => `${model.providerId}::${model.modelId}`),
   );
-  const liveFavorites = favorites.filter((model) =>
-    availableModelKeys.has(`${model.providerID}::${model.modelID}`),
-  );
+  const liveFavorites = favorites
+    .filter((model) =>
+      availableModelKeys.has(`${model.providerId}::${model.modelId}`),
+    )
+    .map(toSelectorModel);
 
   return (
     <PureModelSelector
       groups={groups}
-      value={effectiveModel}
+      value={effectiveModel ? toSelectorModel(effectiveModel) : null}
       favorites={liveFavorites}
       open={isOpen}
       onOpenChange={setIsOpen}
       isMobile={isMobile}
       isLoading={isLoading}
       error={error instanceof Error ? error.message : null}
-      onChange={setModel}
-      onToggleFavorite={toggleFavorite}
+      onChange={(model) => setModel(model ? fromSelectorModel(model) : null)}
+      onToggleFavorite={(model) => toggleFavorite(fromSelectorModel(model))}
     />
   );
 }

@@ -27,7 +27,7 @@ export function AgentModelSettings() {
     (state) => state.setDefaultModel,
   );
   const defaultModelValue = defaultModel
-    ? `${defaultModel.providerID}:${defaultModel.modelID}`
+    ? `${defaultModel.providerId}:${defaultModel.modelId}`
     : DEFAULT_VALUE;
 
   return (
@@ -87,10 +87,10 @@ export function AgentModelSettings() {
               return;
             }
             const model = providers
-              .flatMap((provider) => provider.models)
+              .flatMap((provider) => provider.models ?? [])
               .find(
                 (candidate) =>
-                  `${candidate.providerID}:${candidate.modelID}` === value,
+                  `${candidate.providerId}:${candidate.modelId}` === value,
               );
             if (model) setDefaultModel(model);
           }}
@@ -103,10 +103,10 @@ export function AgentModelSettings() {
             {providers.map((provider) => (
               <SelectGroup key={provider.id}>
                 <SelectLabel>{provider.name}</SelectLabel>
-                {provider.models.map((model) => (
+                {(provider.models ?? []).map((model) => (
                   <SelectItem
-                    key={`${model.providerID}:${model.modelID}`}
-                    value={`${model.providerID}:${model.modelID}`}
+                    key={`${model.providerId}:${model.modelId}`}
+                    value={`${model.providerId}:${model.modelId}`}
                   >
                     {model.name}
                   </SelectItem>

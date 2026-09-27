@@ -1,19 +1,21 @@
+import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import type { ChatMessage, ModelInfo } from "@repo/contracts";
+import { providerApi } from "@/lib/cloudy/provider";
 import {
   CHAT_POLL_INTERVAL,
-  getErrorMessage,
-  getOcClient,
   messageKeys,
   type ChatInputContent,
-  type SdkError,
   buildPromptParts,
 } from "@/lib/opencode";
 import { encodeCursor } from "@/lib/opencode/cursor";
-import type { Message, ModelConfig } from "@/types";
-import { toChatMessage } from "@repo/opencode";
-import type { SessionRunStatus } from "@/types";
-import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
+import type { Message, SessionRunStatus } from "@/types";
 
 const MESSAGES_LIMIT = 50;
+
+async function json<T>(response: Response): Promise<T> {
+  if (!response.ok) throw new Error(await response.text());
+  return response.json() as Promise<T>;
+}
 
 export function useMessages({
   sessionId,
@@ -25,32 +27,22 @@ export function useMessages({
   return useInfiniteQuery({
     queryKey: messageKeys.infinite(sessionId),
     queryFn: async ({ pageParam }): Promise<Message[]> => {
-      const oc = getOcClient();
-      const result = await oc.session.messages({
-        sessionID: sessionId,
-        limit: MESSAGES_LIMIT,
-        before: pageParam,
-      });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return result.data.map(({ info, parts }) => toChatMessage(info, parts));
+      const result = await json<{ messages: ChatMessage[] }>(
+        await providerApi.messages(sessionId, MESSAGES_LIMIT, pageParam),
+      );
+      return result.messages;
     },
-    initialPageParam: undefined,
+    initialPageParam: undefined as string | undefined,
     getPreviousPageParam: undefined,
     getNextPageParam: (message: Message[]) => {
       if (message.length === 0) return undefined;
       const firstMsg = message[0];
-
       return encodeCursor({
         id: firstMsg.id,
         time: Date.parse(firstMsg.createdAt),
       });
     },
-    select: (data) => ({
-      ...data,
-      pages: [...data.pages].reverse(),
-    }),
+    select: (data) => ({ ...data, pages: [...data.pages].reverse() }),
     enabled: !!sessionId,
     refetchInterval:
       statusType === "busy" || statusType === "retry"
@@ -74,26 +66,25 @@ export function useSendMessage() {
       sessionId: string;
       content: ChatInputContent;
       directory: string;
-      model?: ModelConfig | null;
+      model?: ModelInfo | null;
       agent?: string | null;
-    }) => {
-      const oc = getOcClient();
-      const parts = buildPromptParts(directory, content);
-
-      const result = await oc.session.promptAsync({
-        sessionID: sessionId,
-        parts,
-        directory,
-        model: model
-          ? { providerID: model.providerID, modelID: model.modelID }
-          : undefined,
-        agent: agent ?? undefined,
-      });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return result;
-    },
+    }) =>
+      json(
+        await providerApi.sendMessage({
+          sessionId,
+          directory,
+          content: content.text,
+          attachments: content.attachments.map((attachment) => ({
+            name: attachment.filename,
+            mimeType: attachment.mime,
+            data: attachment.dataUrl,
+          })),
+          model: model
+            ? { providerId: model.providerId, modelId: model.modelId }
+            : undefined,
+          agentId: agent ?? undefined,
+        }),
+      ),
   });
 }
 
@@ -106,15 +97,8 @@ export function useAbortGeneration() {
       sessionId: string;
       directory: string;
     }) => {
-      const oc = getOcClient();
-      const result = await oc.session.abort({
-        sessionID: sessionId,
-        directory,
-      });
-      if (result.error) {
-        throw new Error(getErrorMessage(result.error as SdkError));
-      }
-      return result;
+      const response = await providerApi.abort(sessionId, directory);
+      if (!response.ok) throw new Error(await response.text());
     },
   });
 }

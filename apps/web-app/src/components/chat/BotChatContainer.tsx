@@ -11,15 +11,15 @@ import { useSessionData } from "@/hooks/session/useSessionHumanApprove";
 import { ChatProvider, useChat } from "./ChatProvider";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import type { Workspace } from "@/lib/cloudy/workspaces";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 
 interface BotChatContainerProps {
   workspace?: Workspace | null;
   directory: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
-  model?: ModelConfig | null;
-  onModelChange?: (model: ModelConfig | null) => void;
+  model?: ModelInfo | null;
+  onModelChange?: (model: ModelInfo | null) => void;
   placeholder?: string;
 }
 

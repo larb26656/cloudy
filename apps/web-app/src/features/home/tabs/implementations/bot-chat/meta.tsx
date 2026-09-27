@@ -1,6 +1,6 @@
 import { Bot } from "lucide-react";
 import { useState } from "react";
-import type { ModelConfig } from "@/types";
+import type { ModelInfo } from "@repo/contracts";
 import type { TabTemplate, TabTitleProps } from "../../template";
 import { useSession } from "@/hooks/queries/useSessions";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
@@ -13,7 +13,7 @@ export type BotChatData = {
   workspaceId: string;
   directory: string;
   sessionName: string;
-  model?: ModelConfig | null;
+  model?: ModelInfo | null;
 };
 
 function BotChatTabTitle({ data }: TabTitleProps<BotChatData>) {
