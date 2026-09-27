@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Home, Layers, Plus } from "lucide-react";
+import { Home, Layers } from "lucide-react";
 import {
   DndContext,
   DragOverlay,
@@ -18,13 +18,8 @@ import {
 } from "@dnd-kit/sortable";
 import { useTabStore, type Tab } from "@/stores/tabStore";
 import { NotificationBell } from "@/components/notification";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@repo/ui/components/dropdown-menu";
 import { tabTemplates } from "../tabs/template";
+import { AddTabMenu } from "./AddTabMenu";
 import { TabBarItem } from "./TabBarItem";
 import { SortableTab } from "./SortableTab";
 import { TabItemShell } from "./TabItemShell";
@@ -149,31 +144,7 @@ export function DesktopTabBar({ onOpenAllTabs, onAddTab }: DesktopTabBarProps) {
 
         <NotificationBell />
 
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-                <Plus size={16} />
-              </button>
-            }
-          />
-          <DropdownMenuContent align="end">
-            {tabTemplates.map((template) => {
-              const Icon = template.icon;
-              return (
-                <DropdownMenuItem
-                  key={template.type}
-                  onClick={() => onAddTab(template)}
-                >
-                  <span className="mr-2 [&>svg]:size-4">
-                    <Icon />
-                  </span>
-                  {template.label}
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <AddTabMenu onAddTab={onAddTab} />
       </div>
 
       <DragOverlay dropAnimation={null}>

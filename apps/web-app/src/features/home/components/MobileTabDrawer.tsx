@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { GripVertical, Home, Plus, X } from "lucide-react";
+import { GripVertical, Home, X } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import {
   DndContext,
@@ -22,12 +22,6 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@repo/ui/components/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-} from "@repo/ui/components/dropdown-menu";
 import { cn } from "@repo/ui/lib/utils";
 import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
 import {
@@ -36,6 +30,7 @@ import {
   tabTypeMap,
   tabTemplates,
 } from "../tabs/template";
+import { AddTabMenu } from "./AddTabMenu";
 
 interface MobileTabDrawerProps {
   open: boolean;
@@ -81,32 +76,7 @@ export function MobileTabDrawer({
           <SheetTitle>
             Tabs{tabs.length > 0 ? ` (${tabs.length})` : ""}
           </SheetTitle>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <button className="flex items-center gap-1 rounded-md px-2 py-1 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
-                  <Plus size={16} />
-                  <span>New</span>
-                </button>
-              }
-            />
-            <DropdownMenuContent align="start">
-              {tabTemplates.map((template) => {
-                const Icon = template.icon;
-                return (
-                  <DropdownMenuItem
-                    key={template.type}
-                    onClick={() => onAddTab(template)}
-                  >
-                    <span className="mr-2 [&>svg]:size-4">
-                      <Icon />
-                    </span>
-                    {template.label}
-                  </DropdownMenuItem>
-                );
-              })}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <AddTabMenu onAddTab={onAddTab} align="start" showLabel />
         </SheetHeader>
 
         <DndContext
