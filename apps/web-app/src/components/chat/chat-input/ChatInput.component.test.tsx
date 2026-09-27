@@ -46,7 +46,9 @@ vi.mock("@/hooks/queries/useCommand", () => ({
 
 vi.mock("@/hooks/queries/useSessions", () => ({
   useCreateSession: () => ({ mutateAsync: mocks.createSession }),
-  useSessionStatus: () => ({ data: undefined }),
+  useSessionStatus: ({ sessionId }: { sessionId: string | null }) => ({
+    data: sessionId ? mocks.sessionStatuses[sessionId] : undefined,
+  }),
 }));
 
 vi.mock("@/lib/commands", () => ({
