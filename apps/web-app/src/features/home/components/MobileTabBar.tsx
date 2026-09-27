@@ -1,4 +1,6 @@
 import { Menu } from "lucide-react";
+import { Settings } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { useTabStore } from "@/stores/tabStore";
 import { AppBar } from "@/components/layout";
 import { TabTitle, tabTypeMap } from "../tabs/template";
@@ -35,7 +37,18 @@ export function MobileTabBar({ onOpenDrawer }: MobileTabBarProps) {
         {activeTab ? <TabTitle tab={activeTab} /> : "Home"}
       </AppBar.Title>
       <AppBar.Actions>
-        {isHome ? <NotificationBell /> : null}
+        {isHome ? (
+          <>
+            <NotificationBell />
+            <Link
+              to="/settings"
+              aria-label="Settings"
+              className="flex items-center px-3 py-2 text-muted-foreground transition-colors hover:text-foreground"
+            >
+              <Settings data-icon className="size-4" />
+            </Link>
+          </>
+        ) : null}
         {activeTab && <>{Actions && <Actions tab={activeTab} />}</>}
       </AppBar.Actions>
     </AppBar>

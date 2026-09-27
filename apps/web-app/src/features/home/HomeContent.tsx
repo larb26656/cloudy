@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { Link } from "@tanstack/react-router";
-import { Settings } from "lucide-react";
 import { useRecentSessions } from "@/hooks/queries";
 import { useTabStore } from "@/stores/tabStore";
 import type { Workspace } from "@/lib/cloudy/workspaces";
+import { ChatCreateDialog } from "./tabs/implementations/chat/ChatCreateDialog";
 import { HomeGreeting } from "./components/HomeGreeting";
 import { RecentDesksSection } from "./components/RecentDesksSection";
 import { RecentSessionsSection } from "./components/RecentSessionsSection";
@@ -22,6 +21,7 @@ export function HomeContent() {
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
     null,
   );
+  const [createChatOpen, setCreateChatOpen] = useState(false);
 
   // The scroll container lives here so the component that owns the
   // selectedWorkspace state also owns the scroll position. On open we save
@@ -58,28 +58,23 @@ export function HomeContent() {
         <HomeGreeting
           desksToday={desksToday}
           recentSessions={recentSessions.length}
+          onNewChat={() => setCreateChatOpen(true)}
         />
         <RecentDesksSection />
         <OpenTerminalsSection />
         <RecentSessionsSection />
         <WorkspacesSection onSelectWorkspace={setSelectedWorkspace} />
+        <ChatCreateDialog
+          open={createChatOpen}
+          onOpenChange={setCreateChatOpen}
+        />
       </>
     );
   }
 
   return (
     <div className="h-full overflow-y-auto" ref={scrollRef}>
-      <div className="mx-auto w-full max-w-3xl px-6 py-10">
-        <div className="mb-4 flex justify-end">
-          <Link
-            to="/settings"
-            className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <Settings size={16} />
-          </Link>
-        </div>
-        {content}
-      </div>
+      <div className="mx-auto w-full max-w-3xl px-6 py-10">{content}</div>
     </div>
   );
 }

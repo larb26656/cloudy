@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Home, Layers } from "lucide-react";
+import { Home, Layers, Settings } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   DndContext,
   DragOverlay,
@@ -143,6 +144,14 @@ export function DesktopTabBar({ onOpenAllTabs, onAddTab }: DesktopTabBarProps) {
         )}
 
         <NotificationBell />
+
+        <Link
+          to="/settings"
+          aria-label="Settings"
+          className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <Settings data-icon className="size-4" />
+        </Link>
 
         <AddTabMenu onAddTab={onAddTab} />
       </div>

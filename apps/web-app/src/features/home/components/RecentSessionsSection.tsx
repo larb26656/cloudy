@@ -64,7 +64,7 @@ export function RecentSessionsSection() {
 
   return (
     <section className="mb-9">
-      <h2 className="mb-3.5 text-sm font-bold">Recent sessions</h2>
+      <h2 className="mb-3.5 text-sm font-bold">Continue working</h2>
       {content}
     </section>
   );

@@ -33,6 +33,8 @@ export function OpenTerminalsSection() {
     setPendingStop(null);
   };
 
+  if (!isLoading && !error && sessions.length === 0) return null;
+
   let content;
   if (isLoading) {
     content = (
