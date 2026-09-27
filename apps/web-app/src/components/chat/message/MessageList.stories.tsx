@@ -326,9 +326,7 @@ function StreamingSimulator() {
 
   const setStatus = useCallback(
     (status: SessionStatus) => {
-      qc.setQueryData(sessionKeys.statuses(DIRECTORY), {
-        [SESSION_ID]: status,
-      });
+      qc.setQueryData(sessionKeys.status(SESSION_ID), status);
     },
     [qc],
   );

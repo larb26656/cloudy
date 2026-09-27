@@ -15,7 +15,7 @@ import {
 import { useExecuteCommand } from "@/hooks/queries/useCommand";
 import {
   useCreateSession,
-  useSessionStatuses,
+  useSessionStatus,
 } from "@/hooks/queries/useSessions";
 import type { ChatInputContent } from "@/lib/opencode";
 import { isCommand, parseCommand } from "@/lib/command";
@@ -103,12 +103,10 @@ export function ChatProvider({
   const { mutateAsync: createSessionAsync } = useCreateSession();
   const systemCommands = useSystemCommands();
 
-  const { data: sessionStatuses } = useSessionStatuses({ directory });
+  const { data: sessionStatus } = useSessionStatus({ sessionId });
   const isStreaming = useMemo(() => {
-    if (!sessionId) return false;
-    const status = sessionStatuses?.[sessionId];
-    return status?.type === "busy" || status?.type === "retry";
-  }, [sessionStatuses, sessionId]);
+    return sessionStatus?.type === "busy" || sessionStatus?.type === "retry";
+  }, [sessionStatus]);
 
   const changeSession = useCallback(
     (nextSessionId: string | null) => onSessionChange?.(nextSessionId),

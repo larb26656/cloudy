@@ -31,6 +31,22 @@ function canAppendDelta(
   return part.type === "text" || part.type === "reasoning";
 }
 
+function enrichPart(part: MessagePart, message: ChatMessage): MessagePart {
+  if (part.type !== "step-finish") return part;
+  const raw = message.metadata?.raw;
+  if (!raw || typeof raw !== "object") return part;
+  const source = raw as Record<string, unknown>;
+  return {
+    ...part,
+    modelID:
+      part.modelID ??
+      (typeof source.modelID === "string" ? source.modelID : undefined),
+    agent:
+      part.agent ??
+      (typeof source.agent === "string" ? source.agent : undefined),
+  };
+}
+
 export function applyMessageInfo(
   state: MessageStreamState,
   message: ChatMessage,
@@ -39,7 +55,12 @@ export function applyMessageInfo(
   const nextMessages = new Map(state.messages);
   nextMessages.set(
     message.id,
-    existing ? { ...message, parts: existing.parts } : message,
+    existing
+      ? {
+          ...message,
+          parts: existing.parts.map((part) => enrichPart(part, message)),
+        }
+      : message,
   );
   return { ...state, messages: nextMessages };
 }
@@ -59,9 +80,9 @@ export function applyMessagePart(
   const existingIndex = target.parts.findIndex((item) => item.id === part.id);
   const nextParts =
     existingIndex === -1
-      ? [...target.parts, nextPart]
+      ? [...target.parts, enrichPart(nextPart, target)]
       : target.parts.map((item, index) =>
-          index === existingIndex ? nextPart : item,
+          index === existingIndex ? enrichPart(nextPart, target) : item,
         );
   const nextMessages = new Map(state.messages);
   nextMessages.set(messageId, { ...target, parts: nextParts });

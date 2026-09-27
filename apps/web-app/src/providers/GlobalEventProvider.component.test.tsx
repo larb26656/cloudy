@@ -30,6 +30,11 @@ describe("GlobalEventProvider", () => {
     const stream = new ReadableStream({
       start(controller) {
         controller.enqueue(
+          new TextEncoder().encode(
+            'event: connected\ndata: {"type":"connected"}\n\n',
+          ),
+        );
+        controller.enqueue(
           new TextEncoder().encode(`event: session.status\ndata: ${event}\n\n`),
         );
       },
@@ -46,6 +51,27 @@ describe("GlobalEventProvider", () => {
       JSON.parse(event),
       expect.anything(),
     );
+  });
+
+  test("becomes connected before the first provider event", async () => {
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.enqueue(
+          new TextEncoder().encode(
+            'event: connected\ndata: {"type":"connected"}\n\n',
+          ),
+        );
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(() => Promise.resolve(new Response(stream))),
+    );
+
+    const { result } = renderProvider();
+
+    await waitFor(() => expect(result.current.status).toBe("CONNETED"));
+    expect(handleEvent).not.toHaveBeenCalled();
   });
 
   test("manual reconnect starts another request", async () => {

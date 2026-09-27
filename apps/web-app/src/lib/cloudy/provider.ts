@@ -36,8 +36,6 @@ export const providerApi = {
     request(
       `/sessions/${encodeURIComponent(id)}/children${query({ directory })}`,
     ),
-  statuses: (directory?: string) =>
-    request(`/sessions/status${query({ directory })}`),
   messages: (id: string, limit?: number, before?: string) =>
     request(
       `/sessions/${encodeURIComponent(id)}/messages${query({ limit, before })}`,

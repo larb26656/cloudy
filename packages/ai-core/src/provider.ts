@@ -8,7 +8,7 @@ import type {
   ProviderQuestionRequest,
   SendMessageInput,
 } from "./interaction";
-import type { ChatEvent } from "./event";
+import type { CanonicalSessionId, ChatEvent } from "./event";
 import type { CommandInfo } from "./command";
 import type { FileContent, FileNode, VcsFileDiff } from "./files";
 import type { ChatSession, RunStatus } from "./session";
@@ -39,12 +39,12 @@ export interface ProviderMessageRequest extends SendMessageInput {
 
 export interface ProviderEventsInput {
   directory?: string;
-  sessionId?: string;
+  sessionId?: CanonicalSessionId;
   signal?: AbortSignal;
 }
 
 export interface ProviderSessionInput {
-  sessionId?: string;
+  sessionId?: CanonicalSessionId;
   directory?: string;
   parentId?: string;
   title?: string;
@@ -55,7 +55,7 @@ export interface ProviderSessionInput {
 }
 
 export interface ProviderMessagesInput {
-  sessionId: string;
+  sessionId: CanonicalSessionId;
   directory?: string;
   limit?: number;
   before?: string;
@@ -66,6 +66,10 @@ export interface ProviderMessagePage {
   nextCursor?: string;
 }
 
+/**
+ * Adapters expose canonical session IDs. A provider with directory-scoped native
+ * IDs must reversibly namespace them for every session operation and event.
+ */
 export interface ProviderAdapter {
   readonly id: string;
   readonly capabilities: ProviderCapabilities;
@@ -75,11 +79,11 @@ export interface ProviderAdapter {
     limit?: number;
   }): Promise<ChatSession[]>;
   getSession?(input: {
-    sessionId: string;
+    sessionId: CanonicalSessionId;
     directory?: string;
   }): Promise<ChatSession>;
   getSessionChildren?(input: {
-    sessionId: string;
+    sessionId: CanonicalSessionId;
     directory?: string;
   }): Promise<ChatSession[]>;
   getSessionStatuses?(input: {
@@ -89,12 +93,12 @@ export interface ProviderAdapter {
   createSession?(input: ProviderSessionInput): Promise<ChatSession>;
   updateSession?(input: ProviderSessionInput): Promise<ChatSession>;
   deleteSession?(input: {
-    sessionId: string;
+    sessionId: CanonicalSessionId;
     directory?: string;
   }): Promise<void>;
   forkSession?(input: ProviderSessionInput): Promise<ChatSession>;
   abortSession?(input: {
-    sessionId: string;
+    sessionId: CanonicalSessionId;
     directory?: string;
   }): Promise<void>;
   sendMessage?(request: ProviderMessageRequest): Promise<InteractionResponse>;
@@ -116,7 +120,7 @@ export interface ProviderAdapter {
   listDiff?(input: { directory: string }): Promise<VcsFileDiff[]>;
   listCommands?(input: { directory: string }): Promise<CommandInfo[]>;
   executeCommand?(input: {
-    sessionId: string;
+    sessionId: CanonicalSessionId;
     command: string;
     arguments?: string;
     directory: string;

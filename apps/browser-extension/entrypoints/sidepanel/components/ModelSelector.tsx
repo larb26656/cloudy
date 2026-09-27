@@ -3,7 +3,7 @@ import {
   ModelSelector as PureModelSelector,
   type ModelSelectorModel,
 } from "@repo/ui/components/model-selector";
-import { createClient, getErrorMessage } from "../lib/opencode/client";
+import { listProviderModels } from "../lib/cloudy/provider";
 import { useFavoriteModelsStore } from "../stores/favoriteModelsStore";
 
 export type Model = ModelSelectorModel;
@@ -15,19 +15,13 @@ interface ModelSelectorProps {
 }
 
 async function loadModels(directory: string): Promise<Model[]> {
-  const result = await createClient(directory).config.providers();
-  if (result.error) throw new Error(getErrorMessage(result.error));
-
-  return result.data.providers.flatMap((provider) =>
-    Object.values(provider.models)
-      .filter((model) => model.status === "active")
-      .map((model) => ({
-        providerID: provider.id,
-        modelID: model.id,
-        name: model.name,
-        description: `${model.family ?? ""} • ${model.limit.context.toLocaleString()} context`,
-      })),
-  );
+  void directory;
+  return (await listProviderModels()).map((model) => ({
+    providerID: model.providerId,
+    modelID: model.modelId,
+    name: model.name,
+    description: model.description,
+  }));
 }
 
 export function ModelSelector({
@@ -62,7 +56,9 @@ export function ModelSelector({
       value={value}
       favorites={liveFavorites}
       isLoading={isLoading}
-      error={error ? getErrorMessage(error) : null}
+      error={
+        error instanceof Error ? error.message : error ? String(error) : null
+      }
       onChange={onChange}
       onToggleFavorite={toggleFavorite}
     />

@@ -5,7 +5,7 @@ import { pickFresher } from "@/lib/streaming/message-reconciliation";
 import { useStreamingMessageDisplayItems } from "@/lib/streaming/display-items";
 import type { Message } from "@/types";
 import { useMessages } from "@/hooks/queries/useMessages";
-import { useSessionStatuses } from "@/hooks/queries/useSessions";
+import { useSessionStatus } from "@/hooks/queries/useSessions";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { useSessionErrorStore } from "@/stores/sessionErrorStore";
 import type { SessionErrorInfo } from "@repo/ui/components/message";
@@ -30,18 +30,15 @@ export interface MessageListData {
 
 export function useMessageListData({
   selectedSessionId,
-  directory,
 }: {
   selectedSessionId: string | null;
-  directory?: string;
 }): MessageListData {
   const removeStreamingMessage = useStreamingMessagesStore(
     (s) => s.removeStreamingMessage,
   );
-  const { data: statuses } = useSessionStatuses({ directory });
-  const sessionStatus = selectedSessionId
-    ? statuses?.[selectedSessionId]
-    : undefined;
+  const { data: sessionStatus } = useSessionStatus({
+    sessionId: selectedSessionId,
+  });
   const uiSessionStatus: SessionStatus | undefined = sessionStatus
     ? sessionStatus.type === "busy"
       ? "active"

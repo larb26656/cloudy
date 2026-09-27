@@ -84,6 +84,17 @@ export function GlobalEventProvider({ children }: { children: ReactNode }) {
           response,
           (event) => {
             if (cancelled) return;
+            if (
+              typeof event === "object" &&
+              event !== null &&
+              "type" in event
+            ) {
+              if (event.type === "connected") {
+                setStatus("CONNETED");
+                return;
+              }
+              if (event.type === "heartbeat") return;
+            }
             setStatus("CONNETED");
             handleEvent(
               event as Parameters<typeof handleEvent>[0],

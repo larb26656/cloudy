@@ -3,7 +3,7 @@ export const sessionKeys = {
   infinite: (directory: string) => ["sessions", "infinite", directory] as const,
   detail: (sessionId: string) => ["sessions", "detail", sessionId] as const,
   children: (sessionId: string) => ["sessions", "children", sessionId] as const,
-  statuses: (directory: string) => ["sessions", "statuses", directory] as const,
+  status: (sessionId: string) => ["sessions", "status", sessionId] as const,
   recent: (limit: number) => ["sessions", "recent", limit] as const,
 };
 

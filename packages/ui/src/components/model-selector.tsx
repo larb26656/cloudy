@@ -24,6 +24,7 @@ export interface ModelSelectorModel {
   providerID: string;
   modelID: string;
   name: string;
+  contextLength?: number;
   description?: string;
 }
 
@@ -83,7 +84,7 @@ export function ModelSelector<T extends ModelSelectorModel>({
       ...group,
       models: search
         ? group.models.filter((model) =>
-            `${model.name} ${model.modelID}`
+            `${model.name} ${model.providerID} ${model.modelID}`
               .toLowerCase()
               .includes(search.toLowerCase()),
           )
@@ -287,15 +288,22 @@ function ModelRow<T extends ModelSelectorModel>({
   onSelect: (model: T) => void;
   onToggleFavorite: (model: T) => void;
 }) {
+  const subtitle = model.contextLength
+    ? `${model.modelID} · ${model.contextLength.toLocaleString("en-US")} context`
+    : model.modelID;
+
   if (isMobile) {
     return (
       <div className="flex items-center gap-2 px-4 py-2">
         <button
           type="button"
           onClick={() => onSelect(model)}
-          className="flex min-w-0 flex-1 items-center justify-between gap-2 text-left text-sm"
+          className="flex min-w-0 flex-1 flex-col gap-0.5 text-left text-sm"
         >
           <span className="min-w-0 truncate">{model.name}</span>
+          <span className="truncate text-xs text-muted-foreground">
+            {subtitle}
+          </span>
           {model.description && (
             <span className="truncate text-xs text-muted-foreground">
               {model.description}
@@ -318,6 +326,7 @@ function ModelRow<T extends ModelSelectorModel>({
     >
       <div className="min-w-0">
         <div className="truncate">{model.name}</div>
+        <div className="truncate text-xs text-muted-foreground">{subtitle}</div>
         {model.description && (
           <div className="truncate text-xs text-muted-foreground">
             {model.description}

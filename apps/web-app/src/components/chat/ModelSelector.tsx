@@ -31,7 +31,12 @@ interface ModelSelectorProps {
 type SelectorModel = ModelInfo & ModelSelectorModel;
 
 function toSelectorModel(model: ModelInfo): SelectorModel {
-  return { ...model, providerID: model.providerId, modelID: model.modelId };
+  return {
+    ...model,
+    contextLength: model.capabilities?.maxInputTokens,
+    providerID: model.providerId,
+    modelID: model.modelId,
+  };
 }
 
 function fromSelectorModel(model: SelectorModel): ModelInfo {

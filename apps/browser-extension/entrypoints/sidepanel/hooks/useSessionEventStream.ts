@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Message } from "@repo/ui/components/message/types";
 import { mergeMessages, useStreamingMessagesStore } from "@repo/opencode";
-import { dispatchStreamEvent, subscribeToEvents } from "../lib/opencode/events";
+import { subscribeToEvents } from "../lib/opencode/events";
 import { sessionKeys, sessionMessageKeys } from "../queries/query-keys";
 import { useChatStore } from "../stores/chatStore";
 import { useSessionStore } from "../stores/sessionStore";
@@ -17,35 +17,45 @@ export function useSessionEventStream(directory: string) {
   useEffect(() => {
     if (isSessionHydrating) return;
 
-    let cancelled = false;
-    let stop: (() => void) | undefined;
+    const controller = new AbortController();
 
     void (async () => {
-      stop = await subscribeToEvents(
+      await subscribeToEvents(
         directory,
         (event) => {
           const currentSessionId = useSessionStore.getState().sessionId;
 
           if (
-            event.payload.type === "session.status" &&
-            event.payload.properties.sessionID === currentSessionId
+            event.type === "session.status" &&
+            event.sessionId === currentSessionId
           ) {
-            const status = event.payload.properties.status.type;
             useChatStore
               .getState()
-              .setIsGenerating(status === "busy" || status === "retry");
+              .setIsGenerating(
+                event.runStatus === "running" ||
+                  (typeof event.status === "object" &&
+                    event.status.type === "retry"),
+              );
+            if (event.runStatus === "completed" || event.status === "idle") {
+              useChatStore.getState().setIsGenerating(false);
+            }
           }
 
           if (
-            event.payload.type === "session.error" &&
-            event.payload.properties.sessionID === currentSessionId
+            event.type === "run.failed" &&
+            event.sessionId === currentSessionId
           ) {
             useChatStore.getState().setIsGenerating(false);
-            useChatStore.getState().setError("OpenCode reported an error");
+            useChatStore
+              .getState()
+              .setError(event.message ?? "Provider reported an error");
           }
 
-          if (event.payload.type === "session.idle") {
-            const idleSessionId = event.payload.properties.sessionID;
+          if (
+            event.type === "session.status" &&
+            (event.status === "idle" || event.runStatus === "completed")
+          ) {
+            const idleSessionId = event.sessionId;
             if (idleSessionId === currentSessionId) {
               useChatStore.getState().setIsGenerating(false);
             }
@@ -64,12 +74,16 @@ export function useSessionEventStream(directory: string) {
             return;
           }
 
-          if (currentSessionId) dispatchStreamEvent(event, currentSessionId);
+          if (currentSessionId) {
+            useStreamingMessagesStore
+              .getState()
+              .applyEvent(currentSessionId, event);
+          }
         },
-        () => cancelled,
+        controller.signal,
       );
     })().catch((loadError: unknown) => {
-      if (!cancelled)
+      if (!controller.signal.aborted)
         useChatStore
           .getState()
           .setError(
@@ -80,8 +94,7 @@ export function useSessionEventStream(directory: string) {
     });
 
     return () => {
-      cancelled = true;
-      stop?.();
+      controller.abort();
     };
   }, [directory, isSessionHydrating, queryClient, takeSessionStreaming]);
 }

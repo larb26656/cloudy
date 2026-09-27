@@ -17,12 +17,14 @@ const fixtures: ProviderInfo[] = [
         providerId: "openai",
         modelId: "gpt-5",
         name: "GPT-5",
+        capabilities: { maxInputTokens: 400000 },
         description: "flagship",
       },
       {
         providerId: "openai",
         modelId: "gpt-5-mini",
         name: "GPT-5 mini",
+        capabilities: { maxInputTokens: 400000 },
         description: "fast",
       },
     ],
@@ -36,12 +38,14 @@ const fixtures: ProviderInfo[] = [
         providerId: "anthropic",
         modelId: "claude-sonnet",
         name: "Claude Sonnet",
+        capabilities: { maxInputTokens: 400000 },
         description: "balanced",
       },
       {
         providerId: "anthropic",
         modelId: "claude-opus",
         name: "Claude Opus",
+        capabilities: { maxInputTokens: 400000 },
         description: "deep",
       },
     ],
@@ -52,7 +56,9 @@ const gpt5: ModelInfo = {
   providerId: "openai",
   modelId: "gpt-5",
   name: "GPT-5",
+  capabilities: { maxInputTokens: 400000 },
   description: "flagship",
+  metadata: undefined,
 };
 
 const sonnet: ModelInfo = {
@@ -136,6 +142,15 @@ describe("ModelSelector — favorites", () => {
     expect(screen.queryByText("Favorites")).not.toBeInTheDocument();
     expect(screen.getByText("OpenAI")).toBeInTheDocument();
     expect(screen.getByText("Anthropic")).toBeInTheDocument();
+  });
+
+  test("shows the provider and model ID for each model", () => {
+    renderOpen();
+
+    expect(screen.getByText("gpt-5 · 400,000 context")).toBeInTheDocument();
+    expect(
+      screen.getByText("claude-sonnet · 400,000 context"),
+    ).toBeInTheDocument();
   });
 
   test("shows a Favorites group on top when at least one model is favorited", () => {

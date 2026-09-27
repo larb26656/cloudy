@@ -330,7 +330,7 @@ export function createOpenCodeAdapter({
         capabilities: adapter.capabilities,
         models: providers.flatMap((provider) =>
           Object.values(provider.models).map((model) => ({
-            ...toModelInfo("opencode", model),
+            ...toModelInfo(provider.id, model),
             metadata: {
               provider: "opencode",
               upstreamProviderId: provider.id,

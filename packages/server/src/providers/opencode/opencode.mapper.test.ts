@@ -1,8 +1,60 @@
 import type { GlobalEvent } from "@opencode-ai/sdk/v2";
 import { describe, expect, it } from "vitest";
-import { toChatEvent, toModelInfo } from "./opencode.mapper";
+import {
+  mapOpenCodePart,
+  toChatEvent,
+  toChatSession,
+  toModelInfo,
+} from "./opencode.mapper";
 
 describe("OpenCode mapper", () => {
+  it("preserves reasoning timing for the UI lifecycle", () => {
+    expect(
+      mapOpenCodePart({
+        id: "part-1",
+        type: "reasoning",
+        text: "Thinking",
+        time: { start: 1000, end: 2000 },
+      } as never),
+    ).toMatchObject({
+      type: "reasoning",
+      startedAt: 1000,
+      completedAt: 2000,
+    });
+  });
+
+  it("preserves the raw OpenCode session ID", () => {
+    expect(
+      toChatSession({
+        id: "ses_123",
+        directory: "/tmp/project",
+        time: { created: 1, updated: 2 },
+      }),
+    ).toMatchObject({ id: "ses_123", directory: "/tmp/project" });
+  });
+
+  it("preserves the event directory in normalized events", () => {
+    const event = {
+      directory: "/tmp/project",
+      payload: {
+        id: "event-1",
+        type: "session.status",
+        properties: {
+          sessionID: "session-1",
+          status: { type: "busy" },
+        },
+      },
+    } as unknown as GlobalEvent;
+
+    expect(toChatEvent(event)).toEqual({
+      type: "session.status",
+      directory: "/tmp/project",
+      sessionId: "session-1",
+      status: "active",
+      runStatus: "running",
+    });
+  });
+
   it("normalizes unknown parts without exposing an SDK type", () => {
     const event = {
       directory: "/tmp/project",
@@ -24,6 +76,7 @@ describe("OpenCode mapper", () => {
 
     expect(toChatEvent(event)).toEqual({
       type: "message.part.updated",
+      directory: "/tmp/project",
       sessionId: "session-1",
       messageId: "message-1",
       part: {
@@ -47,6 +100,34 @@ describe("OpenCode mapper", () => {
     } as unknown as GlobalEvent;
 
     expect(toChatEvent(event)).toBeUndefined();
+  });
+
+  it("preserves nested session error details", () => {
+    const event = {
+      directory: "/tmp/project",
+      payload: {
+        id: "event-1",
+        type: "session.error",
+        properties: {
+          sessionID: "session-1",
+          error: {
+            name: "UnknownError",
+            data: { message: "ProviderModelNotFoundError: Model not found" },
+          },
+        },
+      },
+    } as unknown as GlobalEvent;
+
+    expect(toChatEvent(event)).toEqual({
+      type: "run.failed",
+      directory: "/tmp/project",
+      sessionId: "session-1",
+      message: "ProviderModelNotFoundError: Model not found",
+      error: {
+        name: "UnknownError",
+        data: { message: "ProviderModelNotFoundError: Model not found" },
+      },
+    });
   });
 
   it("normalizes model references", () => {

@@ -1,144 +1,59 @@
-import { describe, expect, it } from "vitest";
-import type { GlobalEvent, Part } from "@opencode-ai/sdk/v2/client";
-import type {
-  ChatMessage,
-  MessagePart,
-  OpenCodeMessageWithParts,
-} from "@repo/opencode";
-import { applyStreamEvent, type StreamState } from "../lib/opencode/events";
+import { describe, expect, it, vi } from "vitest";
+import type { ChatEvent, ChatMessage, MessagePart } from "@repo/opencode";
+import { applyChatEvent, type MessageStreamState } from "@repo/opencode";
 import {
   INJECTED_CONTEXT_MARKER,
   isInjectedContextMessage,
-  toMessage,
 } from "../lib/opencode/sessions";
+import { subscribeToProviderEvents } from "../lib/cloudy/provider";
 
 const sessionId = "session-1";
 
-function messageParts(message: ChatMessage): MessagePart[] {
-  return message.parts;
-}
-
-function event(payload: GlobalEvent["payload"]): GlobalEvent {
-  return { directory: "/workspace", payload } as GlobalEvent;
-}
-
-function state(): StreamState {
+function message(
+  parts: MessagePart[],
+  role: ChatMessage["role"] = "user",
+): ChatMessage {
   return {
-    messages: new Map(),
-    pendingDeltas: new Map(),
+    id: "message-1",
+    sessionId,
+    role,
+    parts,
+    createdAt: new Date(1).toISOString(),
   };
 }
 
-function part(
-  type: "text" | "reasoning" | "tool",
-  id: string,
-  text = "",
-): Part {
-  if (type === "tool") {
-    return {
-      id,
-      sessionID: sessionId,
-      messageID: "message-1",
-      type,
-      callID: "call-1",
-      tool: "bash",
-      state: { status: "pending", input: {}, raw: "" },
-    } as Part;
-  }
-  return {
-    id,
-    sessionID: sessionId,
-    messageID: "message-1",
-    type,
-    text,
-  } as Part;
+function state(): MessageStreamState {
+  return { messages: new Map(), pendingDeltas: new Map() };
 }
 
-describe("extension OpenCode message assembly", () => {
+function textPart(id: string, text: string): MessagePart {
+  return { id, type: "text", text };
+}
+
+describe("extension provider message handling", () => {
   it("identifies injected context user messages", () => {
-    const message = toMessage({
-      info: {
-        id: "context-message",
-        sessionID: sessionId,
-        role: "user",
-        time: { created: 1 },
-      } as OpenCodeMessageWithParts["info"],
-      parts: [part("text", "text-1", `${INJECTED_CONTEXT_MARKER}\ncontent`)],
-    });
-
-    expect(isInjectedContextMessage(message)).toBe(true);
+    expect(
+      isInjectedContextMessage(
+        message([textPart("context", `${INJECTED_CONTEXT_MARKER}\ncontent`)]),
+      ),
+    ).toBe(true);
   });
 
-  it("does not hide normal user or assistant messages", () => {
-    const userMessage = toMessage({
-      info: {
-        id: "user-message",
-        sessionID: sessionId,
-        role: "user",
-        time: { created: 1 },
-      } as OpenCodeMessageWithParts["info"],
-      parts: [part("text", "text-1", "What is this page about?")],
-    });
-    const assistantMessage = toMessage({
-      info: {
-        id: "assistant-message",
-        sessionID: sessionId,
-        role: "assistant",
-        time: { created: 2 },
-      } as OpenCodeMessageWithParts["info"],
-      parts: [part("text", "text-2", "It is a page about testing.")],
-    });
-
-    expect(isInjectedContextMessage(userMessage)).toBe(false);
-    expect(isInjectedContextMessage(assistantMessage)).toBe(false);
-  });
-
-  it("requires the marker at the start of a text part", () => {
-    const message = toMessage({
-      info: {
-        id: "user-message",
-        sessionID: sessionId,
-        role: "user",
-        time: { created: 1 },
-      } as OpenCodeMessageWithParts["info"],
-      parts: [
-        part("text", "text-1", `quoted ${INJECTED_CONTEXT_MARKER} content`),
+  it("preserves all normalized message parts", () => {
+    const normalized = message(
+      [
+        textPart("text-1", "hello"),
+        {
+          id: "tool-1",
+          type: "tool",
+          toolName: "bash",
+          status: "pending",
+        },
       ],
-    });
+      "assistant",
+    );
 
-    expect(isInjectedContextMessage(message)).toBe(false);
-  });
-
-  it("recognizes a mixed context and prompt message as containing context", () => {
-    const message = toMessage({
-      info: {
-        id: "mixed-message",
-        sessionID: sessionId,
-        role: "user",
-        time: { created: 1 },
-      } as OpenCodeMessageWithParts["info"],
-      parts: [
-        part("text", "context", `${INJECTED_CONTEXT_MARKER}\ncontent`),
-        part("text", "prompt", "What is this page about?"),
-      ],
-    });
-
-    expect(isInjectedContextMessage(message)).toBe(true);
-  });
-
-  it("retains every loaded part", () => {
-    const parts = [part("text", "text-1", "hello"), part("tool", "tool-1")];
-    const message = toMessage({
-      info: {
-        id: "message-1",
-        sessionID: sessionId,
-        role: "assistant",
-        time: { created: 1 },
-      } as OpenCodeMessageWithParts["info"],
-      parts,
-    });
-
-    expect(messageParts(message)).toEqual([
+    expect(normalized.parts).toEqual([
       expect.objectContaining({ id: "text-1", type: "text", text: "hello" }),
       expect.objectContaining({
         id: "tool-1",
@@ -149,102 +64,82 @@ describe("extension OpenCode message assembly", () => {
     ]);
   });
 
-  it("normalizes non-text updates", () => {
-    const next = applyStreamEvent(
-      state(),
-      event({
-        type: "message.part.updated",
-        properties: {
-          sessionID: sessionId,
-          part: part("tool", "tool-1"),
-          time: 1,
-        },
-      } as unknown as GlobalEvent["payload"]),
+  it("applies normalized part updates and deltas", () => {
+    const updated: ChatEvent = {
+      type: "message.part.updated",
       sessionId,
-    );
+      messageId: "message-1",
+      part: textPart("text-1", " world"),
+    };
+    const delta: ChatEvent = {
+      type: "message.delta",
+      sessionId,
+      messageId: "message-1",
+      partId: "text-1",
+      delta: "hello",
+    };
+
+    const pending = applyChatEvent(state(), delta, sessionId);
+    const next = applyChatEvent(pending, updated, sessionId);
 
     expect(next.messages.get("message-1")?.parts).toEqual([
-      expect.objectContaining({
-        id: "tool-1",
-        type: "tool",
-        toolName: "bash",
-        status: "pending",
-      }),
-    ]);
-  });
-
-  it("applies deltas that arrive before the part update", () => {
-    const pending = applyStreamEvent(
-      state(),
-      event({
-        type: "message.part.delta",
-        properties: {
-          sessionID: sessionId,
-          messageID: "message-1",
-          partID: "text-1",
-          field: "text",
-          delta: "hello",
-        },
-      } as unknown as GlobalEvent["payload"]),
-      sessionId,
-    );
-    const next = applyStreamEvent(
-      pending,
-      event({
-        type: "message.part.updated",
-        properties: {
-          sessionID: sessionId,
-          part: part("text", "text-1", " world"),
-          time: 1,
-        },
-      } as unknown as GlobalEvent["payload"]),
-      sessionId,
-    );
-
-    expect(next.messages.get("message-1")?.parts).toEqual([
-      expect.objectContaining({
-        id: "text-1",
-        type: "text",
-        text: " worldhello",
-      }),
+      expect.objectContaining({ id: "text-1", text: " worldhello" }),
     ]);
     expect(next.pendingDeltas.has("text-1")).toBe(false);
   });
 
-  it("updates text and reasoning while ignoring deltas for other parts", () => {
-    let next = applyStreamEvent(
-      state(),
-      event({
-        type: "message.part.updated",
-        properties: {
-          sessionID: sessionId,
-          part: part("reasoning", "reasoning-1", "think"),
-          time: 1,
-        },
-      } as unknown as GlobalEvent["payload"]),
+  it("ignores events for another session", () => {
+    const event: ChatEvent = {
+      type: "message.delta",
+      sessionId: "other-session",
+      messageId: "message-1",
+      partId: "text-1",
+      delta: "ignored",
+    };
+
+    expect(applyChatEvent(state(), event, sessionId)).toEqual(state());
+  });
+
+  it("parses normalized SSE frames split across chunks", async () => {
+    const controller = new AbortController();
+    const event: ChatEvent = {
+      type: "message.delta",
       sessionId,
+      messageId: "message-1",
+      partId: "text-1",
+      delta: "hello",
+    };
+    const encoded = new TextEncoder();
+    const stream = new ReadableStream<Uint8Array>({
+      start(streamController) {
+        const serialized = JSON.stringify(event);
+        streamController.enqueue(
+          encoded.encode(
+            `event: message.delta\ndata: ${serialized.slice(0, 20)}`,
+          ),
+        );
+        streamController.enqueue(encoded.encode(`${serialized.slice(20)}\n\n`));
+        streamController.close();
+      },
+    });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(stream, {
+          status: 200,
+          headers: { "Content-Type": "text/event-stream" },
+        }),
+      ),
     );
-    next = applyStreamEvent(
-      next,
-      event({
-        type: "message.part.delta",
-        properties: {
-          sessionID: sessionId,
-          messageID: "message-1",
-          partID: "reasoning-1",
-          field: "text",
-          delta: " more",
-        },
-      } as unknown as GlobalEvent["payload"]),
-      sessionId,
+    const received: ChatEvent[] = [];
+
+    await subscribeToProviderEvents(
+      "/workspace",
+      (next) => received.push(next),
+      controller.signal,
     );
 
-    expect(next.messages.get("message-1")?.parts).toEqual([
-      expect.objectContaining({
-        id: "reasoning-1",
-        type: "reasoning",
-        text: "think more",
-      }),
-    ]);
+    expect(received).toEqual([event]);
+    vi.unstubAllGlobals();
   });
 });

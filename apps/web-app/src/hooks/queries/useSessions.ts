@@ -20,13 +20,6 @@ function toChatSession(session: CoreChatSession): ChatSession {
   };
 }
 
-function toSessionRunStatus(status: string): SessionRunStatus {
-  if (status === "running") return { type: "busy" };
-  if (status === "queued")
-    return { type: "retry", attempt: 0, message: "", next: 0 };
-  return { type: "idle" };
-}
-
 async function json<T>(response: Response): Promise<T> {
   if (!response.ok) throw new Error(await response.text());
   return response.json() as Promise<T>;
@@ -108,24 +101,11 @@ export function useSessionChildren({
   });
 }
 
-export function useSessionStatuses({ directory }: { directory?: string }) {
-  return useQuery({
-    queryKey: sessionKeys.statuses(directory ?? ""),
-    queryFn: async (): Promise<Record<string, SessionRunStatus>> => {
-      if (!directory) return {};
-      const statuses = await json<Record<string, string>>(
-        await providerApi.statuses(directory),
-      );
-      return Object.fromEntries(
-        Object.entries(statuses).map(([id, status]) => [
-          id,
-          toSessionRunStatus(status),
-        ]),
-      );
-    },
-    enabled: !!directory,
-    refetchInterval: CHAT_POLL_INTERVAL,
-    refetchIntervalInBackground: false,
+export function useSessionStatus({ sessionId }: { sessionId: string | null }) {
+  return useQuery<SessionRunStatus | undefined>({
+    queryKey: sessionKeys.status(sessionId ?? ""),
+    queryFn: async () => undefined,
+    enabled: false,
   });
 }
 
@@ -245,10 +225,9 @@ export function useForkSession() {
         ),
       ),
     onSuccess: (data) => {
-      queryClient.setQueryData<Record<string, SessionRunStatus>>(
-        sessionKeys.statuses(data.directory),
-        (old) => ({ ...(old ?? {}), [data.id]: { type: "idle" } }),
-      );
+      queryClient.setQueryData<SessionRunStatus>(sessionKeys.status(data.id), {
+        type: "idle",
+      });
       useStreamingMessagesStore.getState().takeSessionStreaming(data.id);
       void queryClient.invalidateQueries({
         queryKey: messageKeys.infinite(data.id),

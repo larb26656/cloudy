@@ -72,10 +72,19 @@ export function mapOpenCodePart(part: Part): MessagePart {
   switch (source.type) {
     case "text":
       return { ...base, type: "text", text: stringValue(source.text, "") };
-    case "reasoning":
-      return { ...base, type: "reasoning", text: stringValue(source.text, "") };
+    case "reasoning": {
+      const time = asRecord(source.time);
+      return {
+        ...base,
+        type: "reasoning",
+        text: stringValue(source.text, ""),
+        startedAt: typeof time.start === "number" ? time.start : undefined,
+        completedAt: typeof time.end === "number" ? time.end : undefined,
+      };
+    }
     case "tool": {
       const state = asRecord(source.state);
+      const time = asRecord(state.time);
       return {
         ...base,
         type: "tool",
@@ -92,6 +101,21 @@ export function mapOpenCodePart(part: Part): MessagePart {
         input: state.input,
         output: state.output,
         error: typeof state.error === "string" ? state.error : undefined,
+        state: {
+          status:
+            state.status === "running" ||
+            state.status === "completed" ||
+            state.status === "error"
+              ? state.status === "error"
+                ? "error"
+                : state.status
+              : "pending",
+          input: asRecord(state.input),
+          output: state.output,
+          error: typeof state.error === "string" ? state.error : undefined,
+          startedAt: typeof time.start === "number" ? time.start : undefined,
+          completedAt: typeof time.end === "number" ? time.end : undefined,
+        },
       };
     }
     case "file":
@@ -298,11 +322,13 @@ export function toChatEvent(event: GlobalEvent): ChatEvent | undefined {
   const payload = asRecord(event.payload);
   const properties = asRecord(payload.properties);
   const sessionId = stringValue(properties.sessionID, "");
+  const directory = event.directory;
 
   switch (payload.type) {
     case "message.part.delta":
       return {
         type: "message.delta",
+        directory,
         sessionId,
         messageId: stringValue(properties.messageID, ""),
         partId: stringValue(properties.partID, ""),
@@ -314,6 +340,7 @@ export function toChatEvent(event: GlobalEvent): ChatEvent | undefined {
       const partRecord = asRecord(part);
       return {
         type: "message.part.updated",
+        directory,
         sessionId: stringValue(partRecord.sessionID, sessionId),
         messageId: stringValue(partRecord.messageID, ""),
         part: mapOpenCodePart(part as Part),
@@ -325,6 +352,7 @@ export function toChatEvent(event: GlobalEvent): ChatEvent | undefined {
       const message = toChatMessage(info as OpencodeMessage);
       return {
         type: "message.updated",
+        directory,
         sessionId: message.sessionId || sessionId,
         message,
       };
@@ -333,6 +361,7 @@ export function toChatEvent(event: GlobalEvent): ChatEvent | undefined {
       const status = asRecord(properties.status);
       return {
         type: "session.status",
+        directory,
         sessionId,
         status: mapSessionStatus(status.type),
         runStatus: mapStatus(status.type),
@@ -341,31 +370,39 @@ export function toChatEvent(event: GlobalEvent): ChatEvent | undefined {
     case "session.idle":
       return {
         type: "session.status",
+        directory,
         sessionId,
         status: "idle",
         runStatus: "completed",
       };
     case "session.error": {
       const error = properties.error;
+      const errorRecord = asRecord(error);
+      const errorData = asRecord(errorRecord.data);
       return {
         type: "run.failed",
+        directory,
         sessionId,
         message:
-          typeof asRecord(error).message === "string"
-            ? (asRecord(error).message as string)
-            : undefined,
+          typeof errorRecord.message === "string"
+            ? errorRecord.message
+            : typeof errorData.message === "string"
+              ? errorData.message
+              : undefined,
         error,
       };
     }
     case "permission.asked":
       return {
         type: "approval.requested",
+        directory,
         sessionId,
         request: toPermissionRequest(properties),
       };
     case "question.asked":
       return {
         type: "question.requested",
+        directory,
         sessionId,
         request: toQuestionRequest(properties),
       };

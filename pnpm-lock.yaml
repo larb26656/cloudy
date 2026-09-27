@@ -35,9 +35,6 @@ importers:
       "@mozilla/readability":
         specifier: ^0.6.0
         version: 0.6.0
-      "@opencode-ai/sdk":
-        specifier: ^1.18.13
-        version: 1.18.13
       "@repo/contracts":
         specifier: workspace:*
         version: link:../../packages/contracts

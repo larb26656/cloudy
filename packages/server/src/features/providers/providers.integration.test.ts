@@ -69,7 +69,9 @@ describe("providers integration", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("content-type")).toContain("text/event-stream");
-    expect(await response.text()).toContain('"type":"session.status"');
+    const body = await response.text();
+    expect(body).toContain("event: connected");
+    expect(body).toContain('"type":"session.status"');
   });
 
   it("returns 404 for an unknown provider", async () => {

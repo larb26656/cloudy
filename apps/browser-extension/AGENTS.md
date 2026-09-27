@@ -8,8 +8,8 @@ editing conventions.
 
 The extension is a WXT + React 19 browser extension. It provides a browser side
 panel for Cloudy chat, a popup entrypoint, a background service worker, and a
-content script. The side panel talks to the Cloudy server and OpenCode through
-the Cloudy proxy; it must not connect directly to an OpenCode instance.
+content script. The side panel talks to the Cloudy server's normalized provider
+API; it must not connect directly to an OpenCode instance.
 
 ## Directory map
 
@@ -23,7 +23,7 @@ apps/browser-extension/
       components/                 side-panel UI components
       hooks/                      TanStack Query hooks
       lib/cloudy/                 Cloudy API helpers
-      lib/opencode/               SDK client, sessions, and SSE event handling
+      lib/opencode/               session orchestration and stream integration
       queries/                    query-key factories
       stores/                     Zustand stores for chat/session preferences
       tests/                      Vitest tests for extension behavior
@@ -66,8 +66,8 @@ and typecheck commands when a change affects shared packages.
   durable messages, streaming messages, session lists, and chat actions.
 - `lib/cloudy/browser-workspace.ts` is the source for browser workspace status
   and initialization. Do not duplicate workspace creation logic in components.
-- `lib/opencode/client.ts` creates the OpenCode SDK client against `${cloudyApiUrl}/oc`
-  and sends the directory using `X-OpenCode-Directory`.
+- `lib/cloudy/provider.ts` owns the normalized provider HTTP and SSE boundary and sends
+  the active browser workspace directory on every provider request.
 - `lib/opencode/sessions.ts` owns session creation, listing, message loading,
   prompt submission, and abort requests.
 - `lib/opencode/events.ts` owns the global SSE subscription and delegates stream
@@ -89,8 +89,8 @@ and typecheck commands when a change affects shared packages.
 - Keep `wxt.config.ts` manifest `host_permissions` aligned with the effective
   `VITE_API_URL` used by the built extension. A mismatch can make the UI build
   successfully while blocking requests in Chrome.
-- Keep the `/oc` proxy boundary. Do not add direct requests to the OpenCode
-  upstream port, and pass the active browser workspace directory to every
+- Keep provider integrations behind Cloudy's normalized API. Do not add direct requests
+  to the OpenCode upstream port, and pass the active browser workspace directory to every
   session, message, prompt, abort, and event request.
 - WXT provides the `browser` and entrypoint globals. Do not introduce
   CommonJS, `require`, or a second extension runtime abstraction.

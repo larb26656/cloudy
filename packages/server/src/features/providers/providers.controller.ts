@@ -43,11 +43,26 @@ export function createProvidersController(registry: ProviderRegistry) {
         });
 
         return streamSSE(c, async (stream) => {
-          for await (const event of events) {
-            await stream.writeSSE({
-              event: event.type,
-              data: JSON.stringify(event),
+          await stream.writeSSE({
+            event: "connected",
+            data: JSON.stringify({ type: "connected" }),
+          });
+          const heartbeat = setInterval(() => {
+            void stream.writeSSE({
+              event: "heartbeat",
+              data: JSON.stringify({ type: "heartbeat" }),
             });
+          }, 15_000);
+
+          try {
+            for await (const event of events) {
+              await stream.writeSSE({
+                event: event.type,
+                data: JSON.stringify(event),
+              });
+            }
+          } finally {
+            clearInterval(heartbeat);
           }
         });
       },

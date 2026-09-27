@@ -2,49 +2,55 @@ import type { PermissionRequest, ProviderQuestionRequest } from "./interaction";
 import type { ChatMessage, MessagePart } from "./message";
 import type { RunStatus, SessionStatus } from "./session";
 
-export interface SessionStatusEvent {
+export type CanonicalSessionId = string;
+
+export interface ChatEventContext {
+  directory?: string;
+}
+
+export interface SessionStatusEvent extends ChatEventContext {
   type: "session.status";
-  sessionId: string;
+  sessionId: CanonicalSessionId;
   status: SessionStatus;
   runStatus?: RunStatus;
 }
 
-export interface MessageUpdatedEvent {
+export interface MessageUpdatedEvent extends ChatEventContext {
   type: "message.updated";
-  sessionId: string;
+  sessionId: CanonicalSessionId;
   message: ChatMessage;
 }
 
-export interface MessagePartUpdatedEvent {
+export interface MessagePartUpdatedEvent extends ChatEventContext {
   type: "message.part.updated";
-  sessionId: string;
+  sessionId: CanonicalSessionId;
   messageId: string;
   part: MessagePart;
 }
 
-export interface MessageDeltaEvent {
+export interface MessageDeltaEvent extends ChatEventContext {
   type: "message.delta";
-  sessionId: string;
+  sessionId: CanonicalSessionId;
   messageId: string;
   partId: string;
   delta: string;
 }
 
-export interface ApprovalRequestedEvent {
+export interface ApprovalRequestedEvent extends ChatEventContext {
   type: "approval.requested";
-  sessionId: string;
+  sessionId: CanonicalSessionId;
   request: PermissionRequest;
 }
 
-export interface QuestionRequestedEvent {
+export interface QuestionRequestedEvent extends ChatEventContext {
   type: "question.requested";
-  sessionId: string;
+  sessionId: CanonicalSessionId;
   request: ProviderQuestionRequest;
 }
 
-export interface RunFailedEvent {
+export interface RunFailedEvent extends ChatEventContext {
   type: "run.failed";
-  sessionId: string;
+  sessionId: CanonicalSessionId;
   message?: string;
   error?: unknown;
 }

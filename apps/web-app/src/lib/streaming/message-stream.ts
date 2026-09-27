@@ -27,6 +27,22 @@ function ensureMessage(
   );
 }
 
+function enrichPart(part: MessagePart, message: ChatMessage): MessagePart {
+  if (part.type !== "step-finish") return part;
+  const raw = message.metadata?.raw;
+  if (!raw || typeof raw !== "object") return part;
+  const source = raw as Record<string, unknown>;
+  return {
+    ...part,
+    modelID:
+      part.modelID ??
+      (typeof source.modelID === "string" ? source.modelID : undefined),
+    agent:
+      part.agent ??
+      (typeof source.agent === "string" ? source.agent : undefined),
+  };
+}
+
 export function applyMessageInfo(
   state: MessageStreamState,
   message: ChatMessage,
@@ -35,7 +51,12 @@ export function applyMessageInfo(
   const existing = state.messages.get(message.id);
   nextMessages.set(
     message.id,
-    existing ? { ...message, parts: existing.parts } : message,
+    existing
+      ? {
+          ...message,
+          parts: existing.parts.map((part) => enrichPart(part, message)),
+        }
+      : message,
   );
   return { ...state, messages: nextMessages };
 }
@@ -52,12 +73,13 @@ export function applyMessagePart(
     pending && canAppendDelta(part)
       ? { ...part, text: part.text + pending }
       : part;
+  const enrichedPart = enrichPart(nextPart, target);
   const index = target.parts.findIndex((item) => item.id === part.id);
   const parts =
     index === -1
-      ? [...target.parts, nextPart]
+      ? [...target.parts, enrichedPart]
       : target.parts.map((item, itemIndex) =>
-          itemIndex === index ? nextPart : item,
+          itemIndex === index ? enrichedPart : item,
         );
   const messages = new Map(state.messages);
   messages.set(messageId, { ...target, parts });

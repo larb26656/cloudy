@@ -50,12 +50,15 @@ export function handleEvent(
   queryClient: ReturnType<typeof useQueryClient>,
   directory?: string,
 ) {
+  const eventDirectory = directory ?? event.directory;
   switch (event.type) {
     case "session.status": {
-      queryClient.setQueryData<Record<string, SessionRunStatus>>(
-        sessionKeys.statuses(directory ?? ""),
-        (old) => ({ ...(old ?? {}), [event.sessionId]: statusFor(event) }),
+      queryClient.setQueryData(
+        sessionKeys.status(event.sessionId),
+        statusFor(event),
       );
+      if (event.runStatus === "running")
+        useSessionErrorStore.getState().clearError(event.sessionId);
       if (event.runStatus === "completed" || event.status === "idle") {
         const flushed = useStreamingMessagesStore
           .getState()
@@ -65,13 +68,12 @@ export function handleEvent(
             messageKeys.infinite(event.sessionId),
             (old) => appendStreamingMessages(old, flushed),
           );
-        useSessionErrorStore.getState().clearError(event.sessionId);
-        if (directory) {
+        if (eventDirectory) {
           void queryClient.invalidateQueries({
-            queryKey: sessionKeys.infinite(directory),
+            queryKey: sessionKeys.infinite(eventDirectory),
           });
           void queryClient.invalidateQueries({
-            queryKey: vcsKeys.diff(directory),
+            queryKey: vcsKeys.diff(eventDirectory),
           });
           void queryClient.invalidateQueries({ queryKey: fileKeys.root() });
         }
@@ -79,7 +81,7 @@ export function handleEvent(
           "success",
           "Session completed",
           event.sessionId,
-          directory,
+          eventDirectory,
         );
       }
       break;
@@ -97,24 +99,43 @@ export function handleEvent(
         "warning",
         "Permission requested",
         event.sessionId,
-        directory,
+        eventDirectory,
       );
       break;
     case "question.requested":
       void queryClient.invalidateQueries({
-        queryKey: questionKeys.list(directory ?? ""),
+        queryKey: questionKeys.list(eventDirectory ?? ""),
       });
-      postNotification("info", "Question asked", event.sessionId, directory);
+      postNotification(
+        "info",
+        "Question asked",
+        event.sessionId,
+        eventDirectory,
+      );
       break;
     case "run.failed":
-      useSessionErrorStore.getState().setError(event.sessionId, {
-        name: "SessionError",
-        message: event.message,
-        data:
+      {
+        const error =
           typeof event.error === "object" && event.error !== null
-            ? (event.error as SessionErrorInfo["data"])
-            : {},
-      });
+            ? (event.error as Record<string, unknown>)
+            : {};
+        const rawData = error.data;
+        const errorDetails = { ...error };
+        delete errorDetails.data;
+        delete errorDetails.name;
+        const data =
+          typeof rawData === "object" && rawData !== null
+            ? ({
+                ...errorDetails,
+                ...(rawData as SessionErrorInfo["data"]),
+              } as SessionErrorInfo["data"])
+            : (errorDetails as SessionErrorInfo["data"]);
+        useSessionErrorStore.getState().setError(event.sessionId, {
+          name: typeof error.name === "string" ? error.name : "SessionError",
+          message: event.message ?? data.message,
+          data,
+        });
+      }
       break;
   }
 }
