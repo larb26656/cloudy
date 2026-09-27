@@ -54,7 +54,7 @@ export function QuickPathSection({ onPathSubmit }: QuickPathSectionProps) {
       </form>
 
       {paths.length > 0 && (
-        <div className="flex flex-col gap-1">
+        <div className="flex max-h-36 flex-col gap-1 overflow-y-auto pr-1">
           <span className="px-3 text-[11px] uppercase tracking-wider text-muted-foreground">
             Recent
           </span>

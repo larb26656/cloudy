@@ -19,7 +19,7 @@ import type { Workspace } from "@/lib/cloudy/workspaces";
 import { basename } from "@/lib/path";
 import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
 import { useCreateTempWorkspace, useSessions } from "@/hooks/queries";
-import { MessageCircleDashed } from "lucide-react";
+import { ArrowLeft, MessageCircleDashed } from "lucide-react";
 
 interface CreateChatDialogProps {
   open: boolean;
@@ -117,8 +117,8 @@ export function CreateChatDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col overflow-hidden">
-        <DialogHeader>
+      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden sm:max-w-md">
+        <DialogHeader className="gap-1">
           <DialogTitle>
             {selected ? `Sessions in ${selected.name}` : "New Chat"}
           </DialogTitle>
@@ -129,21 +129,36 @@ export function CreateChatDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4 flex-1 min-h-0 flex flex-col gap-3">
+        <div className="flex min-h-0 flex-1 flex-col gap-5 py-5">
           {!selected ? (
             <>
-              <Button
-                variant="outline"
-                onClick={handleCreateTempChat}
-                disabled={createTempWorkspace.isPending}
-              >
-                <MessageCircleDashed /> Temp chat
-              </Button>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <h3 className="text-sm font-medium">Use a directory</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Start a chat in a local project folder.
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="shrink-0"
+                    onClick={handleCreateTempChat}
+                    disabled={createTempWorkspace.isPending}
+                  >
+                    <MessageCircleDashed /> Temp chat
+                  </Button>
+                </div>
+              </div>
               <QuickPathSection onPathSubmit={handleQuickPath} />
-              <div className="my-4 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-                <span className="h-px flex-1 bg-border" />
-                or choose a workspace
-                <span className="h-px flex-1 bg-border" />
+              <div className="flex items-end justify-between gap-3 border-t pt-4">
+                <div>
+                  <h3 className="text-sm font-medium">Registered workspaces</h3>
+                  <p className="text-xs text-muted-foreground">
+                    Continue in a workspace you already set up.
+                  </p>
+                </div>
               </div>
               <WorkspaceSelectStep
                 onSelect={handleWorkspaceSelect}
@@ -188,7 +203,7 @@ function SessionStep({
         className="justify-start gap-2 shrink-0"
         onClick={onNewChat}
       >
-        <span data-icon="inline_start">+</span>
+        <MessageCircleDashed />
         New Chat
       </Button>
 
@@ -218,6 +233,7 @@ function SessionStep({
         onClick={onBack}
         className="self-start -ml-2 shrink-0"
       >
+        <ArrowLeft />
         Back
       </Button>
     </div>
