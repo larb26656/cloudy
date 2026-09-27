@@ -53,17 +53,19 @@ export function useReplyQuestion() {
   return useMutation({
     mutationFn: async ({
       requestID,
+      sessionID,
       answers,
       directory,
     }: {
       requestID: string;
+      sessionID: string;
       directory: string;
       answers: Array<QuestionAnswer>;
     }): Promise<void> => {
       void directory;
       const response = await providerApi.interaction({
         kind: "question",
-        sessionId: "",
+        sessionId: sessionID,
         interactionId: requestID,
         value: answers,
       });
@@ -81,14 +83,17 @@ export function useRejectQuestion() {
   return useMutation({
     mutationFn: async ({
       requestID,
+      sessionID,
       directory,
     }: {
       requestID: string;
+      sessionID: string;
       directory: string;
     }): Promise<void> => {
       void directory;
       const response = await providerApi.interaction({
         kind: "question",
+        sessionId: sessionID,
         interactionId: requestID,
         value: { reject: true },
       });

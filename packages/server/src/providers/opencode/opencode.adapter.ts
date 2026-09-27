@@ -230,12 +230,27 @@ export function createOpenCodeAdapter({
           typeof response.value === "object" &&
           response.value !== null &&
           "reject" in response.value;
-        const result = isReject
-          ? await client.question.reject({ requestID: response.interactionId })
-          : await client.question.reply({
-              requestID: response.interactionId,
-              answers: response.value as Array<string[]>,
-            });
+        const result = response.sessionId
+          ? isReject
+            ? await client.v2.session.question.reject({
+                sessionID: response.sessionId,
+                requestID: response.interactionId,
+              })
+            : await client.v2.session.question.reply({
+                sessionID: response.sessionId,
+                requestID: response.interactionId,
+                questionV2Reply: {
+                  answers: response.value as Array<string[]>,
+                },
+              })
+          : isReject
+            ? await client.question.reject({
+                requestID: response.interactionId,
+              })
+            : await client.question.reply({
+                requestID: response.interactionId,
+                answers: response.value as Array<string[]>,
+              });
         if (result.error) throwInteractionError(result.error);
       }
       return { interactionId: response.interactionId, value: null };

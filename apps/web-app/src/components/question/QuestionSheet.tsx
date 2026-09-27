@@ -146,6 +146,7 @@ export function QuestionSheet({
     try {
       await replyQuestion.mutateAsync({
         requestID: question.id,
+        sessionID: question.sessionID,
         directory,
         answers: answerList,
       });
@@ -161,6 +162,7 @@ export function QuestionSheet({
     try {
       await rejectQuestion.mutateAsync({
         requestID: question.id,
+        sessionID: question.sessionID,
         directory,
       });
       onOpenChange(false);
