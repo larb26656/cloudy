@@ -67,6 +67,7 @@ export function useReplyQuestion() {
         kind: "question",
         sessionId: sessionID,
         interactionId: requestID,
+        directory,
         value: answers,
       });
       if (!response.ok) throw new Error(await response.text());
@@ -95,6 +96,7 @@ export function useRejectQuestion() {
         kind: "question",
         sessionId: sessionID,
         interactionId: requestID,
+        directory,
         value: { reject: true },
       });
       if (!response.ok) throw new Error(await response.text());

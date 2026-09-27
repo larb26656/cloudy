@@ -104,6 +104,7 @@ export const ProvidersModel = {
     kind: z.enum(["permission", "question"]).optional(),
     sessionId: z.string().optional().default(""),
     interactionId: z.string().min(1),
+    directory: z.string().optional(),
     value: z.unknown(),
   }),
   permissionsQuerySchema: z.object({ directory: z.string().optional() }),

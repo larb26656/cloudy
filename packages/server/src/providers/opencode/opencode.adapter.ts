@@ -45,6 +45,14 @@ function throwInteractionError(error: unknown): never {
   throw error instanceof Error ? error : new Error(String(error));
 }
 
+function isQuestionNotFoundError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as { _tag?: unknown })._tag === "QuestionNotFoundError"
+  );
+}
+
 export interface OpenCodeAdapterOptions {
   baseUrl: string;
   client?: OpencodeClient;
@@ -70,7 +78,9 @@ export function createOpenCodeAdapter({
     }): Promise<ChatSession[]> {
       const result = await client.v2.session.list(input);
       if (result.error) throw result.error;
-      return result.data.data.map((session) => toChatSession(session));
+      return result.data.data.map((session) =>
+        toChatSession(session, "opencode", input.directory),
+      );
     },
     async getSession(input: {
       sessionId: string;
@@ -81,7 +91,7 @@ export function createOpenCodeAdapter({
         directory: input.directory,
       });
       if (result.error) throw result.error;
-      return toChatSession(result.data);
+      return toChatSession(result.data, "opencode", input.directory);
     },
     async getSessionChildren(input: {
       sessionId: string;
@@ -92,7 +102,9 @@ export function createOpenCodeAdapter({
         directory: input.directory,
       });
       if (result.error) throw result.error;
-      return result.data.map((session) => toChatSession(session));
+      return result.data.map((session) =>
+        toChatSession(session, "opencode", input.directory),
+      );
     },
     async getSessionStatuses(input: {
       directory?: string;
@@ -138,7 +150,7 @@ export function createOpenCodeAdapter({
         metadata: input.metadata,
       });
       if (result.error) throw result.error;
-      return toChatSession(result.data);
+      return toChatSession(result.data, "opencode", input.directory);
     },
     async updateSession(input: ProviderSessionInput): Promise<ChatSession> {
       const result = await client.session.update({
@@ -148,7 +160,7 @@ export function createOpenCodeAdapter({
         metadata: input.metadata,
       });
       if (result.error) throw result.error;
-      return toChatSession(result.data);
+      return toChatSession(result.data, "opencode", input.directory);
     },
     async deleteSession(input: {
       sessionId: string;
@@ -167,7 +179,7 @@ export function createOpenCodeAdapter({
         messageID: input.messageId,
       });
       if (result.error) throw result.error;
-      return toChatSession(result.data);
+      return toChatSession(result.data, "opencode", input.directory);
     },
     async abortSession(input: {
       sessionId: string;
@@ -230,8 +242,8 @@ export function createOpenCodeAdapter({
           typeof response.value === "object" &&
           response.value !== null &&
           "reject" in response.value;
-        const result = response.sessionId
-          ? isReject
+        if (response.sessionId) {
+          const sessionResult = isReject
             ? await client.v2.session.question.reject({
                 sessionID: response.sessionId,
                 requestID: response.interactionId,
@@ -242,15 +254,26 @@ export function createOpenCodeAdapter({
                 questionV2Reply: {
                   answers: response.value as Array<string[]>,
                 },
-              })
-          : isReject
-            ? await client.question.reject({
-                requestID: response.interactionId,
-              })
-            : await client.question.reply({
-                requestID: response.interactionId,
-                answers: response.value as Array<string[]>,
               });
+
+          if (!sessionResult.error) {
+            return { interactionId: response.interactionId, value: null };
+          }
+          if (!isQuestionNotFoundError(sessionResult.error)) {
+            throwInteractionError(sessionResult.error);
+          }
+        }
+
+        const result = isReject
+          ? await client.question.reject({
+              requestID: response.interactionId,
+              directory: response.directory,
+            })
+          : await client.question.reply({
+              requestID: response.interactionId,
+              answers: response.value as Array<string[]>,
+              directory: response.directory,
+            });
         if (result.error) throwInteractionError(result.error);
       }
       return { interactionId: response.interactionId, value: null };

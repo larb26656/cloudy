@@ -33,6 +33,26 @@ describe("OpenCode mapper", () => {
     ).toMatchObject({ id: "ses_123", directory: "/tmp/project" });
   });
 
+  it("uses the requested directory when OpenCode omits it", () => {
+    expect(
+      toChatSession(
+        { id: "ses_123", time: { created: 1, updated: 2 } },
+        "opencode",
+        "/tmp/project",
+      ),
+    ).toMatchObject({ id: "ses_123", directory: "/tmp/project" });
+  });
+
+  it("maps the directory from OpenCode session location", () => {
+    expect(
+      toChatSession({
+        id: "ses_123",
+        location: { directory: "/tmp/project" },
+        time: { created: 1, updated: 2 },
+      }),
+    ).toMatchObject({ id: "ses_123", directory: "/tmp/project" });
+  });
+
   it("preserves the event directory in normalized events", () => {
     const event = {
       directory: "/tmp/project",

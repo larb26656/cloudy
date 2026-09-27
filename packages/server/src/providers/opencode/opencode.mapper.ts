@@ -253,8 +253,10 @@ export function toChatMessage(
 export function toChatSession(
   value: unknown,
   providerId = "opencode",
+  directory?: string,
 ): ChatSession {
   const source = asRecord(value);
+  const location = asRecord(source.location);
   const time = asRecord(source.time);
   const updated = typeof time.updated === "number" ? time.updated : Date.now();
   const created = typeof time.created === "number" ? time.created : updated;
@@ -265,7 +267,11 @@ export function toChatSession(
     runStatus: "idle",
     providerId,
     directory:
-      typeof source.directory === "string" ? source.directory : undefined,
+      typeof source.directory === "string"
+        ? source.directory
+        : typeof location.directory === "string"
+          ? location.directory
+          : directory,
     parentId: typeof source.parentID === "string" ? source.parentID : undefined,
     createdAt: new Date(created).toISOString(),
     updatedAt: new Date(updated).toISOString(),

@@ -34,7 +34,7 @@ export function SessionRow({
         "transition-colors hover:border-foreground/15",
       )}
     >
-      <span className="flex min-w-0 flex-1 flex-col">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         {isEditing ? (
           <SessionTitleInput
             sessionId={session.id}
@@ -53,6 +53,12 @@ export function SessionRow({
             {session.title || "New Chat"}
           </span>
         )}
+        <span
+          className="truncate text-[11px] text-muted-foreground/70"
+          title={directory}
+        >
+          {directory}
+        </span>
       </span>
       <WorkspaceBadge
         workspaceName={workspaceName}

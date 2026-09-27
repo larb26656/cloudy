@@ -335,7 +335,10 @@ describe("QuestionSheet", () => {
         await userEvent.click(screen.getByRole("button", { name: /submit/i }));
         await waitFor(() => {
           expect(lastReply?.body).toEqual(
-            expect.objectContaining({ value: expectedAnswers }),
+            expect.objectContaining({
+              directory: DEMO_DIRECTORY,
+              value: expectedAnswers,
+            }),
           );
         });
       },
@@ -382,6 +385,7 @@ describe("QuestionSheet", () => {
         );
         expect(lastReject?.body).toMatchObject({
           interactionId: "que_test123",
+          directory: DEMO_DIRECTORY,
           value: { reject: true },
         });
         expect(lastReject?.body).toMatchObject({

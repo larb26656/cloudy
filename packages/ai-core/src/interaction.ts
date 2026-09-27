@@ -85,5 +85,6 @@ export interface InteractionResponseInput {
   kind?: "permission" | "question";
   sessionId: string;
   interactionId: string;
+  directory?: string;
   value: unknown;
 }
