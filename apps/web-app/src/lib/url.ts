@@ -1,13 +1,20 @@
 export function resolveUrl(url?: string, fallback?: string): string {
   const value = url || fallback || "";
 
-  if (/^https?:\/\//.test(value)) return value;
+  if (/^https?:\/\//.test(value)) {
+    return new URL(value).toString().replace(/\/$/, "");
+  }
 
   if (value.startsWith("/")) {
-    return window.origin + value;
+    return new URL(value.replace(/^\/+/, "/"), window.origin).toString();
   }
 
   return value;
+}
+
+export function joinUrl(base: string, ...paths: string[]): string {
+  const path = paths.map((value) => value.replace(/^\/+|\/+$/g, "")).join("/");
+  return new URL(path, base.replace(/\/+$/, "") + "/").toString();
 }
 
 /**

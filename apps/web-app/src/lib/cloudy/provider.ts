@@ -1,7 +1,8 @@
 import { env } from "@/config/env";
+import { joinUrl } from "@/lib/url";
 
-const basePath = `${env.getApiUrl()}/api/providers/opencode`;
-const providersPath = `${env.getApiUrl()}/api/providers`;
+const basePath = joinUrl(env.getApiUrl(), "/api/providers/opencode");
+const providersPath = joinUrl(env.getApiUrl(), "/api/providers");
 
 async function request(path: string, init?: RequestInit): Promise<Response> {
   return fetch(`${basePath}${path}`, {

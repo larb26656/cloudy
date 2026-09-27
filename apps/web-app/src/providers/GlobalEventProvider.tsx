@@ -1,5 +1,6 @@
 import { useWindowFocus } from "@/hooks";
 import { env } from "@/config/env";
+import { joinUrl } from "@/lib/url";
 import { handleEvent } from "@/lib/opencode";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -75,7 +76,7 @@ export function GlobalEventProvider({ children }: { children: ReactNode }) {
     const id = ++nextId;
     const controller = new AbortController();
     let cancelled = false;
-    void fetch(`${env.getApiUrl()}/api/providers/opencode/events`, {
+    void fetch(joinUrl(env.getApiUrl(), "/api/providers/opencode/events"), {
       headers: { Accept: "text/event-stream" },
       signal: controller.signal,
     })
