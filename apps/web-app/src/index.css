@@ -10,6 +10,9 @@
   --animate-pulse-shadow: pulse-shadow 2s ease-in-out infinite;
   --animate-glow-pulse: glow-pulse 2s ease-in-out 1;
   --animate-gradient: gradient 2s linear infinite;
+  --animate-pixel-drift: pixel-drift 2.8s steps(6, end) infinite;
+  --animate-pixel-flicker: pixel-flicker 1.6s steps(3, end) infinite;
+  --animate-pixel-scan: pixel-scan 3.2s steps(10, end) infinite;
 
   @keyframes aura {
     0%,
@@ -53,6 +56,47 @@
     }
     100% {
       background-position: 200% 50%;
+    }
+  }
+
+  @keyframes pixel-drift {
+    0%,
+    100% {
+      transform: translate(0, 0);
+    }
+    25% {
+      transform: translate(34px, -22px);
+    }
+    50% {
+      transform: translate(58px, 14px);
+    }
+    75% {
+      transform: translate(16px, 34px);
+    }
+  }
+
+  @keyframes pixel-flicker {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: translate(0, 0);
+    }
+    33% {
+      opacity: 0.9;
+      transform: translate(0, -3px);
+    }
+    66% {
+      opacity: 0.45;
+      transform: translate(3px, 0);
+    }
+  }
+
+  @keyframes pixel-scan {
+    0% {
+      left: -12%;
+    }
+    100% {
+      left: 112%;
     }
   }
 }

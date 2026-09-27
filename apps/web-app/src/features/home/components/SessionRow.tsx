@@ -34,7 +34,7 @@ export function SessionRow({
         "transition-colors hover:border-foreground/15",
       )}
     >
-      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <span className="flex min-w-0 flex-1 flex-col justify-start gap-1">
         {isEditing ? (
           <SessionTitleInput
             sessionId={session.id}
@@ -53,17 +53,26 @@ export function SessionRow({
             {session.title || "New Chat"}
           </span>
         )}
+
         <span
           className="truncate text-[11px] text-muted-foreground/70"
           title={directory}
         >
           {directory}
         </span>
+
+        <WorkspaceBadge
+          workspaceName={workspaceName}
+          directory={directory}
+          workspaceId={workspaceId}
+          className="self-start md:hidden"
+        />
       </span>
       <WorkspaceBadge
         workspaceName={workspaceName}
         directory={directory}
         workspaceId={workspaceId}
+        className="hidden md:block"
       />
       <span className="shrink-0 text-[11px] text-muted-foreground/80">
         {formatRelativeFromTimestamp(session.updatedAt)}
