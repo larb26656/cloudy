@@ -137,5 +137,7 @@ export function handleEvent(
         });
       }
       break;
+    case "provider.connection":
+      break;
   }
 }

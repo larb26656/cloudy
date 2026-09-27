@@ -54,6 +54,7 @@ describe("streaming store", () => {
   test("applies normalized events", () => {
     useStreamingMessagesStore.getState().applyEvent("session-a", {
       type: "message.part.updated",
+      providerId: "opencode",
       sessionId: "session-a",
       messageId: "message-a",
       part: textPart("part-a"),

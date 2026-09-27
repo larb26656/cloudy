@@ -7,6 +7,10 @@ import { createNotificationsService } from "./features/notifications/notificatio
 import { createWorkspacesRepository } from "./features/workspaces/workspaces.repository";
 import { createWorkspacesService } from "./features/workspaces/workspaces.service";
 import { createBrowserWorkspaceService } from "./features/browser-workspace/browser-workspace.service";
+import {
+  createSessionsRepository,
+  createSessionsService,
+} from "./features/sessions";
 import { createDb, runMigrations, type DbClient } from "./db";
 import { createOpenCodeAdapter, createProviderRegistry } from "./providers";
 
@@ -39,6 +43,11 @@ export function createContainer(config: AppConfig, overrideDb?: DbClient) {
   const providerRegistry = createProviderRegistry({
     providers: [createOpenCodeAdapter({ baseUrl: config.opencodeApiBase })],
   });
+  const sessionsRepository = createSessionsRepository(db);
+  const sessionsService = createSessionsService(
+    sessionsRepository,
+    providerRegistry,
+  );
   return {
     db,
     workspacesService,
@@ -48,6 +57,7 @@ export function createContainer(config: AppConfig, overrideDb?: DbClient) {
     ptyService,
     proxyService,
     providerRegistry,
+    sessionsService,
   };
 }
 

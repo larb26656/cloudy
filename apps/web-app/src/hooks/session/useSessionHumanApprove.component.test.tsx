@@ -104,7 +104,7 @@ function setupDefaultHandlers(overrides?: {
         })),
       ),
     ),
-    http.get(/\/api\/providers\/opencode\/sessions\/([^/]+)\/children/, () =>
+    http.get(/\/api\/sessions\/([^/]+)\/children/, () =>
       HttpResponse.json(overrides?.children ?? mockChildSessions),
     ),
   );

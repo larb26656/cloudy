@@ -340,48 +340,54 @@ export function toChatEvent(event: GlobalEvent): ChatEvent | undefined {
   const properties = asRecord(payload.properties);
   const sessionId = stringValue(properties.sessionID, "");
 
-  switch (payload.type) {
-    case "message.part.delta":
-      return {
-        type: "message.delta",
-        sessionId,
-        messageId: stringValue(properties.messageID, ""),
-        partId: stringValue(properties.partID, ""),
-        delta: stringValue(properties.delta, ""),
-      };
-    case "message.part.updated": {
-      const part = properties.part;
-      if (!part || typeof part !== "object") return undefined;
-      const partRecord = asRecord(part);
-      return {
-        type: "message.part.updated",
-        sessionId: stringValue(partRecord.sessionID, sessionId),
-        messageId: stringValue(partRecord.messageID, ""),
-        part: mapPart(part as Part),
-      };
+  const mapped = (() => {
+    switch (payload.type) {
+      case "message.part.delta":
+        return {
+          type: "message.delta",
+          sessionId,
+          messageId: stringValue(properties.messageID, ""),
+          partId: stringValue(properties.partID, ""),
+          delta: stringValue(properties.delta, ""),
+        };
+      case "message.part.updated": {
+        const part = properties.part;
+        if (!part || typeof part !== "object") return undefined;
+        const partRecord = asRecord(part);
+        return {
+          type: "message.part.updated",
+          sessionId: stringValue(partRecord.sessionID, sessionId),
+          messageId: stringValue(partRecord.messageID, ""),
+          part: mapPart(part as Part),
+        };
+      }
+      case "message.updated": {
+        const info = properties.info;
+        if (!info || typeof info !== "object") return undefined;
+        const message = toChatMessage(info as OpencodeMessage);
+        return {
+          type: "message.updated",
+          sessionId: message.sessionId || sessionId,
+          message,
+        };
+      }
+      case "session.status": {
+        const status = asRecord(properties.status);
+        return {
+          type: "session.status",
+          sessionId,
+          status: mapSessionStatus(status.type),
+          runStatus: mapStatus(status.type),
+        };
+      }
+      default:
+        return undefined;
     }
-    case "message.updated": {
-      const info = properties.info;
-      if (!info || typeof info !== "object") return undefined;
-      const message = toChatMessage(info as OpencodeMessage);
-      return {
-        type: "message.updated",
-        sessionId: message.sessionId || sessionId,
-        message,
-      };
-    }
-    case "session.status": {
-      const status = asRecord(properties.status);
-      return {
-        type: "session.status",
-        sessionId,
-        status: mapSessionStatus(status.type),
-        runStatus: mapStatus(status.type),
-      };
-    }
-    default:
-      return undefined;
-  }
+  })() as Omit<ChatEvent, "providerId"> | undefined;
+
+  return mapped
+    ? ({ ...mapped, providerId: "opencode" } as ChatEvent)
+    : undefined;
 }
 
 function mapSessionStatus(value: unknown): SessionStatus {

@@ -11,7 +11,11 @@ import {
 export interface StreamingMessagesStore {
   streamingMessages: Map<string, Map<string, ChatMessage>>;
   pendingDeltas: Map<string, Map<string, string>>;
-  applyEvent: (sessionId: string, event: ChatEvent) => void;
+  applyEvent: (
+    sessionId: string,
+    event: ChatEvent,
+    providerId?: string,
+  ) => void;
   onMessageInfoUpdated: (sessionId: string, message: ChatMessage) => void;
   onMessagePartUpdated: (
     sessionId: string,
@@ -24,7 +28,10 @@ export interface StreamingMessagesStore {
     partId: string,
     delta: string,
   ) => void;
-  takeSessionStreaming: (sessionId: string) => ChatMessage[];
+  takeSessionStreaming: (
+    sessionId: string,
+    providerId?: string,
+  ) => ChatMessage[];
   removeStreamingMessage: (sessionId: string, messageId: string) => void;
 }
 
@@ -36,6 +43,10 @@ function sessionState(
     messages: store.streamingMessages.get(sessionId) ?? new Map(),
     pendingDeltas: store.pendingDeltas.get(sessionId) ?? new Map(),
   };
+}
+
+function sessionKey(sessionId: string, providerId = "opencode") {
+  return providerId === "opencode" ? sessionId : `${providerId}:${sessionId}`;
 }
 
 export const useStreamingMessagesStore = create<StreamingMessagesStore>(
@@ -60,41 +71,47 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
     return {
       streamingMessages: new Map(),
       pendingDeltas: new Map(),
-      applyEvent: (sessionId, event) =>
-        update(sessionId, (state) => applyChatEvent(state, event, sessionId)),
+      applyEvent: (sessionId, event, providerId = "opencode") =>
+        update(sessionKey(sessionId, providerId), (state) =>
+          applyChatEvent(state, event, sessionId),
+        ),
       onMessageInfoUpdated: (sessionId, message) =>
-        update(sessionId, (state) => applyMessageInfo(state, message)),
+        update(sessionKey(sessionId), (state) =>
+          applyMessageInfo(state, message),
+        ),
       onMessagePartUpdated: (sessionId, messageId, part) =>
-        update(sessionId, (state) =>
+        update(sessionKey(sessionId), (state) =>
           applyMessagePart(state, sessionId, messageId, part),
         ),
       onMessagePartDeltaUpdated: (sessionId, messageId, partId, delta) =>
-        update(sessionId, (state) =>
+        update(sessionKey(sessionId), (state) =>
           applyMessagePartDelta(state, messageId, partId, delta),
         ),
-      takeSessionStreaming: (sessionId) => {
+      takeSessionStreaming: (sessionId, providerId = "opencode") => {
+        const key = sessionKey(sessionId, providerId);
         let result: ChatMessage[] = [];
         set((state) => {
-          const messages = state.streamingMessages.get(sessionId);
+          const messages = state.streamingMessages.get(key);
           if (!messages) return state;
           result = Array.from(messages.values());
           const streamingMessages = new Map(state.streamingMessages);
           const pendingDeltas = new Map(state.pendingDeltas);
-          streamingMessages.delete(sessionId);
-          pendingDeltas.delete(sessionId);
+          streamingMessages.delete(key);
+          pendingDeltas.delete(key);
           return { streamingMessages, pendingDeltas };
         });
         return result;
       },
       removeStreamingMessage: (sessionId, messageId) =>
         set((state) => {
-          const messages = state.streamingMessages.get(sessionId);
+          const key = sessionKey(sessionId);
+          const messages = state.streamingMessages.get(key);
           if (!messages?.has(messageId)) return state;
           const nextMessages = new Map(messages);
           nextMessages.delete(messageId);
           const streamingMessages = new Map(state.streamingMessages);
-          if (nextMessages.size) streamingMessages.set(sessionId, nextMessages);
-          else streamingMessages.delete(sessionId);
+          if (nextMessages.size) streamingMessages.set(key, nextMessages);
+          else streamingMessages.delete(key);
           return { streamingMessages };
         }),
     };

@@ -5,7 +5,19 @@ import type { RunStatus, SessionStatus } from "./session";
 export type CanonicalSessionId = string;
 
 export interface ChatEventContext {
+  providerId: string;
   directory?: string;
+}
+
+export type ProviderConnectionState =
+  | "connected"
+  | "disconnected"
+  | "reconnecting";
+
+export interface ProviderConnectionEvent extends ChatEventContext {
+  type: "provider.connection";
+  state: ProviderConnectionState;
+  error?: unknown;
 }
 
 export interface SessionStatusEvent extends ChatEventContext {
@@ -56,6 +68,7 @@ export interface RunFailedEvent extends ChatEventContext {
 }
 
 export type ChatEvent =
+  | ProviderConnectionEvent
   | SessionStatusEvent
   | MessageUpdatedEvent
   | MessagePartUpdatedEvent

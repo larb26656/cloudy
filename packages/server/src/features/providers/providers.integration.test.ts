@@ -24,6 +24,7 @@ function fakeProvider(): ProviderAdapter {
     subscribeEvents: async function* () {
       yield {
         type: "session.status" as const,
+        providerId: "opencode",
         sessionId: "session-1",
         status: "idle" as const,
       };
@@ -72,6 +73,15 @@ describe("providers integration", () => {
     const body = await response.text();
     expect(body).toContain("event: connected");
     expect(body).toContain('"type":"session.status"');
+  });
+
+  it("streams provider-scoped events from the Cloudy-wide endpoint", async () => {
+    const response = await app.request("/api/providers/events");
+
+    expect(response.status).toBe(200);
+    const body = await response.text();
+    expect(body).toContain("event: provider.connection");
+    expect(body).toContain('"providerId":"opencode"');
   });
 
   it("returns 404 for an unknown provider", async () => {

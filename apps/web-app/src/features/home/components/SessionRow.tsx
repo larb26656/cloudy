@@ -61,6 +61,10 @@ export function SessionRow({
           {directory}
         </span>
 
+        <span className="text-[11px] text-muted-foreground/70">
+          {session.providerId}
+        </span>
+
         <WorkspaceBadge
           workspaceName={workspaceName}
           directory={directory}

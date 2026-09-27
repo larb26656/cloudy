@@ -3,14 +3,20 @@ import { streamSSE } from "hono/streaming";
 import { describeRoute } from "hono-openapi";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import type { ProviderRegistry } from "../../providers";
+import { createProviderEventHub, type ProviderRegistry } from "../../providers";
 import { ProvidersModel } from "./providers.model";
+import type { SessionsService } from "../sessions";
 
 const providerParamSchema = z.object({
   providerId: z.string().min(1),
 });
 
-export function createProvidersController(registry: ProviderRegistry) {
+export function createProvidersController(
+  registry: ProviderRegistry,
+  sessionsService?: SessionsService,
+) {
+  const eventHub = createProviderEventHub(registry);
+
   return new Hono()
     .get(
       "/",
@@ -20,6 +26,46 @@ export function createProvidersController(registry: ProviderRegistry) {
         responses: { 200: { description: "Provider catalog" } },
       }),
       async (c) => c.json(await registry.catalog()),
+    )
+    .get(
+      "/events",
+      describeRoute({
+        description: "Stream normalized events from all registered providers",
+        tags: ["Providers"],
+        responses: { 200: { description: "Cloudy provider event stream" } },
+      }),
+      zValidator("query", ProvidersModel.eventsQuerySchema),
+      (c) => {
+        const events = eventHub.subscribeEvents({
+          ...c.req.valid("query"),
+          signal: c.req.raw.signal,
+        });
+
+        return streamSSE(c, async (stream) => {
+          await stream.writeSSE({
+            event: "connected",
+            data: JSON.stringify({ type: "connected" }),
+          });
+          const heartbeat = setInterval(() => {
+            void stream.writeSSE({
+              event: "heartbeat",
+              data: JSON.stringify({ type: "heartbeat" }),
+            });
+          }, 15_000);
+
+          try {
+            for await (const rawEvent of events) {
+              const event = sessionsService?.mapEvent(rawEvent) ?? rawEvent;
+              await stream.writeSSE({
+                event: event.type,
+                data: JSON.stringify(event),
+              });
+            }
+          } finally {
+            clearInterval(heartbeat);
+          }
+        });
+      },
     )
     .get(
       "/:providerId/events",
@@ -55,7 +101,8 @@ export function createProvidersController(registry: ProviderRegistry) {
           }, 15_000);
 
           try {
-            for await (const event of events) {
+            for await (const rawEvent of events) {
+              const event = sessionsService?.mapEvent(rawEvent) ?? rawEvent;
               await stream.writeSSE({
                 event: event.type,
                 data: JSON.stringify(event),

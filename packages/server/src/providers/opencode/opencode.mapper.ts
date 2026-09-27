@@ -333,97 +333,104 @@ export function toQuestionRequest(value: unknown): ProviderQuestionRequest {
   };
 }
 
-export function toChatEvent(event: GlobalEvent): ChatEvent | undefined {
+export function toChatEvent(
+  event: GlobalEvent,
+  providerId = "opencode",
+): ChatEvent | undefined {
   const payload = asRecord(event.payload);
   const properties = asRecord(payload.properties);
   const sessionId = stringValue(properties.sessionID, "");
   const directory = event.directory;
 
-  switch (payload.type) {
-    case "message.part.delta":
-      return {
-        type: "message.delta",
-        directory,
-        sessionId,
-        messageId: stringValue(properties.messageID, ""),
-        partId: stringValue(properties.partID, ""),
-        delta: stringValue(properties.delta, ""),
-      };
-    case "message.part.updated": {
-      const part = properties.part;
-      if (!part || typeof part !== "object") return undefined;
-      const partRecord = asRecord(part);
-      return {
-        type: "message.part.updated",
-        directory,
-        sessionId: stringValue(partRecord.sessionID, sessionId),
-        messageId: stringValue(partRecord.messageID, ""),
-        part: mapOpenCodePart(part as Part),
-      };
+  const mapped = (() => {
+    switch (payload.type) {
+      case "message.part.delta":
+        return {
+          type: "message.delta",
+          directory,
+          sessionId,
+          messageId: stringValue(properties.messageID, ""),
+          partId: stringValue(properties.partID, ""),
+          delta: stringValue(properties.delta, ""),
+        };
+      case "message.part.updated": {
+        const part = properties.part;
+        if (!part || typeof part !== "object") return undefined;
+        const partRecord = asRecord(part);
+        return {
+          type: "message.part.updated",
+          directory,
+          sessionId: stringValue(partRecord.sessionID, sessionId),
+          messageId: stringValue(partRecord.messageID, ""),
+          part: mapOpenCodePart(part as Part),
+        };
+      }
+      case "message.updated": {
+        const info = properties.info;
+        if (!info || typeof info !== "object") return undefined;
+        const message = toChatMessage(info as OpencodeMessage);
+        return {
+          type: "message.updated",
+          directory,
+          sessionId: message.sessionId || sessionId,
+          message,
+        };
+      }
+      case "session.status": {
+        const status = asRecord(properties.status);
+        return {
+          type: "session.status",
+          directory,
+          sessionId,
+          status: mapSessionStatus(status.type),
+          runStatus: mapStatus(status.type),
+        };
+      }
+      case "session.idle":
+        return {
+          type: "session.status",
+          directory,
+          sessionId,
+          status: "idle",
+          runStatus: "completed",
+        };
+      case "session.error": {
+        const error = properties.error;
+        const errorRecord = asRecord(error);
+        const errorData = asRecord(errorRecord.data);
+        return {
+          type: "run.failed",
+          directory,
+          sessionId,
+          message:
+            typeof errorRecord.message === "string"
+              ? errorRecord.message
+              : typeof errorData.message === "string"
+                ? errorData.message
+                : undefined,
+          error,
+        };
+      }
+      case "permission.asked":
+        return {
+          type: "approval.requested",
+          directory,
+          sessionId,
+          request: toPermissionRequest(properties),
+        };
+      case "question.asked":
+        return {
+          type: "question.requested",
+          directory,
+          sessionId,
+          request: toQuestionRequest(properties),
+        };
+      default:
+        return undefined;
     }
-    case "message.updated": {
-      const info = properties.info;
-      if (!info || typeof info !== "object") return undefined;
-      const message = toChatMessage(info as OpencodeMessage);
-      return {
-        type: "message.updated",
-        directory,
-        sessionId: message.sessionId || sessionId,
-        message,
-      };
-    }
-    case "session.status": {
-      const status = asRecord(properties.status);
-      return {
-        type: "session.status",
-        directory,
-        sessionId,
-        status: mapSessionStatus(status.type),
-        runStatus: mapStatus(status.type),
-      };
-    }
-    case "session.idle":
-      return {
-        type: "session.status",
-        directory,
-        sessionId,
-        status: "idle",
-        runStatus: "completed",
-      };
-    case "session.error": {
-      const error = properties.error;
-      const errorRecord = asRecord(error);
-      const errorData = asRecord(errorRecord.data);
-      return {
-        type: "run.failed",
-        directory,
-        sessionId,
-        message:
-          typeof errorRecord.message === "string"
-            ? errorRecord.message
-            : typeof errorData.message === "string"
-              ? errorData.message
-              : undefined,
-        error,
-      };
-    }
-    case "permission.asked":
-      return {
-        type: "approval.requested",
-        directory,
-        sessionId,
-        request: toPermissionRequest(properties),
-      };
-    case "question.asked":
-      return {
-        type: "question.requested",
-        directory,
-        sessionId,
-        request: toQuestionRequest(properties),
-      };
-    default:
-      return undefined;
-  }
+  })() as Omit<ChatEvent, "providerId"> | undefined;
+
+  return mapped ? ({ ...mapped, providerId } as ChatEvent) : undefined;
 }
 
 export function toModelInfo(providerId: string, model: Model): ModelInfo {

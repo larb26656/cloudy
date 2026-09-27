@@ -1,9 +1,15 @@
 import type { ChatEvent } from "./event";
 
 export const eventFixtures = [
-  { type: "session.status", sessionId: "session", status: "active" },
+  {
+    type: "session.status",
+    providerId: "opencode",
+    sessionId: "session",
+    status: "active",
+  },
   {
     type: "message.updated",
+    providerId: "opencode",
     sessionId: "session",
     message: {
       id: "message",
@@ -15,12 +21,14 @@ export const eventFixtures = [
   },
   {
     type: "message.part.updated",
+    providerId: "opencode",
     sessionId: "session",
     messageId: "message",
     part: { id: "part", type: "text", text: "hello" },
   },
   {
     type: "message.delta",
+    providerId: "opencode",
     sessionId: "session",
     messageId: "message",
     partId: "part",
@@ -28,6 +36,7 @@ export const eventFixtures = [
   },
   {
     type: "approval.requested",
+    providerId: "opencode",
     sessionId: "session",
     request: {
       id: "approval",
@@ -38,8 +47,14 @@ export const eventFixtures = [
   },
   {
     type: "question.requested",
+    providerId: "opencode",
     sessionId: "session",
     request: { id: "question", sessionId: "session", questions: [] },
   },
-  { type: "run.failed", sessionId: "session", message: "failed" },
+  {
+    type: "run.failed",
+    providerId: "opencode",
+    sessionId: "session",
+    message: "failed",
+  },
 ] satisfies ChatEvent[];

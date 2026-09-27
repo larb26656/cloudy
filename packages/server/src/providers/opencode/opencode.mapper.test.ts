@@ -68,6 +68,7 @@ describe("OpenCode mapper", () => {
 
     expect(toChatEvent(event)).toEqual({
       type: "session.status",
+      providerId: "opencode",
       directory: "/tmp/project",
       sessionId: "session-1",
       status: "active",
@@ -96,6 +97,7 @@ describe("OpenCode mapper", () => {
 
     expect(toChatEvent(event)).toEqual({
       type: "message.part.updated",
+      providerId: "opencode",
       directory: "/tmp/project",
       sessionId: "session-1",
       messageId: "message-1",
@@ -140,6 +142,7 @@ describe("OpenCode mapper", () => {
 
     expect(toChatEvent(event)).toEqual({
       type: "run.failed",
+      providerId: "opencode",
       directory: "/tmp/project",
       sessionId: "session-1",
       message: "ProviderModelNotFoundError: Model not found",

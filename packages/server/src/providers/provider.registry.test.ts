@@ -18,6 +18,7 @@ function provider(overrides: Partial<ProviderAdapter> = {}): ProviderAdapter {
     subscribeEvents: async function* (): AsyncIterable<ChatEvent> {
       yield {
         type: "session.status",
+        providerId: "test",
         sessionId: "session",
         status: "idle",
       };

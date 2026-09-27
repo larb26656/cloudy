@@ -3,7 +3,7 @@ import type {
   ChatSession as CoreChatSession,
   ModelInfo,
 } from "@repo/contracts";
-import { providerApi } from "@/lib/cloudy/provider";
+import { sessionApi } from "@/lib/cloudy/provider";
 import { CHAT_POLL_INTERVAL, messageKeys, sessionKeys } from "@/lib/opencode";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import type { ChatSession, RecentChatSession, SessionRunStatus } from "@/types";
@@ -11,6 +11,7 @@ import type { ChatSession, RecentChatSession, SessionRunStatus } from "@/types";
 function toChatSession(session: CoreChatSession): ChatSession {
   return {
     id: session.id,
+    providerId: session.providerId,
     title: session.title,
     parentID: session.parentId,
     directory: session.directory ?? "",
@@ -31,7 +32,6 @@ async function empty(response: Response): Promise<void> {
 
 export function useSession({
   sessionId,
-  directory,
 }: {
   sessionId: string | null;
   directory?: string;
@@ -41,9 +41,7 @@ export function useSession({
     queryFn: async (): Promise<ChatSession | null> => {
       if (!sessionId) return null;
       return toChatSession(
-        await json<CoreChatSession>(
-          await providerApi.getSession(sessionId, directory),
-        ),
+        await json<CoreChatSession>(await sessionApi.get(sessionId)),
       );
     },
     enabled: !!sessionId,
@@ -56,9 +54,9 @@ export function useSessions({ directory }: { directory: string }) {
   return useQuery({
     queryKey: sessionKeys.infinite(directory),
     queryFn: async (): Promise<ChatSession[]> =>
-      (
-        await json<CoreChatSession[]>(await providerApi.listSessions(directory))
-      ).map(toChatSession),
+      (await json<CoreChatSession[]>(await sessionApi.list(directory))).map(
+        toChatSession,
+      ),
     enabled: !!directory,
   });
 }
@@ -68,9 +66,7 @@ export function useRecentSessions({ limit = 8 }: { limit?: number } = {}) {
     queryKey: sessionKeys.recent(limit),
     queryFn: async (): Promise<RecentChatSession[]> =>
       (
-        await json<CoreChatSession[]>(
-          await providerApi.listSessions(undefined, limit),
-        )
+        await json<CoreChatSession[]>(await sessionApi.list(undefined, limit))
       ).map((session) => ({
         ...toChatSession(session),
         updatedAt: Date.parse(session.updatedAt),
@@ -80,7 +76,6 @@ export function useRecentSessions({ limit = 8 }: { limit?: number } = {}) {
 
 export function useSessionChildren({
   sessionId,
-  directory,
 }: {
   sessionId: string | null;
   directory?: string;
@@ -90,9 +85,7 @@ export function useSessionChildren({
     queryFn: async (): Promise<ChatSession[]> => {
       if (!sessionId) return [];
       return (
-        await json<CoreChatSession[]>(
-          await providerApi.children(sessionId, directory),
-        )
+        await json<CoreChatSession[]>(await sessionApi.children(sessionId))
       ).map(toChatSession);
     },
     enabled: !!sessionId,
@@ -103,7 +96,6 @@ export function useSessionChildren({
 
 export function useSessionStatus({
   sessionId,
-  directory,
 }: {
   sessionId: string | null;
   directory?: string;
@@ -112,10 +104,9 @@ export function useSessionStatus({
     queryKey: sessionKeys.status(sessionId ?? ""),
     queryFn: async () => {
       if (!sessionId) return undefined;
-      const statuses = await json<
-        Record<string, "running" | "queued" | "idle">
-      >(await providerApi.sessionStatuses(directory));
-      const status = statuses[sessionId];
+      const status = await json<"running" | "queued" | "idle">(
+        await sessionApi.status(sessionId),
+      );
       if (status === "running") return { type: "busy" };
       if (status === "queued")
         return { type: "retry", attempt: 0, message: "", next: 0 };
@@ -145,7 +136,7 @@ export function useCreateSession() {
     }): Promise<ChatSession> =>
       toChatSession(
         await json<CoreChatSession>(
-          await providerApi.createSession({
+          await sessionApi.create({
             directory,
             parentId: parentID,
             title,
@@ -170,7 +161,6 @@ export function useUpdateSession() {
   return useMutation({
     mutationFn: async ({
       sessionID,
-      directory,
       title,
       metadata,
     }: {
@@ -181,8 +171,7 @@ export function useUpdateSession() {
     }): Promise<ChatSession> =>
       toChatSession(
         await json<CoreChatSession>(
-          await providerApi.updateSession(sessionID, {
-            directory,
+          await sessionApi.update(sessionID, {
             title,
             metadata,
           }),
@@ -205,12 +194,11 @@ export function useDeleteSession() {
   return useMutation({
     mutationFn: async ({
       sessionID,
-      directory,
     }: {
       sessionID: string;
       directory?: string;
     }): Promise<void> => {
-      await empty(await providerApi.deleteSession(sessionID, directory));
+      await empty(await sessionApi.delete(sessionID));
     },
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
@@ -227,7 +215,6 @@ export function useForkSession() {
   return useMutation({
     mutationFn: async ({
       sessionID,
-      directory,
       messageID,
     }: {
       sessionID: string;
@@ -236,8 +223,7 @@ export function useForkSession() {
     }): Promise<ChatSession> =>
       toChatSession(
         await json<CoreChatSession>(
-          await providerApi.fork(sessionID, {
-            directory,
+          await sessionApi.fork(sessionID, {
             messageId: messageID,
           }),
         ),

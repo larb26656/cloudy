@@ -1,6 +1,6 @@
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import type { ChatMessage, ModelInfo } from "@repo/contracts";
-import { providerApi } from "@/lib/cloudy/provider";
+import { sessionApi } from "@/lib/cloudy/provider";
 import {
   CHAT_POLL_INTERVAL,
   messageKeys,
@@ -28,7 +28,7 @@ export function useMessages({
     queryKey: messageKeys.infinite(sessionId),
     queryFn: async ({ pageParam }): Promise<Message[]> => {
       const result = await json<{ messages: ChatMessage[] }>(
-        await providerApi.messages(sessionId, MESSAGES_LIMIT, pageParam),
+        await sessionApi.messages(sessionId, MESSAGES_LIMIT, pageParam),
       );
       return result.messages;
     },
@@ -70,8 +70,7 @@ export function useSendMessage() {
       agent?: string | null;
     }) =>
       json(
-        await providerApi.sendMessage({
-          sessionId,
+        await sessionApi.sendMessage(sessionId, {
           directory,
           content: content.text,
           attachments: content.attachments.map((attachment) => ({
@@ -92,12 +91,11 @@ export function useAbortGeneration() {
   return useMutation({
     mutationFn: async ({
       sessionId,
-      directory,
     }: {
       sessionId: string;
       directory: string;
     }) => {
-      const response = await providerApi.abort(sessionId, directory);
+      const response = await sessionApi.abort(sessionId);
       if (!response.ok) throw new Error(await response.text());
     },
   });

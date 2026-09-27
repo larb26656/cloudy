@@ -3,9 +3,21 @@ import { joinUrl } from "@/lib/url";
 
 const basePath = joinUrl(env.getApiUrl(), "/api/providers/opencode");
 const providersPath = joinUrl(env.getApiUrl(), "/api/providers");
+const sessionsPath = joinUrl(env.getApiUrl(), "/api/sessions");
 
 async function request(path: string, init?: RequestInit): Promise<Response> {
   return fetch(`${basePath}${path}`, {
+    ...init,
+    credentials: "include",
+    headers: { Accept: "application/json", ...init?.headers },
+  });
+}
+
+async function sessionRequest(
+  path: string,
+  init?: RequestInit,
+): Promise<Response> {
+  return fetch(`${sessionsPath}${path}`, {
     ...init,
     credentials: "include",
     headers: { Accept: "application/json", ...init?.headers },
@@ -81,4 +93,31 @@ export const providerApi = {
   diff: (directory: string) => request(`/diff${query({ directory })}`),
   commands: (directory: string) => request(`/commands${query({ directory })}`),
   executeCommand: (body: unknown) => request("/command", jsonInit(body)),
+};
+
+export const sessionApi = {
+  get: (id: string) => sessionRequest(`/${encodeURIComponent(id)}`),
+  list: (directory?: string, limit?: number) =>
+    sessionRequest(query({ directory, limit })),
+  children: (id: string) =>
+    sessionRequest(`/${encodeURIComponent(id)}/children`),
+  status: (id: string) => sessionRequest(`/${encodeURIComponent(id)}/status`),
+  messages: (id: string, limit?: number, before?: string) =>
+    sessionRequest(
+      `/${encodeURIComponent(id)}/messages${query({ limit, before })}`,
+    ),
+  create: (body: unknown) => sessionRequest("", jsonInit(body)),
+  update: (id: string, body: unknown) =>
+    sessionRequest(`/${encodeURIComponent(id)}`, {
+      ...jsonInit(body),
+      method: "PATCH",
+    }),
+  delete: (id: string) =>
+    sessionRequest(`/${encodeURIComponent(id)}`, { method: "DELETE" }),
+  fork: (id: string, body: unknown) =>
+    sessionRequest(`/${encodeURIComponent(id)}/fork`, jsonInit(body)),
+  abort: (id: string) =>
+    sessionRequest(`/${encodeURIComponent(id)}/abort`, jsonInit({})),
+  sendMessage: (id: string, body: unknown) =>
+    sessionRequest(`/${encodeURIComponent(id)}/messages`, jsonInit(body)),
 };

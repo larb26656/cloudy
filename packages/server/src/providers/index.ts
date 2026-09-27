@@ -11,3 +11,4 @@ export {
   createOpenCodeAdapter,
   type OpenCodeAdapterOptions,
 } from "./opencode/opencode.adapter";
+export { createProviderEventHub } from "./provider.event-hub";

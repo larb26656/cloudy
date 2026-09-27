@@ -431,9 +431,15 @@ async function* streamEvents(
     for await (const event of stream) {
       if (stopped) break;
       if (input.directory && event.directory !== input.directory) continue;
-      const normalized = toChatEvent(event);
+      const normalized = toChatEvent(event, "opencode");
       if (!normalized) continue;
-      if (input.sessionId && normalized.sessionId !== input.sessionId) continue;
+      if (
+        input.sessionId &&
+        ("sessionId" in normalized
+          ? normalized.sessionId !== input.sessionId
+          : true)
+      )
+        continue;
       yield normalized;
     }
   } finally {

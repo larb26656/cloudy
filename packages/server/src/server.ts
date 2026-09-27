@@ -11,6 +11,7 @@ import { createNotificationsController } from "./features/notifications";
 import { createWorkspacesController } from "./features/workspaces";
 import { createBrowserWorkspaceController } from "./features/browser-workspace";
 import { createProvidersController } from "./features/providers";
+import { createSessionsController } from "./features/sessions";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
 
@@ -59,8 +60,12 @@ export function createApp({
     .route("/oc", createProxyController(container.proxyService))
     .route(
       "/api/providers",
-      createProvidersController(container.providerRegistry),
+      createProvidersController(
+        container.providerRegistry,
+        container.sessionsService,
+      ),
     )
+    .route("/api/sessions", createSessionsController(container.sessionsService))
     .route("/api/pty", createPtyController(container.ptyService))
     .route(
       "/api/workspaces",

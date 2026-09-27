@@ -119,7 +119,7 @@ export function applyChatEvent(
   event: ChatEvent,
   sessionId: string,
 ) {
-  if (event.sessionId !== sessionId) return state;
+  if (!("sessionId" in event) || event.sessionId !== sessionId) return state;
   if (event.type === "message.updated")
     return applyMessageInfo(state, event.message);
   if (event.type === "message.part.updated")

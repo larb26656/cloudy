@@ -54,7 +54,7 @@ export function SessionPickerDialog({
               return (
                 <CommandItem
                   key={session.id}
-                  value={`${session.title} ${session.id}`}
+                  value={`${session.title} ${session.providerId} ${session.id}`}
                   disabled={isCurrent}
                   onSelect={() => handleSelect(session.id)}
                 >
@@ -70,6 +70,7 @@ export function SessionPickerDialog({
                       )}
                     </div>
                     <span className="text-xs text-muted-foreground">
+                      {session.providerId} ·{" "}
                       {formatRelativeFromTimestamp(session.updatedAt ?? 0)}
                     </span>
                   </div>

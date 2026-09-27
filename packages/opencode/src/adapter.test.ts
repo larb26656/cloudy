@@ -108,6 +108,7 @@ describe("OpenCode adapter", () => {
 
     expect(toChatEvent(event)).toEqual({
       type: "message.delta",
+      providerId: "opencode",
       sessionId: "session-1",
       messageId: "message-1",
       partId: "part-1",

@@ -178,7 +178,7 @@ const toProviderPermission = (permission: PermissionRequest) => ({
 });
 
 const childrenHandler = (children: { id: string }[] = []) =>
-  http.get(/\/api\/providers\/opencode\/sessions\/[^/]+\/children/, () =>
+  http.get(/\/api\/sessions\/[^/]+\/children/, () =>
     HttpResponse.json(
       children.map(({ id }) => ({
         id,
@@ -439,7 +439,7 @@ describe("ChatCoatainer", () => {
 
     test("shows toast error when send message fails", async () => {
       server.use(
-        http.post(/\/api\/providers\/opencode\/messages/, () =>
+        http.post(/\/api\/sessions\/[^/]+\/messages/, () =>
           HttpResponse.json({ message: "Server exploded" }, { status: 500 }),
         ),
       );
@@ -460,7 +460,7 @@ describe("ChatCoatainer", () => {
       const pendingPromise = new Promise<Response>(() => {});
 
       server.use(
-        http.post(/\/api\/providers\/opencode\/messages/, async () => {
+        http.post(/\/api\/sessions\/[^/]+\/messages/, async () => {
           await pendingPromise;
           return HttpResponse.json(null, { status: 200 });
         }),
@@ -481,11 +481,11 @@ describe("ChatCoatainer", () => {
       const abortGeneration = vi.fn();
 
       server.use(
-        http.post(/\/api\/providers\/opencode\/messages/, async () => {
+        http.post(/\/api\/sessions\/[^/]+\/messages/, async () => {
           await pendingPromise;
           return HttpResponse.json(null, { status: 200 });
         }),
-        http.post(/\/api\/providers\/opencode\/sessions\/[^/]+\/abort/, () => {
+        http.post(/\/api\/sessions\/[^/]+\/abort/, () => {
           abortGeneration();
           return HttpResponse.json(null, { status: 200 });
         }),

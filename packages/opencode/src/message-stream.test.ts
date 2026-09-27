@@ -87,6 +87,7 @@ describe("message stream reducer", () => {
   test("applies normalized chat events only for the selected session", () => {
     const event: ChatEvent = {
       type: "message.updated",
+      providerId: "opencode",
       sessionId: "session",
       message: {
         id: "message",

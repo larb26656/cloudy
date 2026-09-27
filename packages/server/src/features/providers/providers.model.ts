@@ -61,6 +61,10 @@ export const ProvidersModel = {
     directory: z.string().optional(),
     sessionId: z.string().optional(),
   }),
+  eventSchema: z.object({
+    type: z.string(),
+    providerId: z.string(),
+  }),
   sessionsQuerySchema: z.object({
     directory: z.string().optional(),
     limit: z.coerce.number().int().positive().max(100).optional(),
