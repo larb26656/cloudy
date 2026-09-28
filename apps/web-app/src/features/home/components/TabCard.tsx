@@ -1,8 +1,8 @@
 import { X } from "lucide-react";
 import type { Tab } from "@/stores/tabStore";
-import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
+import { ProviderIcon } from "@/components/provider/ProviderIcon";
 import { cn } from "@repo/ui/lib/utils";
-import { getTabWorkspaceId, TabTitle, tabTypeMap } from "../tabs/template";
+import { TabTitle, tabTypeMap } from "../tabs/template";
 
 interface TabCardProps {
   tab: Tab;
@@ -34,10 +34,13 @@ export function TabCard({ tab, isActive, onSwitch, onClose }: TabCardProps) {
         <X size={14} />
       </span>
       <span className="flex size-9 items-center justify-center rounded-lg bg-muted [&>svg]:size-5">
-        <Icon />
+        {tab.type === "chat" ? (
+          <ProviderIcon providerId={tab.data.providerId} className="size-5" />
+        ) : (
+          <Icon />
+        )}
       </span>
       <div className="flex w-full items-center gap-1.5 pr-5">
-        <WorkspaceDot workspaceId={getTabWorkspaceId(tab) ?? undefined} />
         <span className="truncate text-sm font-medium">
           <TabTitle tab={tab} />
         </span>

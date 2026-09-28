@@ -5,7 +5,6 @@ import type { TabTemplate, TabTitleProps } from "../../template";
 import { useSession } from "@/hooks/queries/useSessions";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
-import { ProviderIcon } from "@/components/provider/ProviderIcon";
 import { ChatCreateDialog } from "./ChatCreateDialog";
 import { ChatContent } from "./ChatContent";
 import { ChatHeaderActions } from "./ChatHeaderActions";
@@ -57,7 +56,6 @@ function ChatTabTitle({ data }: TabTitleProps<ChatData>) {
       className="truncate"
     >
       <span className="flex min-w-0 items-center gap-1">
-        <ProviderIcon providerId={data.providerId} />
         <span className="truncate">{resolvedTitle}</span>
       </span>
     </span>

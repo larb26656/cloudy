@@ -1,25 +1,21 @@
 import type { ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
 import { X } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
 
 interface TabItemShellProps {
-  icon: LucideIcon;
+  icon: ReactNode;
   label?: ReactNode;
   isActive: boolean;
   onClick: () => void;
   onClose?: () => void;
-  workspaceId?: string | null;
 }
 
 export function TabItemShell({
-  icon: Icon,
+  icon,
   label,
   isActive,
   onClick,
   onClose,
-  workspaceId,
 }: TabItemShellProps) {
   return (
     <button
@@ -31,10 +27,7 @@ export function TabItemShell({
           : "text-muted-foreground hover:text-foreground",
       )}
     >
-      <span className="[&>svg]:size-4">
-        <Icon />
-      </span>
-      <WorkspaceDot workspaceId={workspaceId ?? undefined} />
+      <span className="[&>svg]:size-4">{icon}</span>
       {label !== undefined && (
         <span className="text-[13px] max-w-30 truncate">{label}</span>
       )}

@@ -103,7 +103,7 @@ export function DesktopTabBar({ onOpenAllTabs, onAddTab }: DesktopTabBarProps) {
     >
       <div className="hidden border-b md:flex">
         <TabItemShell
-          icon={Home}
+          icon={<Home />}
           isActive={activeTabId === "home"}
           onClick={() => setActiveTab("home")}
         />

@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
 import { GripVertical, Home, X } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -23,13 +22,8 @@ import {
   SheetTitle,
 } from "@repo/ui/components/sheet";
 import { cn } from "@repo/ui/lib/utils";
-import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
-import {
-  getTabWorkspaceId,
-  TabTitle,
-  tabTypeMap,
-  tabTemplates,
-} from "../tabs/template";
+import { ProviderIcon } from "@/components/provider/ProviderIcon";
+import { TabTitle, tabTypeMap, tabTemplates } from "../tabs/template";
 import { AddTabMenu } from "./AddTabMenu";
 
 interface MobileTabDrawerProps {
@@ -86,7 +80,7 @@ export function MobileTabDrawer({
         >
           <div className="flex-1 overflow-y-auto p-2">
             <DrawerRow
-              icon={Home}
+              icon={<Home />}
               label="Home"
               isActive={activeTabId === "home"}
               onClick={() => handleSelect("home")}
@@ -98,13 +92,19 @@ export function MobileTabDrawer({
               {tabs.map((tab) => {
                 const template = tabTypeMap[tab.type];
                 if (!template) return null;
+                const Icon = template.icon;
+                const icon =
+                  tab.type === "chat" ? (
+                    <ProviderIcon providerId={tab.data.providerId} />
+                  ) : (
+                    <Icon />
+                  );
                 return (
                   <SortableDrawerRow
                     key={tab.id}
                     tabId={tab.id}
-                    icon={template.icon}
+                    icon={icon}
                     label={<TabTitle tab={tab} />}
-                    workspaceId={getTabWorkspaceId(tab)}
                     isActive={activeTabId === tab.id}
                     onClick={() => handleSelect(tab.id)}
                     onClose={() => removeTab(tab.id)}
@@ -120,24 +120,22 @@ export function MobileTabDrawer({
 }
 
 interface DrawerRowProps {
-  icon: LucideIcon;
+  icon: ReactNode;
   label: ReactNode;
   isActive: boolean;
   onClick: () => void;
   onClose?: () => void;
-  workspaceId?: string | null;
   dragHandle?: ReactNode;
   ref?: Ref<HTMLDivElement>;
   style?: CSSProperties;
 }
 
 function DrawerRow({
-  icon: Icon,
+  icon,
   label,
   isActive,
   onClick,
   onClose,
-  workspaceId,
   dragHandle,
   ref,
   style,
@@ -158,10 +156,7 @@ function DrawerRow({
         onClick={onClick}
         className="flex flex-1 min-w-0 items-center gap-2 px-3 py-2 text-left text-sm font-medium"
       >
-        <span className="[&>svg]:size-4 shrink-0">
-          <Icon />
-        </span>
-        <WorkspaceDot workspaceId={workspaceId ?? undefined} />
+        <span className="[&>svg]:size-4 shrink-0">{icon}</span>
         <span className="truncate">{label}</span>
       </button>
       {onClose && (
