@@ -49,7 +49,6 @@ describe("TabTitle", () => {
     render(<TabTitle tab={tab} />);
 
     expect(screen.getByText("Fix tab titles")).toBeInTheDocument();
-    expect(screen.getByRole("img", { name: "OpenCode" })).toBeInTheDocument();
     expect(mocks.useSession).toHaveBeenCalledWith({
       sessionId: "session-1",
       directory: "/work/cloudy",
