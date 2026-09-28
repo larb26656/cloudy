@@ -30,6 +30,7 @@ type ChatContextValue = {
   directory: string;
   sessionId: string | null;
   effectiveAgent: string | null;
+  providerId: string;
   effectiveModel: ModelInfo | null;
   setAgent: (agent: string | null) => void;
   setModel: (model: ModelInfo | null) => void;
@@ -58,6 +59,7 @@ function showActionError(error: unknown, fallbackMessage: string) {
 type ChatProviderProps = PropsWithChildren<{
   workspace: Workspace | null;
   directory: string;
+  providerId: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
   /**
@@ -80,6 +82,7 @@ export function ChatProvider({
   children,
   workspace,
   directory,
+  providerId = "opencode",
   sessionId,
   onSessionChange,
   agent: agentProp,
@@ -128,6 +131,7 @@ export function ChatProvider({
 
       const newSession = await createSessionAsync({
         directory,
+        providerId,
         agent: agent ?? undefined,
         model: model ?? undefined,
       });
@@ -136,7 +140,7 @@ export function ChatProvider({
 
       return newSession.id;
     },
-    [changeSession, createSessionAsync, directory, sessionId],
+    [changeSession, createSessionAsync, directory, providerId, sessionId],
   );
 
   const setAgent = useCallback(
@@ -203,6 +207,7 @@ export function ChatProvider({
           sessionId: messageSessionId,
           content,
           directory,
+          providerId,
           model,
           agent,
         });
@@ -217,6 +222,7 @@ export function ChatProvider({
     },
     [
       directory,
+      providerId,
       ensureSessionId,
       executeCommandAsync,
       changeSession,
@@ -255,6 +261,7 @@ export function ChatProvider({
   const value = useMemo(
     () => ({
       workspace,
+      providerId,
       directory,
       sessionId,
       effectiveAgent: agent ?? defaultAgent,
@@ -276,6 +283,7 @@ export function ChatProvider({
       defaultAgent,
       defaultModel,
       directory,
+      providerId,
       sessionId,
       agent,
       model,

@@ -39,6 +39,7 @@ export function BotChatContainer({
     <ChatProvider
       workspace={workspace}
       directory={directory}
+      providerId="opencode"
       sessionId={sessionId}
       onSessionChange={onSessionChange}
       agent="bot"

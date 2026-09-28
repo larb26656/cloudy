@@ -48,9 +48,9 @@ export function AgentSelector({ open, onOpenChange }: AgentSelectorProps) {
   const openState = open ?? isOpen;
   const setOpenState = onOpenChange ?? setIsOpen;
   const [searchQuery, setSearchQuery] = useState("");
-  const { effectiveAgent, setAgent, directory } = useChat();
+  const { effectiveAgent, setAgent, directory, providerId } = useChat();
   const inputRef = useRef<HTMLInputElement>(null);
-  const { data, isLoading, error } = useAgents({ directory });
+  const { data, isLoading, error } = useAgents({ directory, providerId });
   const agents = data ?? FALLBACK_AGENTS;
   const { isMobile } = useDeviceType();
 

@@ -40,22 +40,22 @@ Cloudy needs to support multiple agent providers such as OpenCode and Codex with
 
 ## Tasks
 
-- [ ] 1. Add provider identity to chat tab creation, persistence, title, and migration behavior while keeping legacy chat tabs valid
+- [x] 1. Add provider identity to chat tab creation, persistence, title, and migration behavior while keeping legacy chat tabs valid
   - verify: `pnpm --filter web-app check-types` passes and a persisted legacy chat tab is migrated to the default provider without losing its session or directory
   - files: `apps/web-app/src/features/home/tabs/implementations/chat/meta.ts`, `apps/web-app/src/features/home/tabs/implementations/chat/ChatContent.tsx`, `apps/web-app/src/stores/tabStore.ts`
-- [ ] 2. Add provider selection to the New Chat flow and persist the selected provider on the created chat session
+- [x] 2. Add provider selection to the New Chat flow and persist the selected provider on the created chat session
   - verify: the component test creates chats for two providers and asserts that each resulting tab stores the selected `providerId`
   - files: `apps/web-app/src/features/chat/components/CreateChatDialog.tsx`, `apps/web-app/src/features/home/tabs/implementations/chat/meta.ts`
-- [ ] 3. Make agent and model selectors provider-scoped and reset incompatible selections when the provider changes
+- [x] 3. Make agent and model selectors provider-scoped and reset incompatible selections when the provider changes
   - verify: selector tests show only the active provider's catalog and clear an agent/model that is unavailable under the newly selected provider
   - files: `apps/web-app/src/components/chat/AgentSelector.tsx`, `apps/web-app/src/components/chat/ModelSelector.tsx`, `apps/web-app/src/components/chat/ChatContainer.tsx`
-- [ ] 4. Add the chat-header provider control and explicit Continue with another provider flow with transferable-context preview
+- [x] 4. Add the chat-header provider control and explicit Continue with another provider flow with transferable-context preview
   - verify: component tests assert that provider switching does not mutate the current session and that confirmation creates a new session request with summary, files, diff, task, and unresolved questions
   - files: `apps/web-app/src/components/chat/ChatHeaderActions.tsx`, `apps/web-app/src/components/chat/`, `apps/web-app/src/lib/cloudy/provider.ts`
-- [ ] 5. Show provider identity in tab titles and session history without making provider badges the only identifier
+- [x] 5. Show provider identity in tab titles and session history without making provider badges the only identifier
   - verify: Storybook or component tests render provider name/badge for OpenCode and Codex and remain readable on narrow layouts
   - files: `apps/web-app/src/features/home/tabs/implementations/chat/meta.ts`, `apps/web-app/src/features/home/components/SessionRow.tsx`
-- [ ] 6. Add provider-aware defaults and connection/configuration states to Agent & Model settings
+- [x] 6. Add provider-aware defaults and connection/configuration states to Agent & Model settings
   - verify: settings tests render separate provider sections, distinguish connected/unconfigured providers, and never mix agent/model options between providers
   - files: `apps/web-app/src/features/settings/components/AgentModelSettings.tsx`, `apps/web-app/src/features/settings/settingsConfig.ts`
 - [ ] 7. Run frontend validation and manually verify the core provider flows

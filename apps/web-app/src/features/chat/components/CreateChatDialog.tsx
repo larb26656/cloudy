@@ -20,6 +20,7 @@ import { basename } from "@/lib/path";
 import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
 import { useCreateTempWorkspace, useSessions } from "@/hooks/queries";
 import { ArrowLeft, MessageCircleDashed } from "lucide-react";
+import { ProviderSelector } from "@/components/chat/ProviderSelector";
 
 interface CreateChatDialogProps {
   open: boolean;
@@ -29,6 +30,7 @@ interface CreateChatDialogProps {
     directory: string;
     sessionId: string | null;
     sessionName: string;
+    providerId: string;
   }) => void;
 }
 
@@ -47,6 +49,7 @@ export function CreateChatDialog({
   const navigate = useNavigate();
   const pushRecentDirectory = useRecentDirectoryStore((s) => s.push);
   const [selected, setSelected] = useState<ChatTarget | null>(null);
+  const [providerId, setProviderId] = useState("opencode");
   const createTempWorkspace = useCreateTempWorkspace();
 
   const { data: sessions = [], isLoading: sessionsLoading } = useSessions({
@@ -62,6 +65,7 @@ export function CreateChatDialog({
           directory,
           sessionId: null,
           sessionName: name,
+          providerId,
         });
         handleClose();
       },
@@ -96,6 +100,7 @@ export function CreateChatDialog({
       directory: selected.directory,
       sessionId,
       sessionName,
+      providerId,
     });
     handleClose();
   };
@@ -168,6 +173,10 @@ export function CreateChatDialog({
             </>
           ) : (
             <SessionStep
+              providerId={providerId}
+              onProviderChange={(value) => {
+                if (value) setProviderId(value);
+              }}
               sessions={sessions}
               isLoading={sessionsLoading}
               onBack={handleBack}
@@ -182,22 +191,36 @@ export function CreateChatDialog({
 }
 
 function SessionStep({
+  providerId,
+  onProviderChange,
   sessions,
   isLoading,
   onBack,
   onNewChat,
   onSelect,
 }: {
+  providerId: string;
+  onProviderChange: (providerId: string) => void;
   sessions: ChatSession[];
   isLoading: boolean;
   onBack: () => void;
   onNewChat: () => void;
   onSelect: (session: ChatSession) => void;
 }) {
-  const rootSessions = sessions.filter((s) => !s.parentID);
+  const rootSessions = sessions.filter(
+    (session) => !session.parentID && session.providerId === providerId,
+  );
 
   return (
     <div className="flex flex-col gap-4 flex-1 min-h-0">
+      <div className="space-y-2">
+        <p className="text-sm font-medium">Execution provider</p>
+        <ProviderSelector
+          providerId={providerId}
+          sessionId={null}
+          onContinue={onProviderChange}
+        />
+      </div>
       <Button
         variant="outline"
         className="justify-start gap-2 shrink-0"

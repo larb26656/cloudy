@@ -123,27 +123,39 @@ export function useCreateSession() {
   return useMutation({
     mutationFn: async ({
       directory,
+      providerId,
       parentID,
       title,
       agent,
       model,
+      transferContext,
     }: {
       directory?: string;
+      providerId?: string;
       parentID?: string;
       title?: string;
       agent?: string;
       model?: ModelInfo;
+      transferContext?: {
+        summary: string;
+        files: string[];
+        diff: string;
+        task: string;
+        unresolvedQuestions: string[];
+      };
     }): Promise<ChatSession> =>
       toChatSession(
         await json<CoreChatSession>(
           await sessionApi.create({
             directory,
+            providerId,
             parentId: parentID,
             title,
             agentId: agent,
             model: model
               ? { modelId: model.modelId, providerId: model.providerId }
               : undefined,
+            context: transferContext,
           }),
         ),
       ),

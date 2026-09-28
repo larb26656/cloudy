@@ -113,7 +113,7 @@ export const useTabStore = create<TabStore>()(
     }),
     {
       name: "tabs",
-      version: 11,
+      version: 12,
       migrate: (persistedState, version) => {
         // Persisted shapes may predate the current `Tab` union, so read them
         // through a looser type. Old versions stored `type: "session"` which
@@ -268,6 +268,18 @@ export const useTabStore = create<TabStore>()(
             return {
               ...t,
               data: { ...data, model: toModelInfo(data?.model) },
+            };
+          });
+        }
+
+        // v11 -> v12: chat tabs are scoped to one execution provider.
+        if (version < 12) {
+          tabs = tabs.map((t) => {
+            if (t.type !== "chat") return t;
+            const data = t.data as { providerId?: string } | null;
+            return {
+              ...t,
+              data: { ...data, providerId: data?.providerId ?? "opencode" },
             };
           });
         }

@@ -9,6 +9,7 @@ import { useTabStore } from "@/stores/tabStore";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { Center } from "@/components/layout";
 import type { ModelInfo } from "@repo/contracts";
+import { ProviderIcon } from "@/components/provider/ProviderIcon";
 
 type ChatNodeProps = Node<
   {
@@ -73,6 +74,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       workspaceId: data.workspaceId,
       directory,
       sessionName: title,
+      providerId: data.model?.providerId ?? "opencode",
       agent: data.agent,
       model: data.model,
     });
@@ -91,6 +93,9 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       title={title}
       nodeId={id}
       selected={selected}
+      headerAction={
+        <ProviderIcon providerId={session?.providerId ?? "opencode"} />
+      }
       maxWidth={1200}
       maxHeight={1200}
       onRename={data.sessionId ? handleRename : undefined}
@@ -115,6 +120,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
         <ChatContainer
           workspace={workspace ?? null}
           directory={directory}
+          providerId={data.model?.providerId ?? "opencode"}
           sessionId={data.sessionId}
           onSessionChange={handleSessionChange}
           agent={data.agent}

@@ -60,18 +60,21 @@ export function useSendMessage() {
       sessionId,
       content,
       directory,
+      providerId,
       model,
       agent,
     }: {
       sessionId: string;
       content: ChatInputContent;
       directory: string;
+      providerId: string;
       model?: ModelInfo | null;
       agent?: string | null;
     }) =>
       json(
         await sessionApi.sendMessage(sessionId, {
           directory,
+          providerId,
           content: content.text,
           attachments: content.attachments.map((attachment) => ({
             name: attachment.filename,

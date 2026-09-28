@@ -19,6 +19,7 @@ import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 interface ChatContainerProps {
   workspace?: Workspace | null;
   directory: string;
+  providerId?: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
   agent?: string | null;
@@ -30,6 +31,7 @@ interface ChatContainerProps {
 export function ChatContainer({
   workspace = null,
   directory,
+  providerId,
   sessionId,
   onSessionChange,
   agent,
@@ -37,12 +39,14 @@ export function ChatContainer({
   model,
   onModelChange,
 }: ChatContainerProps) {
+  const effectiveProviderId = providerId ?? "opencode";
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
 
   return (
     <ChatProvider
       workspace={workspace}
       directory={directory}
+      providerId={effectiveProviderId}
       sessionId={sessionId}
       onSessionChange={onSessionChange}
       agent={agent}

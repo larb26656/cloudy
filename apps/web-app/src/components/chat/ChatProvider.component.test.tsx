@@ -336,12 +336,18 @@ describe("ChatProvider", () => {
       screen.getByRole("button", { name: "Send message" }).click();
     });
 
-    expect(mocks.createSession).toHaveBeenCalledWith({ directory: "/project" });
+    expect(mocks.createSession).toHaveBeenCalledWith({
+      directory: "/project",
+      providerId: "opencode",
+      agent: undefined,
+      model: undefined,
+    });
     expect(onSessionChange).toHaveBeenCalledWith("ses_created");
     expect(mocks.sendMessage).toHaveBeenCalledWith({
       sessionId: "ses_created",
       content: { text: "hello", mentions: [], attachments: [] },
       directory: "/project",
+      providerId: "opencode",
       model: undefined,
       agent: undefined,
     });

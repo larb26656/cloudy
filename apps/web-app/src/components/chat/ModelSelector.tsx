@@ -54,8 +54,8 @@ export function ModelSelector({ open, onOpenChange }: ModelSelectorProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = open ?? internalOpen;
   const setIsOpen = onOpenChange ?? setInternalOpen;
-  const { effectiveModel, setModel } = useChat();
-  const { data: providers = [], isLoading, error } = useModels();
+  const { effectiveModel, setModel, providerId } = useChat();
+  const { data: providers = [], isLoading, error } = useModels(providerId);
   const favorites = useFavoriteModelsStore((state) => state.favorites);
   const toggleFavorite = useFavoriteModelsStore(
     (state) => state.toggleFavorite,

@@ -4,6 +4,7 @@ import { formatRelativeFromTimestamp } from "@/lib/format";
 import { cn } from "@repo/ui/lib/utils";
 import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
+import { ProviderIcon } from "@/components/provider/ProviderIcon";
 
 interface SessionRowProps {
   session: RecentChatSession;
@@ -34,25 +35,33 @@ export function SessionRow({
         "transition-colors hover:border-foreground/15",
       )}
     >
-      <span className="flex min-w-0 flex-1 flex-col justify-start gap-1">
-        {isEditing ? (
-          <SessionTitleInput
-            sessionId={session.id}
-            directory={directory}
-            initialTitle={session.title || "New Chat"}
-            onDone={() => setIsEditing(false)}
-          />
-        ) : (
-          <span
-            onDoubleClick={(e) => {
-              e.stopPropagation();
-              setIsEditing(true);
-            }}
-            className="truncate text-[13.5px] font-medium"
-          >
-            {session.title || "New Chat"}
+      <span className="flex min-w-0 flex-1 flex-col justify-start gap-2">
+        <div className="flex items-center gap-2">
+          <ProviderIcon providerId={session.providerId} />
+          <div className="flex-1 truncate">
+            {isEditing ? (
+              <SessionTitleInput
+                sessionId={session.id}
+                directory={directory}
+                initialTitle={session.title || "New Chat"}
+                onDone={() => setIsEditing(false)}
+              />
+            ) : (
+              <span
+                onDoubleClick={(e) => {
+                  e.stopPropagation();
+                  setIsEditing(true);
+                }}
+                className="text-[13.5px] font-medium"
+              >
+                {session.title || "New Chat"}
+              </span>
+            )}
+          </div>
+          <span className="shrink-0 text-[11px] text-muted-foreground/80">
+            {formatRelativeFromTimestamp(session.updatedAt)}
           </span>
-        )}
+        </div>
 
         <span
           className="truncate text-[11px] text-muted-foreground/70"
@@ -61,25 +70,12 @@ export function SessionRow({
           {directory}
         </span>
 
-        <span className="text-[11px] text-muted-foreground/70">
-          {session.providerId}
-        </span>
-
         <WorkspaceBadge
           workspaceName={workspaceName}
           directory={directory}
           workspaceId={workspaceId}
-          className="self-start md:hidden"
+          className="self-start"
         />
-      </span>
-      <WorkspaceBadge
-        workspaceName={workspaceName}
-        directory={directory}
-        workspaceId={workspaceId}
-        className="hidden md:block"
-      />
-      <span className="shrink-0 text-[11px] text-muted-foreground/80">
-        {formatRelativeFromTimestamp(session.updatedAt)}
       </span>
     </button>
   );

@@ -37,6 +37,7 @@ describe("TabTitle", () => {
       id: "chat-1",
       type: "chat" as const,
       data: {
+        providerId: "opencode",
         sessionId: "session-1",
         sessionName: "New Chat",
         workspaceId: "workspace-1",
@@ -48,6 +49,7 @@ describe("TabTitle", () => {
     render(<TabTitle tab={tab} />);
 
     expect(screen.getByText("Fix tab titles")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "OpenCode" })).toBeInTheDocument();
     expect(mocks.useSession).toHaveBeenCalledWith({
       sessionId: "session-1",
       directory: "/work/cloudy",

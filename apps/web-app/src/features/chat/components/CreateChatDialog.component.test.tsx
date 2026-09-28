@@ -22,6 +22,10 @@ vi.mock("@/hooks/queries", () => ({
   }),
 }));
 
+vi.mock("@/hooks/queries/useModels", () => ({
+  useModels: () => ({ data: [{ id: "opencode", name: "OpenCode" }] }),
+}));
+
 vi.mock("@/features/workspace/WorkspaceSelectStep", () => ({
   WorkspaceSelectStep: ({
     onSelect,
@@ -72,6 +76,7 @@ describe("CreateChatDialog", () => {
       directory: "/work/my-app",
       sessionId: null,
       sessionName: "New Chat",
+      providerId: "opencode",
     });
   });
 
@@ -133,6 +138,7 @@ describe("CreateChatDialog", () => {
       directory: "/work/cloudy",
       sessionId: null,
       sessionName: "New Chat",
+      providerId: "opencode",
     });
   });
 });

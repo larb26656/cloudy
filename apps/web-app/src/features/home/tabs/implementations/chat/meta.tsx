@@ -5,11 +5,13 @@ import type { TabTemplate, TabTitleProps } from "../../template";
 import { useSession } from "@/hooks/queries/useSessions";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
+import { ProviderIcon } from "@/components/provider/ProviderIcon";
 import { ChatCreateDialog } from "./ChatCreateDialog";
 import { ChatContent } from "./ChatContent";
 import { ChatHeaderActions } from "./ChatHeaderActions";
 
 export type ChatData = {
+  providerId: string;
   sessionId: string | null;
   /** Null when the tab is ephemeral (session opened with no registered workspace). */
   workspaceId: string | null;
@@ -54,7 +56,10 @@ function ChatTabTitle({ data }: TabTitleProps<ChatData>) {
       }
       className="truncate"
     >
-      {resolvedTitle}
+      <span className="flex min-w-0 items-center gap-1">
+        <ProviderIcon providerId={data.providerId} />
+        <span className="truncate">{resolvedTitle}</span>
+      </span>
     </span>
   );
 }

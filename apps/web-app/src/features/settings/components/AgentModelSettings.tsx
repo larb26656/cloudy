@@ -1,4 +1,5 @@
-import { Bot, Cpu } from "lucide-react";
+import { Bot, Cpu, Radio } from "lucide-react";
+import { useState } from "react";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { useModels } from "@/hooks/queries/useModels";
 import {
@@ -16,8 +17,10 @@ import { useDefaultModelStore } from "@/stores/defaultModelStore";
 const DEFAULT_VALUE = "__default__";
 
 export function AgentModelSettings() {
-  const { data: agents = [] } = useAgents();
-  const { data: providers = [] } = useModels();
+  const { data: allProviders = [] } = useModels();
+  const [providerId, setProviderId] = useState("opencode");
+  const { data: agents = [] } = useAgents({ providerId });
+  const { data: providers = [] } = useModels(providerId);
   const defaultAgent = useDefaultAgentStore((state) => state.defaultAgent);
   const setDefaultAgent = useDefaultAgentStore(
     (state) => state.setDefaultAgent,
@@ -36,6 +39,39 @@ export function AgentModelSettings() {
         <h2 className="text-lg font-semibold">Agent & Model</h2>
         <p className="text-sm text-muted-foreground">
           Set the defaults used when a chat has no session-specific selection.
+        </p>
+      </div>
+
+      <div className="space-y-3 rounded-lg border p-4">
+        <div className="flex items-center gap-3">
+          <Radio className="size-4 text-muted-foreground" />
+          <div>
+            <p className="text-sm font-medium">Provider</p>
+            <p className="text-xs text-muted-foreground">
+              Defaults below are scoped to this provider.
+            </p>
+          </div>
+        </div>
+        <Select
+          value={providerId}
+          onValueChange={(value) => value && setProviderId(value)}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {(allProviders.length
+              ? allProviders
+              : [{ id: "opencode", name: "OpenCode" }]
+            ).map((provider) => (
+              <SelectItem key={provider.id} value={provider.id}>
+                {provider.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          {providers.length ? "Connected" : "Not configured or unavailable"}
         </p>
       </div>
 
@@ -62,7 +98,9 @@ export function AgentModelSettings() {
             <SelectItem value={DEFAULT_VALUE}>No default agent</SelectItem>
             {agents.map((agent) => (
               <SelectItem key={agent.name} value={agent.name}>
-                {agent.name}
+                {agent.providerId
+                  ? `${agent.name} (${agent.providerId})`
+                  : agent.name}
               </SelectItem>
             ))}
           </SelectContent>

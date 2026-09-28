@@ -11,9 +11,14 @@ export async function fetchProviderCatalog(): Promise<ProviderInfo[]> {
   return res.json();
 }
 
-export function useModels() {
+export function useModels(providerId?: string) {
   return useQuery({
-    queryKey: providerKeys.catalog(),
-    queryFn: fetchProviderCatalog,
+    queryKey: [...providerKeys.catalog(), providerId ?? "all"],
+    queryFn: async () => {
+      const providers = await fetchProviderCatalog();
+      return providerId
+        ? providers.filter((provider) => provider.id === providerId)
+        : providers;
+    },
   });
 }
