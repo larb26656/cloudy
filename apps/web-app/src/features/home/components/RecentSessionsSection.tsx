@@ -7,7 +7,7 @@ import type { Workspace } from "@/lib/cloudy/workspaces";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { EmptyState } from "@repo/ui/components/empty-state";
-import { SessionRow } from "./SessionRow";
+import { SessionCard } from "./SessionCard";
 
 export function RecentSessionsSection() {
   const { data: sessions, isLoading, error } = useRecentSessions({ limit: 8 });
@@ -51,12 +51,12 @@ export function RecentSessionsSection() {
     content = <EmptyState size="inline" title="No sessions yet" />;
   } else {
     content = (
-      <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-3">
         {sessions.map((session) => {
           const dir = session.directory;
           const workspace = directoryToWorkspace(dir);
           return (
-            <SessionRow
+            <SessionCard
               key={session.id}
               session={session}
               workspaceName={workspace?.name}

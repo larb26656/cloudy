@@ -1,12 +1,12 @@
 import type { RecentChatSession } from "@/types";
 import { useState } from "react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
-import { cn } from "@repo/ui/lib/utils";
 import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { ProviderIcon } from "@/components/provider/ProviderIcon";
+import { ClickableCard } from "./ClickableCard";
 
-interface SessionRowProps {
+interface SessionCardProps {
   session: RecentChatSession;
   workspaceName?: string;
   /** Filesystem path of the session. Used to show a fallback indicator when
@@ -17,23 +17,19 @@ interface SessionRowProps {
   onClick: () => void;
 }
 
-export function SessionRow({
+export function SessionCard({
   session,
   workspaceName,
   directory,
   workspaceId,
   onClick,
-}: SessionRowProps) {
+}: SessionCardProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <button
-      type="button"
+    <ClickableCard
       onClick={onClick}
-      className={cn(
-        "flex items-center gap-3 rounded-xl border border-transparent bg-card px-3.5 py-3 text-left",
-        "transition-colors hover:border-foreground/15",
-      )}
+      className="flex items-center gap-3 px-3.5 py-3"
     >
       <span className="flex min-w-0 flex-1 flex-col justify-start gap-2">
         <div className="flex items-center gap-2">
@@ -77,6 +73,6 @@ export function SessionRow({
           className="self-start"
         />
       </span>
-    </button>
+    </ClickableCard>
   );
 }

@@ -1,6 +1,6 @@
 import type { Workspace } from "@/lib/cloudy/workspaces";
-import { cn } from "@repo/ui/lib/utils";
 import { BotEyeIcon } from "./BotEyeIcon";
+import { ClickableCard } from "./ClickableCard";
 
 interface WorkspaceCardProps {
   workspace: Workspace;
@@ -14,14 +14,7 @@ export function WorkspaceCard({
   onClick,
 }: WorkspaceCardProps) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "flex items-center gap-3 rounded-xl border bg-card p-3.5 text-left",
-        "transition-colors hover:border-foreground/20",
-      )}
-    >
+    <ClickableCard onClick={onClick} className="flex items-center gap-3 p-3.5">
       <span
         className="flex size-9 shrink-0 items-center justify-center rounded-[10px] text-[15px] font-bold text-white"
         style={{ backgroundColor: workspace.color }}
@@ -40,6 +33,6 @@ export function WorkspaceCard({
             : workspace.directory}
         </span>
       </span>
-    </button>
+    </ClickableCard>
   );
 }
