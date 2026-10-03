@@ -217,8 +217,12 @@ describe("ChatCoatainer", () => {
     beforeEach(() => {
       questionsData = [];
       server.use(
-        http.get(/\/api\/providers\/opencode\/questions(\?.*)?$/, () =>
-          HttpResponse.json(questionsData.map(toProviderQuestion)),
+        http.get(/\/api\/sessions\/([^/]+)\/questions$/, ({ params }) =>
+          HttpResponse.json(
+            questionsData
+              .filter((question) => question.sessionID === params[0])
+              .map(toProviderQuestion),
+          ),
         ),
         http.get(/\/api\/providers\/opencode\/permissions(\?.*)?$/, () =>
           HttpResponse.json([]),
@@ -300,14 +304,15 @@ describe("ChatCoatainer", () => {
       );
     });
 
-    test("shows banner for questions from a child session", async () => {
+    test("does not show questions from a child session", async () => {
       questionsData = [makeQuestion("ses_child", 2)];
       server.use(childrenHandler([{ id: "ses_child" }]));
 
       renderChat("ses_parent");
 
-      const banner = await screen.findByTestId("question-banner");
-      expect(banner).toHaveAttribute("data-count", "2");
+      await waitFor(() =>
+        expect(screen.queryByTestId("question-banner")).not.toBeInTheDocument(),
+      );
     });
   });
 
