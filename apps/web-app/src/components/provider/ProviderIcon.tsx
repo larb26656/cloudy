@@ -1,4 +1,5 @@
 import { cn } from "@repo/ui/lib/utils";
+import { Bot } from "lucide-react";
 
 interface ProviderIconProps {
   providerId: string;
@@ -6,7 +7,11 @@ interface ProviderIconProps {
 }
 
 export function ProviderIcon({ providerId, className }: ProviderIconProps) {
-  if (providerId !== "opencode") return null;
+  if (providerId !== "opencode") {
+    return (
+      <Bot aria-hidden="true" className={cn("size-3.5 shrink-0", className)} />
+    );
+  }
 
   return (
     <svg

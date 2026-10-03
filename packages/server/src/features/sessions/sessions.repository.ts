@@ -13,7 +13,10 @@ export interface SessionsRepository {
   update(
     id: string,
     input: Partial<
-      Pick<NewSession, "title" | "directory" | "metadata" | "parentId">
+      Pick<
+        NewSession,
+        "title" | "directory" | "metadata" | "parentId" | "status" | "runStatus"
+      >
     >,
   ): SessionRecord | null;
   delete(id: string): boolean;

@@ -10,92 +10,81 @@ function provider(
   return {
     id,
     capabilities: { streaming: true },
-    getInfo: async () => ({
-      id,
-      name: id,
-      capabilities: { streaming: true },
-    }),
+    getInfo: async () => ({ id, name: id, capabilities: { streaming: true } }),
     subscribeEvents,
   };
 }
 
-async function collect(iterable: AsyncIterable<unknown>) {
-  const events: unknown[] = [];
-  for await (const event of iterable) events.push(event);
-  return events;
+function waitForEvent() {
+  let resolve!: () => void;
+  const promise = new Promise<void>((next) => {
+    resolve = next;
+  });
+  return { promise, resolve };
 }
 
 describe("provider event hub", () => {
-  it("multiplexes normalized events and preserves their provider IDs", async () => {
+  it("consumes upstream events with zero subscribers", async () => {
+    const consumed = waitForEvent();
     const registry = createProviderRegistry({
       providers: [
-        provider("one", async function* () {
+        provider("one", async function* ({ signal } = {}) {
+          consumed.resolve();
           yield {
             type: "session.status",
             providerId: "one",
             sessionId: "one-session",
             status: "idle",
           } as const;
-        }),
-        provider("two", async function* () {
-          yield {
-            type: "session.status",
-            providerId: "two",
-            sessionId: "two-session",
-            status: "idle",
-          } as const;
+          void signal;
         }),
       ],
     });
-
-    const events = await collect(
-      createProviderEventHub(registry).subscribeEvents(),
-    );
-
-    expect(events).toEqual([
-      { type: "provider.connection", providerId: "one", state: "connected" },
-      { type: "provider.connection", providerId: "two", state: "connected" },
-      expect.objectContaining({ providerId: "one", sessionId: "one-session" }),
-      { type: "provider.connection", providerId: "one", state: "disconnected" },
-      expect.objectContaining({ providerId: "two", sessionId: "two-session" }),
-      { type: "provider.connection", providerId: "two", state: "disconnected" },
-    ]);
+    const hub = createProviderEventHub(registry);
+    hub.start();
+    await consumed.promise;
+    await hub.stop();
   });
 
-  it("isolates a provider failure from other subscriptions", async () => {
+  it("fans out events and isolates subscriber aborts", async () => {
+    const emitted = waitForEvent();
     const registry = createProviderRegistry({
       providers: [
-        provider("failed", async function* () {
-          throw new Error("provider offline");
-          yield* [];
-        }),
-        provider("healthy", async function* () {
+        provider("one", async function* ({ signal } = {}) {
           yield {
             type: "session.status",
-            providerId: "healthy",
-            sessionId: "session",
+            providerId: "one",
+            sessionId: "one-session",
             status: "idle",
           } as const;
+          emitted.resolve();
+          await new Promise<void>((resolve) =>
+            signal?.addEventListener("abort", () => resolve(), { once: true }),
+          );
         }),
       ],
     });
+    const hub = createProviderEventHub(registry);
+    const first = hub.subscribeEvents()[Symbol.asyncIterator]();
+    const secondAbort = new AbortController();
+    const second = hub
+      .subscribeEvents({ signal: secondAbort.signal })
+      [Symbol.asyncIterator]();
 
-    const events = await collect(
-      createProviderEventHub(registry).subscribeEvents(),
-    );
-
-    expect(events).toContainEqual({
-      type: "provider.connection",
-      providerId: "failed",
-      state: "disconnected",
-      error: expect.any(Error),
+    await first.next();
+    await second.next();
+    emitted.resolve();
+    const firstEvent = first.next();
+    const secondEvent = second.next();
+    secondAbort.abort();
+    await expect(secondEvent).resolves.toMatchObject({ done: true });
+    await expect(firstEvent).resolves.toMatchObject({
+      value: { type: "session.status", sessionId: "one-session" },
     });
-    expect(events).toContainEqual(
-      expect.objectContaining({ providerId: "healthy", sessionId: "session" }),
-    );
+    await hub.stop();
   });
 
-  it("stops upstream subscriptions when the consumer aborts", async () => {
+  it("only closes upstream subscriptions during hub shutdown", async () => {
     let stopped = false;
     const registry = createProviderRegistry({
       providers: [
@@ -113,16 +102,15 @@ describe("provider event hub", () => {
         }),
       ],
     });
+    const hub = createProviderEventHub(registry);
     const abort = new AbortController();
-    const iterator = createProviderEventHub(registry)
+    const iterator = hub
       .subscribeEvents({ signal: abort.signal })
       [Symbol.asyncIterator]();
-
     await iterator.next();
-    const pending = iterator.next();
     abort.abort();
-    await pending;
-
+    expect(stopped).toBe(false);
+    await hub.stop();
     expect(stopped).toBe(true);
   });
 });

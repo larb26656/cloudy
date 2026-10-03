@@ -1,4 +1,5 @@
 import { sql } from "drizzle-orm";
+import type { RunStatus, SessionStatus } from "@repo/ai-core";
 import {
   index,
   integer,
@@ -16,6 +17,11 @@ export const sessions = sqliteTable(
     title: text("title"),
     directory: text("directory"),
     parentId: text("parent_id"),
+    status: text("status", { mode: "json" })
+      .$type<SessionStatus>()
+      .default(sql`'"idle"'`)
+      .notNull(),
+    runStatus: text("run_status").$type<RunStatus>().default("idle").notNull(),
     createdAt: integer("created_at", { mode: "timestamp" })
       .default(sql`(unixepoch())`)
       .notNull(),

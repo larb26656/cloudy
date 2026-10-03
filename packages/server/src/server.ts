@@ -62,6 +62,7 @@ export function createApp({
       "/api/providers",
       createProvidersController(
         container.providerRegistry,
+        container.providerEventHub,
         container.sessionsService,
       ),
     )

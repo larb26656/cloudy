@@ -3,7 +3,7 @@ import { streamSSE } from "hono/streaming";
 import { describeRoute } from "hono-openapi";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import { createProviderEventHub, type ProviderRegistry } from "../../providers";
+import type { ProviderEventHub, ProviderRegistry } from "../../providers";
 import { ProvidersModel } from "./providers.model";
 import type { SessionsService } from "../sessions";
 
@@ -13,10 +13,9 @@ const providerParamSchema = z.object({
 
 export function createProvidersController(
   registry: ProviderRegistry,
+  eventHub: ProviderEventHub,
   sessionsService?: SessionsService,
 ) {
-  const eventHub = createProviderEventHub(registry);
-
   return new Hono()
     .get(
       "/",
@@ -38,53 +37,6 @@ export function createProvidersController(
       (c) => {
         const events = eventHub.subscribeEvents({
           ...c.req.valid("query"),
-          signal: c.req.raw.signal,
-        });
-
-        return streamSSE(c, async (stream) => {
-          await stream.writeSSE({
-            event: "connected",
-            data: JSON.stringify({ type: "connected" }),
-          });
-          const heartbeat = setInterval(() => {
-            void stream.writeSSE({
-              event: "heartbeat",
-              data: JSON.stringify({ type: "heartbeat" }),
-            });
-          }, 15_000);
-
-          try {
-            for await (const rawEvent of events) {
-              const event = sessionsService?.mapEvent(rawEvent) ?? rawEvent;
-              await stream.writeSSE({
-                event: event.type,
-                data: JSON.stringify(event),
-              });
-            }
-          } finally {
-            clearInterval(heartbeat);
-          }
-        });
-      },
-    )
-    .get(
-      "/:providerId/events",
-      describeRoute({
-        description: "Stream normalized provider events",
-        tags: ["Providers"],
-        responses: {
-          200: { description: "Normalized provider event stream" },
-          404: { description: "Provider not found" },
-        },
-      }),
-      zValidator("param", providerParamSchema),
-      zValidator("query", ProvidersModel.eventsQuerySchema),
-      (c) => {
-        const { providerId } = c.req.valid("param");
-        const { directory, sessionId } = c.req.valid("query");
-        const events = registry.subscribeEvents(providerId, {
-          directory,
-          sessionId,
           signal: c.req.raw.signal,
         });
 

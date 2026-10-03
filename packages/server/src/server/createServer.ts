@@ -12,6 +12,7 @@ export function createServer(option: AppOption) {
   const start = async () => {
     const config = loadConfig(option);
     container = createContainer(config);
+    container.providerEventHub.start();
 
     const app = createApp({
       corsOrigins: config.cors,
@@ -35,6 +36,7 @@ export function createServer(option: AppOption) {
 
   const stop = async () => {
     container?.ptyService.killAll();
+    await container?.providerEventHub.stop();
     await new Promise<void>((resolve, reject) => {
       if (!server) {
         resolve();

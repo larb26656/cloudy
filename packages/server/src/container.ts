@@ -12,7 +12,11 @@ import {
   createSessionsService,
 } from "./features/sessions";
 import { createDb, runMigrations, type DbClient } from "./db";
-import { createOpenCodeAdapter, createProviderRegistry } from "./providers";
+import {
+  createOpenCodeAdapter,
+  createProviderEventHub,
+  createProviderRegistry,
+} from "./providers";
 
 export function createContainer(config: AppConfig, overrideDb?: DbClient) {
   const db =
@@ -48,6 +52,9 @@ export function createContainer(config: AppConfig, overrideDb?: DbClient) {
     sessionsRepository,
     providerRegistry,
   );
+  const providerEventHub = createProviderEventHub(providerRegistry, {
+    onEvent: (event) => sessionsService.applyEvent(event),
+  });
   return {
     db,
     workspacesService,
@@ -58,6 +65,7 @@ export function createContainer(config: AppConfig, overrideDb?: DbClient) {
     proxyService,
     providerRegistry,
     sessionsService,
+    providerEventHub,
   };
 }
 

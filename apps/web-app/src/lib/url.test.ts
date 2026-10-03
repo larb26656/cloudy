@@ -14,9 +14,9 @@ describe("resolveUrl", () => {
   });
 
   it("joins an API base URL and path with one slash", () => {
-    expect(
-      joinUrl("http://127.0.0.1:4122/", "/api/providers/opencode/events"),
-    ).toBe("http://127.0.0.1:4122/api/providers/opencode/events");
+    expect(joinUrl("http://127.0.0.1:4122/", "/api/providers/events")).toBe(
+      "http://127.0.0.1:4122/api/providers/events",
+    );
   });
 
   it("joins multiple path segments", () => {

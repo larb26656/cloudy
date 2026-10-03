@@ -9,9 +9,9 @@ describe("ProviderIcon", () => {
     expect(screen.getByRole("img", { name: "OpenCode" })).toBeInTheDocument();
   });
 
-  it("renders nothing for an unsupported provider", () => {
+  it("renders a fallback icon for an unsupported provider", () => {
     const { container } = render(<ProviderIcon providerId="codex" />);
 
-    expect(container).toBeEmptyDOMElement();
+    expect(container.querySelector("svg")).toBeInTheDocument();
   });
 });

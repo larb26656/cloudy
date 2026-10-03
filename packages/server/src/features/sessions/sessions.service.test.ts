@@ -28,6 +28,7 @@ function repository(): SessionsRepository & { rows: SessionRecord[] } {
     findByProviderSessionId: (providerId, providerSessionId) =>
       rows.find(
         (row) =>
+          active(row) &&
           row.providerId === providerId &&
           row.providerSessionId === providerSessionId,
       ) ?? null,
@@ -109,6 +110,51 @@ describe("sessions service", () => {
     });
 
     expect(event).toMatchObject({ sessionId: session.id });
+  });
+
+  it("persists status events and maps them to the Cloudy session UUID", async () => {
+    const repo = repository();
+    const service = createSessionsService(repo, registry());
+    const session = await service.create({ providerId: "test" });
+
+    const event = await service.applyEvent({
+      type: "session.status",
+      providerId: "test",
+      sessionId: "native-1",
+      status: "active",
+      runStatus: "running",
+    });
+
+    expect(event).toMatchObject({ sessionId: session.id });
+    expect(repo.rows[0]).toMatchObject({
+      status: "active",
+      runStatus: "running",
+    });
+  });
+
+  it("ignores unknown and deleted provider sessions", async () => {
+    const repo = repository();
+    const service = createSessionsService(repo, registry());
+
+    await expect(
+      service.applyEvent({
+        type: "session.status",
+        providerId: "test",
+        sessionId: "missing",
+        status: "active",
+      }),
+    ).resolves.toBeNull();
+
+    const session = await service.create({ providerId: "test" });
+    repo.rows[0]!.deletedAt = new Date();
+    await expect(
+      service.applyEvent({
+        type: "run.failed",
+        providerId: "test",
+        sessionId: "native-1",
+      }),
+    ).resolves.toBeNull();
+    expect(session.id).toBeDefined();
   });
 
   it("rejects duplicate provider references", async () => {

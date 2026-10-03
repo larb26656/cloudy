@@ -19,8 +19,8 @@ function toSession(record: SessionRecord): ChatSession {
   return {
     id: record.id,
     title: record.title ?? undefined,
-    status: "idle",
-    runStatus: "idle",
+    status: record.status,
+    runStatus: record.runStatus,
     providerId: record.providerId,
     directory: record.directory ?? undefined,
     parentId: record.parentId ?? undefined,
@@ -217,6 +217,26 @@ export function createSessionsService(
     return session ? { ...event, sessionId: session.id } : event;
   };
 
+  const applyEvent = async (event: ChatEvent): Promise<ChatEvent | null> => {
+    if (!("sessionId" in event) || !event.sessionId) return event;
+    const session = repository.findByProviderSessionId(
+      event.providerId,
+      event.sessionId,
+    );
+    if (!session) return null;
+
+    const update: Parameters<SessionsRepository["update"]>[1] = {};
+    if (event.type === "session.status") {
+      update.status = event.status;
+      update.runStatus = event.runStatus ?? "idle";
+    } else if (event.type === "run.failed") {
+      update.status = "idle";
+      update.runStatus = "failed";
+    }
+    const updated = repository.update(session.id, update);
+    return updated ? mapEvent(event) : null;
+  };
+
   return {
     list,
     get,
@@ -230,6 +250,7 @@ export function createSessionsService(
     fork,
     abort,
     mapEvent,
+    applyEvent,
   };
 }
 
