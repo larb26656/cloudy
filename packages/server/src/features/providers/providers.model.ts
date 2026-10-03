@@ -131,12 +131,6 @@ export const ProvidersModel = {
   }),
   diffQuerySchema: z.object({ directory: z.string().min(1) }),
   commandsQuerySchema: z.object({ directory: z.string().min(1) }),
-  commandInputSchema: z.object({
-    sessionId: z.string().min(1),
-    command: z.string().min(1),
-    arguments: z.string().optional(),
-    directory: z.string().min(1),
-  }),
 };
 
 export type ProviderDto = z.infer<typeof providerSchema>;

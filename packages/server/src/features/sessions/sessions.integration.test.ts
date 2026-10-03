@@ -1,5 +1,5 @@
 import type { ChatSession, ProviderAdapter } from "@repo/ai-core";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createProviderRegistry } from "../../providers";
 import { createApp, type AppType } from "../../server";
 import { createTestApp } from "../../test-utils";
@@ -18,7 +18,9 @@ function session(id: string, directory?: string): ChatSession {
   };
 }
 
-function provider(): ProviderAdapter {
+function provider(
+  executeCommand?: ProviderAdapter["executeCommand"],
+): ProviderAdapter {
   let next = 0;
   return {
     id: "test",
@@ -32,6 +34,7 @@ function provider(): ProviderAdapter {
       session(`native-${++next}`, input.directory),
     getSession: async (input) => session(input.sessionId, input.directory),
     getSessionStatuses: async () => ({ "native-1": "running" }),
+    executeCommand,
     listMessages: async (input) => ({
       messages: [
         {
@@ -49,10 +52,14 @@ function provider(): ProviderAdapter {
 
 let env: ReturnType<typeof createTestApp>;
 let app: AppType;
+const executeCommand = vi.fn().mockResolvedValue(undefined);
 
 beforeEach(() => {
   env = createTestApp();
-  const registry = createProviderRegistry({ providers: [provider()] });
+  executeCommand.mockClear();
+  const registry = createProviderRegistry({
+    providers: [provider(executeCommand)],
+  });
   env.container.providerRegistry = registry;
   env.container.sessionsService = createSessionsService(
     createSessionsRepository(env.db.db),
@@ -100,6 +107,29 @@ describe("sessions integration", () => {
     const messages = await app.request(`/api/sessions/${id}/messages`);
     expect(await messages.json()).toMatchObject({
       messages: [expect.objectContaining({ sessionId: id })],
+    });
+  });
+
+  it("executes commands against the native provider session ID", async () => {
+    const created = await app.request("/api/sessions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ providerId: "test", directory: "/tmp/project" }),
+    });
+    const { id } = await created.json();
+
+    const response = await app.request(`/api/sessions/${id}/command`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ command: "push", arguments: "" }),
+    });
+
+    expect(response.status).toBe(204);
+    expect(executeCommand).toHaveBeenCalledWith({
+      sessionId: "native-1",
+      command: "push",
+      arguments: "",
+      directory: "/tmp/project",
     });
   });
 

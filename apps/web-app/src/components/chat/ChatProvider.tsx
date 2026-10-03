@@ -200,7 +200,6 @@ export function ChatProvider({
             sessionId: commandSessionId,
             command: parsed.command,
             args: parsed.arguments,
-            directory,
           });
           return;
         }

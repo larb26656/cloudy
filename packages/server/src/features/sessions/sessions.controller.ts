@@ -95,6 +95,18 @@ export function createSessionsController(service: SessionsService) {
         ),
     )
     .post(
+      "/:sessionId/command",
+      zValidator("param", SessionsModel.sessionParamSchema),
+      zValidator("json", SessionsModel.commandInputSchema),
+      async (c) => {
+        await service.executeCommand(
+          c.req.valid("param").sessionId,
+          c.req.valid("json"),
+        );
+        return c.body(null, 204);
+      },
+    )
+    .post(
       "/:sessionId/fork",
       zValidator("param", SessionsModel.sessionParamSchema),
       zValidator("json", SessionsModel.forkSessionSchema),

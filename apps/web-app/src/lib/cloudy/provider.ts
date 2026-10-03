@@ -92,7 +92,6 @@ export const providerApi = {
     request(`/file-search${query({ directory, query: queryValue, limit })}`),
   diff: (directory: string) => request(`/diff${query({ directory })}`),
   commands: (directory: string) => request(`/commands${query({ directory })}`),
-  executeCommand: (body: unknown) => request("/command", jsonInit(body)),
 };
 
 export const sessionApi = {
@@ -125,6 +124,8 @@ export const sessionApi = {
     sessionRequest(`/${encodeURIComponent(id)}/fork`, jsonInit(body)),
   abort: (id: string) =>
     sessionRequest(`/${encodeURIComponent(id)}/abort`, jsonInit({})),
+  executeCommand: (id: string, body: unknown) =>
+    sessionRequest(`/${encodeURIComponent(id)}/command`, jsonInit(body)),
   sendMessage: (id: string, body: unknown) =>
     sessionRequest(`/${encodeURIComponent(id)}/messages`, jsonInit(body)),
 };

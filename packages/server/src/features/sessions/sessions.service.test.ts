@@ -189,6 +189,40 @@ describe("sessions service", () => {
     });
   });
 
+  it("uses the provider session ID for command execution", async () => {
+    const repo = repository();
+    const executeCommand = vi.fn().mockResolvedValue(undefined);
+    const provider: ProviderAdapter = {
+      id: "test",
+      capabilities: { streaming: true },
+      getInfo: async () => ({
+        id: "test",
+        name: "Test",
+        capabilities: { streaming: true },
+      }),
+      createSession: async () => providerSession("native-1"),
+      executeCommand,
+      subscribeEvents: async function* () {},
+    };
+    const service = createSessionsService(
+      repo,
+      createProviderRegistry({ providers: [provider] }),
+    );
+    const session = await service.create({ providerId: "test" });
+
+    await service.executeCommand(session.id, {
+      command: "push",
+      arguments: "",
+    });
+
+    expect(executeCommand).toHaveBeenCalledWith({
+      sessionId: "native-1",
+      command: "push",
+      arguments: "",
+      directory: "/tmp/test",
+    });
+  });
+
   it("ignores unknown and deleted provider sessions", async () => {
     const repo = repository();
     const service = createSessionsService(repo, registry());

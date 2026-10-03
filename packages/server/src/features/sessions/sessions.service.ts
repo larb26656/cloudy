@@ -8,6 +8,7 @@ import type { SessionRecord } from "../../db/schema";
 import { ValidationError } from "../../shared/domain-error";
 import type { ProviderRegistry } from "../../providers";
 import type {
+  CommandInput,
   CreateSessionInput,
   MessageInput,
   UpdateSessionInput,
@@ -203,6 +204,16 @@ export function createSessionsService(
     return { ...response, interactionId: id };
   };
 
+  const executeCommand = (id: string, input: CommandInput) => {
+    const record = getRecord(id);
+    return registry.executeCommand(record.providerId, {
+      sessionId: record.providerSessionId,
+      command: input.command,
+      arguments: input.arguments,
+      directory: record.directory ?? "",
+    });
+  };
+
   const fork = async (
     id: string,
     input: { messageId?: string },
@@ -282,6 +293,7 @@ export function createSessionsService(
     questions,
     respondToQuestion,
     sendMessage,
+    executeCommand,
     fork,
     abort,
     mapEvent,

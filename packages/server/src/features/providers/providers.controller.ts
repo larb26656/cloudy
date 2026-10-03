@@ -322,17 +322,5 @@ export function createProvidersController(
             c.req.valid("query"),
           ),
         ),
-    )
-    .post(
-      "/:providerId/command",
-      zValidator("param", providerParamSchema),
-      zValidator("json", ProvidersModel.commandInputSchema),
-      async (c) =>
-        c.json(
-          await registry.executeCommand(
-            c.req.valid("param").providerId,
-            c.req.valid("json"),
-          ),
-        ),
     );
 }
