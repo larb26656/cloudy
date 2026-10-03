@@ -9,6 +9,7 @@ import {
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { useDeleteWorkspace } from "@/hooks/queries";
 import { useTabStore } from "@/stores/tabStore";
+import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { Button } from "@repo/ui/components/button";
 import { DeleteConfirmDialog } from "@repo/ui/components/delete-confirm-dialog";
 import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
@@ -30,11 +31,13 @@ interface WorkspaceDetailProps {
 export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
   const deleteWorkspace = useDeleteWorkspace();
   const addTab = useTabStore((s) => s.addTab);
+  const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleNewChat = () => {
     addTab(workspace.type === "bot" ? "bot-chat" : "chat", {
+      ...(workspace.type === "agent" && { providerId: defaultProviderId }),
       sessionId: null,
       workspaceId: workspace.id,
       directory: workspace.directory,

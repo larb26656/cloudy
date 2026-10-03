@@ -4,24 +4,28 @@ import type { ModelInfo } from "@repo/contracts";
 import { toModelInfo } from "@/lib/models";
 
 type DefaultModelStore = {
-  defaultModel: ModelInfo | null;
-  setDefaultModel: (model: ModelInfo | null) => void;
+  defaultModels: Record<string, ModelInfo | null>;
+  setDefaultModel: (providerId: string, model: ModelInfo | null) => void;
 };
 
 export const useDefaultModelStore = create<DefaultModelStore>()(
   persist(
     (set) => ({
-      defaultModel: null,
-      setDefaultModel: (model) => set({ defaultModel: model }),
+      defaultModels: {},
+      setDefaultModel: (providerId, model) =>
+        set((state) => ({
+          defaultModels: { ...state.defaultModels, [providerId]: model },
+        })),
     }),
     {
       name: "default-model",
-      version: 2,
+      version: 3,
       migrate: (persisted) => {
         const state = persisted as { defaultModel?: unknown } | null;
+        const defaultModel = toModelInfo(state?.defaultModel);
         return {
-          defaultModel: toModelInfo(state?.defaultModel),
-        } as unknown as DefaultModelStore;
+          defaultModels: defaultModel ? { opencode: defaultModel } : {},
+        } as DefaultModelStore;
       },
     },
   ),

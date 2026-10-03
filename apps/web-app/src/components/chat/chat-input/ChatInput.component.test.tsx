@@ -347,7 +347,7 @@ describe("ChatInput — Tab cycles agents", () => {
     mocks.agents = ["build", "plan", "explore"];
     mocks.sessionStatuses = { [SESSION_ID]: { type: "idle" } };
     mocks.sendMessage.mockResolvedValue(undefined);
-    useDefaultAgentStore.setState({ defaultAgent: null });
+    useDefaultAgentStore.setState({ defaultAgents: {} });
   });
 
   test("Tab from default (null) selects first agent", () => {

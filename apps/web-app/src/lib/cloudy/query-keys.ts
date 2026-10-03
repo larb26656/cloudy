@@ -30,3 +30,8 @@ export const providerKeys = {
   root: () => ["providers"] as const,
   catalog: () => [...providerKeys.root(), "catalog"] as const,
 };
+
+export const settingsKeys = {
+  root: () => ["settings"] as const,
+  providers: () => [...settingsKeys.root(), "providers"] as const,
+};

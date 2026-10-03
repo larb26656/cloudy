@@ -93,8 +93,12 @@ export function ChatProvider({
   const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
   const [localAgent, setLocalAgent] = useState<string | null>(null);
   const [localModel, setLocalModel] = useState<ModelInfo | null>(null);
-  const defaultAgent = useDefaultAgentStore((state) => state.defaultAgent);
-  const defaultModel = useDefaultModelStore((state) => state.defaultModel);
+  const defaultAgent = useDefaultAgentStore(
+    (state) => state.defaultAgents[providerId] ?? null,
+  );
+  const defaultModel = useDefaultModelStore(
+    (state) => state.defaultModels[providerId] ?? null,
+  );
   const isAgentControlled = onAgentChange !== undefined;
   const isModelControlled = onModelChange !== undefined;
   const agent = isAgentControlled ? (agentProp ?? null) : localAgent;

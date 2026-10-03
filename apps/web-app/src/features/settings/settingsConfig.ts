@@ -1,4 +1,10 @@
-import { Bot, Palette, MessageSquareText, type LucideIcon } from "lucide-react";
+import {
+  Bot,
+  Palette,
+  MessageSquareText,
+  PlugZap,
+  type LucideIcon,
+} from "lucide-react";
 
 export interface SettingsSection {
   id: string;
@@ -9,6 +15,13 @@ export interface SettingsSection {
 }
 
 export const settingsSections: SettingsSection[] = [
+  {
+    id: "providers",
+    label: "Providers",
+    description: "Configure connections for each AI provider.",
+    to: "/settings/providers",
+    icon: PlugZap,
+  },
   {
     id: "agent-model",
     label: "Agent & Model",

@@ -8,6 +8,7 @@ import { LoadingState } from "@repo/ui/components/loading-state";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { useTabStore } from "@/stores/tabStore";
+import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { useSessions, useCreateSession } from "@/hooks/queries";
 import { Plus } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
@@ -30,10 +31,12 @@ function SessionList({
   const { data: sessions = [], isLoading, error } = useSessions({ directory });
   const createSession = useCreateSession();
   const addTab = useTabStore((s) => s.addTab);
+  const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleSelect = (session: ChatSession) => {
     addTab(workspaceType === "bot" ? "bot-chat" : "chat", {
+      ...(workspaceType === "agent" && { providerId: session.providerId }),
       sessionId: session.id,
       workspaceId,
       directory,
@@ -45,6 +48,7 @@ function SessionList({
 
   const handleNewChat = () => {
     addTab(workspaceType === "bot" ? "bot-chat" : "chat", {
+      ...(workspaceType === "agent" && { providerId: defaultProviderId }),
       sessionId: null,
       workspaceId,
       directory,

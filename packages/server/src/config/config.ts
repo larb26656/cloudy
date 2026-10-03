@@ -6,6 +6,18 @@ import { expanduser, loadFileConfig } from "./file-loader";
 
 const BASE_CONFIG_DIR = "~/.config/cloudy";
 
+const ProviderConfigSchema = z.object({
+  enabled: z.boolean().default(true),
+  baseUrl: z.string().default("http://localhost:4096"),
+});
+
+const ProvidersConfigSchema = z.object({
+  opencode: ProviderConfigSchema.default({
+    enabled: true,
+    baseUrl: "http://localhost:4096",
+  }),
+});
+
 export const ConfigurableSchema = z.object({
   dbPath: z.string(),
   ui: z
@@ -29,6 +41,9 @@ export const ConfigurableSchema = z.object({
       return val.split(",").map((o) => o.trim());
     }),
   opencodeApiBase: z.string().default("http://localhost:4096"),
+  providers: ProvidersConfigSchema.default({
+    opencode: { enabled: true, baseUrl: "http://localhost:4096" },
+  }),
   publicDir: z.string().optional(),
   tempWorkspaceDir: z.string(),
   extensionWorkspaceDir: z.string(),
@@ -41,8 +56,12 @@ export type AppOption = Partial<AppConfigInput> & {
   configDir?: string;
 };
 
+export function resolveConfigDir(option?: AppOption): string {
+  return expanduser(option?.configDir ?? BASE_CONFIG_DIR);
+}
+
 export function loadConfig(option?: AppOption): AppConfig {
-  const configDir = expanduser(option?.configDir ?? BASE_CONFIG_DIR);
+  const configDir = resolveConfigDir(option);
   const fileConfig = loadFileConfig(configDir);
   const envConfig = loadEnvConfig();
 
@@ -59,5 +78,26 @@ export function loadConfig(option?: AppOption): AppConfig {
     throw new Error(`Invalid configuration:\n${prettifyError(result.error)}`);
   }
 
-  return result.data;
+  const configuredProvider =
+    (fileConfig.providers as AppConfigInput["providers"] | undefined)
+      ?.opencode ??
+    (option?.providers as AppConfigInput["providers"] | undefined)?.opencode;
+  const legacyBaseUrl =
+    option?.opencodeApiBase ??
+    envConfig.opencodeApiBase ??
+    fileConfig.opencodeApiBase;
+  const baseUrl = configuredProvider?.baseUrl ?? legacyBaseUrl;
+
+  return {
+    ...result.data,
+    opencodeApiBase: baseUrl ?? result.data.opencodeApiBase,
+    providers: {
+      ...result.data.providers,
+      opencode: {
+        ...result.data.providers.opencode,
+        ...configuredProvider,
+        baseUrl: baseUrl ?? result.data.providers.opencode.baseUrl,
+      },
+    },
+  };
 }

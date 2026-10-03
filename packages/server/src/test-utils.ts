@@ -17,6 +17,9 @@ export const testConfig: AppConfig = {
   port: 4122,
   cors: [],
   opencodeApiBase: "http://opencode.test",
+  providers: {
+    opencode: { enabled: true, baseUrl: "http://opencode.test" },
+  },
   tempWorkspaceDir: "/tmp/workspaces",
   extensionWorkspaceDir: "/tmp/extensions",
 };
@@ -40,8 +43,18 @@ export function createTestApp(configOverrides: Partial<AppConfig> = {}): {
   close: () => void;
 } {
   const db = createTestDb();
+  const providers =
+    configOverrides.providers ??
+    (configOverrides.opencodeApiBase === undefined
+      ? testConfig.providers
+      : {
+          opencode: {
+            ...testConfig.providers.opencode,
+            baseUrl: configOverrides.opencodeApiBase,
+          },
+        });
   const container = createContainer(
-    { ...testConfig, ...configOverrides },
+    { ...testConfig, ...configOverrides, providers },
     db.db,
   );
   const app = createApp({ container });

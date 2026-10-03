@@ -1,5 +1,6 @@
 import type { AppConfig } from "./config";
 import { createProxyService } from "./features/proxy/proxy.service";
+import { createSettingsService } from "./features/settings";
 import { createInMemoryPtyRepository } from "./features/pty/in-memory-pty.repository";
 import { createPtyService } from "./features/pty/pty.service";
 import { createNotificationsRepository } from "./features/notifications/notifications.repository";
@@ -18,7 +19,11 @@ import {
   createProviderRegistry,
 } from "./providers";
 
-export function createContainer(config: AppConfig, overrideDb?: DbClient) {
+export function createContainer(
+  config: AppConfig,
+  overrideDb?: DbClient,
+  configDir?: string,
+) {
   const db =
     overrideDb ??
     (() => {
@@ -43,10 +48,13 @@ export function createContainer(config: AppConfig, overrideDb?: DbClient) {
 
   const ptyRepository = createInMemoryPtyRepository();
   const ptyService = createPtyService(ptyRepository);
-  const proxyService = createProxyService(config.opencodeApiBase);
+  const proxyService = createProxyService(config.providers.opencode.baseUrl);
   const providerRegistry = createProviderRegistry({
-    providers: [createOpenCodeAdapter({ baseUrl: config.opencodeApiBase })],
+    providers: config.providers.opencode.enabled
+      ? [createOpenCodeAdapter({ baseUrl: config.providers.opencode.baseUrl })]
+      : [],
   });
+  const settingsService = createSettingsService(config, configDir);
   const sessionsRepository = createSessionsRepository(db);
   const sessionsService = createSessionsService(
     sessionsRepository,
@@ -63,6 +71,7 @@ export function createContainer(config: AppConfig, overrideDb?: DbClient) {
     notificationsService,
     ptyService,
     proxyService,
+    settingsService,
     providerRegistry,
     sessionsService,
     providerEventHub,

@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as WorkspaceWorkspaceIdRouteImport } from './routes/workspace/$workspaceId'
 import { Route as SettingsQuickPhrasesRouteImport } from './routes/settings/quick-phrases'
+import { Route as SettingsProvidersRouteImport } from './routes/settings/providers'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
 import { Route as SettingsAgentModelRouteImport } from './routes/settings/agent-model'
 
@@ -48,6 +49,11 @@ const SettingsQuickPhrasesRoute = SettingsQuickPhrasesRouteImport.update({
   path: '/quick-phrases',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsProvidersRoute = SettingsProvidersRouteImport.update({
+  id: '/providers',
+  path: '/providers',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   id: '/appearance',
   path: '/appearance',
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/providers': typeof SettingsProvidersRoute
   '/settings/quick-phrases': typeof SettingsQuickPhrasesRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
   '/settings/': typeof SettingsIndexRoute
@@ -74,6 +81,7 @@ export interface FileRoutesByTo {
   '/diff-debug': typeof DiffDebugRoute
   '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/providers': typeof SettingsProvidersRoute
   '/settings/quick-phrases': typeof SettingsQuickPhrasesRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
   '/settings': typeof SettingsIndexRoute
@@ -85,6 +93,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/providers': typeof SettingsProvidersRoute
   '/settings/quick-phrases': typeof SettingsQuickPhrasesRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
   '/settings/': typeof SettingsIndexRoute
@@ -97,6 +106,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/agent-model'
     | '/settings/appearance'
+    | '/settings/providers'
     | '/settings/quick-phrases'
     | '/workspace/$workspaceId'
     | '/settings/'
@@ -106,6 +116,7 @@ export interface FileRouteTypes {
     | '/diff-debug'
     | '/settings/agent-model'
     | '/settings/appearance'
+    | '/settings/providers'
     | '/settings/quick-phrases'
     | '/workspace/$workspaceId'
     | '/settings'
@@ -116,6 +127,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/agent-model'
     | '/settings/appearance'
+    | '/settings/providers'
     | '/settings/quick-phrases'
     | '/workspace/$workspaceId'
     | '/settings/'
@@ -172,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsQuickPhrasesRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/providers': {
+      id: '/settings/providers'
+      path: '/providers'
+      fullPath: '/settings/providers'
+      preLoaderRoute: typeof SettingsProvidersRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/settings/appearance': {
       id: '/settings/appearance'
       path: '/appearance'
@@ -192,6 +211,7 @@ declare module '@tanstack/react-router' {
 interface SettingsRouteChildren {
   SettingsAgentModelRoute: typeof SettingsAgentModelRoute
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
+  SettingsProvidersRoute: typeof SettingsProvidersRoute
   SettingsQuickPhrasesRoute: typeof SettingsQuickPhrasesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
@@ -199,6 +219,7 @@ interface SettingsRouteChildren {
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAgentModelRoute: SettingsAgentModelRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
+  SettingsProvidersRoute: SettingsProvidersRoute,
   SettingsQuickPhrasesRoute: SettingsQuickPhrasesRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }

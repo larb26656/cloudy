@@ -1,5 +1,4 @@
 import { Bot, Cpu, Radio } from "lucide-react";
-import { useState } from "react";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { useModels } from "@/hooks/queries/useModels";
 import {
@@ -13,19 +12,29 @@ import {
 } from "@repo/ui/components/select";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
+import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 
 const DEFAULT_VALUE = "__default__";
 
 export function AgentModelSettings() {
   const { data: allProviders = [] } = useModels();
-  const [providerId, setProviderId] = useState("opencode");
+  const providerId = useDefaultProviderStore(
+    (state) => state.defaultProviderId,
+  );
+  const setDefaultProvider = useDefaultProviderStore(
+    (state) => state.setDefaultProvider,
+  );
   const { data: agents = [] } = useAgents({ providerId });
   const { data: providers = [] } = useModels(providerId);
-  const defaultAgent = useDefaultAgentStore((state) => state.defaultAgent);
+  const defaultAgent = useDefaultAgentStore(
+    (state) => state.defaultAgents[providerId] ?? null,
+  );
   const setDefaultAgent = useDefaultAgentStore(
     (state) => state.setDefaultAgent,
   );
-  const defaultModel = useDefaultModelStore((state) => state.defaultModel);
+  const defaultModel = useDefaultModelStore(
+    (state) => state.defaultModels[providerId] ?? null,
+  );
   const setDefaultModel = useDefaultModelStore(
     (state) => state.setDefaultModel,
   );
@@ -48,13 +57,13 @@ export function AgentModelSettings() {
           <div>
             <p className="text-sm font-medium">Provider</p>
             <p className="text-xs text-muted-foreground">
-              Defaults below are scoped to this provider.
+              New chats use this provider. Defaults below are scoped to it.
             </p>
           </div>
         </div>
         <Select
           value={providerId}
-          onValueChange={(value) => value && setProviderId(value)}
+          onValueChange={(value) => value && setDefaultProvider(value)}
         >
           <SelectTrigger className="w-full">
             <SelectValue />
@@ -88,7 +97,7 @@ export function AgentModelSettings() {
         <Select
           value={defaultAgent ?? DEFAULT_VALUE}
           onValueChange={(value) =>
-            setDefaultAgent(value === DEFAULT_VALUE ? null : value)
+            setDefaultAgent(providerId, value === DEFAULT_VALUE ? null : value)
           }
         >
           <SelectTrigger className="w-full">
@@ -121,7 +130,7 @@ export function AgentModelSettings() {
           value={defaultModelValue}
           onValueChange={(value) => {
             if (value === DEFAULT_VALUE) {
-              setDefaultModel(null);
+              setDefaultModel(providerId, null);
               return;
             }
             const model = providers
@@ -130,7 +139,7 @@ export function AgentModelSettings() {
                 (candidate) =>
                   `${candidate.providerId}:${candidate.modelId}` === value,
               );
-            if (model) setDefaultModel(model);
+            if (model) setDefaultModel(providerId, model);
           }}
         >
           <SelectTrigger className="w-full">

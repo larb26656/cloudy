@@ -150,6 +150,7 @@ function ControlledWrapper({
 }
 
 type ChatProviderOptions = {
+  providerId?: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
   agent?: string | null;
@@ -171,6 +172,7 @@ function renderChat(
       <ChatProvider
         workspace={null}
         directory="/project"
+        providerId={options.providerId}
         sessionId={options.sessionId}
         onSessionChange={options.onSessionChange}
         agent={options.agent}
@@ -191,18 +193,32 @@ describe("ChatProvider", () => {
     mocks.executeCommand.mockResolvedValue(undefined);
     mocks.sendMessage.mockResolvedValue(undefined);
     mocks.systemCommand.mockResolvedValue(undefined);
-    useDefaultAgentStore.setState({ defaultAgent: null });
-    useDefaultModelStore.setState({ defaultModel: null });
+    useDefaultAgentStore.setState({ defaultAgents: {} });
+    useDefaultModelStore.setState({ defaultModels: {} });
   });
 
   test("uses global defaults when the session has no selection", () => {
-    useDefaultAgentStore.setState({ defaultAgent: "plan" });
-    useDefaultModelStore.setState({ defaultModel: model });
+    useDefaultAgentStore.setState({ defaultAgents: { opencode: "plan" } });
+    useDefaultModelStore.setState({ defaultModels: { opencode: model } });
 
     renderChat({ sessionId: "ses_1" });
 
     expect(screen.getByTestId("agent")).toHaveTextContent("plan");
     expect(screen.getByTestId("model")).toHaveTextContent("GPT-5");
+  });
+
+  test("uses defaults for the active provider only", () => {
+    useDefaultAgentStore.setState({
+      defaultAgents: { opencode: "plan", copilot: "explore" },
+    });
+    useDefaultModelStore.setState({
+      defaultModels: { opencode: model, copilot: altModel },
+    });
+
+    renderChat({ providerId: "copilot", sessionId: "ses_1" });
+
+    expect(screen.getByTestId("agent")).toHaveTextContent("explore");
+    expect(screen.getByTestId("model")).toHaveTextContent("Claude Sonnet");
   });
 
   test("saves selections made before a new session exists as defaults", async () => {
@@ -224,8 +240,8 @@ describe("ChatProvider", () => {
   });
 
   test("uses and updates selections scoped to the active session", async () => {
-    useDefaultAgentStore.setState({ defaultAgent: "plan" });
-    useDefaultModelStore.setState({ defaultModel: model });
+    useDefaultAgentStore.setState({ defaultAgents: { opencode: "plan" } });
+    useDefaultModelStore.setState({ defaultModels: { opencode: model } });
 
     const onAgentChange = vi.fn();
     const onModelChange = vi.fn();
@@ -248,13 +264,15 @@ describe("ChatProvider", () => {
 
     expect(onAgentChange).toHaveBeenCalledWith("build");
     expect(onModelChange).toHaveBeenCalledWith(model);
-    expect(useDefaultAgentStore.getState().defaultAgent).toBe("plan");
-    expect(useDefaultModelStore.getState().defaultModel).toEqual(model);
+    expect(useDefaultAgentStore.getState().defaultAgents.opencode).toBe("plan");
+    expect(useDefaultModelStore.getState().defaultModels.opencode).toEqual(
+      model,
+    );
   });
 
   test("returns each session field to its global default independently", async () => {
-    useDefaultAgentStore.setState({ defaultAgent: "plan" });
-    useDefaultModelStore.setState({ defaultModel: model });
+    useDefaultAgentStore.setState({ defaultAgents: { opencode: "plan" } });
+    useDefaultModelStore.setState({ defaultModels: { opencode: model } });
 
     const onAgentChange = vi.fn();
     const onModelChange = vi.fn();

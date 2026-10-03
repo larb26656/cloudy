@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CreateChatDialog } from "./CreateChatDialog";
 import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
+import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
@@ -50,6 +51,7 @@ vi.mock("@/features/workspace/WorkspaceSelectStep", () => ({
 describe("CreateChatDialog", () => {
   beforeEach(() => {
     useRecentDirectoryStore.setState({ paths: [] });
+    useDefaultProviderStore.setState({ defaultProviderId: "opencode" });
     mocks.navigate.mockReset();
   });
 
@@ -77,6 +79,25 @@ describe("CreateChatDialog", () => {
       sessionId: null,
       sessionName: "New Chat",
       providerId: "opencode",
+    });
+  });
+
+  it("uses the configured default provider for a new chat", () => {
+    useDefaultProviderStore.setState({ defaultProviderId: "codex" });
+    const onSubmit = renderDialog();
+
+    fireEvent.change(screen.getByRole("textbox", { name: "Chat directory" }), {
+      target: { value: "/work/my-app" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Next" }));
+    fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      workspaceId: null,
+      directory: "/work/my-app",
+      sessionId: null,
+      sessionName: "New Chat",
+      providerId: "codex",
     });
   });
 

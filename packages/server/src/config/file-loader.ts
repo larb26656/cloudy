@@ -28,3 +28,15 @@ export function loadFileConfig(configDir: string): Partial<AppConfig> {
 
   return JSON.parse(readFileSync(configPath, "utf8"));
 }
+
+export function updateFileConfig(
+  configDir: string,
+  update: (config: Record<string, unknown>) => Record<string, unknown>,
+): void {
+  const configPath = ensureConfigFile(expanduser(configDir));
+  const current = JSON.parse(readFileSync(configPath, "utf8")) as Record<
+    string,
+    unknown
+  >;
+  writeFileSync(configPath, JSON.stringify(update(current), null, 2));
+}

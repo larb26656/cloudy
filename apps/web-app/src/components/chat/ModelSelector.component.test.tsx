@@ -126,7 +126,7 @@ describe("ModelSelector — favorites", () => {
     });
     mocks.effectiveModel = null;
     useFavoriteModelsStore.setState({ favorites: [] });
-    useDefaultModelStore.setState({ defaultModel: null });
+    useDefaultModelStore.setState({ defaultModels: {} });
   });
 
   afterAll(() => {

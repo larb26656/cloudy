@@ -2,7 +2,7 @@ import { serve, type ServerType } from "@hono/node-server";
 import { WebSocketServer } from "ws";
 import { createApp } from "../server";
 import { createContainer } from "../container";
-import { AppOption, loadConfig } from "../config/config";
+import { AppOption, loadConfig, resolveConfigDir } from "../config/config";
 import type { Container } from "../container";
 
 export function createServer(option: AppOption) {
@@ -11,7 +11,7 @@ export function createServer(option: AppOption) {
 
   const start = async () => {
     const config = loadConfig(option);
-    container = createContainer(config);
+    container = createContainer(config, undefined, resolveConfigDir(option));
     container.providerEventHub.start();
 
     const app = createApp({

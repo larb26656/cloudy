@@ -2,16 +2,31 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 type DefaultAgentStore = {
-  defaultAgent: string | null;
-  setDefaultAgent: (agent: string | null) => void;
+  defaultAgents: Record<string, string | null>;
+  setDefaultAgent: (providerId: string, agent: string | null) => void;
 };
 
 export const useDefaultAgentStore = create<DefaultAgentStore>()(
   persist(
     (set) => ({
-      defaultAgent: null,
-      setDefaultAgent: (agent) => set({ defaultAgent: agent }),
+      defaultAgents: {},
+      setDefaultAgent: (providerId, agent) =>
+        set((state) => ({
+          defaultAgents: { ...state.defaultAgents, [providerId]: agent },
+        })),
     }),
-    { name: "default-agent" }
-  )
+    {
+      name: "default-agent",
+      version: 2,
+      migrate: (persisted) => {
+        const state = persisted as { defaultAgent?: unknown } | null;
+        return {
+          defaultAgents:
+            typeof state?.defaultAgent === "string"
+              ? { opencode: state.defaultAgent }
+              : {},
+        } as DefaultAgentStore;
+      },
+    },
+  ),
 );

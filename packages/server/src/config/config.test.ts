@@ -106,6 +106,14 @@ describe("ConfigurableSchema", () => {
       );
     });
   });
+
+  describe("providers", () => {
+    it("defaults to an enabled OpenCode profile", () => {
+      expect(parseConfigurable({ dbPath: "/x" }).providers).toEqual({
+        opencode: { enabled: true, baseUrl: "http://localhost:4096" },
+      });
+    });
+  });
 });
 
 describe("loadConfig", () => {
@@ -115,6 +123,10 @@ describe("loadConfig", () => {
     expect(config.port).toBe(4122);
     expect(config.ui).toBe(false);
     expect(config.opencodeApiBase).toBe("http://localhost:4096");
+    expect(config.providers.opencode).toEqual({
+      enabled: true,
+      baseUrl: "http://localhost:4096",
+    });
     expect(config.tempWorkspaceDir).toBe(
       path.join(homedir(), ".config", "cloudy", "workspaces"),
     );
@@ -154,6 +166,29 @@ describe("loadConfig", () => {
   it("file config overrides defaults", () => {
     mockedLoadFileConfig.mockReturnValue({ host: "from.file" });
     expect(loadConfig().host).toBe("from.file");
+  });
+
+  it("uses the provider profile when configuring the OpenCode base URL", () => {
+    mockedLoadFileConfig.mockReturnValue({
+      providers: {
+        opencode: { enabled: false, baseUrl: "http://opencode.file" },
+      },
+    });
+
+    expect(loadConfig().providers.opencode).toEqual({
+      enabled: false,
+      baseUrl: "http://opencode.file",
+    });
+  });
+
+  it("keeps the legacy OpenCode base URL working", () => {
+    mockedLoadFileConfig.mockReturnValue({
+      opencodeApiBase: "http://opencode.legacy",
+    });
+
+    expect(loadConfig().providers.opencode.baseUrl).toBe(
+      "http://opencode.legacy",
+    );
   });
 
   it("env config overrides file config", () => {

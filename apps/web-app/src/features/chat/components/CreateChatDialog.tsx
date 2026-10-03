@@ -18,6 +18,7 @@ import { WorkspaceSelectStep } from "@/features/workspace/WorkspaceSelectStep";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { basename } from "@/lib/path";
 import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
+import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { useCreateTempWorkspace, useSessions } from "@/hooks/queries";
 import { ArrowLeft, MessageCircleDashed } from "lucide-react";
 import { ProviderSelector } from "@/components/chat/ProviderSelector";
@@ -48,8 +49,9 @@ export function CreateChatDialog({
 }: CreateChatDialogProps) {
   const navigate = useNavigate();
   const pushRecentDirectory = useRecentDirectoryStore((s) => s.push);
+  const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [selected, setSelected] = useState<ChatTarget | null>(null);
-  const [providerId, setProviderId] = useState("opencode");
+  const [providerId, setProviderId] = useState(defaultProviderId);
   const createTempWorkspace = useCreateTempWorkspace();
 
   const { data: sessions = [], isLoading: sessionsLoading } = useSessions({
