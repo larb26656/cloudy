@@ -5,7 +5,6 @@ import { useChatPanelStore } from "@/stores/chatPanelStore";
 import { useTabStore } from "@/stores/tabStore";
 import { ChatSessionMenu } from "@/components/chat/ChatSessionMenu";
 import type { TabHeaderActionsProps } from "../../template";
-import { ProviderSelector } from "@/components/chat/ProviderSelector";
 import { useCreateSession } from "@/hooks/queries/useSessions";
 
 export function ChatHeaderActions({ tab }: TabHeaderActionsProps) {
@@ -20,11 +19,16 @@ export function ChatHeaderActions({ tab }: TabHeaderActionsProps) {
 
   return (
     <>
-      <ProviderSelector
-        providerId={tab.data.providerId}
+      <ChatSessionMenu
         sessionId={tab.data.sessionId}
-        onContinue={(providerId) => {
-          if (!tab.data.sessionId) return;
+        directory={tab.data.directory}
+        onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
+        providerId={tab.data.providerId}
+        onSwitchProvider={(providerId) => {
+          if (!tab.data.sessionId) {
+            updateTabData(tab.id, { providerId });
+            return;
+          }
           createSession.mutate(
             {
               directory: tab.data.directory,
@@ -49,11 +53,6 @@ export function ChatHeaderActions({ tab }: TabHeaderActionsProps) {
             },
           );
         }}
-      />
-      <ChatSessionMenu
-        sessionId={tab.data.sessionId}
-        directory={tab.data.directory}
-        onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
         trigger={
           <AppBar.ActionIcon icon={EllipsisVertical} label="Session menu" />
         }

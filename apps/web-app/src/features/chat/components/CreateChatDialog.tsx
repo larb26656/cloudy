@@ -217,11 +217,7 @@ function SessionStep({
     <div className="flex flex-col gap-4 flex-1 min-h-0">
       <div className="space-y-2">
         <p className="text-sm font-medium">Execution provider</p>
-        <ProviderSelector
-          providerId={providerId}
-          sessionId={null}
-          onContinue={onProviderChange}
-        />
+        <ProviderSelector providerId={providerId} onChange={onProviderChange} />
       </div>
       <Button
         variant="outline"
