@@ -153,7 +153,6 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
             open={questionOpen}
             onOpenChange={setQuestionOpen}
             question={currentQuestion}
-            directory={directory}
           />
         )}
 

@@ -2,7 +2,6 @@ import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import type { ChatMessage, ModelInfo } from "@repo/contracts";
 import { sessionApi } from "@/lib/cloudy/provider";
 import {
-  CHAT_POLL_INTERVAL,
   messageKeys,
   type ChatInputContent,
   buildPromptParts,
@@ -19,7 +18,6 @@ async function json<T>(response: Response): Promise<T> {
 
 export function useMessages({
   sessionId,
-  statusType,
 }: {
   sessionId: string;
   statusType?: SessionRunStatus["type"];
@@ -44,11 +42,6 @@ export function useMessages({
     },
     select: (data) => ({ ...data, pages: [...data.pages].reverse() }),
     enabled: !!sessionId,
-    refetchInterval:
-      statusType === "busy" || statusType === "retry"
-        ? false
-        : CHAT_POLL_INTERVAL,
-    refetchIntervalInBackground: false,
   });
 }
 

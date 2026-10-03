@@ -79,14 +79,12 @@ interface QuestionSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   question: QuestionRequest;
-  directory: string;
 }
 
 export function QuestionSheet({
   open,
   onOpenChange,
   question,
-  directory,
 }: QuestionSheetProps) {
   const form = useForm<QuestionFormValues>({
     resolver: zodResolver(questionFormSchema),
@@ -146,8 +144,7 @@ export function QuestionSheet({
     try {
       await replyQuestion.mutateAsync({
         requestID: question.id,
-        sessionID: question.sessionID,
-        directory,
+        sessionId: question.sessionID,
         answers: answerList,
       });
       onOpenChange(false);
@@ -162,8 +159,7 @@ export function QuestionSheet({
     try {
       await rejectQuestion.mutateAsync({
         requestID: question.id,
-        sessionID: question.sessionID,
-        directory,
+        sessionId: question.sessionID,
       });
       onOpenChange(false);
     } catch (err) {

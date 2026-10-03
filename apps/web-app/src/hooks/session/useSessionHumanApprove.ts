@@ -1,5 +1,9 @@
 import { useMemo } from "react";
-import { usePermissions, useQuestions, useSessionChildren } from "../queries";
+import {
+  usePermissions,
+  useSessionQuestions,
+  useSessionChildren,
+} from "../queries";
 
 interface UseSessionDataProps {
   directory: string;
@@ -7,8 +11,8 @@ interface UseSessionDataProps {
 }
 
 export function useSessionData({ directory, sessionId }: UseSessionDataProps) {
-  const { data: questions = [] } = useQuestions({
-    directory: directory,
+  const { data: questions = [] } = useSessionQuestions({
+    sessionId: sessionId ?? "",
   });
 
   const { data: permissions = [] } = usePermissions({
@@ -24,9 +28,7 @@ export function useSessionData({ directory, sessionId }: UseSessionDataProps) {
     return new Set<string>([sessionId, ...childSessions.map((cs) => cs.id)]);
   }, [sessionId, childSessions]);
 
-  const sessionQuestions = useMemo(() => {
-    return questions.filter((q) => sessionRelations.has(q.sessionID));
-  }, [questions, sessionRelations]);
+  const sessionQuestions = questions;
 
   const currentQuestion = sessionQuestions.length
     ? sessionQuestions[0]

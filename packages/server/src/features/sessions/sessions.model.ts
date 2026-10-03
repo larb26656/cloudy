@@ -51,6 +51,12 @@ export const messageInputSchema = z.object({
 
 export const forkSessionSchema = z.object({ messageId: z.string().optional() });
 
+export const questionParamSchema = sessionParamSchema.extend({
+  questionId: z.string().min(1),
+});
+
+export const questionResponseSchema = z.object({ value: z.unknown() });
+
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
 export type UpdateSessionInput = z.infer<typeof updateSessionSchema>;
 export type MessageInput = z.infer<typeof messageInputSchema>;
@@ -63,4 +69,6 @@ export const SessionsModel = {
   messagesQuerySchema,
   messageInputSchema,
   forkSessionSchema,
+  questionParamSchema,
+  questionResponseSchema,
 } as const;

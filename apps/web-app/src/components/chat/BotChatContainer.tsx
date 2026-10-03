@@ -127,7 +127,6 @@ function BotChatContainerContent({
             open={questionOpen}
             onOpenChange={setQuestionOpen}
             question={currentQuestion}
-            directory={directory}
           />
         )}
 

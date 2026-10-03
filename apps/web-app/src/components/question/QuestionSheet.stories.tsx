@@ -4,16 +4,16 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { QuestionRequest } from "@/types";
 import { Button } from "@repo/ui/components/button";
 import { questionKeys } from "@/lib/opencode";
-import { useQuestions } from "@/hooks/queries/useQuestions";
+import { useSessionQuestions } from "@/hooks/queries/useQuestions";
 import { QuestionSheet } from "./QuestionSheet";
 import preview from "../../../.storybook/preview";
 
-const DEMO_DIRECTORY = "/demo/project";
+const DEMO_SESSION_ID = "c9c91a3d-8618-4bf4-a0ca-6a78535afbc6";
 
 const initialQuestions: QuestionRequest[] = [
   {
     id: "que_f990d0d0c00105x6HHo1UQevzP",
-    sessionID: "ses_066f50c05ffeKdaKvp34Y4sTEm",
+    sessionID: DEMO_SESSION_ID,
     questions: [
       {
         question: "เลือกภาษาที่คุณใช้ (เลือกได้หลายข้อ)",
@@ -152,7 +152,7 @@ const initialQuestions: QuestionRequest[] = [
 
 const longQuestion: QuestionRequest = {
   id: "que_longquestion0000000000000001",
-  sessionID: "ses_066f50c05ffeKdaKvp34Y4sTEm",
+  sessionID: DEMO_SESSION_ID,
   questions: [
     {
       question:
@@ -216,9 +216,11 @@ const removeById = (id: string) => {
 const idFrom = (url: URL, pattern: RegExp) =>
   url.pathname.match(pattern)?.[1] ?? "";
 
-const listPattern = /\/question(?:\?|$)/;
-const replyPattern = /\/question\/([^/]+)\/reply/;
-const rejectPattern = /\/question\/([^/]+)\/reject/;
+const listPattern = new RegExp(`/sessions/${DEMO_SESSION_ID}/questions$`);
+const replyPattern = new RegExp(
+  `/sessions/${DEMO_SESSION_ID}/questions/([^/]+)$`,
+);
+const rejectPattern = replyPattern;
 
 const handlers = [
   http.get(listPattern, () => HttpResponse.json(demoQuestions)),
@@ -265,7 +267,9 @@ const queryClient = new QueryClient({
 
 function QuestionSheetDemo() {
   const [open, setOpen] = useState(true);
-  const { data: questions = [] } = useQuestions({ directory: DEMO_DIRECTORY });
+  const { data: questions = [] } = useSessionQuestions({
+    sessionId: DEMO_SESSION_ID,
+  });
 
   useEffect(() => {
     resetDemo();
@@ -274,7 +278,7 @@ function QuestionSheetDemo() {
   const handleReset = () => {
     resetDemo();
     queryClient.invalidateQueries({
-      queryKey: questionKeys.list(DEMO_DIRECTORY),
+      queryKey: questionKeys.list(DEMO_SESSION_ID),
     });
     setOpen(true);
   };
@@ -292,7 +296,6 @@ function QuestionSheetDemo() {
           open={open}
           onOpenChange={setOpen}
           question={questions[0]}
-          directory={DEMO_DIRECTORY}
         />
       ) : null}
     </div>

@@ -106,6 +106,13 @@ export const sessionApi = {
     sessionRequest(
       `/${encodeURIComponent(id)}/messages${query({ limit, before })}`,
     ),
+  questions: (id: string) =>
+    sessionRequest(`/${encodeURIComponent(id)}/questions`),
+  replyQuestion: (id: string, questionId: string, value: unknown) =>
+    sessionRequest(
+      `/${encodeURIComponent(id)}/questions/${encodeURIComponent(questionId)}`,
+      jsonInit({ value }),
+    ),
   create: (body: unknown) => sessionRequest("", jsonInit(body)),
   update: (id: string, body: unknown) =>
     sessionRequest(`/${encodeURIComponent(id)}`, {

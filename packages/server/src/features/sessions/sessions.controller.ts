@@ -61,6 +61,27 @@ export function createSessionsController(service: SessionsService) {
           ),
         ),
     )
+    .get(
+      "/:sessionId/questions",
+      zValidator("param", SessionsModel.sessionParamSchema),
+      async (c) =>
+        c.json(await service.questions(c.req.valid("param").sessionId)),
+    )
+    .post(
+      "/:sessionId/questions/:questionId",
+      zValidator("param", SessionsModel.questionParamSchema),
+      zValidator("json", SessionsModel.questionResponseSchema),
+      async (c) => {
+        const { sessionId, questionId } = c.req.valid("param");
+        return c.json(
+          await service.respondToQuestion(
+            sessionId,
+            questionId,
+            c.req.valid("json").value,
+          ),
+        );
+      },
+    )
     .post(
       "/:sessionId/messages",
       zValidator("param", SessionsModel.sessionParamSchema),

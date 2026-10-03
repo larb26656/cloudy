@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ProviderQuestionRequest } from "@repo/contracts";
-import { providerApi } from "@/lib/cloudy/provider";
+import { sessionApi } from "@/lib/cloudy/provider";
 import { CHAT_POLL_INTERVAL, questionKeys } from "@/lib/opencode";
 import type { QuestionAnswer, QuestionRequest } from "@/types";
 
@@ -20,31 +20,18 @@ function toQuestion(request: ProviderQuestionRequest): QuestionRequest {
   };
 }
 
-export function useQuestions({ directory }: { directory: string }) {
+export function useSessionQuestions({ sessionId }: { sessionId: string }) {
   return useQuery({
-    queryKey: questionKeys.list(directory),
+    queryKey: questionKeys.list(sessionId),
     queryFn: async (): Promise<QuestionRequest[]> =>
       (
         await json<ProviderQuestionRequest[]>(
-          await providerApi.questions(directory),
+          await sessionApi.questions(sessionId),
         )
       ).map(toQuestion),
-    enabled: !!directory,
+    enabled: !!sessionId,
     refetchInterval: CHAT_POLL_INTERVAL,
     refetchIntervalInBackground: false,
-  });
-}
-
-export function useSessionQuestions({ sessionID }: { sessionID: string }) {
-  return useQuery({
-    queryKey: questionKeys.list(sessionID),
-    queryFn: async (): Promise<QuestionRequest[]> =>
-      (
-        await json<ProviderQuestionRequest[]>(
-          await providerApi.questions(undefined, sessionID),
-        )
-      ).map(toQuestion),
-    enabled: !!sessionID,
   });
 }
 
@@ -53,28 +40,23 @@ export function useReplyQuestion() {
   return useMutation({
     mutationFn: async ({
       requestID,
-      sessionID,
+      sessionId,
       answers,
-      directory,
     }: {
       requestID: string;
-      sessionID: string;
-      directory: string;
+      sessionId: string;
       answers: Array<QuestionAnswer>;
     }): Promise<void> => {
-      void directory;
-      const response = await providerApi.interaction({
-        kind: "question",
-        sessionId: sessionID,
-        interactionId: requestID,
-        directory,
-        value: answers,
-      });
+      const response = await sessionApi.replyQuestion(
+        sessionId,
+        requestID,
+        answers,
+      );
       if (!response.ok) throw new Error(await response.text());
     },
     onSuccess: (_, variables) =>
       void queryClient.invalidateQueries({
-        queryKey: questionKeys.list(variables.directory),
+        queryKey: questionKeys.list(variables.sessionId),
       }),
   });
 }
@@ -84,26 +66,19 @@ export function useRejectQuestion() {
   return useMutation({
     mutationFn: async ({
       requestID,
-      sessionID,
-      directory,
+      sessionId,
     }: {
       requestID: string;
-      sessionID: string;
-      directory: string;
+      sessionId: string;
     }): Promise<void> => {
-      void directory;
-      const response = await providerApi.interaction({
-        kind: "question",
-        sessionId: sessionID,
-        interactionId: requestID,
-        directory,
-        value: { reject: true },
+      const response = await sessionApi.replyQuestion(sessionId, requestID, {
+        reject: true,
       });
       if (!response.ok) throw new Error(await response.text());
     },
     onSuccess: (_, variables) =>
       void queryClient.invalidateQueries({
-        queryKey: questionKeys.list(variables.directory),
+        queryKey: questionKeys.list(variables.sessionId),
       }),
   });
 }

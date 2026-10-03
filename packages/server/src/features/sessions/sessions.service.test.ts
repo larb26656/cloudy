@@ -1,5 +1,5 @@
 import type { ChatSession, ProviderAdapter } from "@repo/ai-core";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { createProviderRegistry } from "../../providers";
 import type { SessionRecord } from "../../db/schema";
 import { createSessionsService } from "./sessions.service";
@@ -129,6 +129,63 @@ describe("sessions service", () => {
     expect(repo.rows[0]).toMatchObject({
       status: "active",
       runStatus: "running",
+    });
+  });
+
+  it("maps question requests to the Cloudy session UUID", async () => {
+    const repo = repository();
+    const service = createSessionsService(repo, registry());
+    const session = await service.create({ providerId: "test" });
+
+    const event = service.mapEvent({
+      type: "question.requested",
+      providerId: "test",
+      sessionId: "native-1",
+      request: {
+        id: "question-1",
+        sessionId: "native-1",
+        questions: [],
+      },
+    });
+
+    expect(event).toMatchObject({
+      sessionId: session.id,
+      request: { sessionId: session.id },
+    });
+  });
+
+  it("uses the provider session ID for question interactions", async () => {
+    const repo = repository();
+    const respondToInteraction = vi.fn().mockResolvedValue({
+      interactionId: "question-1",
+      value: null,
+    });
+    const provider: ProviderAdapter = {
+      id: "test",
+      capabilities: { streaming: true },
+      getInfo: async () => ({
+        id: "test",
+        name: "Test",
+        capabilities: { streaming: true },
+      }),
+      createSession: async () => providerSession("native-1"),
+      respondToInteraction,
+      subscribeEvents: async function* () {},
+    };
+    const service = createSessionsService(
+      repo,
+      createProviderRegistry({ providers: [provider] }),
+    );
+    const session = await service.create({ providerId: "test" });
+
+    await service.respondToQuestion(session.id, "question-1", [["Feature"]]);
+
+    expect(respondToInteraction).toHaveBeenCalledWith({
+      kind: "question",
+      sessionId: "native-1",
+      interactionId: "question-1",
+      directory: "/tmp/test",
+      value: [["Feature"]],
     });
   });
 

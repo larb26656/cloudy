@@ -3,6 +3,42 @@ import { describe, expect, it, vi } from "vitest";
 import { createOpenCodeAdapter } from "./opencode.adapter";
 
 describe("OpenCode question interactions", () => {
+  it("lists pending v2 questions for a directory", async () => {
+    const list = vi.fn().mockResolvedValue({
+      data: {
+        data: [
+          {
+            id: "que_test",
+            sessionID: "ses_test",
+            questions: [
+              {
+                header: "Scope",
+                question: "What should change?",
+                options: [{ label: "Feature", description: "Add a feature" }],
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const client = {
+      v2: { question: { request: { list } } },
+    } as unknown as OpencodeClient;
+    const adapter = createOpenCodeAdapter({
+      baseUrl: "http://localhost:4096",
+      client,
+    });
+
+    await expect(
+      adapter.listQuestions?.({ directory: "/tmp/cloudy" }),
+    ).resolves.toEqual([
+      expect.objectContaining({ id: "que_test", sessionId: "ses_test" }),
+    ]);
+    expect(list).toHaveBeenCalledWith({
+      location: { directory: "/tmp/cloudy" },
+    });
+  });
+
   it("falls back to the legacy question endpoint when a session request is not found", async () => {
     const sessionReply = vi.fn().mockResolvedValue({
       error: { _tag: "QuestionNotFoundError", message: "not found" },

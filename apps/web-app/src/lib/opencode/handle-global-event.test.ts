@@ -1,8 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
 import type { ChatEvent } from "@repo/contracts";
-import { beforeEach, describe, expect, test } from "vitest";
+import { beforeEach, describe, expect, test, vi } from "vitest";
 import { handleEvent } from "./handle-global-event";
-import { messageKeys, sessionKeys } from "./query-keys";
+import { messageKeys, questionKeys, sessionKeys } from "./query-keys";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { useSessionErrorStore } from "@/stores/sessionErrorStore";
 
@@ -147,6 +147,24 @@ describe("handleEvent", () => {
     expect(client.getQueryData(messageKeys.infinite(SESSION_ID))).toEqual({
       pages: [[message()]],
       pageParams: [undefined],
+    });
+  });
+
+  test("refetches questions for the Cloudy session that requested them", () => {
+    const client = queryClient();
+    const invalidateQueries = vi.spyOn(client, "invalidateQueries");
+
+    handleEvent(
+      {
+        type: "question.requested",
+        sessionId: SESSION_ID,
+        request: { id: "question_1", sessionId: SESSION_ID, questions: [] },
+      },
+      client,
+    );
+
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: questionKeys.list(SESSION_ID),
     });
   });
 

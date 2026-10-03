@@ -6,13 +6,11 @@ import { server } from "@/test/server";
 import { QuestionSheet } from "./QuestionSheet";
 import type { QuestionRequest } from "@/types";
 
-const DEMO_DIRECTORY = "/demo/project";
-
 const createMockQuestion = (
   overrides?: Partial<QuestionRequest>,
 ): QuestionRequest => ({
   id: "que_test123",
-  sessionID: "ses_test456",
+  sessionID: "c9c91a3d-8618-4bf4-a0ca-6a78535afbc6",
   questions: [
     {
       question: "เลือกภาษาที่คุณใช้?",
@@ -56,7 +54,6 @@ const renderQuestionSheet = (
       open={open}
       onOpenChange={onOpenChange}
       question={question}
-      directory={DEMO_DIRECTORY}
     />,
   );
 };
@@ -70,7 +67,7 @@ describe("QuestionSheet", () => {
     lastReject = undefined;
     server.use(
       http.post(
-        /\/api\/providers\/opencode\/interactions/,
+        /\/api\/sessions\/[^/]+\/questions\/[^/]+$/,
         async ({ request }) => {
           const body = await request.json().catch(() => undefined);
           const entry = { url: new URL(request.url), body };
@@ -336,7 +333,6 @@ describe("QuestionSheet", () => {
         await waitFor(() => {
           expect(lastReply?.body).toEqual(
             expect.objectContaining({
-              directory: DEMO_DIRECTORY,
               value: expectedAnswers,
             }),
           );
@@ -381,15 +377,9 @@ describe("QuestionSheet", () => {
       await userEvent.click(screen.getByRole("button", { name: /reject/i }));
       await waitFor(() => {
         expect(lastReject?.url.pathname).toMatch(
-          /\/api\/providers\/opencode\/interactions$/,
+          /\/api\/sessions\/c9c91a3d-8618-4bf4-a0ca-6a78535afbc6\/questions\/que_test123$/,
         );
         expect(lastReject?.body).toMatchObject({
-          interactionId: "que_test123",
-          directory: DEMO_DIRECTORY,
-          value: { reject: true },
-        });
-        expect(lastReject?.body).toMatchObject({
-          interactionId: "que_test123",
           value: { reject: true },
         });
       });

@@ -419,6 +419,7 @@ export function toChatEvent(
           request: toPermissionRequest(properties),
         };
       case "question.asked":
+      case "question.v2.asked":
         return {
           type: "question.requested",
           directory,

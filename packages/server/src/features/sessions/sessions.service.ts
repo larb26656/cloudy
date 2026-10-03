@@ -167,6 +167,31 @@ export function createSessionsService(
     };
   };
 
+  const questions = async (id: string) => {
+    const record = getRecord(id);
+    const requests = await registry.listQuestions(record.providerId, {
+      directory: record.directory ?? undefined,
+    });
+    return requests
+      .filter((request) => request.sessionId === record.providerSessionId)
+      .map((request) => ({ ...request, sessionId: id }));
+  };
+
+  const respondToQuestion = async (
+    id: string,
+    interactionId: string,
+    value: unknown,
+  ) => {
+    const record = getRecord(id);
+    return registry.respondToInteraction(record.providerId, {
+      kind: "question",
+      sessionId: record.providerSessionId,
+      interactionId,
+      directory: record.directory ?? undefined,
+      value,
+    });
+  };
+
   const sendMessage = async (id: string, input: MessageInput) => {
     const record = getRecord(id);
     const request: ProviderMessageRequest = {
@@ -214,7 +239,15 @@ export function createSessionsService(
       event.providerId,
       event.sessionId,
     );
-    return session ? { ...event, sessionId: session.id } : event;
+    if (!session) return event;
+    if (event.type === "question.requested") {
+      return {
+        ...event,
+        sessionId: session.id,
+        request: { ...event.request, sessionId: session.id },
+      };
+    }
+    return { ...event, sessionId: session.id };
   };
 
   const applyEvent = async (event: ChatEvent): Promise<ChatEvent | null> => {
@@ -246,6 +279,8 @@ export function createSessionsService(
     children,
     status,
     messages,
+    questions,
+    respondToQuestion,
     sendMessage,
     fork,
     abort,

@@ -63,7 +63,6 @@ export function useMessageListData({
     isFetchingNextPage,
   } = useMessages({
     sessionId: selectedSessionId ?? "",
-    statusType: sessionStatus?.type,
   });
 
   const remoteMessages = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);

@@ -1,4 +1,4 @@
-import notificationSoundUrl from "@/assets/notification.wav";
+import notificationSoundUrl from "@/assets/notification.mp3";
 
 let audioEl: HTMLAudioElement | null = null;
 

@@ -76,6 +76,38 @@ describe("OpenCode mapper", () => {
     });
   });
 
+  it("normalizes v2 question events", () => {
+    const event = {
+      directory: "/tmp/project",
+      payload: {
+        id: "event-1",
+        type: "question.v2.asked",
+        properties: {
+          id: "que_1",
+          sessionID: "session-1",
+          questions: [
+            {
+              header: "Scope",
+              question: "What should change?",
+              options: [{ label: "Feature", description: "Add a feature" }],
+            },
+          ],
+        },
+      },
+    } as unknown as GlobalEvent;
+
+    expect(toChatEvent(event)).toEqual({
+      type: "question.requested",
+      providerId: "opencode",
+      directory: "/tmp/project",
+      sessionId: "session-1",
+      request: expect.objectContaining({
+        id: "que_1",
+        sessionId: "session-1",
+      }),
+    });
+  });
+
   it("normalizes unknown parts without exposing an SDK type", () => {
     const event = {
       directory: "/tmp/project",

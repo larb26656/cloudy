@@ -289,12 +289,29 @@ export function createOpenCodeAdapter({
       directory?: string;
       sessionId?: string;
     }): Promise<ProviderQuestionRequest[]> {
-      const result = input.sessionId
-        ? await client.v2.session.question.list({ sessionID: input.sessionId })
-        : await client.question.list({ directory: input.directory });
-      if (result.error) throw result.error;
-      const data = "data" in result.data ? result.data.data : result.data;
-      return (data ?? []).map(toQuestionRequest);
+      if (input.sessionId) {
+        const result = await client.v2.session.question.list({
+          sessionID: input.sessionId,
+        });
+        if (result.error) throw result.error;
+        return result.data.data.map(toQuestionRequest);
+      }
+
+      const result = await client.v2.question.request.list({
+        location: input.directory ? { directory: input.directory } : undefined,
+      });
+      const requests = result.error
+        ? []
+        : result.data.data.map(toQuestionRequest);
+      if (requests.length > 0) return requests;
+
+      const legacyResult = await client.question.list({
+        directory: input.directory,
+      });
+      if (!legacyResult.error)
+        return (legacyResult.data ?? []).map(toQuestionRequest);
+      if (!result.error) return requests;
+      throw legacyResult.error;
     },
     async listFiles(input: {
       directory: string;

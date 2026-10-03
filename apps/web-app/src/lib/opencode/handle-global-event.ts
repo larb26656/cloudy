@@ -104,7 +104,7 @@ export function handleEvent(
       break;
     case "question.requested":
       void queryClient.invalidateQueries({
-        queryKey: questionKeys.list(eventDirectory ?? ""),
+        queryKey: questionKeys.list(event.sessionId),
       });
       postNotification(
         "info",
