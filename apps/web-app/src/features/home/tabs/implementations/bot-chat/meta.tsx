@@ -61,4 +61,5 @@ export const botChatTemplate: TabTemplate<BotChatData> = {
   CreateDialog: BotChatCreateDialog,
   HeaderActionsComponent: BotChatHeaderActions,
   getWorkspaceId: (data) => data.workspaceId,
+  hideMobileAppBarTitle: true,
 };

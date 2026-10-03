@@ -124,6 +124,7 @@ interface TabTemplate<T = unknown> {
   getWorkspaceId?: (data: T) => string | null; // workspace dot for the tab chip and All Tabs
   onClose?: (tab: Tab) => void; // cleanup hook (e.g. desk deletes its flow)
   keepAliveWhenHidden?: boolean; // keep mounted with CSS `display:none` instead of `<Activity mode="hidden">` — required for webview (iframe reloads on re-attach) and terminal (WS output gap, no server replay)
+  hideMobileAppBarTitle?: boolean; // hide the tab title in the mobile app bar (desktop tab chip unaffected) — used by chat/bot-chat where the session name crowds the narrow header
 }
 ```
 

@@ -34,7 +34,12 @@ export function MobileTabBar({ onOpenDrawer }: MobileTabBarProps) {
         />
       </AppBar.Leading>
       <AppBar.Title>
-        {activeTab ? <TabTitle tab={activeTab} /> : "Home"}
+        {activeTab &&
+        tabTypeMap[activeTab.type]?.hideMobileAppBarTitle ? null : activeTab ? (
+          <TabTitle tab={activeTab} />
+        ) : (
+          "Home"
+        )}
       </AppBar.Title>
       <AppBar.Actions>
         {isHome ? (

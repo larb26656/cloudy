@@ -2,23 +2,14 @@ import { useState } from "react";
 import { http, HttpResponse } from "msw";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { TooltipProvider } from "@repo/ui/components/tooltip";
+import { expect, within } from "storybook/test";
 import { SessionStatusBar } from "./SessionStatusBar";
 import preview from "../../../.storybook/preview";
 import type { ChatSession as Session } from "@/types";
-import type { Workspace } from "@/lib/cloudy/workspaces";
 
 const DEMO_DIRECTORY = "/demo/project";
+const DEEP_DIRECTORY = "/Users/demo/Work/monorepo/apps/web-app/project";
 const DEMO_SESSION_ID = "ses_demo_status";
-
-const DEMO_WORKSPACE: Workspace = {
-  id: "ws_demo",
-  name: "demo-project",
-  color: "#3B82F6",
-  type: "agent",
-  directory: DEMO_DIRECTORY,
-  createdAt: new Date("2024-01-01"),
-  updatedAt: new Date("2024-01-01"),
-};
 
 type TokenShape = NonNullable<Session["tokens"]>;
 
@@ -120,11 +111,11 @@ export default meta;
 
 function StatusBarInBox({
   width,
-  workspace = DEMO_WORKSPACE,
+  directory = DEMO_DIRECTORY,
   sessionId = DEMO_SESSION_ID,
 }: {
   width: string;
-  workspace?: Workspace | null;
+  directory?: string;
   sessionId?: string | null;
 }) {
   return (
@@ -136,11 +127,7 @@ function StatusBarInBox({
         className="w-full border rounded-lg bg-background overflow-hidden"
         style={{ width }}
       >
-        <SessionStatusBar
-          sessionId={sessionId}
-          directory={DEMO_DIRECTORY}
-          workspace={workspace}
-        />
+        <SessionStatusBar sessionId={sessionId} directory={directory} />
       </div>
     </div>
   );
@@ -176,11 +163,6 @@ export const EmptyWhenZero = meta.story({
   render: () => <StatusBarInBox width="700px" />,
 });
 
-export const NoWorkspace = meta.story({
-  parameters: { msw: { handlers: createHandlers(fullSession) } },
-  render: () => <StatusBarInBox width="700px" workspace={null} />,
-});
-
 export const NewChatNoSession = meta.story({
   render: () => <StatusBarInBox width="700px" sessionId={null} />,
 });
@@ -209,7 +191,6 @@ function ResizableContainer() {
         <SessionStatusBar
           sessionId={DEMO_SESSION_ID}
           directory={DEMO_DIRECTORY}
-          workspace={DEMO_WORKSPACE}
         />
       </div>
     </div>
@@ -233,7 +214,6 @@ function MinimapToggleDemo() {
         <SessionStatusBar
           sessionId={DEMO_SESSION_ID}
           directory={DEMO_DIRECTORY}
-          workspace={DEMO_WORKSPACE}
           minimapOpen={open}
           onToggleMinimap={() => setOpen((v) => !v)}
         />
@@ -245,4 +225,22 @@ function MinimapToggleDemo() {
 export const WithMinimapToggle = meta.story({
   parameters: { msw: { handlers: createHandlers(fullSession) } },
   render: () => <MinimapToggleDemo />,
+});
+
+export const DirectoryDialog = meta.story({
+  parameters: { msw: { handlers: createHandlers(fullSession) } },
+  render: () => <StatusBarInBox width="700px" directory={DEEP_DIRECTORY} />,
+  play: async ({ canvas, canvasElement, userEvent }) => {
+    const directoryButtons = await canvas.findAllByRole("button", {
+      name: `Show full directory path: ${DEEP_DIRECTORY}`,
+    });
+    await userEvent.click(directoryButtons[0]!);
+    const documentBody = within(canvasElement.ownerDocument.body);
+    await expect(
+      await documentBody.findByRole("dialog", { name: "Directory" }),
+    ).toBeInTheDocument();
+    await expect(
+      documentBody.getByText(DEEP_DIRECTORY, { selector: "code" }),
+    ).toBeInTheDocument();
+  },
 });

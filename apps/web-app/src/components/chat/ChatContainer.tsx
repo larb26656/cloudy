@@ -83,7 +83,6 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
     isGenerating,
     directory,
     sessionId,
-    workspace,
     changeSession,
     sessionPickerOpen,
     setSessionPickerOpen,
@@ -143,7 +142,6 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
         <SessionStatusBar
           sessionId={sessionId}
           directory={directory}
-          workspace={workspace}
           minimapOpen={minimapOpen}
           onToggleMinimap={() => setMinimapOpen((v) => !v)}
         />

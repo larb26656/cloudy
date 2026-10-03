@@ -53,6 +53,12 @@ export interface TabTemplate<T = unknown> {
    * terminal WebSockets would drop output with no server-side replay.
    */
   keepAliveWhenHidden?: boolean;
+  /**
+   * Hide the tab title in the mobile app bar (the desktop tab chip is
+   * unaffected). Used by chat surfaces where the session name crowds the
+   * narrow mobile header; the title stays reachable via the tabs drawer.
+   */
+  hideMobileAppBarTitle?: boolean;
 }
 
 type ExtractDataType<T> = T extends TabTemplate<infer Data> ? Data : never;

@@ -71,6 +71,7 @@ export const chatTemplate: TabTemplate<ChatData> = {
   CreateDialog: ChatCreateDialog,
   getWorkspaceId: (data) => data.workspaceId,
   HeaderActionsComponent: ChatHeaderActions,
+  hideMobileAppBarTitle: true,
   onClose: (tab) => {
     useChatPanelStore.getState().clearTab(tab.id);
   },

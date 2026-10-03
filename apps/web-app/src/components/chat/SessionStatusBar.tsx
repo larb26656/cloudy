@@ -1,21 +1,26 @@
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Coins, ListTree } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@repo/ui/components/tooltip";
-import { PathText } from "@repo/ui/components/path-text";
-import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/ui/components/dialog";
+import { CopyButton } from "@repo/ui/components/CopyButton";
+import { useCopyMessage } from "@repo/ui/hooks/use-copy-message";
 import { useSession } from "@/hooks/queries/useSessions";
 import { cn } from "@repo/ui/lib/utils";
 import { formatCompact, formatNumber, formatPercentage } from "@/lib/format";
-import type { Workspace } from "@/lib/cloudy/workspaces";
 
 interface SessionStatusBarProps {
   sessionId: string | null;
   directory: string;
-  workspace?: Workspace | null;
   minimapOpen?: boolean;
   onToggleMinimap?: () => void;
 }
@@ -89,11 +94,30 @@ function TooltipDetails({ v }: { v: TokenValues }) {
 export const SessionStatusBar = memo(function SessionStatusBar({
   sessionId,
   directory,
-  workspace = null,
   minimapOpen = false,
   onToggleMinimap,
 }: SessionStatusBarProps) {
   const { data: session } = useSession({ sessionId, directory });
+  const [directoryOpen, setDirectoryOpen] = useState(false);
+  const { copied, handleCopy } = useCopyMessage(() => directory);
+
+  const trimmedDirectory = directory.replace(/\/+$/, "");
+  const lastSlash = trimmedDirectory.lastIndexOf("/");
+  const directoryName =
+    (lastSlash >= 0
+      ? trimmedDirectory.slice(lastSlash + 1)
+      : trimmedDirectory) || directory;
+
+  const DirectoryTrigger = (
+    <button
+      type="button"
+      onClick={() => setDirectoryOpen(true)}
+      aria-label={`Show full directory path: ${directory}`}
+      className="-mx-1 min-w-0 truncate cursor-pointer rounded-sm px-1 text-left transition-colors hover:bg-muted hover:text-foreground"
+    >
+      {directoryName}
+    </button>
+  );
 
   const MinimapToggle = onToggleMinimap ? (
     <Tooltip>
@@ -134,17 +158,10 @@ export const SessionStatusBar = memo(function SessionStatusBar({
   return (
     <div className="@container px-4 pb-1">
       <div className="max-w-4xl mx-auto text-xs text-muted-foreground">
-        {/* Wide (>=40rem container): directory+badge left, cost+tokens right */}
+        {/* Wide (>=40rem container): directory left, cost+tokens right */}
         <div className="hidden @[40rem]:flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            {workspace && (
-              <WorkspaceBadge
-                workspaceName={workspace.name}
-                directory={directory}
-                workspaceId={workspace.id}
-              />
-            )}
-            <PathText path={directory} />
+            {DirectoryTrigger}
           </div>
 
           {cost > 0 && (
@@ -225,17 +242,10 @@ export const SessionStatusBar = memo(function SessionStatusBar({
           {MinimapToggle}
         </div>
 
-        {/* Narrow (<40rem container): directory+badge left, cost+total right */}
+        {/* Narrow (<40rem container): directory left, cost+total right */}
         <div className="flex @[40rem]:hidden items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
-            {workspace && (
-              <WorkspaceBadge
-                workspaceName={workspace.name}
-                directory={directory}
-                workspaceId={workspace.id}
-              />
-            )}
-            <PathText path={directory} />
+            {DirectoryTrigger}
           </div>
 
           {cost > 0 && (
@@ -261,6 +271,25 @@ export const SessionStatusBar = memo(function SessionStatusBar({
           {MinimapToggle}
         </div>
       </div>
+
+      <Dialog open={directoryOpen} onOpenChange={setDirectoryOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Directory</DialogTitle>
+            <DialogDescription>
+              Full working directory path of this session.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex items-center gap-2 rounded-md border bg-muted/50 px-3 py-2">
+            <code className="min-w-0 flex-1 break-all text-xs">
+              {directory}
+            </code>
+            <div className="flex shrink-0">
+              <CopyButton onClick={handleCopy} copied={copied} />
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });
