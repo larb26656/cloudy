@@ -12,7 +12,7 @@ import { SessionCard } from "./SessionCard";
 export function RecentSessionsSection() {
   const { data: sessions, isLoading, error } = useRecentSessions({ limit: 8 });
   const { data: workspaces = [] } = useWorkspaces();
-  const addTab = useTabStore((s) => s.addTab);
+  const openTab = useTabStore((s) => s.openTab);
 
   const directoryToWorkspace = (directory: string): Workspace | undefined =>
     workspaces.find((workspace) => workspace.directory === directory);
@@ -21,7 +21,7 @@ export function RecentSessionsSection() {
     const dir = session.directory;
     const workspace = directoryToWorkspace(dir);
     if (workspace?.type === "bot") {
-      addTab("bot-chat", {
+      openTab("bot-chat", {
         sessionId: session.id,
         workspaceId: workspace.id,
         directory: dir,
@@ -29,7 +29,7 @@ export function RecentSessionsSection() {
       });
       return;
     }
-    addTab("chat", {
+    openTab("chat", {
       providerId: session.providerId,
       sessionId: session.id,
       workspaceId: workspace?.id ?? null,

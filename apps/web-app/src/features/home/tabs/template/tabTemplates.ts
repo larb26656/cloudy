@@ -45,6 +45,14 @@ export interface TabTemplate<T = unknown> {
    * the host bars — render only icon buttons, no outer bar/border.
    */
   HeaderActionsComponent?: ComponentType<TabHeaderActionsProps>;
+  /**
+   * Keep the tab mounted with CSS `display: none` when inactive, instead of
+   * hiding it with `<Activity mode="hidden">` (the default). Required for
+   * content that breaks when detached from the document or whose background
+   * stream must keep flowing: webview iframes reload when re-attached, and
+   * terminal WebSockets would drop output with no server-side replay.
+   */
+  keepAliveWhenHidden?: boolean;
 }
 
 type ExtractDataType<T> = T extends TabTemplate<infer Data> ? Data : never;

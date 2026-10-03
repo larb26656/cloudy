@@ -31,11 +31,12 @@ function SessionList({
   const { data: sessions = [], isLoading, error } = useSessions({ directory });
   const createSession = useCreateSession();
   const addTab = useTabStore((s) => s.addTab);
+  const openTab = useTabStore((s) => s.openTab);
   const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleSelect = (session: ChatSession) => {
-    addTab(workspaceType === "bot" ? "bot-chat" : "chat", {
+    openTab(workspaceType === "bot" ? "bot-chat" : "chat", {
       ...(workspaceType === "agent" && { providerId: session.providerId }),
       sessionId: session.id,
       workspaceId,

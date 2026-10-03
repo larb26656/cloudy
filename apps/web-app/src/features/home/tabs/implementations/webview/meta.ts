@@ -24,4 +24,5 @@ export const webviewTemplate: TabTemplate<WebviewData> = {
   TitleComponent: WebviewTabTitle,
   ContentComponent: WebviewContent,
   CreateDialog: WebviewCreateDialog,
+  keepAliveWhenHidden: true,
 };

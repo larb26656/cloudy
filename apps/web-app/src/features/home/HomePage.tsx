@@ -1,3 +1,4 @@
+import { Activity } from "react";
 import { useTabStore } from "@/stores/tabStore";
 import { MainTabBar } from "./components/MainTabBar";
 import { TabHeaderBar } from "./components/TabHeaderBar";
@@ -21,9 +22,13 @@ export default function HomePage() {
       )}
       <TabHeaderBar />
       <div className="flex-1 overflow-hidden">
-        <div className={activeTabId === "home" ? "h-full" : "hidden"}>
-          <HomeContent />
-        </div>
+        {/* Toggle `mode` only — conditionally rendering <Activity> would
+            destroy the preserved state. */}
+        <Activity mode={activeTabId === "home" ? "visible" : "hidden"}>
+          <div className="h-full">
+            <HomeContent />
+          </div>
+        </Activity>
         {tabs.map((tab) => {
           const isActive = activeTabId === tab.id;
           const template = tabTypeMap[tab.type];
@@ -40,10 +45,19 @@ export default function HomePage() {
           }
 
           const Content = template.ContentComponent;
+          if (template.keepAliveWhenHidden) {
+            return (
+              <div key={tab.id} className={isActive ? "h-full" : "hidden"}>
+                <Content tab={tab} />
+              </div>
+            );
+          }
           return (
-            <div key={tab.id} className={isActive ? "h-full" : "hidden"}>
-              <Content tab={tab} />
-            </div>
+            <Activity key={tab.id} mode={isActive ? "visible" : "hidden"}>
+              <div className="h-full">
+                <Content tab={tab} />
+              </div>
+            </Activity>
           );
         })}
       </div>

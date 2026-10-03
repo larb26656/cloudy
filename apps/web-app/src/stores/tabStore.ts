@@ -13,6 +13,13 @@ interface TabStore {
   tabs: Tab[];
   activeTabId: string;
   addTab: <T extends Tab["type"]>(type: T, data: TabDataMap[T]) => string;
+  /**
+   * Opens a tab carrying `data.sessionId`: when a tab of the same `type` is
+   * already open for that session, focus it (and bump `updatedAt`) instead of
+   * creating a duplicate. Otherwise behave like `addTab`. Tabs without a
+   * `sessionId` (e.g. brand-new chats) always create a new tab.
+   */
+  openTab: <T extends Tab["type"]>(type: T, data: TabDataMap[T]) => string;
   removeTab: (id: string) => void;
   setActiveTab: (id: string) => void;
   reorderTabs: (activeId: string, overId: string) => void;
@@ -54,6 +61,10 @@ export function migrateBotTabType(tabs: PersistedTab[]): PersistedTab[] {
   );
 }
 
+function getSessionId(data: unknown): string | null {
+  return (data as { sessionId?: string | null } | null)?.sessionId ?? null;
+}
+
 export const useTabStore = create<TabStore>()(
   persist(
     (set, get) => ({
@@ -68,6 +79,26 @@ export const useTabStore = create<TabStore>()(
           activeTabId: id,
         }));
         return id;
+      },
+
+      openTab: (type, data) => {
+        const sessionId = getSessionId(data);
+        if (sessionId) {
+          const existing = get().tabs.find(
+            (tab) => tab.type === type && getSessionId(tab.data) === sessionId,
+          );
+          if (existing) {
+            const now = Date.now();
+            set((state) => ({
+              tabs: state.tabs.map((tab) =>
+                tab.id === existing.id ? { ...tab, updatedAt: now } : tab,
+              ),
+              activeTabId: existing.id,
+            }));
+            return existing.id;
+          }
+        }
+        return get().addTab(type, data);
       },
 
       removeTab: (id) => {

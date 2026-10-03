@@ -123,6 +123,7 @@ interface TabTemplate<T = unknown> {
   defaultData?: T; // initial `data` for newly-created tabs
   getWorkspaceId?: (data: T) => string | null; // workspace dot for the tab chip and All Tabs
   onClose?: (tab: Tab) => void; // cleanup hook (e.g. desk deletes its flow)
+  keepAliveWhenHidden?: boolean; // keep mounted with CSS `display:none` instead of `<Activity mode="hidden">` — required for webview (iframe reloads on re-attach) and terminal (WS output gap, no server replay)
 }
 ```
 
