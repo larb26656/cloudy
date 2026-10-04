@@ -9,8 +9,8 @@ import type { ModelInfo, ProviderInfo } from "@repo/contracts";
 
 const fixtures: ProviderInfo[] = [
   {
-    id: "openai",
-    name: "OpenAI",
+    id: "opencode",
+    name: "OpenCode",
     capabilities: { streaming: true },
     models: [
       {
@@ -27,13 +27,6 @@ const fixtures: ProviderInfo[] = [
         capabilities: { maxInputTokens: 400000 },
         description: "fast",
       },
-    ],
-  },
-  {
-    id: "anthropic",
-    name: "Anthropic",
-    capabilities: { streaming: true },
-    models: [
       {
         providerId: "anthropic",
         modelId: "claude-sonnet",
@@ -302,7 +295,7 @@ describe("ModelSelector — favorites", () => {
     render(<ModelSelector open onOpenChange={onOpenChange} />);
 
     await user.click(screen.getByRole("combobox", { name: "Model mode" }));
-    await user.click(screen.getByRole("option", { name: "High" }));
+    await user.click(await screen.findByRole("option", { name: "High" }));
 
     expect(mocks.setModel).toHaveBeenCalledWith({
       ...mocks.effectiveModel,
@@ -352,7 +345,7 @@ describe("ModelSelector — favorites", () => {
 
     const variantSelect = screen.getByRole("combobox", { name: "Model mode" });
     await user.click(variantSelect);
-    await user.click(screen.getByRole("option", { name: "High" }));
+    await user.click(await screen.findByRole("option", { name: "High" }));
 
     expect(mocks.setModel).toHaveBeenCalledWith({
       ...mocks.effectiveModel,

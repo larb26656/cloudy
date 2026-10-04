@@ -1,6 +1,6 @@
 import type { ChatMessage, MessagePart } from "@repo/ai-core";
 import { lazy } from "react";
-import { cn } from "@repo/ui/lib/utils";
+import { motion, useReducedMotion } from "motion/react";
 import {
   TextPart,
   SubtaskPart,
@@ -32,10 +32,11 @@ export function MessageParts({
   info,
   isStreaming = false,
 }: MessagePartsProps) {
+  const prefersReducedMotion = useReducedMotion();
+  const shouldAnimate = isStreaming && !prefersReducedMotion;
+
   return (
-    <div
-      className={cn("flex flex-col gap-3", isStreaming && "streaming-parts")}
-    >
+    <div className="flex flex-col gap-3">
       {parts.map((part, index) => {
         // Use index-based key for stability during streaming.
         // During streaming, parts are appended (not inserted), so index remains stable.
@@ -43,50 +44,55 @@ export function MessageParts({
         // React would remount the component, losing local state (like open dialogs).
         const partKey = `part-${index}`;
 
+        let content;
         switch (part.type) {
           case "text":
-            return (
-              <TextPart key={partKey} part={part} isStreaming={isStreaming} />
-            );
+            content = <TextPart part={part} isStreaming={isStreaming} />;
+            break;
 
           case "subtask":
-            return <SubtaskPart key={partKey} part={part} />;
+            content = <SubtaskPart part={part} />;
+            break;
 
           case "reasoning":
-            return (
-              <ReasoningPart
-                key={partKey}
-                part={part}
-                isStreaming={isStreaming}
-              />
-            );
+            content = <ReasoningPart part={part} isStreaming={isStreaming} />;
+            break;
 
           case "file":
-            return <FilePart key={partKey} part={part} />;
+            content = <FilePart part={part} />;
+            break;
 
           case "tool":
-            return <ToolPart key={partKey} part={part} />;
+            content = <ToolPart part={part} />;
+            break;
 
           case "step-start":
-            return <StepStartPart key={partKey} part={part} />;
+            content = <StepStartPart part={part} />;
+            break;
 
           case "step-finish":
-            return <StepFinishPart key={partKey} part={part} info={info} />;
+            content = <StepFinishPart part={part} info={info} />;
+            break;
 
           case "snapshot":
-            return <SnapshotPart key={partKey} part={part} />;
+            content = <SnapshotPart part={part} />;
+            break;
 
           case "diff":
-            return <PatchPart key={partKey} part={part} />;
+            content = <PatchPart part={part} />;
+            break;
 
           case "agent":
-            return <AgentPart key={partKey} part={part} />;
+            content = <AgentPart part={part} />;
+            break;
 
           case "retry":
-            return <RetryPart key={partKey} part={part} />;
+            content = <RetryPart part={part} />;
+            break;
 
           case "compaction":
-            return <CompactionPart key={partKey} part={part} />;
+            content = <CompactionPart part={part} />;
+            break;
 
           case "unknown": {
             let serializedData = "Unable to serialize raw part";
@@ -104,11 +110,8 @@ export function MessageParts({
             const callId =
               typeof raw.callID === "string" ? raw.callID : undefined;
 
-            return (
-              <div
-                key={partKey}
-                className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2 text-sm text-muted-foreground"
-              >
+            content = (
+              <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-2 text-sm text-muted-foreground">
                 <div>
                   Unknown part type: <strong>{part.providerType}</strong>
                   {tool ? ` (tool: ${tool})` : ""}
@@ -125,8 +128,20 @@ export function MessageParts({
                 </details>
               </div>
             );
+            break;
           }
         }
+
+        return (
+          <motion.div
+            key={partKey}
+            initial={shouldAnimate ? { opacity: 0, y: 4 } : false}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.15, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {content}
+          </motion.div>
+        );
       })}
     </div>
   );

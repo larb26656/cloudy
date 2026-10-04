@@ -79,16 +79,26 @@ export function ModelSelector({
   );
   const { isMobile } = useDeviceType();
 
-  const groups: ModelSelectorGroup<SelectorModel>[] = providers.map(
-    (provider) => ({
-      key: provider.id,
+  const modelsByProvider = new Map<string, SelectorModel[]>();
+  for (const provider of providers) {
+    for (const model of provider.models ?? []) {
+      const selectorModel = toSelectorModel(model);
+      const models = modelsByProvider.get(model.providerId) ?? [];
+      models.push(selectorModel);
+      modelsByProvider.set(model.providerId, models);
+    }
+  }
+  const groups: ModelSelectorGroup<SelectorModel>[] = Array.from(
+    modelsByProvider,
+    ([providerId, models]) => ({
+      key: providerId,
       label: (
         <>
-          {providerIcons[provider.id] ?? <Bot className="size-4" />}
-          {providerNames[provider.id] ?? provider.name}
+          {providerIcons[providerId] ?? <Bot className="size-4" />}
+          {providerNames[providerId] ?? providerId}
         </>
       ),
-      models: (provider.models ?? []).map(toSelectorModel),
+      models,
     }),
   );
   const models = groups.flatMap((group) => group.models);
