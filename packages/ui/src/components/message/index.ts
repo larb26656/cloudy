@@ -19,6 +19,7 @@ export * from "./parts";
 export { BashTool } from "./parts/tool-components/BashTool";
 export { DefaultTool } from "./parts/tool-components/DefaultTool";
 export { EditTool } from "./parts/tool-components/EditTool";
+export { ApplyPatchTool } from "./parts/tool-components/ApplyPatchTool";
 export { ExpandableToolCard } from "./parts/tool-components/ExpandableToolCard";
 export { GlobTool } from "./parts/tool-components/GlobTool";
 export { GrepTool } from "./parts/tool-components/GrepTool";

@@ -4,6 +4,7 @@ import { BashTool } from "./BashTool";
 import { ReadTool } from "./ReadTool";
 import { WriteTool } from "./WriteTool";
 import { EditTool } from "./EditTool";
+import { ApplyPatchTool } from "./ApplyPatchTool";
 import { GrepTool } from "./GrepTool";
 import { GlobTool } from "./GlobTool";
 import { WebTool } from "./WebTool";
@@ -18,6 +19,7 @@ const toolRegistry: Record<string, ComponentType<ToolComponentProps>> = {
   read: ReadTool,
   write: WriteTool,
   edit: EditTool,
+  apply_patch: ApplyPatchTool,
   grep: GrepTool,
   glob: GlobTool,
   webfetch: WebTool,
