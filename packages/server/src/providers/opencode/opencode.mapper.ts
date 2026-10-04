@@ -448,6 +448,14 @@ export function toModelInfo(providerId: string, model: Model): ModelInfo {
       maxInputTokens: model.limit.input,
       maxOutputTokens: model.limit.output,
     },
+    variants: Object.entries(model.variants ?? {})
+      .filter(([, value]) => value.disabled !== true)
+      .map(([id]) => ({
+        id,
+        name: id
+          .replace(/[-_]/g, " ")
+          .replace(/\b\w/g, (letter) => letter.toUpperCase()),
+      })),
     metadata: { provider: "opencode", status: model.status },
   };
 }

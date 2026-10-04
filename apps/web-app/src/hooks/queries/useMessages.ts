@@ -75,7 +75,11 @@ export function useSendMessage() {
             data: attachment.dataUrl,
           })),
           model: model
-            ? { providerId: model.providerId, modelId: model.modelId }
+            ? {
+                providerId: model.providerId,
+                modelId: model.modelId,
+                variantId: model.variantId,
+              }
             : undefined,
           agentId: agent ?? undefined,
         }),

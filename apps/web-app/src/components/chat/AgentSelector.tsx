@@ -41,9 +41,14 @@ const FALLBACK_AGENTS: Agent[] = [
 interface AgentSelectorProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  variant?: "default" | "status";
 }
 
-export function AgentSelector({ open, onOpenChange }: AgentSelectorProps) {
+export function AgentSelector({
+  open,
+  onOpenChange,
+  variant = "default",
+}: AgentSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const openState = open ?? isOpen;
   const setOpenState = onOpenChange ?? setIsOpen;
@@ -157,10 +162,16 @@ export function AgentSelector({ open, onOpenChange }: AgentSelectorProps) {
   );
 
   const trigger = (
-    <span className="inline-flex items-center justify-center gap-1">
+    <span
+      className={
+        variant === "status"
+          ? "inline-flex max-w-32 items-center justify-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 text-foreground transition-colors hover:bg-muted"
+          : "inline-flex items-center justify-center gap-1"
+      }
+    >
       <Bot className="size-4" />
       <span className="max-w-[120px] truncate">{getDisplayName()}</span>
-      <ChevronDown className="size-3.5" />
+      {variant === "default" && <ChevronDown className="size-3.5" />}
     </span>
   );
 
@@ -171,7 +182,7 @@ export function AgentSelector({ open, onOpenChange }: AgentSelectorProps) {
           type="button"
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => setOpenState(true)}
-          className="inline-flex items-center justify-center gap-1"
+          className="cursor-pointer"
         >
           {trigger}
         </button>

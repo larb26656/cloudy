@@ -15,6 +15,7 @@ import { QuestionBanner } from "../question/QuestionBanner";
 import { QuestionSheet } from "../question/QuestionSheet";
 import { ChatProvider, useChat } from "./ChatProvider";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
+import { AgentSelector } from "./AgentSelector";
 
 interface ChatContainerProps {
   workspace?: Workspace | null;
@@ -142,6 +143,7 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
         <SessionStatusBar
           sessionId={sessionId}
           directory={directory}
+          agentSelector={<AgentSelector variant="status" />}
           minimapOpen={minimapOpen}
           onToggleMinimap={() => setMinimapOpen((v) => !v)}
         />

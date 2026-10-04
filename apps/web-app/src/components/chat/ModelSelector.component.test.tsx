@@ -137,7 +137,8 @@ describe("ModelSelector — favorites", () => {
   });
 
   test("renders all provider groups when no favorites are set", () => {
-    renderOpen();
+    const onOpenChange = vi.fn();
+    render(<ModelSelector open onOpenChange={onOpenChange} />);
 
     expect(screen.queryByText("Favorites")).not.toBeInTheDocument();
     expect(screen.getByText("OpenAI")).toBeInTheDocument();
@@ -287,6 +288,28 @@ describe("ModelSelector — favorites", () => {
     );
   });
 
+  test("selects a variant from the same model menu", async () => {
+    mocks.effectiveModel = {
+      ...gpt5,
+      variants: [
+        { id: "low", name: "Low" },
+        { id: "high", name: "High" },
+      ],
+    };
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    render(<ModelSelector open onOpenChange={onOpenChange} />);
+
+    await user.click(screen.getByRole("combobox", { name: "Model mode" }));
+    await user.click(screen.getByRole("option", { name: "High" }));
+
+    expect(mocks.setModel).toHaveBeenCalledWith({
+      ...mocks.effectiveModel,
+      variantId: "high",
+    });
+    expect(screen.getByText("High")).toBeInTheDocument();
+  });
+
   test("uses a drawer on mobile and closes it after selecting a model", async () => {
     Object.defineProperty(window, "innerWidth", {
       configurable: true,
@@ -308,5 +331,35 @@ describe("ModelSelector — favorites", () => {
       expect.objectContaining({ modelId: "claude-opus" }),
     );
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  test("keeps variant selection compact inside the mobile drawer", async () => {
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 375,
+    });
+    mocks.effectiveModel = {
+      ...gpt5,
+      variants: [
+        { id: "low", name: "Low" },
+        { id: "high", name: "High" },
+      ],
+    };
+    const user = userEvent.setup();
+    const onOpenChange = vi.fn();
+    render(<ModelSelector open onOpenChange={onOpenChange} />);
+
+    const variantSelect = screen.getByRole("combobox", { name: "Model mode" });
+    await user.click(variantSelect);
+    await user.click(screen.getByRole("option", { name: "High" }));
+
+    expect(mocks.setModel).toHaveBeenCalledWith({
+      ...mocks.effectiveModel,
+      variantId: "high",
+    });
+    expect(
+      screen.queryByRole("heading", { name: "Select variant" }),
+    ).not.toBeInTheDocument();
+    expect(onOpenChange).not.toHaveBeenCalledWith(false);
   });
 });

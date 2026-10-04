@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+import type { ReactNode } from "react";
 import { Coins, ListTree } from "lucide-react";
 import {
   Tooltip,
@@ -23,6 +24,7 @@ interface SessionStatusBarProps {
   directory: string;
   minimapOpen?: boolean;
   onToggleMinimap?: () => void;
+  agentSelector?: ReactNode;
 }
 
 interface TokenValues {
@@ -96,6 +98,7 @@ export const SessionStatusBar = memo(function SessionStatusBar({
   directory,
   minimapOpen = false,
   onToggleMinimap,
+  agentSelector,
 }: SessionStatusBarProps) {
   const { data: session } = useSession({ sessionId, directory });
   const [directoryOpen, setDirectoryOpen] = useState(false);
@@ -161,6 +164,7 @@ export const SessionStatusBar = memo(function SessionStatusBar({
         {/* Wide (>=40rem container): directory left, cost+tokens right */}
         <div className="hidden @[40rem]:flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            {agentSelector}
             {DirectoryTrigger}
           </div>
 
@@ -245,6 +249,7 @@ export const SessionStatusBar = memo(function SessionStatusBar({
         {/* Narrow (<40rem container): directory left, cost+total right */}
         <div className="flex @[40rem]:hidden items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            {agentSelector}
             {DirectoryTrigger}
           </div>
 

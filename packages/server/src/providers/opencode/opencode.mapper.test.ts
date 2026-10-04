@@ -213,12 +213,17 @@ describe("OpenCode mapper", () => {
       },
       limit: { context: 1000, output: 100 },
       status: "active",
+      variants: {
+        high: { reasoningEffort: "high" },
+        disabled: { disabled: true },
+      },
     } as never;
 
     expect(toModelInfo("opencode", model)).toMatchObject({
       providerId: "opencode",
       modelId: "model-1",
       capabilities: { reasoning: true, tools: true, vision: true },
+      variants: [{ id: "high", name: "High" }],
     });
   });
 });

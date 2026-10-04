@@ -21,6 +21,7 @@ const modelSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
   capabilities: modelCapabilitiesSchema,
+  variants: z.array(z.object({ id: z.string(), name: z.string() })).optional(),
   metadata: metadataSchema,
 });
 
@@ -100,7 +101,13 @@ export const ProvidersModel = {
         }),
       )
       .optional(),
-    model: z.object({ providerId: z.string(), modelId: z.string() }).optional(),
+    model: z
+      .object({
+        providerId: z.string(),
+        modelId: z.string(),
+        variantId: z.string().optional(),
+      })
+      .optional(),
     agentId: z.string().optional(),
     metadata: metadataSchema,
   }),

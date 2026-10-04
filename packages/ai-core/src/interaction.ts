@@ -12,7 +12,7 @@ export interface SendMessageInput {
   directory?: string;
   content: string;
   attachments?: MessageAttachment[];
-  model?: { providerId: string; modelId: string };
+  model?: { providerId: string; modelId: string; variantId?: string };
   agentId?: string;
   metadata?: Record<string, unknown>;
 }

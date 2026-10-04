@@ -107,3 +107,31 @@ describe("OpenCode session mapping", () => {
     expect(list).toHaveBeenCalledWith({ limit: 8 });
   });
 });
+
+describe("OpenCode model variants", () => {
+  it("passes the selected model variant to the prompt request", async () => {
+    const promptAsync = vi.fn().mockResolvedValue({ data: undefined });
+    const client = {
+      session: { promptAsync },
+    } as unknown as OpencodeClient;
+    const adapter = createOpenCodeAdapter({
+      baseUrl: "http://localhost:4096",
+      client,
+    });
+
+    await adapter.sendMessage?.({
+      sessionId: "ses_test",
+      directory: "/tmp/project",
+      content: "Review this change",
+      model: {
+        providerId: "openai",
+        modelId: "gpt-5",
+        variantId: "high",
+      },
+    });
+
+    expect(promptAsync).toHaveBeenCalledWith(
+      expect.objectContaining({ variant: "high" }),
+    );
+  });
+});

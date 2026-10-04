@@ -1,37 +1,25 @@
 import type { RecentChatSession } from "@/types";
 import { useState } from "react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
-import { WorkspaceBadge } from "@/components/workspace/WorkspaceBadge";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { ProviderIcon } from "@/components/provider/ProviderIcon";
 import { ClickableCard } from "./ClickableCard";
 
 interface SessionCardProps {
   session: RecentChatSession;
-  workspaceName?: string;
-  /** Filesystem path of the session. Used to show a fallback indicator when
-   * the session has no matching cloudy workspace. */
   directory: string;
-  /** When provided, a colored WorkspaceDot is shown before the name. */
-  workspaceId?: string;
   onClick: () => void;
 }
 
-export function SessionCard({
-  session,
-  workspaceName,
-  directory,
-  workspaceId,
-  onClick,
-}: SessionCardProps) {
+export function SessionCard({ session, directory, onClick }: SessionCardProps) {
   const [isEditing, setIsEditing] = useState(false);
 
   return (
     <ClickableCard
       onClick={onClick}
-      className="flex items-center gap-3 px-3.5 py-3"
+      className="flex items-center gap-1 px-3.5 py-3"
     >
-      <span className="flex min-w-0 flex-1 flex-col justify-start gap-2">
+      <span className="flex min-w-0 flex-1 flex-col justify-start gap-1">
         <div className="flex items-center gap-2">
           <ProviderIcon providerId={session.providerId} />
           <div className="flex-1 truncate">
@@ -65,13 +53,6 @@ export function SessionCard({
         >
           {directory}
         </span>
-
-        <WorkspaceBadge
-          workspaceName={workspaceName}
-          directory={directory}
-          workspaceId={workspaceId}
-          className="self-start"
-        />
       </span>
     </ClickableCard>
   );

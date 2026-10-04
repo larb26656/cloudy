@@ -54,13 +54,10 @@ export function RecentSessionsSection() {
       <div className="flex flex-col gap-3">
         {sessions.map((session) => {
           const dir = session.directory;
-          const workspace = directoryToWorkspace(dir);
           return (
             <SessionCard
               key={session.id}
               session={session}
-              workspaceName={workspace?.name}
-              workspaceId={workspace?.id}
               directory={dir}
               onClick={() => handleOpen(session)}
             />

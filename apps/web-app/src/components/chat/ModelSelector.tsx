@@ -46,6 +46,8 @@ function fromSelectorModel(model: SelectorModel): ModelInfo {
     name: model.name,
     description: model.description,
     capabilities: model.capabilities,
+    variants: model.variants,
+    variantId: model.variantId,
     metadata: model.metadata,
   };
 }

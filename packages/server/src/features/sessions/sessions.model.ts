@@ -44,7 +44,13 @@ export const messageInputSchema = z.object({
       }),
     )
     .optional(),
-  model: z.object({ providerId: z.string(), modelId: z.string() }).optional(),
+  model: z
+    .object({
+      providerId: z.string(),
+      modelId: z.string(),
+      variantId: z.string().optional(),
+    })
+    .optional(),
   agentId: z.string().optional(),
   metadata: metadataSchema,
 });

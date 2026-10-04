@@ -1,6 +1,5 @@
 import { ArrowUp, Paperclip, Square } from "lucide-react";
 import { ModelSelector } from "../ModelSelector";
-import { AgentSelector } from "../AgentSelector";
 import { Button } from "@repo/ui/components/button";
 import { toast } from "@repo/ui/components/sonner";
 import { type ChatInputContent, type ImageAttachment } from "@/lib/opencode";
@@ -62,7 +61,6 @@ export const ChatInput = memo(function ChatInput({
   const [isListening, setIsListening] = useState(false);
   const [speechDraft, setSpeechDraft] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const [agentOpen, setAgentOpen] = useState(false);
   const [modelOpen, setModelOpen] = useState(false);
 
   const speechBaseRef = useRef("");
@@ -304,13 +302,9 @@ export const ChatInput = memo(function ChatInput({
               <div
                 className={cn(
                   "flex gap-2 min-w-0 overflow-x-auto items-center",
-                  !isFocused &&
-                    !agentOpen &&
-                    !modelOpen &&
-                    "@max-compact:hidden",
+                  !isFocused && !modelOpen && "@max-compact:hidden",
                 )}
               >
-                <AgentSelector open={agentOpen} onOpenChange={setAgentOpen} />
                 <ModelSelector open={modelOpen} onOpenChange={setModelOpen} />
               </div>
 

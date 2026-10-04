@@ -213,6 +213,7 @@ export function createOpenCodeAdapter({
               modelID: request.model.modelId,
             }
           : undefined,
+        variant: request.model?.variantId,
         agent: request.agentId,
         parts,
       });

@@ -1,6 +1,7 @@
 import { Bot, ChevronDown, Search, Star } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@repo/ui/components/input";
+import { Badge } from "@repo/ui/components/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +17,13 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@repo/ui/components/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/components/select";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
@@ -26,6 +34,8 @@ export interface ModelSelectorModel {
   name: string;
   contextLength?: number;
   description?: string;
+  variants?: { id: string; name: string }[];
+  variantId?: string;
 }
 
 export interface ModelSelectorGroup<T extends ModelSelectorModel> {
@@ -98,10 +108,33 @@ export function ModelSelector<T extends ModelSelectorModel>({
     setSearch("");
   }
 
+  function handleVariantChange(variantId?: string) {
+    if (!value) return;
+    onChange({ ...value, variantId });
+    if (!isMobile) {
+      setIsOpen(false);
+      setSearch("");
+    }
+  }
+
+  const variants = value?.variants ?? [];
+  const selectedVariant = variants.find(
+    (variant) => variant.id === value?.variantId,
+  );
+
   const trigger = (
-    <span className="inline-flex items-center justify-center gap-1">
+    <span className="inline-flex min-w-0 items-center justify-center gap-1.5">
       <Bot className="size-4 shrink-0" />
       <span className="max-w-48 truncate">{value?.name ?? "Default"}</span>
+      {selectedVariant && (
+        <Badge
+          variant="secondary"
+          className="max-w-24 px-1.5 text-[11px]"
+          title={selectedVariant.name}
+        >
+          {selectedVariant.name}
+        </Badge>
+      )}
       <ChevronDown className="size-3.5 shrink-0" />
     </span>
   );
@@ -165,6 +198,36 @@ export function ModelSelector<T extends ModelSelectorModel>({
     </>
   );
 
+  const variantOptions =
+    !search && variants.length > 0 ? (
+      <div className="flex items-center justify-between gap-3 border-b px-4 py-3">
+        <span className="text-xs font-medium text-muted-foreground">Mode</span>
+        <Select
+          value={value?.variantId ?? "default"}
+          onValueChange={(variantId) =>
+            handleVariantChange(
+              variantId && variantId !== "default" ? variantId : undefined,
+            )
+          }
+        >
+          <SelectTrigger
+            aria-label="Model mode"
+            className="h-8 min-w-28 max-w-48"
+          >
+            <SelectValue placeholder="Default" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="default">Default</SelectItem>
+            {variants.map((variant) => (
+              <SelectItem key={variant.id} value={variant.id}>
+                {variant.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    ) : null;
+
   if (isMobile) {
     return (
       <>
@@ -185,6 +248,7 @@ export function ModelSelector<T extends ModelSelectorModel>({
               <SheetTitle>Select model</SheetTitle>
             </SheetHeader>
             {searchInput}
+            {variantOptions}
             <div className="min-h-0 flex-1 overflow-y-auto border-y py-1">
               {options}
             </div>
@@ -210,6 +274,7 @@ export function ModelSelector<T extends ModelSelectorModel>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         {searchInput}
+        {variantOptions}
         <DropdownMenuSeparator />
         <div className="max-h-80 overflow-y-auto">{options}</div>
         {!search && (
