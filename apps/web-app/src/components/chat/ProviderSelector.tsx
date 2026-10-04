@@ -20,6 +20,9 @@ export function ProviderSelector({
   const availableProviders = providers.length
     ? providers
     : [{ id: providerId, name: providerId }];
+  const providerName =
+    availableProviders.find((provider) => provider.id === providerId)?.name ??
+    providerId;
 
   return (
     <Select
@@ -29,8 +32,9 @@ export function ProviderSelector({
         onChange(value);
       }}
     >
-      <SelectTrigger className="h-8 w-auto gap-1 border-0 px-2 text-xs shadow-none">
+      <SelectTrigger className="h-8 w-auto gap-2 border-0 px-2 text-xs shadow-none">
         <ProviderIcon providerId={providerId} />
+        <span className="max-w-40 truncate">{providerName}</span>
       </SelectTrigger>
       <SelectContent>
         {availableProviders.map((item) => (

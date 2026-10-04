@@ -7,7 +7,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@repo/ui/components/dialog";
 import { Button } from "@repo/ui/components/button";
 import { SessionItem } from "@/components/ui/SessionItem";
@@ -125,15 +124,10 @@ export function CreateChatDialog({
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden sm:max-w-md">
-        <DialogHeader className="gap-1">
+        <DialogHeader>
           <DialogTitle>
             {selected ? `Sessions in ${selected.name}` : "New Chat"}
           </DialogTitle>
-          <DialogDescription>
-            {selected
-              ? "Choose a session or start a new chat"
-              : "Start from any directory path or a registered workspace"}
-          </DialogDescription>
         </DialogHeader>
 
         <div className="flex min-h-0 flex-1 flex-col gap-5 py-5">
@@ -141,12 +135,7 @@ export function CreateChatDialog({
             <>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <h3 className="text-sm font-medium">Use a directory</h3>
-                    <p className="text-xs text-muted-foreground">
-                      Start a chat in a local project folder.
-                    </p>
-                  </div>
+                  <h3 className="text-sm font-medium">Use a directory</h3>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -160,12 +149,7 @@ export function CreateChatDialog({
               </div>
               <QuickPathSection onPathSubmit={handleQuickPath} />
               <div className="flex items-end justify-between gap-3 border-t pt-4">
-                <div>
-                  <h3 className="text-sm font-medium">Registered workspaces</h3>
-                  <p className="text-xs text-muted-foreground">
-                    Continue in a workspace you already set up.
-                  </p>
-                </div>
+                <h3 className="text-sm font-medium">Registered workspaces</h3>
               </div>
               <WorkspaceSelectStep
                 onSelect={handleWorkspaceSelect}
