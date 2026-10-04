@@ -43,7 +43,8 @@ import { LoadingState } from "@repo/ui/components/loading-state";
 type PetState = "idle" | "working" | "wait-for-human";
 type PetPosition = { left: number; top: number };
 
-const petSprite = "/sprite/cloudy-pet/sprite-sheet-8bit.png";
+const petSprite = "/sprite/cloudy-pet/sprite-sheet.png";
+const petFrameCount = 8;
 const petStateRow: Record<PetState, number> = {
   idle: 0,
   working: 1,
@@ -69,7 +70,7 @@ function PetSprite({ state }: { state: PetState }) {
     setFrame(0);
 
     const interval = window.setInterval(
-      () => setFrame((current) => (current + 1) % 9),
+      () => setFrame((current) => (current + 1) % petFrameCount),
       petFrameDuration[state],
     );
 
@@ -85,9 +86,8 @@ function PetSprite({ state }: { state: PetState }) {
       className="block size-full bg-no-repeat"
       style={{
         backgroundImage: `url(${petSprite})`,
-        backgroundPosition: `${frame * 12.5}% ${row * 50}%`,
-        backgroundSize: "900% 300%",
-        imageRendering: "pixelated",
+        backgroundPosition: `${frame * (100 / (petFrameCount - 1))}% ${row * 50}%`,
+        backgroundSize: "800% 300%",
       }}
     />
   );
@@ -388,7 +388,7 @@ export function FloatingPet() {
                 didDrag.current = false;
               }
             }}
-            className="fixed right-3 bottom-3 z-30 flex size-20 touch-none cursor-grab items-center justify-center rounded-xl bg-transparent select-none active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:right-4 sm:bottom-4 sm:size-24"
+            className="fixed right-3 bottom-3 z-30 flex size-16 touch-none cursor-grab items-center justify-center rounded-xl bg-transparent select-none active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:right-4 sm:bottom-4 sm:size-24"
             style={position ?? undefined}
           />
         }

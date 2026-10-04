@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FloatingPet } from "./FloatingPet";
 import { useTabStore } from "@/stores/tabStore";
@@ -177,10 +177,38 @@ describe("FloatingPet", () => {
       "1",
     );
     expect(trigger.querySelector("[data-pet-sprite]")).toHaveStyle({
-      backgroundImage: "url(/sprite/cloudy-pet/sprite-sheet-8bit.png)",
-      backgroundSize: "900% 300%",
-      imageRendering: "pixelated",
+      backgroundImage: "url(/sprite/cloudy-pet/sprite-sheet.png)",
+      backgroundSize: "800% 300%",
     });
+  });
+
+  it("loops all eight sprite frames while idle", () => {
+    vi.useFakeTimers();
+
+    try {
+      renderPet();
+
+      const sprite = screen
+        .getByRole("button", { name: "Agent activity" })
+        .querySelector("[data-pet-sprite]");
+      expect(sprite).toHaveAttribute("data-frame", "0");
+
+      for (const frame of [1, 2, 3, 4, 5, 6, 7, 0]) {
+        act(() => vi.advanceTimersByTime(260));
+        expect(sprite).toHaveAttribute("data-frame", String(frame));
+      }
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("uses a compact mascot size on mobile", () => {
+    renderPet();
+
+    expect(screen.getByRole("button", { name: "Agent activity" })).toHaveClass(
+      "size-16",
+      "sm:size-24",
+    );
   });
 
   it("moves the pet when it is dragged", () => {
