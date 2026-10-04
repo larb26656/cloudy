@@ -9,7 +9,7 @@ import type { ModelInfo } from "@repo/contracts";
 import { useModels } from "@/hooks/queries/useModels";
 import { useFavoriteModelsStore } from "@/stores/favoriteModelsStore";
 import { useDeviceType } from "@/hooks/useDeviceType";
-import { useChat } from "./ChatProvider";
+import { useChatContext } from "./ChatProvider";
 
 const providerIcons: Record<string, React.ReactNode> = {
   openai: <Cloud className="size-4" />,
@@ -26,6 +26,10 @@ const providerNames: Record<string, string> = {
 interface ModelSelectorProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  providerId?: string;
+  value?: ModelInfo | null;
+  onChange?: (model: ModelInfo | null) => void;
+  triggerClassName?: string;
 }
 
 type SelectorModel = ModelInfo & ModelSelectorModel;
@@ -52,11 +56,22 @@ function fromSelectorModel(model: SelectorModel): ModelInfo {
   };
 }
 
-export function ModelSelector({ open, onOpenChange }: ModelSelectorProps) {
+export function ModelSelector({
+  open,
+  onOpenChange,
+  providerId: providerIdProp,
+  value: valueProp,
+  onChange,
+  triggerClassName,
+}: ModelSelectorProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = open ?? internalOpen;
   const setIsOpen = onOpenChange ?? setInternalOpen;
-  const { effectiveModel, setModel, providerId } = useChat();
+  const chat = useChatContext();
+  const providerId = providerIdProp ?? chat?.providerId ?? "opencode";
+  const effectiveModel =
+    valueProp === undefined ? chat?.effectiveModel : valueProp;
+  const setModel = onChange ?? chat?.setModel;
   const { data: providers = [], isLoading, error } = useModels(providerId);
   const favorites = useFavoriteModelsStore((state) => state.favorites);
   const toggleFavorite = useFavoriteModelsStore(
@@ -96,8 +111,9 @@ export function ModelSelector({ open, onOpenChange }: ModelSelectorProps) {
       isMobile={isMobile}
       isLoading={isLoading}
       error={error instanceof Error ? error.message : null}
-      onChange={(model) => setModel(model ? fromSelectorModel(model) : null)}
+      onChange={(model) => setModel?.(model ? fromSelectorModel(model) : null)}
       onToggleFavorite={(model) => toggleFavorite(fromSelectorModel(model))}
+      triggerClassName={triggerClassName}
     />
   );
 }

@@ -80,9 +80,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("./ChatProvider", () => ({
-  useChat: () => ({
+  useChatContext: () => ({
     effectiveModel: mocks.effectiveModel,
     setModel: mocks.setModel,
+    providerId: "openai",
   }),
 }));
 

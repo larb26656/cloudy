@@ -1,30 +1,19 @@
 import { Bot, Cpu, Radio } from "lucide-react";
-import { useAgents } from "@/hooks/queries/useAgents";
 import { useModels } from "@/hooks/queries/useModels";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectTrigger,
-  SelectValue,
-} from "@repo/ui/components/select";
+import { ProviderSelector } from "@/components/chat/ProviderSelector";
+import { AgentSelector } from "@/components/chat/AgentSelector";
+import { ModelSelector } from "@/components/chat/ModelSelector";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
 import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 
-const DEFAULT_VALUE = "__default__";
-
 export function AgentModelSettings() {
-  const { data: allProviders = [] } = useModels();
   const providerId = useDefaultProviderStore(
     (state) => state.defaultProviderId,
   );
   const setDefaultProvider = useDefaultProviderStore(
     (state) => state.setDefaultProvider,
   );
-  const { data: agents = [] } = useAgents({ providerId });
   const { data: providers = [] } = useModels(providerId);
   const defaultAgent = useDefaultAgentStore(
     (state) => state.defaultAgents[providerId] ?? null,
@@ -38,10 +27,6 @@ export function AgentModelSettings() {
   const setDefaultModel = useDefaultModelStore(
     (state) => state.setDefaultModel,
   );
-  const defaultModelValue = defaultModel
-    ? `${defaultModel.providerId}:${defaultModel.modelId}`
-    : DEFAULT_VALUE;
-
   return (
     <div className="space-y-6">
       <div>
@@ -61,24 +46,11 @@ export function AgentModelSettings() {
             </p>
           </div>
         </div>
-        <Select
-          value={providerId}
-          onValueChange={(value) => value && setDefaultProvider(value)}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {(allProviders.length
-              ? allProviders
-              : [{ id: "opencode", name: "OpenCode" }]
-            ).map((provider) => (
-              <SelectItem key={provider.id} value={provider.id}>
-                {provider.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <ProviderSelector
+          providerId={providerId}
+          onChange={setDefaultProvider}
+          triggerClassName="w-full justify-between rounded-md border px-3 text-sm"
+        />
         <p className="text-xs text-muted-foreground">
           {providers.length ? "Connected" : "Not configured or unavailable"}
         </p>
@@ -94,26 +66,12 @@ export function AgentModelSettings() {
             </p>
           </div>
         </div>
-        <Select
-          value={defaultAgent ?? DEFAULT_VALUE}
-          onValueChange={(value) =>
-            setDefaultAgent(providerId, value === DEFAULT_VALUE ? null : value)
-          }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={DEFAULT_VALUE}>No default agent</SelectItem>
-            {agents.map((agent) => (
-              <SelectItem key={agent.name} value={agent.name}>
-                {agent.providerId
-                  ? `${agent.name} (${agent.providerId})`
-                  : agent.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <AgentSelector
+          providerId={providerId}
+          value={defaultAgent}
+          onChange={(agent) => setDefaultAgent(providerId, agent)}
+          triggerClassName="w-full justify-between rounded-md border px-3 py-2 text-sm"
+        />
       </div>
 
       <div className="space-y-2 rounded-lg border p-4">
@@ -126,42 +84,12 @@ export function AgentModelSettings() {
             </p>
           </div>
         </div>
-        <Select
-          value={defaultModelValue}
-          onValueChange={(value) => {
-            if (value === DEFAULT_VALUE) {
-              setDefaultModel(providerId, null);
-              return;
-            }
-            const model = providers
-              .flatMap((provider) => provider.models ?? [])
-              .find(
-                (candidate) =>
-                  `${candidate.providerId}:${candidate.modelId}` === value,
-              );
-            if (model) setDefaultModel(providerId, model);
-          }}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value={DEFAULT_VALUE}>No default model</SelectItem>
-            {providers.map((provider) => (
-              <SelectGroup key={provider.id}>
-                <SelectLabel>{provider.name}</SelectLabel>
-                {(provider.models ?? []).map((model) => (
-                  <SelectItem
-                    key={`${model.providerId}:${model.modelId}`}
-                    value={`${model.providerId}:${model.modelId}`}
-                  >
-                    {model.name}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            ))}
-          </SelectContent>
-        </Select>
+        <ModelSelector
+          providerId={providerId}
+          value={defaultModel}
+          onChange={(model) => setDefaultModel(providerId, model)}
+          triggerClassName="w-full justify-between rounded-md border px-3 py-2 text-sm"
+        />
       </div>
     </div>
   );

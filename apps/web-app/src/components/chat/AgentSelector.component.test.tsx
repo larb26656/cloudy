@@ -28,10 +28,11 @@ vi.mock("@/hooks/queries/useAgents", () => ({
 }));
 
 vi.mock("./ChatProvider", () => ({
-  useChat: () => ({
+  useChatContext: () => ({
     effectiveAgent: mocks.effectiveAgent,
     setAgent: mocks.setAgent,
     directory: "/project",
+    providerId: "opencode",
   }),
 }));
 

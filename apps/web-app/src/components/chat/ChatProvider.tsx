@@ -309,9 +309,13 @@ export function ChatProvider({
 }
 
 export function useChat() {
-  const context = useContext(ChatContext);
+  const context = useChatContext();
   if (!context) {
     throw new Error("useChat must be used within a ChatProvider");
   }
   return context;
+}
+
+export function useChatContext() {
+  return useContext(ChatContext);
 }

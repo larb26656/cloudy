@@ -21,7 +21,8 @@ import { EmptyState } from "@repo/ui/components/empty-state";
 import type { Agent } from "@/types/agent";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { useDeviceType } from "@/hooks/useDeviceType";
-import { useChat } from "./ChatProvider";
+import { cn } from "@repo/ui/lib/utils";
+import { useChatContext } from "./ChatProvider";
 
 const agentModeLabels: Record<string, string> = {
   primary: "Primary",
@@ -42,20 +43,35 @@ interface AgentSelectorProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   variant?: "default" | "status";
+  providerId?: string;
+  value?: string | null;
+  onChange?: (agent: string | null) => void;
+  triggerClassName?: string;
 }
 
 export function AgentSelector({
   open,
   onOpenChange,
   variant = "default",
+  providerId: providerIdProp,
+  value: valueProp,
+  onChange,
+  triggerClassName,
 }: AgentSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const openState = open ?? isOpen;
   const setOpenState = onOpenChange ?? setIsOpen;
   const [searchQuery, setSearchQuery] = useState("");
-  const { effectiveAgent, setAgent, directory, providerId } = useChat();
+  const chat = useChatContext();
+  const providerId = providerIdProp ?? chat?.providerId;
+  const effectiveAgent =
+    valueProp === undefined ? chat?.effectiveAgent : valueProp;
+  const setAgent = onChange ?? chat?.setAgent;
   const inputRef = useRef<HTMLInputElement>(null);
-  const { data, isLoading, error } = useAgents({ directory, providerId });
+  const { data, isLoading, error } = useAgents({
+    directory: chat?.directory,
+    providerId,
+  });
   const agents = data ?? FALLBACK_AGENTS;
   const { isMobile } = useDeviceType();
 
@@ -81,7 +97,7 @@ export function AgentSelector({
   };
 
   const handleSelectAgent = (agentName: string | null) => {
-    setAgent(agentName);
+    setAgent?.(agentName);
     setOpenState(false);
     setSearchQuery("");
   };
@@ -166,7 +182,10 @@ export function AgentSelector({
       className={
         variant === "status"
           ? "inline-flex max-w-32 items-center justify-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 text-foreground transition-colors hover:bg-muted"
-          : "inline-flex items-center justify-center gap-1"
+          : cn(
+              "inline-flex items-center justify-center gap-1",
+              triggerClassName,
+            )
       }
     >
       <Bot className="size-4" />
@@ -215,7 +234,12 @@ export function AgentSelector({
 
   return (
     <DropdownMenu open={openState} onOpenChange={setOpenState}>
-      <DropdownMenuTrigger className="inline-flex items-center justify-center gap-1">
+      <DropdownMenuTrigger
+        className={cn(
+          "inline-flex items-center justify-center gap-1",
+          triggerClassName,
+        )}
+      >
         {trigger}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">

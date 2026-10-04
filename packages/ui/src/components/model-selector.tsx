@@ -27,6 +27,7 @@ import {
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
+import { cn } from "@repo/ui/lib/utils";
 
 export interface ModelSelectorModel {
   providerID: string;
@@ -56,6 +57,7 @@ interface ModelSelectorProps<T extends ModelSelectorModel> {
   error?: string | null;
   onChange: (model: T | null) => void;
   onToggleFavorite: (model: T) => void;
+  triggerClassName?: string;
 }
 
 export function ModelSelector<T extends ModelSelectorModel>({
@@ -70,6 +72,7 @@ export function ModelSelector<T extends ModelSelectorModel>({
   error = null,
   onChange,
   onToggleFavorite,
+  triggerClassName,
 }: ModelSelectorProps<T>) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -235,7 +238,10 @@ export function ModelSelector<T extends ModelSelectorModel>({
           type="button"
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => setIsOpen(true)}
-          className="inline-flex items-center justify-center gap-1"
+          className={cn(
+            "inline-flex items-center justify-center gap-1",
+            triggerClassName,
+          )}
         >
           {trigger}
         </button>
@@ -269,7 +275,12 @@ export function ModelSelector<T extends ModelSelectorModel>({
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-      <DropdownMenuTrigger className="inline-flex items-center justify-center gap-1">
+      <DropdownMenuTrigger
+        className={cn(
+          "inline-flex items-center justify-center gap-1",
+          triggerClassName,
+        )}
+      >
         {trigger}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">

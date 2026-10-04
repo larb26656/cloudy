@@ -6,15 +6,18 @@ import {
 } from "@repo/ui/components/select";
 import { useModels } from "@/hooks/queries/useModels";
 import { ProviderIcon } from "../provider/ProviderIcon";
+import { cn } from "@repo/ui/lib/utils";
 
 interface ProviderSelectorProps {
   providerId: string;
   onChange: (providerId: string) => void;
+  triggerClassName?: string;
 }
 
 export function ProviderSelector({
   providerId,
   onChange,
+  triggerClassName,
 }: ProviderSelectorProps) {
   const { data: providers = [] } = useModels();
   const availableProviders = providers.length
@@ -32,7 +35,12 @@ export function ProviderSelector({
         onChange(value);
       }}
     >
-      <SelectTrigger className="h-8 w-auto gap-2 border-0 px-2 text-xs shadow-none">
+      <SelectTrigger
+        className={cn(
+          "h-8 w-auto gap-2 border-0 px-2 text-xs shadow-none",
+          triggerClassName,
+        )}
+      >
         <ProviderIcon providerId={providerId} />
         <span className="max-w-40 truncate">{providerName}</span>
       </SelectTrigger>
