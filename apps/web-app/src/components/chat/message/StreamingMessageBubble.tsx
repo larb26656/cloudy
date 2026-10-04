@@ -16,5 +16,5 @@ export function StreamingMessageBubble({
 
   if (!message) return null;
 
-  return <MessageBubble message={message} />;
+  return <MessageBubble message={message} isStreaming />;
 }

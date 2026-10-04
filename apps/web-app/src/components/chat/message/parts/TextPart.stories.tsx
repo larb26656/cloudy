@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import preview from "@/storybook/preview";
 import { TextPart } from "@repo/ui/components/message";
 
@@ -14,6 +15,50 @@ const meta = preview.meta({
 });
 
 export default meta;
+
+const STREAMING_TEXT = `Streaming text reveals **word by word** with a slide-up animation.
+
+- Each new word fades in as it arrives
+- Already-visible content never re-animates
+- Markdown still parses incrementally
+
+\`\`\`ts
+const answer = 42;
+\`\`\`
+`;
+
+function StreamingTextDemo() {
+  const words = STREAMING_TEXT.split(" ");
+  const [count, setCount] = useState(1);
+  const isStreaming = count < words.length;
+
+  useEffect(() => {
+    if (!isStreaming) return;
+    const timer = setInterval(() => {
+      setCount((c) => Math.min(c + 1, words.length));
+    }, 90);
+    return () => clearInterval(timer);
+  }, [isStreaming, words.length]);
+
+  return (
+    <TextPart
+      part={{ type: "text", text: words.slice(0, count).join(" ") } as any}
+      isStreaming={isStreaming}
+    />
+  );
+}
+
+export const Streaming = meta.story({
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Simulates a streaming response appending one word at a time to preview the word-level reveal animation.",
+      },
+    },
+  },
+  render: () => <StreamingTextDemo />,
+});
 
 export const Default = meta.story({
   args: {

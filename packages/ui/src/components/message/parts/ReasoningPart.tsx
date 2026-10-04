@@ -1,16 +1,23 @@
 import type { ReasoningMessagePart } from "@repo/ai-core";
 import { Brain } from "lucide-react";
 import { Card, CardContent } from "@repo/ui/components/card";
-import { MarkdownRenderer } from "@repo/ui/components/markdown";
+import {
+  MarkdownRenderer,
+  streamingTextAnimation,
+} from "@repo/ui/components/markdown";
 import { useMessageSettings } from "../context";
 import { useElapsedTime } from "@repo/ui/hooks/use-elapsed-time";
 import { CollapsiblePart } from "./CollapsiblePart";
 
 interface ReasoningPartProps {
   part: ReasoningMessagePart;
+  isStreaming?: boolean;
 }
 
-export function ReasoningPart({ part }: ReasoningPartProps) {
+export function ReasoningPart({
+  part,
+  isStreaming = false,
+}: ReasoningPartProps) {
   const { autoExpandThinking } = useMessageSettings();
   const isRunning = part.completedAt === undefined;
   const finalSeconds =
@@ -42,7 +49,11 @@ export function ReasoningPart({ part }: ReasoningPartProps) {
       <div className="opacity-60 border-l-2 border-border pl-3">
         {header}
         <div className="text-sm leading-relaxed">
-          <MarkdownRenderer content={part.text} />
+          <MarkdownRenderer
+            content={part.text}
+            isAnimating={isStreaming}
+            animated={isStreaming ? streamingTextAnimation : false}
+          />
         </div>
       </div>
     );

@@ -2,8 +2,31 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
+@import "streamdown/styles.css";
 @source "../";
 @custom-variant dark (&:is(.dark *));
+
+@keyframes part-enter {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.streaming-parts > * {
+  animation: part-enter 150ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-sd-animate],
+  .streaming-parts > * {
+    animation: none;
+  }
+}
 
 :root {
   --background: oklch(1 0 0);

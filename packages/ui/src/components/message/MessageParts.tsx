@@ -1,5 +1,6 @@
 import type { ChatMessage, MessagePart } from "@repo/ai-core";
 import { lazy } from "react";
+import { cn } from "@repo/ui/lib/utils";
 import {
   TextPart,
   SubtaskPart,
@@ -23,11 +24,18 @@ const ToolPart = lazy(() =>
 interface MessagePartsProps {
   parts: MessagePart[];
   info?: ChatMessage;
+  isStreaming?: boolean;
 }
 
-export function MessageParts({ parts, info }: MessagePartsProps) {
+export function MessageParts({
+  parts,
+  info,
+  isStreaming = false,
+}: MessagePartsProps) {
   return (
-    <div className="flex flex-col gap-3">
+    <div
+      className={cn("flex flex-col gap-3", isStreaming && "streaming-parts")}
+    >
       {parts.map((part, index) => {
         // Use index-based key for stability during streaming.
         // During streaming, parts are appended (not inserted), so index remains stable.
@@ -37,13 +45,21 @@ export function MessageParts({ parts, info }: MessagePartsProps) {
 
         switch (part.type) {
           case "text":
-            return <TextPart key={partKey} part={part} />;
+            return (
+              <TextPart key={partKey} part={part} isStreaming={isStreaming} />
+            );
 
           case "subtask":
             return <SubtaskPart key={partKey} part={part} />;
 
           case "reasoning":
-            return <ReasoningPart key={partKey} part={part} />;
+            return (
+              <ReasoningPart
+                key={partKey}
+                part={part}
+                isStreaming={isStreaming}
+              />
+            );
 
           case "file":
             return <FilePart key={partKey} part={part} />;

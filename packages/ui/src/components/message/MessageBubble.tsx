@@ -5,10 +5,12 @@ import { AssistantMessageBubble } from "./AssistantMessageBubble";
 
 interface MessageBubbleProps {
   message: Message;
+  isStreaming?: boolean;
 }
 
 export const MessageBubble = memo(function MessageBubble({
   message,
+  isStreaming = false,
 }: MessageBubbleProps) {
   if (message.role === "user") {
     return (
@@ -20,7 +22,7 @@ export const MessageBubble = memo(function MessageBubble({
 
   return (
     <div data-message-id={message.id}>
-      <AssistantMessageBubble message={message} />
+      <AssistantMessageBubble message={message} isStreaming={isStreaming} />
     </div>
   );
 });

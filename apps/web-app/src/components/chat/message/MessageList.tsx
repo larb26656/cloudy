@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useCallback, useMemo } from "react";
 import {
   MessageListView,
   MessageSettingsContext,
@@ -43,15 +43,34 @@ export const MessageList = memo(function MessageList({
     clearError,
   } = useMessageListData({ selectedSessionId, directory });
 
+  const settingsValue = useMemo(
+    () => ({ autoExpandThinking }),
+    [autoExpandThinking],
+  );
+  const handleRetry = useCallback(() => refetch(), [refetch]);
+  const handleLoadMore = useCallback(() => fetchNextPage(), [fetchNextPage]);
+  const handleDismissError = useCallback(() => {
+    if (selectedSessionId) clearError(selectedSessionId);
+  }, [selectedSessionId, clearError]);
+  const renderStreamingMessage = useCallback(
+    (messageId: string) => (
+      <StreamingMessageBubble
+        sessionId={selectedSessionId ?? ""}
+        messageId={messageId}
+      />
+    ),
+    [selectedSessionId],
+  );
+
   return (
-    <MessageSettingsContext.Provider value={{ autoExpandThinking }}>
+    <MessageSettingsContext.Provider value={settingsValue}>
       <MessageListView
         remoteMessages={remoteMessages}
         displayItems={displayItems}
         streamingCount={streamingIds.length}
         isLoading={isLoading}
         error={error}
-        onRetry={() => refetch()}
+        onRetry={handleRetry}
         emptyState={
           isShowEmptyState ? (
             <EmptyChatState onSnippetSelect={onSnippetSelect} />
@@ -60,18 +79,11 @@ export const MessageList = memo(function MessageList({
         sessionStatus={sessionStatus}
         isStreaming={isStreaming}
         sessionError={sessionError}
-        onDismissError={() =>
-          selectedSessionId && clearError(selectedSessionId)
-        }
+        onDismissError={handleDismissError}
         hasNextPage={hasNextPage}
         isFetchingNextPage={isFetchingNextPage}
-        onLoadMore={() => fetchNextPage()}
-        streamingMessage={(messageId) => (
-          <StreamingMessageBubble
-            sessionId={selectedSessionId ?? ""}
-            messageId={messageId}
-          />
-        )}
+        onLoadMore={handleLoadMore}
+        streamingMessage={renderStreamingMessage}
         minimap={
           minimapOpen && onCloseMinimap && remoteMessages.length > 0 ? (
             <ChatMinimap messages={remoteMessages} onClose={onCloseMinimap} />

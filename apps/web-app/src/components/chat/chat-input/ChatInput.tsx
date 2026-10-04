@@ -373,14 +373,6 @@ export const ChatInput = memo(function ChatInput({
               </div>
             </div>
           </div>
-
-          <div className="text-center mt-2 text-xs text-muted-foreground w-full hidden @compact:block">
-            Press Enter to send, Shift + Enter for new line
-            {directory && " • @ or / to mention files"}
-            {" • Tab to switch agent"}
-            {" • Cmd/Ctrl + M for model"}
-            {" • Cmd/Ctrl + N for new session"}
-          </div>
         </div>
       </div>
     </div>

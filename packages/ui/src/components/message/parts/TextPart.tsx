@@ -1,11 +1,15 @@
 import type { TextMessagePart } from "@repo/ai-core";
-import { MarkdownRenderer } from "@repo/ui/components/markdown";
+import {
+  MarkdownRenderer,
+  streamingTextAnimation,
+} from "@repo/ui/components/markdown";
 
 interface TextPartProps {
   part: TextMessagePart;
+  isStreaming?: boolean;
 }
 
-export function TextPart({ part }: TextPartProps) {
+export function TextPart({ part, isStreaming = false }: TextPartProps) {
   return (
     <div className="text-sm leading-relaxed">
       {part.metadata?.synthetic === true && (
@@ -18,7 +22,11 @@ export function TextPart({ part }: TextPartProps) {
           (ignored)
         </span>
       )}
-      <MarkdownRenderer content={part.text} />
+      <MarkdownRenderer
+        content={part.text}
+        isAnimating={isStreaming}
+        animated={isStreaming ? streamingTextAnimation : false}
+      />
     </div>
   );
 }
