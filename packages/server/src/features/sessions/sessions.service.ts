@@ -193,6 +193,38 @@ export function createSessionsService(
     });
   };
 
+  const permissions = async (id: string) => {
+    const record = getRecord(id);
+    const requests = await registry.listPermissions(record.providerId, {
+      directory: record.directory ?? undefined,
+    });
+    return requests.flatMap((request) => {
+      if (request.sessionId === record.providerSessionId) {
+        return [{ ...request, sessionId: id }];
+      }
+      const child = repository.findByProviderSessionId(
+        record.providerId,
+        request.sessionId,
+      );
+      return child ? [{ ...request, sessionId: child.id }] : [];
+    });
+  };
+
+  const respondToPermission = async (
+    id: string,
+    permissionId: string,
+    reply: "once" | "always" | "reject",
+  ) => {
+    const record = getRecord(id);
+    return registry.respondToInteraction(record.providerId, {
+      kind: "permission",
+      sessionId: record.providerSessionId,
+      interactionId: permissionId,
+      directory: record.directory ?? undefined,
+      value: { reply, directory: record.directory ?? undefined },
+    });
+  };
+
   const sendMessage = async (id: string, input: MessageInput) => {
     const record = getRecord(id);
     const request: ProviderMessageRequest = {
@@ -258,6 +290,13 @@ export function createSessionsService(
         request: { ...event.request, sessionId: session.id },
       };
     }
+    if (event.type === "approval.requested") {
+      return {
+        ...event,
+        sessionId: session.id,
+        request: { ...event.request, sessionId: session.id },
+      };
+    }
     return { ...event, sessionId: session.id };
   };
 
@@ -292,6 +331,8 @@ export function createSessionsService(
     messages,
     questions,
     respondToQuestion,
+    permissions,
+    respondToPermission,
     sendMessage,
     executeCommand,
     fork,

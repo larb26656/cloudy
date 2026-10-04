@@ -82,6 +82,27 @@ export function createSessionsController(service: SessionsService) {
         );
       },
     )
+    .get(
+      "/:sessionId/permissions",
+      zValidator("param", SessionsModel.sessionParamSchema),
+      async (c) =>
+        c.json(await service.permissions(c.req.valid("param").sessionId)),
+    )
+    .post(
+      "/:sessionId/permissions/:permissionId",
+      zValidator("param", SessionsModel.permissionParamSchema),
+      zValidator("json", SessionsModel.permissionResponseSchema),
+      async (c) => {
+        const { sessionId, permissionId } = c.req.valid("param");
+        return c.json(
+          await service.respondToPermission(
+            sessionId,
+            permissionId,
+            c.req.valid("json").reply,
+          ),
+        );
+      },
+    )
     .post(
       "/:sessionId/messages",
       zValidator("param", SessionsModel.sessionParamSchema),

@@ -80,7 +80,7 @@ function BotChatContainerContent({
     currentQuestion,
     sessionPermissions,
     currentPermission,
-  } = useSessionData({ directory, sessionId });
+  } = useSessionData({ sessionId });
 
   const handleContainerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Escape") return;
@@ -135,7 +135,7 @@ function BotChatContainerContent({
             open={permissionOpen}
             onOpenChange={setPermissionOpen}
             permission={currentPermission}
-            directory={directory}
+            sessionId={sessionId ?? ""}
           />
         )}
       </div>

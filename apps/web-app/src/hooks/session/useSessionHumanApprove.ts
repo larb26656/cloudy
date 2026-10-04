@@ -1,22 +1,21 @@
 import { useMemo } from "react";
 import {
-  usePermissions,
+  useSessionPermissions,
   useSessionQuestions,
   useSessionChildren,
 } from "../queries";
 
 interface UseSessionDataProps {
-  directory: string;
   sessionId: string | null;
 }
 
-export function useSessionData({ directory, sessionId }: UseSessionDataProps) {
+export function useSessionData({ sessionId }: UseSessionDataProps) {
   const { data: questions = [] } = useSessionQuestions({
     sessionId: sessionId ?? "",
   });
 
-  const { data: permissions = [] } = usePermissions({
-    directory: directory,
+  const { data: permissions = [] } = useSessionPermissions({
+    sessionId: sessionId ?? "",
   });
 
   const { data: childSessions = [] } = useSessionChildren({

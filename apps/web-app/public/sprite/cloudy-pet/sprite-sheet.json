@@ -1,0 +1,28 @@
+{
+  "image": "sprite-sheet.png",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "columns": 9,
+  "rows": 3,
+  "totalFrames": 27,
+  "states": {
+    "idle": {
+      "row": 0,
+      "startFrame": 0,
+      "frameCount": 9,
+      "strip": "idle.png"
+    },
+    "working": {
+      "row": 1,
+      "startFrame": 9,
+      "frameCount": 9,
+      "strip": "working.png"
+    },
+    "waiting": {
+      "row": 2,
+      "startFrame": 18,
+      "frameCount": 9,
+      "strip": "waiting.png"
+    }
+  }
+}

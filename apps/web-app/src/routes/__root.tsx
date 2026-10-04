@@ -2,11 +2,13 @@ import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
 import { ErrorState, NotFound } from "@/components/ui/route-state";
 import { Button } from "@repo/ui/components/button";
 import { Center } from "@/components/layout";
+import { FloatingPet } from "@/components/pet/FloatingPet";
 
 function RootComponent() {
   return (
     <div className="flex h-dvh w-full flex-col overflow-hidden bg-background pt-safe pb-safe">
       <Outlet />
+      <FloatingPet />
     </div>
   );
 }

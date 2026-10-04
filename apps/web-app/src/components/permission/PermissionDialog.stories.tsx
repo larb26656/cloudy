@@ -4,11 +4,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { PermissionRequest } from "@/types";
 import { Button } from "@repo/ui/components/button";
 import { permissionKeys } from "@/lib/opencode";
-import { usePermissions } from "@/hooks/queries/usePermissions";
+import { useSessionPermissions } from "@/hooks/queries/usePermissions";
 import { PermissionDialog } from "./PermissionDialog";
 import preview from "../../../.storybook/preview";
 
-const DEMO_DIRECTORY = "/demo/project";
+const DEMO_SESSION = "ses_demo";
 
 const buildRequest = (
   overloads: Partial<PermissionRequest> &
@@ -119,14 +119,18 @@ const removeById = (id: string) => {
   demoRequests = demoRequests.filter((p) => p.id !== id);
 };
 
-const listPattern = /\/permission(?:\?|$)/;
-const replyPattern = /\/permission\/([^/]+)\/reply/;
+const listPattern = /\/api\/sessions\/[^/]+\/permissions$/;
+const replyPattern = /\/api\/sessions\/[^/]+\/permissions\/([^/]+)$/;
 
 const idFrom = (url: URL) => url.pathname.match(replyPattern)?.[1] ?? "";
 
 function makeHandlers() {
   return [
-    http.get(listPattern, () => HttpResponse.json(demoRequests)),
+    http.get(listPattern, () =>
+      HttpResponse.json(
+        demoRequests.map((p) => ({ ...p, sessionId: p.sessionID })),
+      ),
+    ),
     http.post(replyPattern, async ({ request }) => {
       removeById(idFrom(new URL(request.url)));
       return new HttpResponse(null, { status: 200 });
@@ -135,7 +139,11 @@ function makeHandlers() {
 }
 
 const errorHandlers = [
-  http.get(listPattern, () => HttpResponse.json(demoRequests)),
+  http.get(listPattern, () =>
+    HttpResponse.json(
+      demoRequests.map((p) => ({ ...p, sessionId: p.sessionID })),
+    ),
+  ),
   http.post(replyPattern, async () => {
     await delay(600);
     return HttpResponse.json(
@@ -158,8 +166,8 @@ function PermissionDialogDemo({
   scenario: keyof typeof initialRequests;
 }) {
   const [open, setOpen] = useState(true);
-  const { data: permissions = [] } = usePermissions({
-    directory: DEMO_DIRECTORY,
+  const { data: permissions = [] } = useSessionPermissions({
+    sessionId: DEMO_SESSION,
   });
 
   useEffect(() => {
@@ -169,7 +177,7 @@ function PermissionDialogDemo({
   const handleReset = () => {
     resetDemo(scenario);
     queryClient.invalidateQueries({
-      queryKey: permissionKeys.request.list(DEMO_DIRECTORY),
+      queryKey: permissionKeys.list(DEMO_SESSION),
     });
     setOpen(true);
   };
@@ -190,7 +198,7 @@ function PermissionDialogDemo({
           open={open}
           onOpenChange={setOpen}
           permission={activePermission}
-          directory={DEMO_DIRECTORY}
+          sessionId={DEMO_SESSION}
         />
       ) : null}
     </div>

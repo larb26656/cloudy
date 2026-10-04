@@ -154,6 +154,86 @@ describe("sessions service", () => {
     });
   });
 
+  it("maps permission requests to the Cloudy session UUID", async () => {
+    const repo = repository();
+    const service = createSessionsService(repo, registry());
+    const session = await service.create({ providerId: "test" });
+
+    const event = service.mapEvent({
+      type: "approval.requested",
+      providerId: "test",
+      sessionId: "native-1",
+      request: {
+        id: "permission-1",
+        sessionId: "native-1",
+        permission: "bash",
+        patterns: ["git *"],
+      },
+    });
+
+    expect(event).toMatchObject({
+      sessionId: session.id,
+      request: { sessionId: session.id },
+    });
+  });
+
+  it("lists permissions scoped to the session and its children", async () => {
+    const repo = repository();
+    const listPermissions = vi.fn().mockResolvedValue([
+      {
+        id: "permission-own",
+        sessionId: "native-1",
+        permission: "bash",
+        patterns: ["git *"],
+      },
+      {
+        id: "permission-child",
+        sessionId: "native-child",
+        permission: "edit",
+        patterns: ["src/**"],
+      },
+      {
+        id: "permission-other",
+        sessionId: "native-other",
+        permission: "edit",
+        patterns: ["src/**"],
+      },
+    ]);
+    const provider: ProviderAdapter = {
+      id: "test",
+      capabilities: { streaming: true },
+      getInfo: async () => ({
+        id: "test",
+        name: "Test",
+        capabilities: { streaming: true },
+      }),
+      createSession: async () => providerSession("native-1"),
+      listPermissions,
+      subscribeEvents: async function* () {},
+    };
+    const service = createSessionsService(
+      repo,
+      createProviderRegistry({ providers: [provider] }),
+    );
+    const session = await service.create({ providerId: "test" });
+    const child = repo.create({
+      id: "00000000-0000-4000-8000-00000000child",
+      providerId: "test",
+      providerSessionId: "native-child",
+      directory: "/tmp/test",
+    });
+
+    const permissions = await service.permissions(session.id);
+
+    expect(permissions).toEqual([
+      expect.objectContaining({ id: "permission-own", sessionId: session.id }),
+      expect.objectContaining({
+        id: "permission-child",
+        sessionId: child.id,
+      }),
+    ]);
+  });
+
   it("uses the provider session ID for question interactions", async () => {
     const repo = repository();
     const respondToInteraction = vi.fn().mockResolvedValue({
@@ -186,6 +266,41 @@ describe("sessions service", () => {
       interactionId: "question-1",
       directory: "/tmp/test",
       value: [["Feature"]],
+    });
+  });
+
+  it("uses the provider session ID for permission interactions", async () => {
+    const repo = repository();
+    const respondToInteraction = vi.fn().mockResolvedValue({
+      interactionId: "permission-1",
+      value: null,
+    });
+    const provider: ProviderAdapter = {
+      id: "test",
+      capabilities: { streaming: true },
+      getInfo: async () => ({
+        id: "test",
+        name: "Test",
+        capabilities: { streaming: true },
+      }),
+      createSession: async () => providerSession("native-1"),
+      respondToInteraction,
+      subscribeEvents: async function* () {},
+    };
+    const service = createSessionsService(
+      repo,
+      createProviderRegistry({ providers: [provider] }),
+    );
+    const session = await service.create({ providerId: "test" });
+
+    await service.respondToPermission(session.id, "permission-1", "once");
+
+    expect(respondToInteraction).toHaveBeenCalledWith({
+      kind: "permission",
+      sessionId: "native-1",
+      interactionId: "permission-1",
+      directory: "/tmp/test",
+      value: { reply: "once", directory: "/tmp/test" },
     });
   });
 

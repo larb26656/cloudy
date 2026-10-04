@@ -57,6 +57,7 @@ export function handleEvent(
         sessionKeys.status(event.sessionId),
         statusFor(event),
       );
+      void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
       if (event.runStatus === "running")
         useSessionErrorStore.getState().clearError(event.sessionId);
       if (event.runStatus === "completed" || event.status === "idle") {
@@ -93,7 +94,7 @@ export function handleEvent(
       break;
     case "approval.requested":
       void queryClient.invalidateQueries({
-        queryKey: permissionKeys.request.root(),
+        queryKey: permissionKeys.root(),
       });
       postNotification(
         "warning",

@@ -1,0 +1,29 @@
+{
+  "image": "sprite-sheet-8bit.png",
+  "frameWidth": 256,
+  "frameHeight": 256,
+  "columns": 9,
+  "rows": 3,
+  "totalFrames": 27,
+  "pixelScale": 4,
+  "states": {
+    "idle": {
+      "row": 0,
+      "startFrame": 0,
+      "frameCount": 9,
+      "strip": "idle-8bit.png"
+    },
+    "working": {
+      "row": 1,
+      "startFrame": 9,
+      "frameCount": 9,
+      "strip": "working-8bit.png"
+    },
+    "waiting": {
+      "row": 2,
+      "startFrame": 18,
+      "frameCount": 9,
+      "strip": "waiting-8bit.png"
+    }
+  }
+}

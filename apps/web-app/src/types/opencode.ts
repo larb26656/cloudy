@@ -1,9 +1,26 @@
+export type SessionStatusValue =
+  | "idle"
+  | "active"
+  | "paused"
+  | "closed"
+  | "retry";
+
+export type SessionRunStatusValue =
+  | "idle"
+  | "queued"
+  | "running"
+  | "completed"
+  | "failed"
+  | "cancelled";
+
 export interface ChatSession {
   id: string;
   providerId: string;
   title?: string;
   parentID?: string;
   directory: string;
+  status: SessionStatusValue;
+  runStatus: SessionRunStatusValue;
   updatedAt?: number;
   cost?: number;
   tokens?: {

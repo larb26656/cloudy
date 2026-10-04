@@ -65,6 +65,38 @@ describe("handleEvent", () => {
     });
   });
 
+  test("invalidates the root session query on every session.status event", () => {
+    const client = queryClient();
+    const invalidateQueries = vi.spyOn(client, "invalidateQueries");
+
+    handleEvent(
+      {
+        type: "session.status",
+        sessionId: SESSION_ID,
+        status: "active",
+        runStatus: "running",
+      },
+      client,
+    );
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: sessionKeys.root(),
+    });
+
+    invalidateQueries.mockClear();
+    handleEvent(
+      {
+        type: "session.status",
+        sessionId: SESSION_ID,
+        status: "active",
+        runStatus: "queued",
+      },
+      client,
+    );
+    expect(invalidateQueries).toHaveBeenCalledWith({
+      queryKey: sessionKeys.root(),
+    });
+  });
+
   test("applies normalized message events to the streaming store", () => {
     const event: ChatEvent = {
       type: "message.updated",

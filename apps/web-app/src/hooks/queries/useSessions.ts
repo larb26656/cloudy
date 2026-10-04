@@ -15,6 +15,8 @@ function toChatSession(session: CoreChatSession): ChatSession {
     title: session.title,
     parentID: session.parentId,
     directory: session.directory ?? "",
+    status: typeof session.status === "string" ? session.status : "retry",
+    runStatus: session.runStatus,
     updatedAt: Date.parse(session.updatedAt),
     cost: session.cost,
     tokens: session.tokens,

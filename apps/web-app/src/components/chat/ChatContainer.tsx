@@ -93,7 +93,7 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
     currentQuestion,
     sessionPermissions,
     currentPermission,
-  } = useSessionData({ directory, sessionId });
+  } = useSessionData({ sessionId });
 
   const handleContainerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Escape") return;
@@ -161,7 +161,7 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
             open={permissionOpen}
             onOpenChange={setPermissionOpen}
             permission={currentPermission}
-            directory={directory}
+            sessionId={sessionId ?? ""}
           />
         )}
 

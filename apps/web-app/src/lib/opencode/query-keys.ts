@@ -21,6 +21,7 @@ export const agentKeys = {
 
 export const permissionKeys = {
   root: () => ["permissions"] as const,
+  list: (sessionId: string) => ["permissions", "list", sessionId] as const,
   request: {
     root: () => ["permissions", "request"] as const,
     list: (directory: string) =>

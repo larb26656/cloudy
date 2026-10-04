@@ -68,6 +68,14 @@ export const questionParamSchema = sessionParamSchema.extend({
 
 export const questionResponseSchema = z.object({ value: z.unknown() });
 
+export const permissionParamSchema = sessionParamSchema.extend({
+  permissionId: z.string().min(1),
+});
+
+export const permissionResponseSchema = z.object({
+  reply: z.enum(["once", "always", "reject"]),
+});
+
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
 export type UpdateSessionInput = z.infer<typeof updateSessionSchema>;
 export type MessageInput = z.infer<typeof messageInputSchema>;
@@ -84,4 +92,6 @@ export const SessionsModel = {
   forkSessionSchema,
   questionParamSchema,
   questionResponseSchema,
+  permissionParamSchema,
+  permissionResponseSchema,
 } as const;

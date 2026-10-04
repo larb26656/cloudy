@@ -19,14 +19,14 @@ interface PermissionDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   permission: PermissionRequest;
-  directory: string;
+  sessionId: string;
 }
 
 export function PermissionDialog({
   open,
   onOpenChange,
   permission,
-  directory,
+  sessionId,
 }: PermissionDialogProps) {
   const replyPermission = useReplyPermission();
   const isPending = replyPermission.isPending;
@@ -39,8 +39,8 @@ export function PermissionDialog({
     try {
       await replyPermission.mutateAsync({
         requestID: permission.id,
+        sessionId,
         reply,
-        directory,
       });
       onOpenChange(false);
     } catch (err) {

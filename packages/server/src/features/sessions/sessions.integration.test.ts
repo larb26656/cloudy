@@ -133,6 +133,67 @@ describe("sessions integration", () => {
     });
   });
 
+  it("routes permission interactions through the Cloudy session", async () => {
+    const listPermissions = vi.fn().mockResolvedValue([
+      {
+        id: "permission-1",
+        sessionId: "native-1",
+        permission: "bash",
+        patterns: ["git *"],
+      },
+    ]);
+    const respondToInteraction = vi.fn().mockResolvedValue({
+      interactionId: "permission-1",
+      value: null,
+    });
+    const registry = createProviderRegistry({
+      providers: [
+        {
+          ...provider(executeCommand),
+          listPermissions,
+          respondToInteraction,
+        },
+      ],
+    });
+    env.container.providerRegistry = registry;
+    env.container.sessionsService = createSessionsService(
+      createSessionsRepository(env.db.db),
+      registry,
+    );
+    app = createApp({ container: env.container });
+
+    const created = await app.request("/api/sessions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ providerId: "test", directory: "/tmp/project" }),
+    });
+    const { id } = await created.json();
+
+    const listed = await app.request(`/api/sessions/${id}/permissions`);
+    expect(listed.status).toBe(200);
+    expect(await listed.json()).toEqual([
+      expect.objectContaining({ id: "permission-1", sessionId: id }),
+    ]);
+
+    const response = await app.request(
+      `/api/sessions/${id}/permissions/permission-1`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ reply: "once" }),
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(respondToInteraction).toHaveBeenCalledWith({
+      kind: "permission",
+      sessionId: "native-1",
+      interactionId: "permission-1",
+      directory: "/tmp/project",
+      value: { reply: "once", directory: "/tmp/project" },
+    });
+  });
+
   it("returns 404 for unknown Cloudy session IDs", async () => {
     const response = await app.request(
       "/api/sessions/00000000-0000-4000-8000-000000000000",

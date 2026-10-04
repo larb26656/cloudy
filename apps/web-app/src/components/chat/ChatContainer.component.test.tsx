@@ -192,6 +192,9 @@ const childrenHandler = (children: { id: string }[] = []) =>
     ),
   );
 
+const emptyPermissionsHandler = () =>
+  http.get(/\/api\/sessions\/[^/]+\/permissions$/, () => HttpResponse.json([]));
+
 function renderChat(sessionId: string | null) {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -224,9 +227,7 @@ describe("ChatCoatainer", () => {
               .map(toProviderQuestion),
           ),
         ),
-        http.get(/\/api\/providers\/opencode\/permissions(\?.*)?$/, () =>
-          HttpResponse.json([]),
-        ),
+        emptyPermissionsHandler(),
         childrenHandler([]),
       );
     });
@@ -325,7 +326,10 @@ describe("ChatCoatainer", () => {
         http.get(/\/api\/providers\/opencode\/questions(\?.*)?$/, () =>
           HttpResponse.json([]),
         ),
-        http.get(/\/api\/providers\/opencode\/permissions(\?.*)?$/, () =>
+        http.get(/\/api\/sessions\/[^/]+\/questions$/, () =>
+          HttpResponse.json([]),
+        ),
+        http.get(/\/api\/sessions\/([^/]+)\/permissions$/, () =>
           HttpResponse.json(permissionsData.map(toProviderPermission)),
         ),
         childrenHandler([]),
@@ -435,9 +439,10 @@ describe("ChatCoatainer", () => {
         http.get(/\/api\/providers\/opencode\/questions(\?.*)?$/, () =>
           HttpResponse.json([]),
         ),
-        http.get(/\/api\/providers\/opencode\/permissions(\?.*)?$/, () =>
+        http.get(/\/api\/sessions\/[^/]+\/questions$/, () =>
           HttpResponse.json([]),
         ),
+        emptyPermissionsHandler(),
         childrenHandler([]),
       );
     });
@@ -516,9 +521,10 @@ describe("ChatCoatainer", () => {
         http.get(/\/api\/providers\/opencode\/questions(\?.*)?$/, () =>
           HttpResponse.json([]),
         ),
-        http.get(/\/api\/providers\/opencode\/permissions(\?.*)?$/, () =>
+        http.get(/\/api\/sessions\/[^/]+\/questions$/, () =>
           HttpResponse.json([]),
         ),
+        emptyPermissionsHandler(),
         childrenHandler([]),
       );
     });

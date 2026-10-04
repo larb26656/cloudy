@@ -112,6 +112,13 @@ export const sessionApi = {
       `/${encodeURIComponent(id)}/questions/${encodeURIComponent(questionId)}`,
       jsonInit({ value }),
     ),
+  permissions: (id: string) =>
+    sessionRequest(`/${encodeURIComponent(id)}/permissions`),
+  replyPermission: (id: string, permissionId: string, reply: string) =>
+    sessionRequest(
+      `/${encodeURIComponent(id)}/permissions/${encodeURIComponent(permissionId)}`,
+      jsonInit({ reply }),
+    ),
   create: (body: unknown) => sessionRequest("", jsonInit(body)),
   update: (id: string, body: unknown) =>
     sessionRequest(`/${encodeURIComponent(id)}`, {

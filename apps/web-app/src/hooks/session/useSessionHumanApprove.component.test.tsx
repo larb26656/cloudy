@@ -7,7 +7,6 @@ import type { PermissionRequest, QuestionRequest } from "@/types";
 import { server } from "@/test/server";
 import { useSessionData } from "./useSessionHumanApprove";
 
-const DIRECTORY = "/demo/project";
 const SESSION_ID = "c9c91a3d-8618-4bf4-a0ca-6a78535afbc6";
 
 const question: QuestionRequest = {
@@ -32,7 +31,7 @@ function renderSessionData(sessionId: string | null = SESSION_ID) {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
-  return renderHook(() => useSessionData({ directory: DIRECTORY, sessionId }), {
+  return renderHook(() => useSessionData({ sessionId }), {
     wrapper,
   });
 }
@@ -42,7 +41,7 @@ beforeEach(() => {
     http.get(new RegExp(`/api/sessions/${SESSION_ID}/questions$`), () =>
       HttpResponse.json([{ ...question, sessionId: SESSION_ID }]),
     ),
-    http.get(/\/api\/providers\/opencode\/permissions(\?|$)/, () =>
+    http.get(new RegExp(`/api/sessions/${SESSION_ID}/permissions$`), () =>
       HttpResponse.json([{ ...permission, sessionId: SESSION_ID }]),
     ),
     http.get(new RegExp(`/api/sessions/${SESSION_ID}/children$`), () =>
@@ -81,5 +80,14 @@ describe("useSessionData", () => {
       expect(result.current.currentQuestion).toBeUndefined();
     });
     expect(result.current.questions).toEqual([]);
+  });
+
+  test("does not fetch permissions without a Cloudy session", async () => {
+    const { result } = renderSessionData(null);
+
+    await waitFor(() => {
+      expect(result.current.currentPermission).toBeUndefined();
+    });
+    expect(result.current.permissions).toEqual([]);
   });
 });
