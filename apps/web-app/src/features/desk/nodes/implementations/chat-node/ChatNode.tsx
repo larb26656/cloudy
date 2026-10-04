@@ -16,6 +16,7 @@ type ChatNodeProps = Node<
     workspaceId: string | null;
     /** Present when the node was created from an ad-hoc path (no workspace). */
     directory?: string | null;
+    providerId?: string;
     sessionId: string | null;
     sessionName?: string;
     agent?: string | null;
@@ -33,6 +34,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const { data: session } = useSession({ sessionId: data.sessionId });
   const title = session?.title ?? "Chat";
   const directory = workspace?.directory ?? data.directory;
+  const providerId = data.providerId ?? "opencode";
 
   const handleSessionChange = useCallback(
     (sessionId: string | null) => {
@@ -74,7 +76,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       workspaceId: data.workspaceId,
       directory,
       sessionName: title,
-      providerId: data.model?.providerId ?? "opencode",
+      providerId,
       agent: data.agent,
       model: data.model,
     });
@@ -85,6 +87,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
     data.sessionId,
     data.workspaceId,
     directory,
+    providerId,
     title,
   ]);
 
@@ -120,7 +123,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
         <ChatContainer
           workspace={workspace ?? null}
           directory={directory}
-          providerId={data.model?.providerId ?? "opencode"}
+          providerId={providerId}
           sessionId={data.sessionId}
           onSessionChange={handleSessionChange}
           agent={data.agent}
