@@ -1,4 +1,5 @@
 @import "@repo/ui/styles/globals.css";
+@import "./styles/scrollbar.css";
 @import "./styles/syntax-highlight.css";
 @import "./styles/diff-viewer.css";
 
