@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { PointerEvent, ReactNode } from "react";
 import { useQueries } from "@tanstack/react-query";
 import type {
   PermissionRequest as CorePermissionRequest,
@@ -41,6 +41,7 @@ import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
 
 type PetState = "idle" | "working" | "wait-for-human";
+type PetPosition = { left: number; top: number };
 
 const petSprite = "/sprite/cloudy-pet/sprite-sheet-8bit.png";
 const petStateRow: Record<PetState, number> = {
@@ -138,6 +139,16 @@ async function fetchSessionPermissions(
 export function FloatingPet() {
   const [dismissed, setDismissed] = useState(false);
   const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState<PetPosition | null>(null);
+  const drag = useRef<
+    | {
+        pointerId: number;
+        offsetX: number;
+        offsetY: number;
+      }
+    | undefined
+  >(undefined);
+  const didDrag = useRef(false);
   const { data: sessions, isLoading, error } = useRecentSessions({ limit: 8 });
   const { data: workspaces = [] } = useWorkspaces();
   const openTab = useTabStore((s) => s.openTab);
@@ -231,6 +242,44 @@ export function FloatingPet() {
   const handleDismiss = () => {
     setOpen(false);
     setDismissed(true);
+  };
+
+  const handlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    drag.current = {
+      pointerId: event.pointerId,
+      offsetX: event.clientX - bounds.left,
+      offsetY: event.clientY - bounds.top,
+    };
+    didDrag.current = false;
+    event.currentTarget.setPointerCapture?.(event.pointerId);
+  };
+
+  const handlePointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+    const currentDrag = drag.current;
+    if (currentDrag?.pointerId !== event.pointerId) return;
+
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const left = Math.min(
+      Math.max(12, event.clientX - currentDrag.offsetX),
+      Math.max(12, window.innerWidth - bounds.width - 12),
+    );
+    const top = Math.min(
+      Math.max(12, event.clientY - currentDrag.offsetY),
+      Math.max(12, window.innerHeight - bounds.height - 12),
+    );
+
+    if (Math.abs(left - bounds.left) > 2 || Math.abs(top - bounds.top) > 2) {
+      didDrag.current = true;
+      setPosition({ left, top });
+    }
+  };
+
+  const handlePointerUp = (event: PointerEvent<HTMLButtonElement>) => {
+    if (drag.current?.pointerId === event.pointerId) {
+      drag.current = undefined;
+      event.currentTarget.releasePointerCapture?.(event.pointerId);
+    }
   };
 
   if (dismissed) {
@@ -329,7 +378,18 @@ export function FloatingPet() {
             type="button"
             aria-label={triggerLabel}
             data-pet-state={petState}
-            className="fixed right-3 bottom-3 z-30 flex size-20 items-center justify-center rounded-xl bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:right-4 sm:bottom-4 sm:size-24"
+            onPointerDown={handlePointerDown}
+            onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp}
+            onPointerCancel={handlePointerUp}
+            onClick={(event) => {
+              if (didDrag.current) {
+                event.preventDefault();
+                didDrag.current = false;
+              }
+            }}
+            className="fixed right-3 bottom-3 z-30 flex size-20 touch-none cursor-grab items-center justify-center rounded-xl bg-transparent select-none active:cursor-grabbing focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:right-4 sm:bottom-4 sm:size-24"
+            style={position ?? undefined}
           />
         }
       >

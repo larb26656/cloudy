@@ -183,6 +183,37 @@ describe("FloatingPet", () => {
     });
   });
 
+  it("moves the pet when it is dragged", () => {
+    renderPet();
+
+    const trigger = screen.getByRole("button", { name: "Agent activity" });
+    vi.spyOn(trigger, "getBoundingClientRect").mockReturnValue({
+      left: 900,
+      top: 650,
+      width: 80,
+      height: 80,
+      right: 980,
+      bottom: 730,
+      x: 900,
+      y: 650,
+      toJSON: () => ({}),
+    });
+
+    fireEvent.pointerDown(trigger, {
+      pointerId: 1,
+      clientX: 920,
+      clientY: 670,
+    });
+    fireEvent.pointerMove(trigger, {
+      pointerId: 1,
+      clientX: 320,
+      clientY: 240,
+    });
+    fireEvent.pointerUp(trigger, { pointerId: 1, clientX: 320, clientY: 240 });
+
+    expect(trigger).toHaveStyle({ left: "300px", top: "220px" });
+  });
+
   it("states that no session needs attention when everything is idle", async () => {
     mocks.useRecentSessions.mockReturnValue({
       data: [
