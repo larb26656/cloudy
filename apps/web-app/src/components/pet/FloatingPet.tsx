@@ -35,7 +35,6 @@ import {
   PopoverTitle,
   PopoverTrigger,
 } from "@repo/ui/components/popover";
-import { NotificationDot } from "@repo/ui/components/notification-dot";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
@@ -395,11 +394,6 @@ export function FloatingPet() {
       >
         <span className="relative block size-full">
           <PetSprite state={petState} />
-          <NotificationDot
-            visible={petState === "wait-for-human"}
-            color="primary"
-            className="top-2 right-2 size-2.5 sm:top-2.5 sm:right-2.5"
-          />
         </span>
       </PopoverTrigger>
       <PopoverContent
