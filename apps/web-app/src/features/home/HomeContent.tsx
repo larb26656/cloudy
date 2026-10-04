@@ -1,27 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { useRecentSessions } from "@/hooks/queries";
-import { useTabStore } from "@/stores/tabStore";
 import type { Workspace } from "@/lib/cloudy/workspaces";
-import { ChatCreateDialog } from "./tabs/implementations/chat/ChatCreateDialog";
 import { HomeGreeting } from "./components/HomeGreeting";
-import { RecentDesksSection } from "./components/RecentDesksSection";
+import { QuickActions } from "./components/QuickActions";
 import { RecentSessionsSection } from "./components/RecentSessionsSection";
-import { OpenTerminalsSection } from "./components/OpenTerminalsSection";
 import { WorkspacesSection } from "./components/WorkspacesSection";
 import { WorkspaceDetail } from "./components/WorkspaceDetail";
 
 export function HomeContent() {
-  // Local UI state for the workspace detail drill-down. Re-reads the same
-  // cache key as RecentSessionsSection (React Query dedupes), so the greeting
-  // subtitle count stays in sync with the section below.
-  const { data: recentSessions = [] } = useRecentSessions({ limit: 8 });
-  const tabs = useTabStore((s) => s.tabs);
-
+  // Local UI state for the workspace detail drill-down.
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
     null,
   );
-  const [createChatOpen, setCreateChatOpen] = useState(false);
 
   // The scroll container lives here so the component that owns the
   // selectedWorkspace state also owns the scroll position. On open we save
@@ -40,10 +30,6 @@ export function HomeContent() {
     }
   }, [selectedWorkspace]);
 
-  const desksToday = tabs.filter(
-    (t) => t.type === "desk" && Date.now() - t.updatedAt < 24 * 60 * 60 * 1000,
-  ).length;
-
   let content: ReactNode;
   if (selectedWorkspace) {
     content = (
@@ -55,26 +41,17 @@ export function HomeContent() {
   } else {
     content = (
       <>
-        <HomeGreeting
-          desksToday={desksToday}
-          recentSessions={recentSessions.length}
-          onNewChat={() => setCreateChatOpen(true)}
-        />
-        <RecentDesksSection />
-        <OpenTerminalsSection />
+        <HomeGreeting />
+        <QuickActions />
         <RecentSessionsSection />
         <WorkspacesSection onSelectWorkspace={setSelectedWorkspace} />
-        <ChatCreateDialog
-          open={createChatOpen}
-          onOpenChange={setCreateChatOpen}
-        />
       </>
     );
   }
 
   return (
     <div className="h-full overflow-y-auto" ref={scrollRef}>
-      <div className="mx-auto w-full max-w-3xl px-6 py-10">{content}</div>
+      <div className="mx-auto w-full max-w-4xl px-6 py-10">{content}</div>
     </div>
   );
 }

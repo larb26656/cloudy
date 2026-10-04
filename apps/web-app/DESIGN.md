@@ -4,10 +4,11 @@ name: Cloudy
 description: >-
   Visual identity for the Cloudy web-app — a browser-based "desktop IDE" for
   chatting, sketching on a node canvas, and browsing files. The system is a
-  neutral, high-contrast grayscale with a single red destructive accent, flat
-  depth (borders over shadows), and Geist Variable as the workhorse typeface.
-  Light-mode tokens are canonical; dark mode is a lightness inversion defined
-  in src/index.css under the .dark class.
+  neutral, high-contrast base with a blue primary accent (#3079fa), a green
+  success accent, and a red destructive accent, flat depth (borders over
+  shadows), and Geist Variable as the workhorse typeface. Light-mode tokens
+  are canonical; dark mode (#0e1117 canvas) is defined in src/index.css /
+  packages/ui globals.css under the .dark class.
 colors:
   background: "oklch(1 0 0)"
   foreground: "oklch(0.145 0 0)"
@@ -15,18 +16,19 @@ colors:
   card-foreground: "oklch(0.145 0 0)"
   popover: "oklch(1 0 0)"
   popover-foreground: "oklch(0.145 0 0)"
-  primary: "oklch(0.205 0 0)"
-  primary-foreground: "oklch(0.985 0 0)"
+  primary: "#3079fa"
+  primary-foreground: "#ffffff"
   secondary: "oklch(0.97 0 0)"
   secondary-foreground: "oklch(0.205 0 0)"
   muted: "oklch(0.97 0 0)"
   muted-foreground: "oklch(0.556 0 0)"
   accent: "oklch(0.97 0 0)"
   accent-foreground: "oklch(0.205 0 0)"
+  success: "#16a34a"
   destructive: "oklch(0.58 0.22 27)"
   border: "oklch(0.922 0 0)"
   input: "oklch(0.922 0 0)"
-  ring: "oklch(0.708 0 0)"
+  ring: "#3079fa"
   chart-1: "oklch(0.809 0.105 251.813)"
   chart-2: "oklch(0.623 0.214 259.815)"
   chart-3: "oklch(0.546 0.245 262.881)"
@@ -185,8 +187,10 @@ instrument-grade surface for chatting with agents, sketching on a node canvas
   (code, chat, diagrams) carries the visual weight.
 - **Neutral and high-contrast.** A near-pure-white canvas (`background`) with
   near-black ink (`foreground`); color is reserved for meaning, never ornament.
-- **Single chromatic accent.** One red (`destructive`) signals errors,
-  deletion, and irreversible actions. Everything else is grayscale.
+- **Blue primary accent.** One blue (`primary`, #3079fa) drives filled
+  actions, focus rings, and "ask/chat" flavor. Green (`success`) marks
+  agent/workspace flavor; red (`destructive`) signals errors and irreversible
+  actions. Everything else is grayscale.
 - **Flat depth.** Hierarchy comes from tonal contrast and 1px borders, not
   drop shadows. The interface feels printed, not layered.
 - **Desktop-grade density.** Three-pane composition (tabs left, main center,
@@ -197,25 +201,28 @@ the softness of a marketing site.
 
 ## Colors
 
-A **monochrome grayscale foundation** with a single semantic accent.
+A **monochrome grayscale foundation** with three semantic accents.
 
 - **Background (`oklch(1 0 0)`)** — Pure white. The app canvas; never tinted.
 - **Foreground (`oklch(0.145 0 0)`)** — Near-black ink for all primary text and
   icons.
-- **Primary (`oklch(0.205 0 0)`)** — The default filled surface for buttons,
-  tooltips, and active markers. Inverts with `primary-foreground` (near-white).
+- **Primary (`#3079fa`)** — Cloudy blue. The default filled surface for
+  buttons and active markers, plus focus rings. Inverts with
+  `primary-foreground` (white).
 - **Secondary / Muted / Accent (`oklch(0.97 0 0)`)** — Three aliases for the
   same warm light gray. Used for subtle fills: secondary buttons, hover
   states, sidebar tiles, code-chip backgrounds.
 - **Muted-foreground (`oklch(0.556 0 0)`)** — Mid-gray for metadata, captions,
   placeholder text, inactive tabs.
-- **Destructive (`oklch(0.58 0.22 27)`)** — The only chromatic color. Reserved
-  exclusively for errors, delete actions, and danger confirmations. Never use
-  it for emphasis or decoration.
+- **Success (`#16a34a` light / `#4ade80` dark)** — Green for agent/workspace
+  flavor (e.g. the "Work on a project" card, agent session rows). Never for
+  errors or emphasis beyond its semantic role.
+- **Destructive (`oklch(0.58 0.22 27)`)** — Red. Reserved exclusively for
+  errors, delete actions, and danger confirmations. Never use it for emphasis
+  or decoration.
 - **Border / Input (`oklch(0.922 0 0)`)** — Hairline gray for dividers, input
   borders, and card outlines.
-- **Ring (`oklch(0.708 0 0)`)** — Focus ring color, slightly darker than
-  muted-foreground.
+- **Ring (`#3079fa`)** — Focus ring color, matches `primary`.
 - **Chart 1–5** — A cool blue ramp (`oklch` hue ≈ 252–266) for data
   visualization only. Not used elsewhere in the UI.
 - **Sidebar-** tokens mirror the main palette at slightly lighter values so the
@@ -223,12 +230,14 @@ A **monochrome grayscale foundation** with a single semantic accent.
 
 ### Dark mode
 
-Light tokens above are **canonical**. Dark mode is a lightness inversion
-applied by toggling the `.dark` class on `<html>` (handled by `next-themes`).
-The exact dark oklch values live in `src/index.css` under `.dark { ... }` —
-consult them directly when matching a dark-only state. The semantic roles
-(primary = filled actions, destructive = red, muted-foreground = metadata)
-are identical across themes; only the lightness flips.
+Light tokens above are **canonical**. Dark mode swaps the canvas to a deep
+blue-black family (`background` `#0e1117`, surfaces `#161920`/`#1a1e26`,
+borders `#2a2d35`, muted text `#8b949e`), applied by toggling the `.dark`
+class on `<html>` (handled by `next-themes`). The exact dark values live in
+`packages/ui/src/styles/globals.css` under `.dark { ... }` — consult them
+directly when matching a dark-only state. The semantic roles (primary = blue
+filled actions, success = green, destructive = red, muted-foreground =
+metadata) are identical across themes; only the lightness flips.
 
 ## Typography
 
@@ -329,14 +338,15 @@ new visual primitive. If a new token is genuinely needed, add it to
 
 - **Do** use `primary` for the single most important action per screen.
 - **Do** reserve `destructive` exclusively for errors and irreversible
-  actions.
+  actions, and `success` for agent/workspace flavor.
 - **Do** convey hierarchy with tonal contrast and 1px borders, not shadows.
 - **Do** use the shared `EmptyState` / `ErrorState` / `LoadingState`
   components (see `AGENTS.md` → State components) instead of hand-rolling
   inline state JSX.
 - **Do** keep color semantic — never use `chart-*` blues outside data
   visualization, never tint `background`.
-- **Don't** introduce a second accent color. Grayscale + red is the system.
+- **Don't** introduce a fourth accent color. Grayscale + blue + green + red
+  is the system.
 - **Don't** mix corner radii within a single card or panel.
 - **Don't** add drop shadows to inline content — only to transient overlays.
 - **Don't** hard-code hex/oklch values in components — reference the CSS

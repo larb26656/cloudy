@@ -1,40 +1,24 @@
 import { useMemo } from "react";
-import { MessageCircle } from "lucide-react";
-import { Button } from "@repo/ui/components/button";
 import { generateTimeGreeting } from "@/lib/greeting-generator";
 
-interface HomeGreetingProps {
-  desksToday: number;
-  recentSessions: number;
-  onNewChat: () => void;
-}
-
-export function HomeGreeting({
-  desksToday,
-  recentSessions,
-  onNewChat,
-}: HomeGreetingProps) {
+export function HomeGreeting() {
   const greeting = useMemo(() => generateTimeGreeting(), []);
 
   return (
-    <header className="relative isolate mb-9 overflow-hidden rounded-3xl border border-border bg-muted/40 px-6 py-6 sm:px-8 sm:py-7">
-      <div className="relative flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
-        <div>
-          <div className="mb-1.5 text-[13px] text-muted-foreground/80">
-            {greeting.eyebrow}
-          </div>
-          <h1 className="mb-2 text-2xl font-bold tracking-tight">
-            {greeting.title} <span aria-hidden>👋</span>
-          </h1>
-          <p className="text-sm leading-relaxed text-muted-foreground">
-            {greeting.subtitle({ desksToday, recentSessions })}
-          </p>
-        </div>
-        <Button className="shrink-0 self-start" onClick={onNewChat}>
-          <MessageCircle data-icon="inline-start" />
-          New chat
-        </Button>
-      </div>
+    <header className="relative mb-8">
+      <img
+        src="/sprite/greeting.png"
+        alt=""
+        aria-hidden="true"
+        className="pointer-events-none absolute -top-2 right-0 hidden h-24 w-32 select-none object-contain sm:block"
+      />
+      <p className="text-sm text-muted-foreground">{greeting.eyebrow}</p>
+      <h1 className="text-3xl font-bold tracking-tight">
+        {greeting.title} <span aria-hidden>👋</span>
+      </h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        What do you want to do?
+      </p>
     </header>
   );
 }

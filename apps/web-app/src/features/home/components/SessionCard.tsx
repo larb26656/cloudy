@@ -1,59 +1,93 @@
 import type { RecentChatSession } from "@/types";
 import { useState } from "react";
+import { Bot, MessageCircle, Terminal } from "lucide-react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
-import { ProviderIcon } from "@/components/provider/ProviderIcon";
-import { ClickableCard } from "./ClickableCard";
+import { basename } from "@/lib/path";
+
+export type ConversationKind = "ask" | "agent" | "bot";
 
 interface SessionCardProps {
   session: RecentChatSession;
   directory: string;
+  kind: ConversationKind;
   onClick: () => void;
 }
 
-export function SessionCard({ session, directory, onClick }: SessionCardProps) {
+function formatProvider(providerId: string): string {
+  return providerId.charAt(0).toUpperCase() + providerId.slice(1);
+}
+
+function KindIcon({ kind }: { kind: ConversationKind }) {
+  if (kind === "agent") {
+    return (
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-success/30 bg-success/15 text-success">
+        <Terminal className="size-[18px]" />
+      </div>
+    );
+  }
+  return (
+    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-card text-muted-foreground">
+      {kind === "bot" ? (
+        <Bot className="size-[18px]" />
+      ) : (
+        <MessageCircle className="size-[18px]" />
+      )}
+    </div>
+  );
+}
+
+export function SessionCard({
+  session,
+  directory,
+  kind,
+  onClick,
+}: SessionCardProps) {
   const [isEditing, setIsEditing] = useState(false);
 
-  return (
-    <ClickableCard
-      onClick={onClick}
-      className="flex items-center gap-1 px-3.5 py-3"
-    >
-      <span className="flex min-w-0 flex-1 flex-col justify-start gap-1">
-        <div className="flex items-center gap-2">
-          <ProviderIcon providerId={session.providerId} />
-          <div className="flex-1 truncate">
-            {isEditing ? (
-              <SessionTitleInput
-                sessionId={session.id}
-                directory={directory}
-                initialTitle={session.title || "New Chat"}
-                onDone={() => setIsEditing(false)}
-              />
-            ) : (
-              <span
-                onDoubleClick={(e) => {
-                  e.stopPropagation();
-                  setIsEditing(true);
-                }}
-                className="text-[13.5px] font-medium"
-              >
-                {session.title || "New Chat"}
-              </span>
-            )}
-          </div>
-          <span className="shrink-0 text-[11px] text-muted-foreground/80">
-            {formatRelativeFromTimestamp(session.updatedAt)}
-          </span>
-        </div>
+  const metaParts = [
+    kind === "agent" ? "Agent" : kind === "bot" ? "Bot" : "Ask",
+    formatProvider(session.providerId),
+  ];
+  if (kind === "agent") metaParts.push(basename(directory) || directory);
+  const meta = metaParts.join(" · ");
 
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center gap-4 rounded-xl p-3 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <KindIcon kind={kind} />
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+        {isEditing ? (
+          <SessionTitleInput
+            sessionId={session.id}
+            directory={directory}
+            initialTitle={session.title || "New Chat"}
+            onDone={() => setIsEditing(false)}
+          />
+        ) : (
+          <span
+            onDoubleClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }}
+            className="truncate text-sm font-medium"
+          >
+            {session.title || "New Chat"}
+          </span>
+        )}
         <span
-          className="truncate text-[11px] text-muted-foreground/70"
+          className="truncate text-xs text-muted-foreground"
           title={directory}
         >
-          {directory}
+          {meta}
         </span>
       </span>
-    </ClickableCard>
+      <span className="shrink-0 text-xs text-muted-foreground">
+        {formatRelativeFromTimestamp(session.updatedAt)}
+      </span>
+    </button>
   );
 }
