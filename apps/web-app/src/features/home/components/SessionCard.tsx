@@ -1,9 +1,9 @@
 import type { RecentChatSession } from "@/types";
 import { useState } from "react";
-import { Bot, MessageCircle, Terminal } from "lucide-react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { basename } from "@/lib/path";
+import { ProviderIcon } from "@/components/provider/ProviderIcon";
 
 export type ConversationKind = "ask" | "agent" | "bot";
 
@@ -18,21 +18,10 @@ function formatProvider(providerId: string): string {
   return providerId.charAt(0).toUpperCase() + providerId.slice(1);
 }
 
-function KindIcon({ kind }: { kind: ConversationKind }) {
-  if (kind === "agent") {
-    return (
-      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-success/30 bg-success/15 text-success">
-        <Terminal className="size-[18px]" />
-      </div>
-    );
-  }
+function KindIcon({ session }: { session: RecentChatSession }) {
   return (
     <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-card text-muted-foreground">
-      {kind === "bot" ? (
-        <Bot className="size-[18px]" />
-      ) : (
-        <MessageCircle className="size-[18px]" />
-      )}
+      <ProviderIcon providerId={session.providerId} />
     </div>
   );
 }
@@ -58,7 +47,7 @@ export function SessionCard({
       onClick={onClick}
       className="flex w-full items-center gap-4 rounded-xl p-3 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <KindIcon kind={kind} />
+      <KindIcon session={session} />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         {isEditing ? (
           <SessionTitleInput
