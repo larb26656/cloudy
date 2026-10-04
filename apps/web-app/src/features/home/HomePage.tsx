@@ -1,9 +1,10 @@
-import { Activity } from "react";
+import { Activity, useState } from "react";
 import { useTabStore } from "@/stores/tabStore";
 import { MainTabBar } from "./components/MainTabBar";
 import { TabHeaderBar } from "./components/TabHeaderBar";
 import { ConnectionStatusBanner } from "./components/ConnectionStatusBanner";
 import { HomeContent } from "./HomeContent";
+import { ChatCreateDialog } from "./tabs/implementations/chat/ChatCreateDialog";
 import { tabTypeMap } from "./tabs/template";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { useGlobalEvent } from "@/providers";
@@ -13,6 +14,7 @@ export default function HomePage() {
   const activeTabId = useTabStore((s) => s.activeTabId);
   const tabs = useTabStore((s) => s.tabs);
   const removeTab = useTabStore((s) => s.removeTab);
+  const [projectChatOpen, setProjectChatOpen] = useState(false);
 
   return (
     <div className="flex flex-col h-full w-full overflow-hidden bg-background">
@@ -26,7 +28,7 @@ export default function HomePage() {
             destroy the preserved state. */}
         <Activity mode={activeTabId === "home" ? "visible" : "hidden"}>
           <div className="h-full">
-            <HomeContent />
+            <HomeContent onOpenProjectChat={() => setProjectChatOpen(true)} />
           </div>
         </Activity>
         {tabs.map((tab) => {
@@ -61,6 +63,17 @@ export default function HomePage() {
           );
         })}
       </div>
+
+      {/*
+        Rendered outside the <Activity> boundaries above: its submit adds a
+        tab (deactivating the home tree) in the same batch as this dialog's
+        close. A portal'd dialog owned by a deactivated tree never commits
+        its unmount, leaving a ghost popup stuck on screen.
+      */}
+      <ChatCreateDialog
+        open={projectChatOpen}
+        onOpenChange={setProjectChatOpen}
+      />
     </div>
   );
 }

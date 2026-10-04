@@ -36,7 +36,7 @@ export function MessageParts({
   const shouldAnimate = isStreaming && !prefersReducedMotion;
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-1">
       {parts.map((part, index) => {
         // Use index-based key for stability during streaming.
         // During streaming, parts are appended (not inserted), so index remains stable.

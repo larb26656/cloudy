@@ -7,7 +7,11 @@ import { RecentSessionsSection } from "./components/RecentSessionsSection";
 import { WorkspacesSection } from "./components/WorkspacesSection";
 import { WorkspaceDetail } from "./components/WorkspaceDetail";
 
-export function HomeContent() {
+export function HomeContent({
+  onOpenProjectChat,
+}: {
+  onOpenProjectChat: () => void;
+}) {
   // Local UI state for the workspace detail drill-down.
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
     null,
@@ -42,7 +46,7 @@ export function HomeContent() {
     content = (
       <>
         <HomeGreeting />
-        <QuickActions />
+        <QuickActions onOpenProjectChat={onOpenProjectChat} />
         <RecentSessionsSection />
         <WorkspacesSection onSelectWorkspace={setSelectedWorkspace} />
       </>
