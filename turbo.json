@@ -29,7 +29,8 @@
     "dev": {
       "dependsOn": ["^build"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["CLOUDY_DESKTOP_DEV_URL"]
     },
     "db:generate": {
       "cache": false,

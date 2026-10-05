@@ -12,8 +12,6 @@ import { GlobalEventProvider } from "./providers";
 import { useChatPanelStore } from "./stores/chatPanelStore";
 import { useTabStore } from "./stores/tabStore";
 
-export const isModeElectron = false;
-
 const router = createRouter({ routeTree });
 
 declare module "@tanstack/react-router" {

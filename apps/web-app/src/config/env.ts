@@ -1,10 +1,14 @@
 import { resolveUrl } from "@/lib/url";
 
-const FALLBACK_API_URL =
-  resolveUrl(import.meta.env.VITE_API_URL) || window.origin;
+const desktopInfo =
+  typeof window === "undefined" ? undefined : window.__CLOUDY_DESKTOP__;
 
-export const isModeElectron = false;
-export const isElectronProd = false;
+export const isModeElectron = desktopInfo !== undefined;
+export const isElectronProd = desktopInfo !== undefined && !desktopInfo.isDev;
+
+const FALLBACK_API_URL =
+  desktopInfo?.apiUrl ??
+  (resolveUrl(import.meta.env.VITE_API_URL) || window.origin);
 
 function getApiUrl(): string {
   return FALLBACK_API_URL;

@@ -30,8 +30,19 @@ export function createServer(option: AppOption) {
       websocket: { server: webSocketServer },
     });
 
-    const url = `http://${config.host}:${config.port}`;
-    return { url };
+    if (!server.listening) {
+      await new Promise<void>((resolve, reject) => {
+        server?.once("listening", () => resolve());
+        server?.once("error", reject);
+      });
+    }
+
+    const address = server.address();
+    const port =
+      typeof address === "object" && address !== null
+        ? address.port
+        : config.port;
+    return { url: `http://${config.host}:${port}` };
   };
 
   const stop = async () => {

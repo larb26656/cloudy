@@ -13,6 +13,8 @@ apps/
   server/        `cloudy` CLI binary — bundles @repo/server via tsup (host 4122). Config dir
                  ~/.config/cloudy; override any setting via CLOUDY_* env vars.
   web-app/       React 19 + Vite + TanStack Router frontend (dev port 3001) — the web UI
+  desktop/       Electron desktop app — embeds @repo/server in the main process and renders
+                 the web-app 1:1 (dev shell; packaging is phase 2)
 packages/
   contracts/     Type-only facade re-exporting @repo/server types for the browser
   server/        Hono app library — routes, services, repositories; has vitest tests
@@ -34,6 +36,9 @@ packages via `"@repo/x": "workspace:*"`.
 - [`apps/web-app/AGENTS.md`](apps/web-app/AGENTS.md) — the React UI (authoritative for
   everything frontend): stack, boot sequence, the Tab abstraction, Zustand stores map, the
   two-backend data layer, Desk node workflow, Storybook, testing matrix.
+- [`apps/desktop/AGENTS.md`](apps/desktop/AGENTS.md) — the Electron desktop shell: embedded
+  server, dev/build commands, and the **better-sqlite3 divergent-pin rule** (critical —
+  an Electron rebuild of the wrong store instance breaks the CLI binary).
 
 ## Build / Lint / Typecheck / Test
 
@@ -43,9 +48,12 @@ All commands run from the repo root unless noted. Turborepo orchestrates and cac
 
 ```sh
 pnpm install
-pnpm run dev              # dev all apps concurrently (server 4122, web-app 3001)
+pnpm run dev              # dev all apps concurrently (server 4122, web-app 3001, desktop
+                          # window — use `turbo run dev --filter=...` to opt out)
+pnpm dev:desktop          # web-app (3001) + Electron desktop window only
 pnpm run build            # turbo run build (all)
 pnpm build:full           # build + copy-assets (drizzle migrations + web assets into dist/)
+pnpm build:desktop:release  # build web-app + desktop, package macOS .dmg via electron-builder
 pnpm run lint             # turbo run lint (all packages)
 pnpm run check-types      # turbo run check-types (all packages)
 pnpm run format           # prettier --write "**/*.{ts,tsx,md}" (no .prettierrc — defaults)

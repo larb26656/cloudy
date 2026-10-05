@@ -1,0 +1,19 @@
+appId: com.cloudy.desktop
+productName: Cloudy
+directories:
+  output: release
+npmRebuild: false
+files:
+  - dist/**
+asar: true
+asarUnpack:
+  - "**/dist/drizzle/**"
+  - "**/dist/public/**"
+  - "**/node_modules/better-sqlite3/**"
+mac:
+  category: public.app-category.developer-tools
+  target:
+    - dmg
+    - dir
+  identity: "-"
+  hardenedRuntime: false

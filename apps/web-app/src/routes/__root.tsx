@@ -1,14 +1,52 @@
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import { useEffect } from "react";
+import {
+  createRootRoute,
+  Link,
+  Outlet,
+  useRouterState,
+} from "@tanstack/react-router";
 import { ErrorState, NotFound } from "@/components/ui/route-state";
 import { Button } from "@repo/ui/components/button";
 import { Center } from "@/components/layout";
 import { FloatingPet } from "@/components/pet/FloatingPet";
+import { DesktopPetRestore } from "@/components/pet/DesktopPetRestore";
+import type { SessionTabPayload } from "@/components/pet/openSessionTab";
+import { isModeElectron } from "@/config/env";
+import { petBridge } from "@/lib/desktop/petBridge";
+import { useTabStore } from "@/stores/tabStore";
+import { cn } from "@repo/ui/lib/utils";
+
+function openSessionTabInWindow(payload: SessionTabPayload) {
+  switch (payload.type) {
+    case "chat":
+      useTabStore.getState().openTab("chat", payload.data);
+      break;
+    case "bot-chat":
+      useTabStore.getState().openTab("bot-chat", payload.data);
+      break;
+  }
+}
 
 function RootComponent() {
+  const isPetRoute =
+    useRouterState({ select: (state) => state.location.pathname }) === "/pet";
+
+  useEffect(() => {
+    if (!isModeElectron) return undefined;
+    if (window.__CLOUDY_DESKTOP__?.windowKind === "pet") return undefined;
+    return petBridge.onOpenSession(openSessionTabInWindow);
+  }, []);
+
   return (
-    <div className="flex h-dvh w-full flex-col overflow-hidden bg-background pt-safe pb-safe">
+    <div
+      className={cn(
+        "flex h-dvh w-full flex-col overflow-hidden pt-safe pb-safe",
+        !isPetRoute && "bg-background",
+      )}
+    >
       <Outlet />
-      <FloatingPet />
+      {!isPetRoute &&
+        (isModeElectron ? <DesktopPetRestore /> : <FloatingPet />)}
     </div>
   );
 }

@@ -209,3 +209,10 @@
   content: " *";
   color: var(--destructive);
 }
+
+/* desktop pet overlay window (/pet route) — transparent, non-scrolling shell */
+html[data-pet-window],
+html[data-pet-window] body {
+  background: transparent;
+  overflow: hidden;
+}
