@@ -8,7 +8,7 @@
     "build": "tsup --config tsup.config.ts && tsup --config tsup.preload.config.ts",
     "copy-assets": "tsx ../../scripts/copy-desktop-assets.ts",
     "dist": "electron-builder build --mac",
-    "dev": "pnpm build && concurrently -k -n tsup-main,tsup-preload,electron -c blue,cyan,magenta \"tsup --config tsup.config.ts --watch\" \"tsup --config tsup.preload.config.ts --watch\" \"electron .\"",
+    "dev": "pnpm build && concurrently -k -s first -n tsup-main,tsup-preload,electron -c blue,cyan,magenta \"tsup --config tsup.config.ts --watch\" \"tsup --config tsup.preload.config.ts --watch\" \"electron .\"",
     "start": "electron .",
     "rebuild:native": "tsx scripts/rebuild-native.ts",
     "lint": "eslint . --max-warnings 0",

@@ -126,6 +126,9 @@ async function boot() {
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 
 if (!gotSingleInstanceLock) {
+  console.warn(
+    "another cloudy desktop instance holds the single-instance lock (is Cloudy.app or another dev session running?) — exiting",
+  );
   app.quit();
 } else {
   app.on("second-instance", () => {
