@@ -1,5 +1,4 @@
-import { PlugZap, RotateCw, Server } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "@repo/ui/components/sonner";
 import { Button } from "@repo/ui/components/button";
 import { ErrorState } from "@repo/ui/components/error-state";
@@ -7,21 +6,28 @@ import { Input } from "@repo/ui/components/input";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { Switch } from "@repo/ui/components/switch";
 import {
+  useCreateProviderInstance,
+  useDeleteProviderInstance,
   useProviderSettings,
-  useUpdateProviderSettings,
+  useProviderTemplates,
+  useUpdateProviderInstance,
 } from "@/hooks/queries/useProviderSettings";
+import type { ProviderInstance } from "@/hooks/queries/useProviderSettings";
+import { getProviderConfigForm } from "./provider-config/registry";
 
 export function ProviderSettings() {
   const { data, isPending, error, refetch } = useProviderSettings();
-  const update = useUpdateProviderSettings();
-  const [enabled, setEnabled] = useState(true);
-  const [baseUrl, setBaseUrl] = useState("");
-
-  useEffect(() => {
-    if (!data) return;
-    setEnabled(data.opencode.enabled);
-    setBaseUrl(data.opencode.baseUrl);
-  }, [data]);
+  const templates = useProviderTemplates();
+  const create = useCreateProviderInstance();
+  const update = useUpdateProviderInstance();
+  const remove = useDeleteProviderInstance();
+  const [name, setName] = useState("OpenCode");
+  const [baseUrl, setBaseUrl] = useState("http://localhost:4096");
+  const [templateId, setTemplateId] =
+    useState<ProviderInstance["templateId"]>("opencode");
+  const [editedBaseUrls, setEditedBaseUrls] = useState<Record<string, string>>(
+    {},
+  );
 
   if (isPending) return <LoadingState className="py-12" />;
   if (error)
@@ -33,28 +39,30 @@ export function ProviderSettings() {
       />
     );
 
-  const isDirty =
-    data !== undefined &&
-    (enabled !== data.opencode.enabled || baseUrl !== data.opencode.baseUrl);
+  if (templates.isError)
+    return (
+      <ErrorState
+        message={templates.error.message}
+        onRetry={() => void templates.refetch()}
+        className="py-12"
+      />
+    );
 
-  const save = () => {
-    let normalizedBaseUrl: string;
+  if (templates.isPending) return <LoadingState className="py-12" />;
+
+  const add = () => {
+    let url: string;
     try {
-      normalizedBaseUrl = new URL(baseUrl).toString().replace(/\/$/, "");
+      url = new URL(baseUrl).toString().replace(/\/$/, "");
     } catch {
       toast.error("Enter a valid server URL, including http:// or https://");
       return;
     }
-
-    update.mutate(
-      { opencode: { enabled, baseUrl: normalizedBaseUrl } },
+    create.mutate(
+      { name, templateId, enabled: true, baseUrl: url },
       {
-        onSuccess: () => {
-          toast.success(
-            "Provider settings saved. Restart Cloudy to apply them.",
-          );
-        },
-        onError: (saveError: Error) => toast.error(saveError.message),
+        onSuccess: () => toast.success("Provider connection added"),
+        onError: (err) => toast.error(err.message),
       },
     );
   };
@@ -64,59 +72,145 @@ export function ProviderSettings() {
       <div>
         <h2 className="text-lg font-semibold">Providers</h2>
         <p className="text-sm text-muted-foreground">
-          Connections are configured independently and saved on this Cloudy
-          server.
+          Manage provider connections. Changes apply immediately.
         </p>
       </div>
-
-      <section className="space-y-5 rounded-lg border p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-muted">
-              <PlugZap className="size-4" />
+      <div className="space-y-3">
+        {data?.instances.map((instance) => (
+          <section
+            key={instance.id}
+            className="space-y-4 rounded-lg border p-4"
+          >
+            <div className="flex items-center justify-between gap-3">
+              <Input
+                aria-label="Connection name"
+                defaultValue={instance.name}
+                onBlur={(event) => {
+                  const name = event.currentTarget.value.trim();
+                  if (name && name !== instance.name)
+                    update.mutate(
+                      { id: instance.id, name },
+                      { onError: (err) => toast.error(err.message) },
+                    );
+                }}
+              />
+              <Switch
+                checked={instance.enabled}
+                aria-label={`Enable ${instance.name}`}
+                onCheckedChange={(enabled) =>
+                  update.mutate({ id: instance.id, enabled })
+                }
+              />
             </div>
-            <div className="space-y-0.5">
-              <h3 className="text-sm font-medium">OpenCode</h3>
-              <p className="text-xs text-muted-foreground">
-                Runs chat sessions, models, and agents through an OpenCode
-                server.
-              </p>
+            {(() => {
+              const ConfigFields = getProviderConfigForm(instance.templateId);
+              if (!ConfigFields) return null;
+              const baseUrl = editedBaseUrls[instance.id] ?? instance.baseUrl;
+              return (
+                <ConfigFields
+                  baseUrl={baseUrl}
+                  onBaseUrlChange={(value) =>
+                    setEditedBaseUrls((current) => ({
+                      ...current,
+                      [instance.id]: value,
+                    }))
+                  }
+                  label="Server URL"
+                />
+              );
+            })()}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  let url: string;
+                  try {
+                    url = new URL(
+                      editedBaseUrls[instance.id] ?? instance.baseUrl,
+                    )
+                      .toString()
+                      .replace(/\/$/, "");
+                  } catch {
+                    toast.error(
+                      "Enter a valid server URL, including http:// or https://",
+                    );
+                    return;
+                  }
+                  if (url !== instance.baseUrl) {
+                    update.mutate(
+                      { id: instance.id, baseUrl: url },
+                      {
+                        onSuccess: () =>
+                          setEditedBaseUrls((current) => {
+                            const next = { ...current };
+                            delete next[instance.id];
+                            return next;
+                          }),
+                        onError: (err) => toast.error(err.message),
+                      },
+                    );
+                  }
+                }}
+              >
+                Save connection settings
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => remove.mutate(instance.id)}
+              >
+                Remove
+              </Button>
             </div>
-          </div>
-          <Switch
-            checked={enabled}
-            onCheckedChange={setEnabled}
-            aria-label="Enable OpenCode provider"
-          />
-        </div>
-
-        <div className="space-y-2 border-t pt-5">
-          <label htmlFor="opencode-base-url" className="text-sm font-medium">
-            Server URL
-          </label>
-          <div className="flex items-center gap-2">
-            <Server className="size-4 shrink-0 text-muted-foreground" />
-            <Input
-              id="opencode-base-url"
-              value={baseUrl}
-              onChange={(event) => setBaseUrl(event.target.value)}
-              placeholder="http://localhost:4096"
-              inputMode="url"
-              disabled={!enabled || update.isPending}
-            />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Restart Cloudy after saving to reconnect with this provider profile.
-          </p>
-        </div>
-      </section>
-
-      <div className="flex justify-end border-t pt-4">
-        <Button onClick={save} disabled={!isDirty || update.isPending}>
-          {update.isPending && <RotateCw className="animate-spin" />}
-          Save provider settings
-        </Button>
+          </section>
+        ))}
       </div>
+      <section className="space-y-3 rounded-lg border p-4">
+        <h3 className="text-sm font-medium">Add provider connection</h3>
+        <select
+          aria-label="Provider template"
+          className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+          value={templateId}
+          onChange={(event) => {
+            const selectedTemplate = templates.data.templates.find(
+              (template) => template.id === event.target.value,
+            );
+            if (selectedTemplate) {
+              setTemplateId(selectedTemplate.id);
+              setName(selectedTemplate.name);
+            }
+          }}
+        >
+          {templates.data.templates.map((template) => (
+            <option key={template.id} value={template.id}>
+              {template.name}
+            </option>
+          ))}
+        </select>
+        <Input
+          aria-label="New connection name"
+          value={name}
+          onChange={(event) => setName(event.target.value)}
+        />
+        {(() => {
+          const ConfigFields = getProviderConfigForm(templateId);
+          return ConfigFields ? (
+            <ConfigFields
+              baseUrl={baseUrl}
+              onBaseUrlChange={setBaseUrl}
+              label="New server URL"
+            />
+          ) : (
+            <ErrorState
+              size="inline"
+              bare
+              message="This provider template is not supported by this version of Cloudy."
+            />
+          );
+        })()}
+        <Button onClick={add} disabled={create.isPending}>
+          Add connection
+        </Button>
+      </section>
     </div>
   );
 }

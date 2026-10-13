@@ -110,7 +110,22 @@ describe("ConfigurableSchema", () => {
   describe("providers", () => {
     it("defaults to an enabled OpenCode profile", () => {
       expect(parseConfigurable({ dbPath: "/x" }).providers).toEqual({
-        opencode: { enabled: true, baseUrl: "http://localhost:4096" },
+        instances: [
+          {
+            id: "opencode",
+            name: "OpenCode",
+            templateId: "opencode",
+            enabled: true,
+            baseUrl: "http://localhost:4096",
+          },
+        ],
+        opencode: {
+          id: "opencode",
+          name: "OpenCode",
+          templateId: "opencode",
+          enabled: true,
+          baseUrl: "http://localhost:4096",
+        },
       });
     });
   });
@@ -124,6 +139,9 @@ describe("loadConfig", () => {
     expect(config.ui).toBe(false);
     expect(config.opencodeApiBase).toBe("http://localhost:4096");
     expect(config.providers.opencode).toEqual({
+      id: "opencode",
+      name: "OpenCode",
+      templateId: "opencode",
       enabled: true,
       baseUrl: "http://localhost:4096",
     });
@@ -171,11 +189,29 @@ describe("loadConfig", () => {
   it("uses the provider profile when configuring the OpenCode base URL", () => {
     mockedLoadFileConfig.mockReturnValue({
       providers: {
-        opencode: { enabled: false, baseUrl: "http://opencode.file" },
+        instances: [
+          {
+            id: "opencode",
+            name: "OpenCode",
+            templateId: "opencode",
+            enabled: false,
+            baseUrl: "http://opencode.file",
+          },
+        ],
+        opencode: {
+          id: "opencode",
+          name: "OpenCode",
+          templateId: "opencode",
+          enabled: false,
+          baseUrl: "http://opencode.file",
+        },
       },
     });
 
     expect(loadConfig().providers.opencode).toEqual({
+      id: "opencode",
+      name: "OpenCode",
+      templateId: "opencode",
       enabled: false,
       baseUrl: "http://opencode.file",
     });

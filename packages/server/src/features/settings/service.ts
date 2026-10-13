@@ -2,21 +2,74 @@ import path from "node:path";
 import type { AppConfig } from "../../config";
 import { updateFileConfig } from "../../config/file-loader";
 import type { ProviderSettings } from "./model";
+import { randomUUID } from "node:crypto";
+import type { ProviderRegistry } from "../../providers/provider.registry";
+import { createProviderTemplateRegistry } from "../../providers/provider-template.registry";
 
-export function createSettingsService(config: AppConfig, configDir?: string) {
+export function createSettingsService(
+  config: AppConfig,
+  configDir?: string,
+  registry?: ProviderRegistry,
+) {
   const settingsDir = configDir ?? path.dirname(config.dbPath);
+  const templates = createProviderTemplateRegistry();
+  const instances = config.providers.instances;
+  const persist = () =>
+    updateFileConfig(settingsDir, (current) => ({
+      ...current,
+      providers: { instances },
+    }));
+  const reconcile = (instance: ProviderSettings) => {
+    registry?.remove(instance.id);
+    if (instance.enabled) registry?.register(templates.create(instance));
+  };
 
   return {
     getProviders() {
-      return config.providers;
+      return { instances };
     },
-    updateProviders(providers: { opencode: ProviderSettings }) {
-      updateFileConfig(settingsDir, (current) => {
-        const next = { ...current, providers };
-        Reflect.deleteProperty(next, "opencodeApiBase");
-        return next;
-      });
-      return { providers, restartRequired: true };
+    getProviderTemplates() {
+      return { templates: templates.list() };
+    },
+    createProvider(input: Omit<ProviderSettings, "id">) {
+      const instance = { ...input, id: randomUUID() };
+      instances.push(instance);
+      try {
+        persist();
+      } catch (error) {
+        instances.pop();
+        throw error;
+      }
+      reconcile(instance);
+      return instance;
+    },
+    updateProvider(id: string, patch: Partial<Omit<ProviderSettings, "id">>) {
+      const index = instances.findIndex((item) => item.id === id);
+      if (index < 0) throw new Error(`Provider instance not found: ${id}`);
+      const previous = instances[index]!;
+      const updated = { ...previous, ...patch, id };
+      instances[index] = updated;
+      try {
+        persist();
+      } catch (error) {
+        instances[index] = previous;
+        throw error;
+      }
+      reconcile(updated);
+      return updated;
+    },
+    deleteProvider(id: string) {
+      const index = instances.findIndex((item) => item.id === id);
+      if (index < 0) throw new Error(`Provider instance not found: ${id}`);
+      const [removed] = instances.splice(index, 1);
+      try {
+        persist();
+      } catch (error) {
+        instances.splice(index, 0, removed!);
+        throw error;
+      }
+      registry?.remove(id);
+      return { id };
     },
   };
 }

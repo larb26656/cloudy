@@ -36,9 +36,10 @@ export function createProviderEventHub(
     ) => ChatEvent | null | Promise<ChatEvent | null>;
   } = {},
 ): ProviderEventHub {
-  const controller = new AbortController();
+  let controller = new AbortController();
   const subscribers = new Set<Subscriber>();
   let producer: Promise<void> | null = null;
+  let stopped = false;
 
   const publish = (event: ChatEvent) => {
     for (const subscriber of subscribers) {
@@ -54,6 +55,7 @@ export function createProviderEventHub(
   };
 
   const start = () => {
+    stopped = false;
     if (producer) return;
     producer = runProducer().finally(() => {
       producer = null;
@@ -61,11 +63,24 @@ export function createProviderEventHub(
   };
 
   const stop = async () => {
+    stopped = true;
     controller.abort();
     await producer;
     for (const subscriber of subscribers) closeSubscriber(subscriber);
     subscribers.clear();
   };
+
+  registry.onChange(() => {
+    if (stopped || !producer) return;
+    const previous = producer;
+    controller.abort();
+    void previous.then(() => {
+      if (stopped) return;
+      controller = new AbortController();
+      producer = null;
+      start();
+    });
+  });
 
   const subscribeEvents = (
     input: ProviderEventSubscriptionInput = {},

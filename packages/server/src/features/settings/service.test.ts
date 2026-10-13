@@ -14,7 +14,22 @@ const config: AppConfig = {
   cors: undefined,
   opencodeApiBase: "http://localhost:4096",
   providers: {
-    opencode: { enabled: true, baseUrl: "http://localhost:4096" },
+    instances: [
+      {
+        id: "opencode",
+        name: "OpenCode",
+        templateId: "opencode",
+        enabled: true,
+        baseUrl: "http://localhost:4096",
+      },
+    ],
+    opencode: {
+      id: "opencode",
+      name: "OpenCode",
+      templateId: "opencode",
+      enabled: true,
+      baseUrl: "http://localhost:4096",
+    },
   },
   tempWorkspaceDir: "/tmp/workspaces",
   extensionWorkspaceDir: "/tmp/extensions",
@@ -28,24 +43,47 @@ afterEach(() => {
 });
 
 describe("settings service", () => {
-  it("persists provider settings and removes the legacy OpenCode setting", () => {
+  it("lists compile-time provider templates", () => {
+    const service = createSettingsService(
+      config,
+      "/tmp/cloudy-settings-templates",
+    );
+
+    expect(service.getProviderTemplates()).toEqual({
+      templates: [
+        {
+          id: "opencode",
+          name: "OpenCode",
+          description: "Connect to an OpenCode server.",
+        },
+      ],
+    });
+  });
+
+  it("persists provider instances", () => {
     const configDir = mkdtempSync(path.join(tmpdir(), "cloudy-settings-"));
     tempDirs.push(configDir);
     const service = createSettingsService(config, configDir);
 
-    const result = service.updateProviders({
-      opencode: { enabled: false, baseUrl: "http://localhost:5000" },
+    const result = service.updateProvider("opencode", {
+      enabled: false,
+      baseUrl: "http://localhost:5000",
     });
 
-    expect(result).toEqual({
-      providers: {
-        opencode: { enabled: false, baseUrl: "http://localhost:5000" },
-      },
-      restartRequired: true,
+    expect(result).toMatchObject({
+      id: "opencode",
+      enabled: false,
+      baseUrl: "http://localhost:5000",
     });
     expect(loadFileConfig(configDir)).toMatchObject({
       providers: {
-        opencode: { enabled: false, baseUrl: "http://localhost:5000" },
+        instances: [
+          expect.objectContaining({
+            id: "opencode",
+            enabled: false,
+            baseUrl: "http://localhost:5000",
+          }),
+        ],
       },
     });
     expect(loadFileConfig(configDir)).not.toHaveProperty("opencodeApiBase");

@@ -12,6 +12,7 @@ export {
   type OpenCodeAdapterOptions,
 } from "./opencode/opencode.adapter";
 export { createEchoAdapter } from "./echo/echo.adapter";
+export { createProviderTemplateRegistry } from "./provider-template.registry";
 export {
   createProviderEventHub,
   type ProviderEventHub,

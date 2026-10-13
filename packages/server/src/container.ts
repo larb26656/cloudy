@@ -15,9 +15,9 @@ import {
 import { createDb, runMigrations, type DbClient } from "./db";
 import {
   createEchoAdapter,
-  createOpenCodeAdapter,
   createProviderEventHub,
   createProviderRegistry,
+  createProviderTemplateRegistry,
 } from "./providers";
 
 export function createContainer(
@@ -49,20 +49,25 @@ export function createContainer(
 
   const ptyRepository = createInMemoryPtyRepository();
   const ptyService = createPtyService(ptyRepository);
-  const proxyService = createProxyService(config.providers.opencode.baseUrl);
+  const proxyService = createProxyService(
+    config.providers.instances[0]?.baseUrl ??
+      config.providers.opencode?.baseUrl ??
+      config.opencodeApiBase,
+  );
+  const templates = createProviderTemplateRegistry();
   const providerRegistry = createProviderRegistry({
     providers: [
       createEchoAdapter(),
-      ...(config.providers.opencode.enabled
-        ? [
-            createOpenCodeAdapter({
-              baseUrl: config.providers.opencode.baseUrl,
-            }),
-          ]
-        : []),
+      ...config.providers.instances
+        .filter((instance) => instance.enabled)
+        .map((instance) => templates.create(instance)),
     ],
   });
-  const settingsService = createSettingsService(config, configDir);
+  const settingsService = createSettingsService(
+    config,
+    configDir,
+    providerRegistry,
+  );
   const sessionsRepository = createSessionsRepository(db);
   const sessionsService = createSessionsService(
     sessionsRepository,

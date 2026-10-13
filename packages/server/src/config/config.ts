@@ -7,12 +7,27 @@ import { expanduser, loadFileConfig } from "./file-loader";
 const BASE_CONFIG_DIR = "~/.config/cloudy";
 
 const ProviderConfigSchema = z.object({
+  id: z.string().default("opencode"),
+  name: z.string().default("OpenCode"),
+  templateId: z.literal("opencode").default("opencode"),
   enabled: z.boolean().default(true),
   baseUrl: z.string().default("http://localhost:4096"),
 });
 
 const ProvidersConfigSchema = z.object({
+  instances: z.array(ProviderConfigSchema).default([
+    {
+      id: "opencode",
+      name: "OpenCode",
+      templateId: "opencode",
+      enabled: true,
+      baseUrl: "http://localhost:4096",
+    },
+  ]),
   opencode: ProviderConfigSchema.default({
+    id: "opencode",
+    name: "OpenCode",
+    templateId: "opencode",
     enabled: true,
     baseUrl: "http://localhost:4096",
   }),
@@ -42,7 +57,22 @@ export const ConfigurableSchema = z.object({
     }),
   opencodeApiBase: z.string().default("http://localhost:4096"),
   providers: ProvidersConfigSchema.default({
-    opencode: { enabled: true, baseUrl: "http://localhost:4096" },
+    instances: [
+      {
+        id: "opencode",
+        name: "OpenCode",
+        templateId: "opencode",
+        enabled: true,
+        baseUrl: "http://localhost:4096",
+      },
+    ],
+    opencode: {
+      id: "opencode",
+      name: "OpenCode",
+      templateId: "opencode",
+      enabled: true,
+      baseUrl: "http://localhost:4096",
+    },
   }),
   publicDir: z.string().optional(),
   tempWorkspaceDir: z.string(),
@@ -86,17 +116,50 @@ export function loadConfig(option?: AppOption): AppConfig {
     option?.opencodeApiBase ??
     envConfig.opencodeApiBase ??
     fileConfig.opencodeApiBase;
+  const configuredInstances = result.data.providers.instances;
   const baseUrl = configuredProvider?.baseUrl ?? legacyBaseUrl;
+  const instances =
+    configuredInstances.length > 0
+      ? configuredInstances.map((instance) =>
+          instance.id === "opencode" && configuredProvider
+            ? {
+                ...instance,
+                ...configuredProvider,
+                id: configuredProvider.id ?? instance.id,
+                name: configuredProvider.name ?? instance.name,
+                templateId: "opencode" as const,
+                enabled: configuredProvider.enabled ?? instance.enabled,
+                baseUrl: baseUrl ?? instance.baseUrl,
+              }
+            : instance,
+        )
+      : [
+          {
+            id: "opencode",
+            name: "OpenCode",
+            templateId: "opencode" as const,
+            enabled: true,
+            baseUrl: baseUrl ?? "http://localhost:4096",
+          },
+        ];
 
   return {
     ...result.data,
     opencodeApiBase: baseUrl ?? result.data.opencodeApiBase,
     providers: {
       ...result.data.providers,
+      instances,
       opencode: {
-        ...result.data.providers.opencode,
         ...configuredProvider,
-        baseUrl: baseUrl ?? result.data.providers.opencode.baseUrl,
+        id: "opencode",
+        name: "OpenCode",
+        templateId: "opencode",
+        enabled: configuredProvider?.enabled ?? instances[0]?.enabled ?? true,
+        baseUrl:
+          baseUrl ??
+          configuredProvider?.baseUrl ??
+          instances[0]?.baseUrl ??
+          "http://localhost:4096",
       },
     },
   };

@@ -54,16 +54,18 @@ function isQuestionNotFoundError(error: unknown): boolean {
 }
 
 export interface OpenCodeAdapterOptions {
+  id?: string;
   baseUrl: string;
   client?: OpencodeClient;
 }
 
 export function createOpenCodeAdapter({
+  id = "opencode",
   baseUrl,
   client = createOpencodeClient({ baseUrl }),
 }: OpenCodeAdapterOptions): ProviderAdapter {
   const adapter = {
-    id: "opencode",
+    id,
     capabilities: {
       streaming: true,
       attachments: true,
@@ -79,7 +81,7 @@ export function createOpenCodeAdapter({
       const result = await client.v2.session.list(input);
       if (result.error) throw result.error;
       return result.data.data.map((session) =>
-        toChatSession(session, "opencode", input.directory),
+        toChatSession(session, id, input.directory),
       );
     },
     async getSession(input: {
@@ -91,7 +93,7 @@ export function createOpenCodeAdapter({
         directory: input.directory,
       });
       if (result.error) throw result.error;
-      return toChatSession(result.data, "opencode", input.directory);
+      return toChatSession(result.data, id, input.directory);
     },
     async getSessionChildren(input: {
       sessionId: string;
@@ -103,7 +105,7 @@ export function createOpenCodeAdapter({
       });
       if (result.error) throw result.error;
       return result.data.map((session) =>
-        toChatSession(session, "opencode", input.directory),
+        toChatSession(session, id, input.directory),
       );
     },
     async getSessionStatuses(input: {
@@ -150,7 +152,7 @@ export function createOpenCodeAdapter({
         metadata: input.metadata,
       });
       if (result.error) throw result.error;
-      return toChatSession(result.data, "opencode", input.directory);
+      return toChatSession(result.data, id, input.directory);
     },
     async updateSession(input: ProviderSessionInput): Promise<ChatSession> {
       const result = await client.session.update({
@@ -160,7 +162,7 @@ export function createOpenCodeAdapter({
         metadata: input.metadata,
       });
       if (result.error) throw result.error;
-      return toChatSession(result.data, "opencode", input.directory);
+      return toChatSession(result.data, id, input.directory);
     },
     async deleteSession(input: {
       sessionId: string;
@@ -397,7 +399,7 @@ export function createOpenCodeAdapter({
       const agents = agentResult.data.data.map(toAgentInfo);
       const providers = providerResult.data.providers;
       return {
-        id: "opencode",
+        id,
         name: "OpenCode",
         capabilities: adapter.capabilities,
         models: providers.flatMap((provider) =>
@@ -417,7 +419,7 @@ export function createOpenCodeAdapter({
       };
     },
     subscribeEvents(input: ProviderEventsInput = {}): AsyncIterable<ChatEvent> {
-      return streamEvents(client, input);
+      return streamEvents(client, input, id);
     },
   } satisfies ProviderAdapter;
 
@@ -427,6 +429,7 @@ export function createOpenCodeAdapter({
 async function* streamEvents(
   client: OpencodeClient,
   input: ProviderEventsInput,
+  providerId: string,
 ): AsyncGenerator<ChatEvent> {
   const result = await client.global.event({
     sseMaxRetryAttempts: 5,
@@ -449,7 +452,7 @@ async function* streamEvents(
     for await (const event of stream) {
       if (stopped) break;
       if (input.directory && event.directory !== input.directory) continue;
-      const normalized = toChatEvent(event, "opencode");
+      const normalized = toChatEvent(event, providerId);
       if (!normalized) continue;
       if (
         input.sessionId &&

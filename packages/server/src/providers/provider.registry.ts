@@ -28,6 +28,7 @@ export function createProviderRegistry({ providers }: ProviderRegistryOptions) {
   const providerMap = new Map(
     providers.map((provider) => [provider.id, provider]),
   );
+  const listeners = new Set<() => void>();
 
   if (providerMap.size !== providers.length) {
     throw new Error("Provider IDs must be unique");
@@ -56,9 +57,31 @@ export function createProviderRegistry({ providers }: ProviderRegistryOptions) {
 
   return {
     get,
-    list: (): ProviderAdapter[] => [...providers],
+    list: (): ProviderAdapter[] => [...providerMap.values()],
+    onChange(listener: () => void) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    register(provider: ProviderAdapter) {
+      if (providerMap.has(provider.id))
+        throw new Error(`Provider already exists: ${provider.id}`);
+      providerMap.set(provider.id, provider);
+      listeners.forEach((listener) => listener());
+    },
+    replace(provider: ProviderAdapter) {
+      if (!providerMap.has(provider.id))
+        throw new ProviderNotFoundError(provider.id);
+      providerMap.set(provider.id, provider);
+      listeners.forEach((listener) => listener());
+    },
+    remove(providerId: string) {
+      if (!providerMap.delete(providerId)) return;
+      listeners.forEach((listener) => listener());
+    },
     async catalog(): Promise<ProviderInfo[]> {
-      return Promise.all(providers.map((provider) => provider.getInfo()));
+      return Promise.all(
+        [...providerMap.values()].map((provider) => provider.getInfo()),
+      );
     },
     listSessions(
       providerId: string,

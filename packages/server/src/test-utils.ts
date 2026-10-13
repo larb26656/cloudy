@@ -18,7 +18,22 @@ export const testConfig: AppConfig = {
   cors: [],
   opencodeApiBase: "http://opencode.test",
   providers: {
-    opencode: { enabled: true, baseUrl: "http://opencode.test" },
+    instances: [
+      {
+        id: "opencode",
+        name: "OpenCode",
+        templateId: "opencode",
+        enabled: true,
+        baseUrl: "http://opencode.test",
+      },
+    ],
+    opencode: {
+      id: "opencode",
+      name: "OpenCode",
+      templateId: "opencode",
+      enabled: true,
+      baseUrl: "http://opencode.test",
+    },
   },
   tempWorkspaceDir: "/tmp/workspaces",
   extensionWorkspaceDir: "/tmp/extensions",
@@ -48,6 +63,12 @@ export function createTestApp(configOverrides: Partial<AppConfig> = {}): {
     (configOverrides.opencodeApiBase === undefined
       ? testConfig.providers
       : {
+          instances: [
+            {
+              ...testConfig.providers.instances[0]!,
+              baseUrl: configOverrides.opencodeApiBase,
+            },
+          ],
           opencode: {
             ...testConfig.providers.opencode,
             baseUrl: configOverrides.opencodeApiBase,
