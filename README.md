@@ -17,6 +17,16 @@ pnpm run dev
 - API server: http://localhost:4122
 - Web app: http://localhost:3001
 
+The server loads a `.env` file from the current working directory when it starts.
+Server configuration environment variables use the `CLOUDY_` prefix, for example:
+
+```sh
+CLOUDY_PORT=4122
+CLOUDY_OPENCODE_API_BASE=http://localhost:4096
+```
+
+Keep API keys and other secrets in `.env`, and do not commit that file.
+
 ## Browser Extension Development
 
 The browser extension lives in `apps/browser-extension` and is built with WXT.

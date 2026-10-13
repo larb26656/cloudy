@@ -10,10 +10,16 @@ import type {
   ProviderSessionInput,
 } from "@repo/ai-core";
 
+import OpenAI from "openai";
 interface EchoSession {
   session: ChatSession;
   messages: ChatMessage[];
 }
+
+const client = new OpenAI({
+  apiKey: process.env.DEEP_INFRA_API_KEY,
+  baseURL: "https://api.deepinfra.com/v1/openai",
+});
 
 export function createCloudyAdapter(): ProviderAdapter {
   const sessions = new Map<string, EchoSession>();
@@ -142,11 +148,21 @@ export function createCloudyAdapter(): ProviderAdapter {
         message: assistantMessage,
       });
 
-      let answerMessage = "pong";
+      const response = await client.chat.completions.create({
+        model: "google/gemma-3-12b-it",
+        messages: [
+          {
+            role: "user",
+            content: request.content,
+          },
+        ],
+      });
 
-      if (request.content !== "ping") {
-        answerMessage = "I don't understand what you want";
-      }
+      const answerMessage = response.choices[0]?.message.content || "";
+
+      // if (request.content !== "ping") {
+      //   answerMessage = "I don't understand what you want";
+      // }
 
       void streamEcho(request, answerMessage, value, assistantMessage);
       return { interactionId: request.sessionId, value: null };

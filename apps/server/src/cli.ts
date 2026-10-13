@@ -1,8 +1,12 @@
 import { Command } from "commander";
 import pc from "picocolors";
-import { createServer } from "@repo/server";
+import dotenv from "dotenv";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+
+dotenv.config();
+
+const { createServer } = await import("@repo/server");
 
 function makeText(): string {
   return pc.cyan(
