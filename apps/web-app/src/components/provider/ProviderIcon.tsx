@@ -1,5 +1,6 @@
 import { cn } from "@repo/ui/lib/utils";
 import { Bot } from "lucide-react";
+import { useModels } from "@/hooks/queries/useModels";
 
 interface ProviderIconProps {
   providerId: string;
@@ -7,7 +8,12 @@ interface ProviderIconProps {
 }
 
 export function ProviderIcon({ providerId, className }: ProviderIconProps) {
-  if (providerId !== "opencode") {
+  const { data: providers = [] } = useModels();
+  const providerType = providers.find(
+    (provider) => provider.id === providerId,
+  )?.providerType;
+
+  if ((providerType ?? providerId) !== "opencode") {
     return (
       <Bot aria-hidden="true" className={cn("size-3.5 shrink-0", className)} />
     );

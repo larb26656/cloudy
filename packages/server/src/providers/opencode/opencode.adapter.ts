@@ -402,6 +402,7 @@ export function createOpenCodeAdapter({
       const providers = providerResult.data.providers;
       return {
         id,
+        providerType: "opencode",
         name,
         capabilities: adapter.capabilities,
         models: providers.flatMap((provider) =>

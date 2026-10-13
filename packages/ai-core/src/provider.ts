@@ -26,6 +26,7 @@ export interface ProviderCapabilities {
 
 export interface ProviderInfo {
   id: string;
+  providerType?: string;
   name: string;
   capabilities: ProviderCapabilities;
   models?: ModelInfo[];

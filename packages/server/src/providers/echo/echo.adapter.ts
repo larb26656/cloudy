@@ -34,7 +34,7 @@ export function createEchoAdapter(): ProviderAdapter {
     id: "echo",
     capabilities,
     async getInfo(): Promise<ProviderInfo> {
-      return { id: "echo", name: "Echo", capabilities };
+      return { id: "echo", providerType: "echo", name: "Echo", capabilities };
     },
     async createSession(input: ProviderSessionInput): Promise<ChatSession> {
       const now = new Date().toISOString();

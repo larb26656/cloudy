@@ -48,6 +48,7 @@ const providerCapabilitiesSchema = z.object({
 
 const providerSchema = z.object({
   id: z.string(),
+  providerType: z.string().optional(),
   name: z.string(),
   capabilities: providerCapabilitiesSchema,
   models: z.array(modelSchema).optional(),

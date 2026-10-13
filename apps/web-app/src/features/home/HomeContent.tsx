@@ -6,6 +6,7 @@ import { QuickActions } from "./components/QuickActions";
 import { RecentSessionsSection } from "./components/RecentSessionsSection";
 import { WorkspacesSection } from "./components/WorkspacesSection";
 import { WorkspaceDetail } from "./components/WorkspaceDetail";
+import { ProviderSection } from "./components/ProviderSection";
 
 export function HomeContent({
   onOpenProjectChat,
@@ -47,6 +48,7 @@ export function HomeContent({
       <>
         <HomeGreeting />
         <QuickActions onOpenProjectChat={onOpenProjectChat} />
+        <ProviderSection />
         <RecentSessionsSection />
         <WorkspacesSection onSelectWorkspace={setSelectedWorkspace} />
       </>
