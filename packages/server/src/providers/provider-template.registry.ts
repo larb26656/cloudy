@@ -7,7 +7,11 @@ const providerTemplates = {
     name: "OpenCode",
     description: "Connect to an OpenCode server.",
     create(config: ProviderInstanceConfig): ProviderAdapter {
-      return createOpenCodeAdapter({ id: config.id, baseUrl: config.baseUrl });
+      return createOpenCodeAdapter({
+        id: config.id,
+        name: config.name,
+        baseUrl: config.baseUrl,
+      });
     },
   },
 } as const;

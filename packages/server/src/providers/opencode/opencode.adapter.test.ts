@@ -135,3 +135,27 @@ describe("OpenCode model variants", () => {
     );
   });
 });
+
+describe("OpenCode provider info", () => {
+  it("uses the configured instance name", async () => {
+    const client = {
+      config: {
+        providers: vi.fn().mockResolvedValue({ data: { providers: [] } }),
+      },
+      v2: {
+        agent: { list: vi.fn().mockResolvedValue({ data: { data: [] } }) },
+      },
+    } as unknown as OpencodeClient;
+    const adapter = createOpenCodeAdapter({
+      id: "local-opencode",
+      name: "Local OpenCode",
+      baseUrl: "http://localhost:4096",
+      client,
+    });
+
+    await expect(adapter.getInfo()).resolves.toMatchObject({
+      id: "local-opencode",
+      name: "Local OpenCode",
+    });
+  });
+});

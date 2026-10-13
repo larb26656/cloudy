@@ -55,12 +55,14 @@ function isQuestionNotFoundError(error: unknown): boolean {
 
 export interface OpenCodeAdapterOptions {
   id?: string;
+  name?: string;
   baseUrl: string;
   client?: OpencodeClient;
 }
 
 export function createOpenCodeAdapter({
   id = "opencode",
+  name = "OpenCode",
   baseUrl,
   client = createOpencodeClient({ baseUrl }),
 }: OpenCodeAdapterOptions): ProviderAdapter {
@@ -400,7 +402,7 @@ export function createOpenCodeAdapter({
       const providers = providerResult.data.providers;
       return {
         id,
-        name: "OpenCode",
+        name,
         capabilities: adapter.capabilities,
         models: providers.flatMap((provider) =>
           Object.values(provider.models).map((model) => ({
