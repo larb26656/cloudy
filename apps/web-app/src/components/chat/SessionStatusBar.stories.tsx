@@ -33,7 +33,7 @@ function makeSession(
   };
 }
 
-const sessionDetailPattern = /\/oc\/session\/[^/]+$/;
+const sessionDetailPattern = /\/api\/providers\/opencode\/sessions\/[^/]+$/;
 
 function createHandlers(session: Partial<Session>) {
   return [

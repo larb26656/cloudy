@@ -10,9 +10,7 @@ import {
   SheetTitle,
 } from "@repo/ui/components/sheet";
 import { FilesContainer } from "@/components/files/FilesContainer";
-import { ErrorState } from "@repo/ui/components/error-state";
 import { ChatContainer } from "@/components/chat/ChatContainer";
-import { Center } from "@/components/layout";
 import { useWorkspace } from "@/hooks/queries";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
@@ -36,17 +34,6 @@ export function ChatContent({ tab }: ChatContentProps) {
   );
   const clampedFilesWidth = Math.min(70, Math.max(20, filesWidth));
   const { data: workspace } = useWorkspace(tab.data.workspaceId);
-
-  if (!tab.data.directory) {
-    return (
-      <Center className="h-full">
-        <ErrorState
-          message="This chat tab has no directory and can't be opened."
-          onRetry={() => useTabStore.getState().removeTab(tab.id)}
-        />
-      </Center>
-    );
-  }
 
   const directory = tab.data.directory;
 
@@ -76,7 +63,7 @@ export function ChatContent({ tab }: ChatContentProps) {
             <SheetHeader className="sr-only">
               <SheetTitle>Files</SheetTitle>
             </SheetHeader>
-            <FilesContainer directory={directory} />
+            {directory && <FilesContainer directory={directory} />}
           </SheetContent>
         </Sheet>
       </div>
@@ -96,8 +83,8 @@ export function ChatContent({ tab }: ChatContentProps) {
         <ResizablePanel id="chat" defaultSize="100%" minSize="30%">
           {chatContainer}
         </ResizablePanel>
-        {filesOpen && <ResizableHandle withHandle />}
-        {filesOpen && (
+        {filesOpen && directory && <ResizableHandle withHandle />}
+        {filesOpen && directory && (
           <ResizablePanel
             key="files"
             id="files"

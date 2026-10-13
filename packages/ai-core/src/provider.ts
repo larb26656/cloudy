@@ -15,6 +15,7 @@ import type { ChatSession, RunStatus } from "./session";
 
 export interface ProviderCapabilities {
   streaming: boolean;
+  requiresDirectory?: boolean;
   approvals?: boolean;
   questions?: boolean;
   attachments?: boolean;

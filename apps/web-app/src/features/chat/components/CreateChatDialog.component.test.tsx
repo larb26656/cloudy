@@ -6,6 +6,13 @@ import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 
 const mocks = vi.hoisted(() => ({
   navigate: vi.fn(),
+  providers: [
+    {
+      id: "opencode",
+      name: "OpenCode",
+      capabilities: { requiresDirectory: true },
+    },
+  ],
 }));
 
 vi.mock("@tanstack/react-router", () => ({
@@ -24,7 +31,7 @@ vi.mock("@/hooks/queries", () => ({
 }));
 
 vi.mock("@/hooks/queries/useModels", () => ({
-  useModels: () => ({ data: [{ id: "opencode", name: "OpenCode" }] }),
+  useModels: () => ({ data: mocks.providers }),
 }));
 
 vi.mock("@/features/workspace/WorkspaceSelectStep", () => ({
@@ -53,6 +60,13 @@ describe("CreateChatDialog", () => {
     useRecentDirectoryStore.setState({ paths: [] });
     useDefaultProviderStore.setState({ defaultProviderId: "opencode" });
     mocks.navigate.mockReset();
+    mocks.providers = [
+      {
+        id: "opencode",
+        name: "OpenCode",
+        capabilities: { requiresDirectory: true },
+      },
+    ];
   });
 
   const renderDialog = (onSubmit = vi.fn()) => {
@@ -157,6 +171,27 @@ describe("CreateChatDialog", () => {
     expect(onSubmit).toHaveBeenCalledWith({
       workspaceId: "workspace-1",
       directory: "/work/cloudy",
+      sessionId: null,
+      sessionName: "New Chat",
+      providerId: "opencode",
+    });
+  });
+
+  it("creates a chat immediately when the provider does not require a directory", () => {
+    mocks.providers = [
+      {
+        id: "opencode",
+        name: "OpenCode",
+        capabilities: { requiresDirectory: false },
+      },
+    ];
+    const onSubmit = renderDialog();
+
+    fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
+
+    expect(onSubmit).toHaveBeenCalledWith({
+      workspaceId: null,
+      directory: "",
       sessionId: null,
       sessionName: "New Chat",
       providerId: "opencode",

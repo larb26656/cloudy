@@ -125,8 +125,9 @@ const multipleMessages: MockMessage[] = [
   ),
 ];
 
-const sessionDetailPattern = /\/oc\/session\/[^/]+$/;
-const sessionMessagesPattern = /\/oc\/session\/[^/]+\/message$/;
+const sessionDetailPattern = /\/api\/providers\/opencode\/sessions\/[^/]+$/;
+const sessionMessagesPattern =
+  /\/api\/providers\/opencode\/sessions\/[^/]+\/messages$/;
 const demoSession = { id: DEMO_SESSION_ID, title: "Demo Chat Session" };
 
 function createMessageHandlers(messages: MockMessage[]) {

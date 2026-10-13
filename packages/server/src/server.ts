@@ -5,7 +5,6 @@ import { relative } from "node:path";
 import { openAPIRouteHandler } from "hono-openapi";
 import { Scalar } from "@scalar/hono-api-reference";
 
-import { createProxyController } from "./features/proxy";
 import { createPtyController } from "./features/pty";
 import { createNotificationsController } from "./features/notifications";
 import { createWorkspacesController } from "./features/workspaces";
@@ -45,8 +44,6 @@ export function createApp({
       "Accept",
       "Origin",
       "X-Requested-With",
-      "x-opencode-api-base",
-      "x-opencode-directory",
     ],
     credentials: true,
   });
@@ -58,7 +55,6 @@ export function createApp({
     )
     .onError(domainErrorHandler)
     .get("/api/health", (c) => c.json({ status: "ok" }))
-    .route("/oc", createProxyController(container.proxyService))
     .route(
       "/api/providers",
       createProvidersController(

@@ -134,7 +134,7 @@ export function ChatProvider({
       }
 
       const newSession = await createSessionAsync({
-        directory,
+        directory: directory || undefined,
         providerId,
         agent: agent ?? undefined,
         model: model ?? undefined,

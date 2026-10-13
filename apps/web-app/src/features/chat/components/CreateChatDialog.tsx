@@ -21,6 +21,7 @@ import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { useCreateTempWorkspace, useSessions } from "@/hooks/queries";
 import { ArrowLeft, MessageCircleDashed } from "lucide-react";
 import { ProviderSelector } from "@/components/chat/ProviderSelector";
+import { useModels } from "@/hooks/queries/useModels";
 
 interface CreateChatDialogProps {
   open: boolean;
@@ -52,6 +53,12 @@ export function CreateChatDialog({
   const [selected, setSelected] = useState<ChatTarget | null>(null);
   const [providerId, setProviderId] = useState(defaultProviderId);
   const createTempWorkspace = useCreateTempWorkspace();
+  const { data: providers = [] } = useModels();
+  const selectedProvider = providers.find(
+    (provider) => provider.id === providerId,
+  );
+  const requiresDirectory =
+    selectedProvider?.capabilities.requiresDirectory ?? true;
 
   const { data: sessions = [], isLoading: sessionsLoading } = useSessions({
     directory: selected?.directory ?? "",
@@ -108,6 +115,17 @@ export function CreateChatDialog({
 
   const handleNewChat = () => resolveSession(null, "New Chat");
 
+  const handleDirectorylessChat = () => {
+    onSubmit({
+      workspaceId: null,
+      directory: "",
+      sessionId: null,
+      sessionName: "New Chat",
+      providerId,
+    });
+    handleClose();
+  };
+
   const handleSessionSelect = (session: ChatSession) =>
     resolveSession(session.id, session.title || "New Chat");
 
@@ -133,6 +151,25 @@ export function CreateChatDialog({
         <div className="flex min-h-0 flex-1 flex-col gap-5 py-5">
           {!selected ? (
             <>
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Execution provider</p>
+                <ProviderSelector
+                  providerId={providerId}
+                  onChange={(value) => {
+                    if (value) setProviderId(value);
+                  }}
+                />
+              </div>
+              {!requiresDirectory && (
+                <Button
+                  variant="outline"
+                  className="justify-start gap-2 shrink-0"
+                  onClick={handleDirectorylessChat}
+                >
+                  <MessageCircleDashed />
+                  New Chat
+                </Button>
+              )}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-3">
                   <h3 className="text-sm font-medium">Use a directory</h3>

@@ -230,7 +230,7 @@ export function createSessionsService(
     const request: ProviderMessageRequest = {
       ...input,
       sessionId: record.providerSessionId,
-      directory: record.directory ?? "",
+      directory: record.directory ?? undefined,
     };
     const response = await registry.sendMessage(record.providerId, request);
     return { ...response, interactionId: id };

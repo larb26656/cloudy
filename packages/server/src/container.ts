@@ -1,5 +1,4 @@
 import type { AppConfig } from "./config";
-import { createProxyService } from "./features/proxy/proxy.service";
 import { createSettingsService } from "./features/settings";
 import { createInMemoryPtyRepository } from "./features/pty/in-memory-pty.repository";
 import { createPtyService } from "./features/pty/pty.service";
@@ -49,11 +48,6 @@ export function createContainer(
 
   const ptyRepository = createInMemoryPtyRepository();
   const ptyService = createPtyService(ptyRepository);
-  const proxyService = createProxyService(
-    config.providers.instances[0]?.baseUrl ??
-      config.providers.opencode?.baseUrl ??
-      config.opencodeApiBase,
-  );
   const templates = createProviderTemplateRegistry();
   const providerRegistry = createProviderRegistry({
     providers: [
@@ -83,7 +77,6 @@ export function createContainer(
     notificationsRepository,
     notificationsService,
     ptyService,
-    proxyService,
     settingsService,
     providerRegistry,
     sessionsService,
