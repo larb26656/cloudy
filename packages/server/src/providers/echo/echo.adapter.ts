@@ -18,7 +18,7 @@ interface EchoSession {
 export function createEchoAdapter(): ProviderAdapter {
   const sessions = new Map<string, EchoSession>();
   const subscribers = new Set<(event: ChatEvent) => void>();
-  const capabilities = { streaming: true };
+  const capabilities = { streaming: true, requiresDirectory: false };
 
   const get = (sessionId: string) => {
     const value = sessions.get(sessionId);

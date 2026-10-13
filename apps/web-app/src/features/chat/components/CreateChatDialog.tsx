@@ -160,7 +160,7 @@ export function CreateChatDialog({
                   }}
                 />
               </div>
-              {!requiresDirectory && (
+              {!requiresDirectory ? (
                 <Button
                   variant="outline"
                   className="justify-start gap-2 shrink-0"
@@ -169,30 +169,35 @@ export function CreateChatDialog({
                   <MessageCircleDashed />
                   New Chat
                 </Button>
+              ) : (
+                <>
+                  <div className="flex flex-col gap-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <h3 className="text-sm font-medium">Use a directory</h3>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="shrink-0"
+                        onClick={handleCreateTempChat}
+                        disabled={createTempWorkspace.isPending}
+                      >
+                        <MessageCircleDashed /> Temp chat
+                      </Button>
+                    </div>
+                  </div>
+                  <QuickPathSection onPathSubmit={handleQuickPath} />
+                  <div className="flex items-end justify-between gap-3 border-t pt-4">
+                    <h3 className="text-sm font-medium">
+                      Registered workspaces
+                    </h3>
+                  </div>
+                  <WorkspaceSelectStep
+                    onSelect={handleWorkspaceSelect}
+                    onGoToWorkspaces={handleGoToWorkspaces}
+                    workspaceType="agent"
+                  />
+                </>
               )}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-3">
-                  <h3 className="text-sm font-medium">Use a directory</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="shrink-0"
-                    onClick={handleCreateTempChat}
-                    disabled={createTempWorkspace.isPending}
-                  >
-                    <MessageCircleDashed /> Temp chat
-                  </Button>
-                </div>
-              </div>
-              <QuickPathSection onPathSubmit={handleQuickPath} />
-              <div className="flex items-end justify-between gap-3 border-t pt-4">
-                <h3 className="text-sm font-medium">Registered workspaces</h3>
-              </div>
-              <WorkspaceSelectStep
-                onSelect={handleWorkspaceSelect}
-                onGoToWorkspaces={handleGoToWorkspaces}
-                workspaceType="agent"
-              />
             </>
           ) : (
             <SessionStep

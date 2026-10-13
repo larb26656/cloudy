@@ -187,6 +187,15 @@ describe("CreateChatDialog", () => {
     ];
     const onSubmit = renderDialog();
 
+    expect(
+      screen.queryByRole("textbox", { name: "Chat directory" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Cloudy workspace" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Temp chat" }),
+    ).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
 
     expect(onSubmit).toHaveBeenCalledWith({
