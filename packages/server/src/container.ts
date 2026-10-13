@@ -14,6 +14,7 @@ import {
 } from "./features/sessions";
 import { createDb, runMigrations, type DbClient } from "./db";
 import {
+  createEchoAdapter,
   createOpenCodeAdapter,
   createProviderEventHub,
   createProviderRegistry,
@@ -50,9 +51,16 @@ export function createContainer(
   const ptyService = createPtyService(ptyRepository);
   const proxyService = createProxyService(config.providers.opencode.baseUrl);
   const providerRegistry = createProviderRegistry({
-    providers: config.providers.opencode.enabled
-      ? [createOpenCodeAdapter({ baseUrl: config.providers.opencode.baseUrl })]
-      : [],
+    providers: [
+      createEchoAdapter(),
+      ...(config.providers.opencode.enabled
+        ? [
+            createOpenCodeAdapter({
+              baseUrl: config.providers.opencode.baseUrl,
+            }),
+          ]
+        : []),
+    ],
   });
   const settingsService = createSettingsService(config, configDir);
   const sessionsRepository = createSessionsRepository(db);

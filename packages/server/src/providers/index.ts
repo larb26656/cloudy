@@ -11,6 +11,7 @@ export {
   createOpenCodeAdapter,
   type OpenCodeAdapterOptions,
 } from "./opencode/opencode.adapter";
+export { createEchoAdapter } from "./echo/echo.adapter";
 export {
   createProviderEventHub,
   type ProviderEventHub,
