@@ -10,21 +10,29 @@ import type {
   ProviderSessionInput,
 } from "@repo/ai-core";
 
-import OpenAI from "openai";
+import type { ApiProviderRegistry } from "../../ai-provider/type";
+
 interface EchoSession {
   session: ChatSession;
   messages: ChatMessage[];
 }
 
-const client = new OpenAI({
-  apiKey: process.env.DEEP_INFRA_API_KEY,
-  baseURL: "https://api.deepinfra.com/v1/openai",
-});
-
-export function createCloudyAdapter(): ProviderAdapter {
+export function createCloudyAdapter({
+  apiProviderRegistry,
+  defaultApiProviderId,
+  defaultModel,
+}: {
+  apiProviderRegistry: ApiProviderRegistry;
+  defaultApiProviderId: string;
+  defaultModel: string;
+}): ProviderAdapter {
   const sessions = new Map<string, EchoSession>();
   const subscribers = new Set<(event: ChatEvent) => void>();
-  const capabilities = { streaming: true, requiresDirectory: false };
+  const capabilities = {
+    streaming: true,
+    requiresDirectory: false,
+    models: true,
+  };
 
   const get = (sessionId: string) => {
     const value = sessions.get(sessionId);
@@ -45,6 +53,7 @@ export function createCloudyAdapter(): ProviderAdapter {
         providerType: "cloudy",
         name: "Cloudy",
         capabilities,
+        models: apiProviderRegistry.listModels(),
       };
     },
     async createSession(input: ProviderSessionInput): Promise<ChatSession> {
@@ -148,17 +157,14 @@ export function createCloudyAdapter(): ProviderAdapter {
         message: assistantMessage,
       });
 
-      const response = await client.chat.completions.create({
-        model: "google/gemma-3-12b-it",
-        messages: [
-          {
-            role: "user",
-            content: request.content,
-          },
-        ],
+      const apiProviderId = request.model?.providerId ?? defaultApiProviderId;
+      const apiProvider = apiProviderRegistry.getById(apiProviderId);
+      if (!apiProvider)
+        throw new Error(`API provider not found: ${apiProviderId}`);
+      const answerMessage = await apiProvider.chat({
+        model: request.model?.modelId ?? defaultModel,
+        message: request.content,
       });
-
-      const answerMessage = response.choices[0]?.message.content || "";
 
       // if (request.content !== "ping") {
       //   answerMessage = "I don't understand what you want";

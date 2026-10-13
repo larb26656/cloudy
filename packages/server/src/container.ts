@@ -19,6 +19,8 @@ import {
   createProviderTemplateRegistry,
 } from "./providers";
 import { createCloudyAdapter } from "./providers/cloudy/cloudy.adapter";
+import { createApiProviderRegistry } from "./ai-provider/registry";
+import { createOpenAiProvider } from "./ai-provider/open-ai/open-api.ai-provider";
 
 export function createContainer(
   config: AppConfig,
@@ -50,10 +52,29 @@ export function createContainer(
   const ptyRepository = createInMemoryPtyRepository();
   const ptyService = createPtyService(ptyRepository);
   const templates = createProviderTemplateRegistry();
+  const apiProviderRegistry = createApiProviderRegistry();
+  apiProviderRegistry.register(
+    "deepinfra",
+    createOpenAiProvider({
+      apiKey: process.env.DEEP_INFRA_API_KEY ?? "not-configured",
+      baseURL: "https://api.deepinfra.com/v1/openai",
+    }),
+    [
+      {
+        modelId: process.env.CLOUDY_DEFAULT_MODEL ?? "google/gemma-3-12b-it",
+        name: "Google Gemma 3 12B Instruct",
+      },
+    ],
+  );
   const providerRegistry = createProviderRegistry({
     providers: [
       createEchoAdapter(),
-      createCloudyAdapter(),
+      createCloudyAdapter({
+        apiProviderRegistry,
+        defaultApiProviderId: "deepinfra",
+        defaultModel:
+          process.env.CLOUDY_DEFAULT_MODEL ?? "google/gemma-3-12b-it",
+      }),
       ...config.providers.instances
         .filter((instance) => instance.enabled)
         .map((instance) => templates.create(instance)),

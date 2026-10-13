@@ -18,7 +18,13 @@
     },
     "lint": {
       "dependsOn": ["^lint"],
-      "env": ["SHELL", "PATH", "DEEP_INFRA_API_KEY"]
+      "env": [
+        "SHELL",
+        "PATH",
+        "DEEP_INFRA_API_KEY",
+        "DEEP_INFRA_API_BASE_URL",
+        "CLOUDY_DEFAULT_MODEL"
+      ]
     },
     "check-types": {
       "dependsOn": ["^check-types"]
