@@ -18,6 +18,7 @@ import {
   createProviderRegistry,
   createProviderTemplateRegistry,
 } from "./providers";
+import { createCloudyAdapter } from "./providers/cloudy/cloudy.adapter";
 
 export function createContainer(
   config: AppConfig,
@@ -52,6 +53,7 @@ export function createContainer(
   const providerRegistry = createProviderRegistry({
     providers: [
       createEchoAdapter(),
+      createCloudyAdapter(),
       ...config.providers.instances
         .filter((instance) => instance.enabled)
         .map((instance) => templates.create(instance)),
