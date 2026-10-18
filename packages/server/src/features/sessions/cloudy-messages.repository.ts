@@ -12,6 +12,7 @@ export function createCloudyMessagesRepository(db: DbClient) {
           providerSessionId,
           role: message.role,
           parts: message.parts,
+          error: message.error ?? null,
           createdAt: new Date(message.createdAt),
           updatedAt: message.updatedAt ? new Date(message.updatedAt) : null,
         })
@@ -19,7 +20,11 @@ export function createCloudyMessagesRepository(db: DbClient) {
     },
     update(message: ChatMessage, providerSessionId: string): void {
       db.update(cloudyMessages)
-        .set({ parts: message.parts, updatedAt: new Date() })
+        .set({
+          parts: message.parts,
+          error: message.error ?? null,
+          updatedAt: new Date(),
+        })
         .where(
           and(
             eq(cloudyMessages.id, message.id),
@@ -41,6 +46,7 @@ export function createCloudyMessagesRepository(db: DbClient) {
           role: row.role as ChatMessage["role"],
           parts: row.parts as ChatMessage["parts"],
           createdAt: row.createdAt.toISOString(),
+          ...(row.error ? { error: row.error as ChatMessage["error"] } : {}),
           ...(row.updatedAt ? { updatedAt: row.updatedAt.toISOString() } : {}),
         }));
     },
@@ -78,6 +84,7 @@ export function createCloudyMessagesRepository(db: DbClient) {
         role: row.role as ChatMessage["role"],
         parts: row.parts as ChatMessage["parts"],
         createdAt: row.createdAt.toISOString(),
+        ...(row.error ? { error: row.error as ChatMessage["error"] } : {}),
         ...(row.updatedAt ? { updatedAt: row.updatedAt.toISOString() } : {}),
       }));
     },

@@ -87,7 +87,8 @@ export function MessageError({ error }: MessageErrorProps) {
   const config = ERROR_CONFIGS[error.name] ?? {
     icon: ServerCrash,
     title: "Error",
-    getDescription: () => null,
+    getDescription: (value: MessageErrorInfo) =>
+      value.message ?? value.data.message ?? null,
   };
   const { icon: Icon, title, getDescription } = config;
   const description = getDescription(error);

@@ -112,13 +112,20 @@ describe("createCloudyAdapter", () => {
       providerSessionId: session.id,
     });
 
-    await adapter.sendMessage!({
+    const firstResponse = await adapter.sendMessage!({
       sessionId: session.id,
       content: "Hello",
       model: { providerId: "selected-connection", modelId: "selected-model" },
     });
+    const secondResponse = await adapter.sendMessage!({
+      sessionId: session.id,
+      content: "Again",
+      model: { providerId: "selected-connection", modelId: "selected-model" },
+    });
 
     expect(receivedModel).toBe("selected-model");
+    expect(firstResponse.isFirstMessage).toBe(true);
+    expect(secondResponse.isFirstMessage).toBe(false);
   });
 
   it("returns older message pages in insertion order when timestamps collide", async () => {

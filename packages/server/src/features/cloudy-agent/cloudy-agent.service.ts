@@ -2,7 +2,9 @@ import { randomUUID } from "node:crypto";
 import type {
   ChatEvent,
   ChatMessage,
+  ChatSession,
   ProviderMessageRequest,
+  ProviderSessionInput,
 } from "@repo/ai-core";
 import type { CloudyMessagesRepository } from "../sessions/cloudy-messages.repository";
 import type { LLM } from "../../lib/llm-provider";
@@ -18,7 +20,33 @@ export function createCloudyAgent({
 }) {
   const runs = new Map<string, AbortController>();
 
+  const createSession = async (
+    input: ProviderSessionInput,
+  ): Promise<ChatSession> => {
+    const createdAt = new Date();
+    const now = createdAt.toISOString();
+    return {
+      id: randomUUID(),
+      title:
+        input.title ??
+        `New Session ${createdAt.toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" })}`,
+      status: "idle",
+      runStatus: "idle",
+      providerId: "cloudy",
+      createdAt: now,
+      updatedAt: now,
+      directory: input.directory,
+      parentId: input.parentId,
+    };
+  };
+
   const sendMessage = async (request: ProviderMessageRequest) => {
+    const isFirstMessage =
+      messagesRepository.list(request.sessionId).length === 0;
+
+    if (isFirstMessage) {
+      console.log("do some thing");
+    }
     const userMessage: ChatMessage = {
       id: randomUUID(),
       sessionId: request.sessionId,
@@ -81,7 +109,7 @@ export function createCloudyAgent({
       runStatus: "running",
     });
     void run(request, provider, modelId, history, assistantMessage, controller);
-    return { interactionId: request.sessionId, value: null };
+    return { interactionId: request.sessionId, value: null, isFirstMessage };
   };
 
   const abortSession = async (sessionId: string): Promise<void> => {
@@ -186,5 +214,5 @@ export function createCloudyAgent({
     }
   }
 
-  return { sendMessage, abortSession };
+  return { createSession, sendMessage, abortSession };
 }

@@ -7,6 +7,7 @@ export const cloudyMessages = sqliteTable(
     providerSessionId: text("provider_session_id").notNull(),
     role: text("role").notNull(),
     parts: text("parts", { mode: "json" }).$type<unknown[]>().notNull(),
+    error: text("error", { mode: "json" }).$type<unknown>(),
     createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
     updatedAt: integer("updated_at", { mode: "timestamp" }),
   },

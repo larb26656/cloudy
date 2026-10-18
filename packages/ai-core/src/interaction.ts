@@ -79,6 +79,7 @@ export interface ProviderQuestionRequest {
 export interface InteractionResponse {
   interactionId: string;
   value: unknown;
+  isFirstMessage?: boolean;
 }
 
 export interface InteractionResponseInput {

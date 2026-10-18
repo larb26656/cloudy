@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import type {
   ChatEvent,
   ChatSession,
@@ -71,19 +70,7 @@ export function createCloudyAdapter({
       };
     },
     async createSession(input: ProviderSessionInput): Promise<ChatSession> {
-      const now = new Date().toISOString();
-      const session: ChatSession = {
-        id: randomUUID(),
-        title: input.title ?? "Cloudy chat",
-        status: "idle",
-        runStatus: "idle",
-        providerId: "cloudy",
-        createdAt: now,
-        updatedAt: now,
-        directory: input.directory,
-        parentId: input.parentId,
-      };
-      return session;
+      return agent.createSession(input);
     },
     async listSessions(input: { directory?: string; limit?: number }) {
       const values = sessionsRepository

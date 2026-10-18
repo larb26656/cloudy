@@ -1,0 +1,1 @@
+ALTER TABLE `cloudy_messages` ADD `error` text;
