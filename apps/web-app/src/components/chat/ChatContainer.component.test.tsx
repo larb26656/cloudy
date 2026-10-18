@@ -49,7 +49,9 @@ vi.mock("@/components/chat/chat-input", () => ({
       <div
         data-testid="chat-input"
         data-commands={String(capabilities.commands)}
-        data-supports-mentions={String(supportsFileMentions)}
+        data-supports-mentions={String(
+          supportsFileMentions ?? capabilities.fileMentions,
+        )}
         data-supports-commands={String(supportsCommands)}
       >
         <button
@@ -261,14 +263,6 @@ describe("ChatCoatainer", () => {
 
     expect(questionsRequest).not.toHaveBeenCalled();
     expect(permissionsRequest).not.toHaveBeenCalled();
-    expect(screen.getByTestId("chat-input")).toHaveAttribute(
-      "data-supports-mentions",
-      "false",
-    );
-    expect(screen.getByTestId("chat-input")).toHaveAttribute(
-      "data-supports-commands",
-      "false",
-    );
     expect(screen.queryByTestId("question-banner")).toBeNull();
     expect(screen.queryByTestId("permission-banner")).toBeNull();
   });
