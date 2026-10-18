@@ -31,9 +31,14 @@ function renderSessionData(sessionId: string | null = SESSION_ID) {
   const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
-  return renderHook(() => useSessionData({ sessionId }), {
-    wrapper,
-  });
+  return renderHook(
+    () =>
+      useSessionData({
+        sessionId,
+        capabilities: { approvals: true, questions: true },
+      }),
+    { wrapper },
+  );
 }
 
 beforeEach(() => {
@@ -125,5 +130,33 @@ describe("useSessionData", () => {
     await waitFor(() => expect(result.current.questions).toEqual([]));
     expect(questionsRequest).not.toHaveBeenCalled();
     expect(permissionsRequest).not.toHaveBeenCalled();
+  });
+
+  test("does not fetch interactions when capabilities are unknown", async () => {
+    const questionsRequest = vi.fn(() => HttpResponse.json([question]));
+    const permissionsRequest = vi.fn(() => HttpResponse.json([permission]));
+    server.use(
+      http.get(
+        new RegExp(`/api/sessions/${SESSION_ID}/questions$`),
+        questionsRequest,
+      ),
+      http.get(
+        new RegExp(`/api/sessions/${SESSION_ID}/permissions$`),
+        permissionsRequest,
+      ),
+    );
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+
+    renderHook(() => useSessionData({ sessionId: SESSION_ID }), { wrapper });
+
+    await waitFor(() => {
+      expect(questionsRequest).not.toHaveBeenCalled();
+      expect(permissionsRequest).not.toHaveBeenCalled();
+    });
   });
 });

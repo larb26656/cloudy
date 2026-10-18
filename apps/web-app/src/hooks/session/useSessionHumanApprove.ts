@@ -17,12 +17,12 @@ export function useSessionData({
 }: UseSessionDataProps) {
   const { data: questions = [] } = useSessionQuestions({
     sessionId: sessionId ?? "",
-    enabled: capabilities?.questions ?? true,
+    enabled: capabilities?.questions ?? false,
   });
 
   const { data: permissions = [] } = useSessionPermissions({
     sessionId: sessionId ?? "",
-    enabled: capabilities?.approvals ?? true,
+    enabled: capabilities?.approvals ?? false,
   });
 
   const { data: childSessions = [] } = useSessionChildren({
