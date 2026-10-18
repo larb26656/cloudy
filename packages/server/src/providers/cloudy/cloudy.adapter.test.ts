@@ -47,12 +47,23 @@ describe("createCloudyAdapter", () => {
       id: "test",
       type: "test",
       config: {},
-      models: [{ modelId: "test-model", name: "Test model" }],
+      models: [
+        {
+          modelId: "test-model",
+          name: "Test model",
+          providerName: "Test connection",
+        },
+      ],
     });
     const { adapter } = createAdapter(apiProviderRegistry);
 
     expect((await adapter.getInfo()).models).toEqual([
-      { modelId: "test-model", name: "Test model", providerId: "test" },
+      {
+        modelId: "test-model",
+        name: "Test model",
+        providerName: "Test connection",
+        providerId: "test",
+      },
     ]);
   });
 

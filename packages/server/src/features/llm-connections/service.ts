@@ -80,6 +80,7 @@ export function createLLMConnectionService(
         models: connection.modelIds.map((modelId) => ({
           modelId,
           name: modelId,
+          providerName: connection.name,
         })),
       },
       replace,

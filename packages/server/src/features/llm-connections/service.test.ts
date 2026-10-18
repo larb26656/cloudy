@@ -39,6 +39,9 @@ describe("LLM providers service", () => {
     expect(
       llm.getClient(connection.id)?.models.map((model) => model.modelId),
     ).toEqual(["model-a", "model-b"]);
+    expect(llm.getClient(connection.id)?.models[0]?.providerName).toBe(
+      "Primary",
+    );
 
     expect(loadFileConfig(configDir)).toMatchObject({
       llm: {

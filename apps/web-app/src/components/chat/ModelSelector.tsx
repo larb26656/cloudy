@@ -47,6 +47,7 @@ function fromSelectorModel(model: SelectorModel): ModelInfo {
   return {
     providerId: model.providerId,
     modelId: model.modelId,
+    providerName: model.providerName,
     name: model.name,
     description: model.description,
     capabilities: model.capabilities,
@@ -79,9 +80,14 @@ export function ModelSelector({
   );
   const { isMobile } = useDeviceType();
 
+  const providerNamesById = new Map(
+    providers.map((provider) => [provider.id, provider.name]),
+  );
   const modelsByProvider = new Map<string, SelectorModel[]>();
   for (const provider of providers) {
     for (const model of provider.models ?? []) {
+      if (model.providerName)
+        providerNamesById.set(model.providerId, model.providerName);
       const selectorModel = toSelectorModel(model);
       const models = modelsByProvider.get(model.providerId) ?? [];
       models.push(selectorModel);
@@ -95,7 +101,9 @@ export function ModelSelector({
       label: (
         <>
           {providerIcons[providerId] ?? <Bot className="size-4" />}
-          {providerNames[providerId] ?? providerId}
+          {providerNamesById.get(providerId) ??
+            providerNames[providerId] ??
+            providerId}
         </>
       ),
       models,

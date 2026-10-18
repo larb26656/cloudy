@@ -21,6 +21,7 @@ export interface ModelVariantInfo {
 
 export interface ModelInfo extends ModelReference {
   name: string;
+  providerName?: string;
   description?: string;
   capabilities?: ModelCapabilities;
   variants?: ModelVariantInfo[];

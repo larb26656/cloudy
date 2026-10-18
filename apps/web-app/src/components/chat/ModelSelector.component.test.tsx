@@ -43,6 +43,19 @@ const fixtures: AgentProviderInfo[] = [
       },
     ],
   },
+  {
+    id: "cloudy",
+    name: "Cloudy",
+    capabilities: { streaming: true },
+    models: [
+      {
+        providerId: "agent-cloudy-uuid",
+        providerName: "Gemma Cloudy Connection",
+        modelId: "google/gemma-3-12b-it",
+        name: "google/gemma-3-12b-it",
+      },
+    ],
+  },
 ];
 
 const gpt5: ModelInfo = {
@@ -137,6 +150,13 @@ describe("ModelSelector — favorites", () => {
     expect(screen.queryByText("Favorites")).not.toBeInTheDocument();
     expect(screen.getByText("OpenAI")).toBeInTheDocument();
     expect(screen.getByText("Anthropic")).toBeInTheDocument();
+  });
+
+  test("shows the LLM connection name instead of its UUID", () => {
+    renderOpen();
+
+    expect(groupByLabel("Gemma Cloudy Connection")).toBeInTheDocument();
+    expect(screen.queryByText("agent-cloudy-uuid")).not.toBeInTheDocument();
   });
 
   test("shows the provider and model ID for each model", () => {
