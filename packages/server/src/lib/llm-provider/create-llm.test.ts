@@ -5,6 +5,17 @@ import { LLMProviderConflictError, LLMProviderNotFoundError } from "./errors";
 
 const definition = {
   configSchema: z.object({ apiKey: z.string().min(1) }),
+  settings: {
+    name: "Test",
+    configFields: [
+      {
+        key: "apiKey",
+        label: "API key",
+        type: "secret" as const,
+        required: true,
+      },
+    ],
+  },
   create: vi.fn(() => ({
     chat: vi.fn(
       async ({ message }: { message: string }) => `reply: ${message}`,
@@ -35,6 +46,13 @@ describe("createLLM", () => {
     expect(llm.getClient("client-1")).toBe(client);
     expect(llm.listClients()).toEqual([client]);
     expect(llm.listProviders()).toEqual(["test"]);
+    expect(llm.listProviderTypes()).toEqual([
+      {
+        id: "test",
+        name: "Test",
+        configFields: definition.settings.configFields,
+      },
+    ]);
     expect(llm.listModels()).toEqual(client.models);
     await expect(
       client.chat({ model: "model-1", message: "hello" }),

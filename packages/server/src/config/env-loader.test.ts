@@ -85,6 +85,7 @@ describe("loadEnvConfig", () => {
         "cors",
         "opencodeApiBase",
         "providers",
+        "llm",
         "publicDir",
         "tempWorkspaceDir",
         "extensionWorkspaceDir",

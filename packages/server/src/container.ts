@@ -1,5 +1,6 @@
 import type { AppConfig } from "./config";
 import { createSettingsService } from "./features/settings";
+import { createLLMProvidersService } from "./features/llm-providers";
 import { createInMemoryPtyRepository } from "./features/pty/in-memory-pty.repository";
 import { createPtyService } from "./features/pty/pty.service";
 import { createNotificationsRepository } from "./features/notifications/notifications.repository";
@@ -53,28 +54,18 @@ export function createContainer(
   const templates = createProviderTemplateRegistry();
   const apiProviderRegistry = createLLM();
   apiProviderRegistry.registerProvider("openai", openaiProviderDefinition);
-  apiProviderRegistry.registerClient({
-    id: "deepinfra",
-    type: "openai",
-    config: {
-      apiKey: process.env.DEEP_INFRA_API_KEY ?? "not-configured",
-      baseURL: "https://api.deepinfra.com/v1/openai",
-    },
-    models: [
-      {
-        modelId: process.env.CLOUDY_DEFAULT_MODEL ?? "google/gemma-3-12b-it",
-        name: "Google Gemma 3 12B Instruct",
-      },
-    ],
-  });
+  const llmProvidersService = createLLMProvidersService(
+    config,
+    configDir,
+    apiProviderRegistry,
+  );
+  llmProvidersService.registerConfiguredConnections();
   const providerRegistry = createProviderRegistry({
     providers: [
       createEchoAdapter(),
       createCloudyAdapter({
         apiProviderRegistry,
-        defaultApiProviderId: "deepinfra",
-        defaultModel:
-          process.env.CLOUDY_DEFAULT_MODEL ?? "google/gemma-3-12b-it",
+        getDefault: () => llmProvidersService.getDefault(),
       }),
       ...config.providers.instances
         .filter((instance) => instance.enabled)
@@ -102,6 +93,7 @@ export function createContainer(
     notificationsService,
     ptyService,
     settingsService,
+    llmProvidersService,
     providerRegistry,
     sessionsService,
     providerEventHub,

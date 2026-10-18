@@ -33,6 +33,28 @@ const ProvidersConfigSchema = z.object({
   }),
 });
 
+const LLMConnectionSchema = z
+  .object({
+    id: z.string().min(1),
+    name: z.string().min(1),
+    type: z.string().min(1),
+    config: z.record(z.string(), z.unknown()).optional(),
+    apiKey: z.string().optional(),
+    baseURL: z.string().optional(),
+    modelIds: z.array(z.string().min(1)).optional(),
+    modelId: z.string().min(1).optional(),
+  })
+  .transform(
+    ({ modelIds, modelId, config, apiKey, baseURL, ...connection }) => ({
+      ...connection,
+      modelIds: modelIds ?? (modelId ? [modelId] : []),
+      config: config ?? {
+        ...(apiKey ? { apiKey } : {}),
+        ...(baseURL ? { baseURL } : {}),
+      },
+    }),
+  );
+
 export const ConfigurableSchema = z.object({
   dbPath: z.string(),
   ui: z
@@ -74,6 +96,17 @@ export const ConfigurableSchema = z.object({
       baseUrl: "http://localhost:4096",
     },
   }),
+  llm: z
+    .object({
+      connections: z.array(LLMConnectionSchema).default([]),
+      defaultConnectionId: z.string().nullable().default(null),
+      defaultModelId: z.string().nullable().default(null),
+    })
+    .default({
+      connections: [],
+      defaultConnectionId: null,
+      defaultModelId: null,
+    }),
   publicDir: z.string().optional(),
   tempWorkspaceDir: z.string(),
   extensionWorkspaceDir: z.string(),

@@ -17,6 +17,15 @@ export interface LLMProviderAdapter {
 
 export interface LLMProviderDefinition<TConfig = unknown> {
   configSchema: z.ZodType<TConfig>;
+  settings: {
+    name: string;
+    configFields: {
+      key: string;
+      label: string;
+      type: "text" | "url" | "secret";
+      required?: boolean;
+    }[];
+  };
   create(config: TConfig): LLMProviderAdapter;
 }
 

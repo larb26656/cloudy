@@ -3,6 +3,7 @@ import {
   Palette,
   MessageSquareText,
   PlugZap,
+  BrainCircuit,
   type LucideIcon,
 } from "lucide-react";
 
@@ -15,6 +16,13 @@ export interface SettingsSection {
 }
 
 export const settingsSections: SettingsSection[] = [
+  {
+    id: "llm-connections",
+    label: "LLM Connections",
+    description: "Configure API connections used by Cloudy AI.",
+    to: "/settings/llm-connections",
+    icon: BrainCircuit,
+  },
   {
     id: "providers",
     label: "Providers",

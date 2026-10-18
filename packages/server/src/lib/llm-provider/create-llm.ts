@@ -25,7 +25,7 @@ export function createLLM() {
       providers.set(type, definition as LLMProviderDefinition);
     },
 
-    registerClient(options: RegisterClientOptions) {
+    registerClient(options: RegisterClientOptions, replace = false) {
       const definition = providers.get(options.type);
 
       if (!definition) {
@@ -45,7 +45,7 @@ export function createLLM() {
         ...adapter,
       };
 
-      if (clients.has(client.id)) {
+      if (clients.has(client.id) && !replace) {
         throw new LLMProviderConflictError(
           `Client "${client.id}" already exists`,
         );
@@ -61,6 +61,20 @@ export function createLLM() {
     listClients: () => [...clients.values()],
 
     listProviders: () => [...providers.keys()],
+
+    listProviderTypes: () =>
+      [...providers.entries()].map(([id, definition]) => ({
+        id,
+        name: definition.settings.name,
+        configFields: definition.settings.configFields,
+      })),
+
+    parseProviderConfig(type: string, config: unknown) {
+      const definition = providers.get(type);
+      if (!definition)
+        throw new LLMProviderNotFoundError(`Unknown provider: ${type}`);
+      return definition.configSchema.parse(config);
+    },
 
     listModels: () => [...clients.values()].flatMap((client) => client.models),
 

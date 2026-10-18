@@ -11,6 +11,18 @@ type OpenAIConfig = z.infer<typeof configSchema>;
 
 export const openaiProviderDefinition = {
   configSchema,
+  settings: {
+    name: "OpenAI-compatible",
+    configFields: [
+      {
+        key: "apiKey",
+        label: "API key",
+        type: "secret" as const,
+        required: true,
+      },
+      { key: "baseURL", label: "Base URL", type: "url" as const },
+    ],
+  },
 
   create(config) {
     const client = new OpenAI({

@@ -31,6 +31,7 @@ const config: AppConfig = {
       baseUrl: "http://localhost:4096",
     },
   },
+  llm: { connections: [], defaultConnectionId: null, defaultModelId: null },
   tempWorkspaceDir: "/tmp/workspaces",
   extensionWorkspaceDir: "/tmp/extensions",
 };

@@ -17,6 +17,7 @@ import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as WorkspaceWorkspaceIdRouteImport } from './routes/workspace/$workspaceId'
 import { Route as SettingsQuickPhrasesRouteImport } from './routes/settings/quick-phrases'
 import { Route as SettingsProvidersRouteImport } from './routes/settings/providers'
+import { Route as SettingsLlmConnectionsRouteImport } from './routes/settings/llm-connections'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
 import { Route as SettingsAgentModelRouteImport } from './routes/settings/agent-model'
 
@@ -60,6 +61,11 @@ const SettingsProvidersRoute = SettingsProvidersRouteImport.update({
   path: '/providers',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsLlmConnectionsRoute = SettingsLlmConnectionsRouteImport.update({
+  id: '/llm-connections',
+  path: '/llm-connections',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsAppearanceRoute = SettingsAppearanceRouteImport.update({
   id: '/appearance',
   path: '/appearance',
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/llm-connections': typeof SettingsLlmConnectionsRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/quick-phrases': typeof SettingsQuickPhrasesRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
@@ -89,6 +96,7 @@ export interface FileRoutesByTo {
   '/pet': typeof PetRoute
   '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/llm-connections': typeof SettingsLlmConnectionsRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/quick-phrases': typeof SettingsQuickPhrasesRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
@@ -102,6 +110,7 @@ export interface FileRoutesById {
   '/settings': typeof SettingsRouteWithChildren
   '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
+  '/settings/llm-connections': typeof SettingsLlmConnectionsRoute
   '/settings/providers': typeof SettingsProvidersRoute
   '/settings/quick-phrases': typeof SettingsQuickPhrasesRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
@@ -116,6 +125,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/agent-model'
     | '/settings/appearance'
+    | '/settings/llm-connections'
     | '/settings/providers'
     | '/settings/quick-phrases'
     | '/workspace/$workspaceId'
@@ -127,6 +137,7 @@ export interface FileRouteTypes {
     | '/pet'
     | '/settings/agent-model'
     | '/settings/appearance'
+    | '/settings/llm-connections'
     | '/settings/providers'
     | '/settings/quick-phrases'
     | '/workspace/$workspaceId'
@@ -139,6 +150,7 @@ export interface FileRouteTypes {
     | '/settings'
     | '/settings/agent-model'
     | '/settings/appearance'
+    | '/settings/llm-connections'
     | '/settings/providers'
     | '/settings/quick-phrases'
     | '/workspace/$workspaceId'
@@ -211,6 +223,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsProvidersRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/llm-connections': {
+      id: '/settings/llm-connections'
+      path: '/llm-connections'
+      fullPath: '/settings/llm-connections'
+      preLoaderRoute: typeof SettingsLlmConnectionsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/settings/appearance': {
       id: '/settings/appearance'
       path: '/appearance'
@@ -231,6 +250,7 @@ declare module '@tanstack/react-router' {
 interface SettingsRouteChildren {
   SettingsAgentModelRoute: typeof SettingsAgentModelRoute
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
+  SettingsLlmConnectionsRoute: typeof SettingsLlmConnectionsRoute
   SettingsProvidersRoute: typeof SettingsProvidersRoute
   SettingsQuickPhrasesRoute: typeof SettingsQuickPhrasesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
@@ -239,6 +259,7 @@ interface SettingsRouteChildren {
 const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAgentModelRoute: SettingsAgentModelRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
+  SettingsLlmConnectionsRoute: SettingsLlmConnectionsRoute,
   SettingsProvidersRoute: SettingsProvidersRoute,
   SettingsQuickPhrasesRoute: SettingsQuickPhrasesRoute,
   SettingsIndexRoute: SettingsIndexRoute,

@@ -129,6 +129,50 @@ describe("ConfigurableSchema", () => {
       });
     });
   });
+
+  it("accepts multiple LLM connections of the same provider type", () => {
+    const connections = parseConfigurable({
+      dbPath: "/x",
+      llm: {
+        connections: [
+          {
+            id: "one",
+            name: "One",
+            type: "openai",
+            apiKey: "secret-1",
+            modelIds: ["m1", "m2"],
+          },
+          {
+            id: "two",
+            name: "Two",
+            type: "openai",
+            apiKey: "secret-2",
+            modelIds: ["m3"],
+          },
+        ],
+      },
+    }).llm.connections;
+    expect(connections).toHaveLength(2);
+    expect(connections[0]?.modelIds).toEqual(["m1", "m2"]);
+  });
+
+  it("normalizes the previous single-model config shape", () => {
+    const config = parseConfigurable({
+      dbPath: "/x",
+      llm: {
+        connections: [
+          {
+            id: "one",
+            name: "One",
+            type: "openai",
+            apiKey: "secret",
+            modelId: "legacy-model",
+          },
+        ],
+      },
+    });
+    expect(config.llm.connections[0]?.modelIds).toEqual(["legacy-model"]);
+  });
 });
 
 describe("loadConfig", () => {

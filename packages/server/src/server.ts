@@ -12,6 +12,7 @@ import { createBrowserWorkspaceController } from "./features/browser-workspace";
 import { createProvidersController } from "./features/providers";
 import { createSessionsController } from "./features/sessions";
 import { createSettingsController } from "./features/settings";
+import { createLLMProvidersController } from "./features/llm-providers";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
 
@@ -65,6 +66,10 @@ export function createApp({
     )
     .route("/api/sessions", createSessionsController(container.sessionsService))
     .route("/api/settings", createSettingsController(container.settingsService))
+    .route(
+      "/api/llm-providers",
+      createLLMProvidersController(container.llmProvidersService),
+    )
     .route("/api/pty", createPtyController(container.ptyService))
     .route(
       "/api/workspaces",

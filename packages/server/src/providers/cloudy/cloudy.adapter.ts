@@ -19,12 +19,10 @@ interface EchoSession {
 
 export function createCloudyAdapter({
   apiProviderRegistry,
-  defaultApiProviderId,
-  defaultModel,
+  getDefault,
 }: {
   apiProviderRegistry: LLM;
-  defaultApiProviderId: string;
-  defaultModel: string;
+  getDefault: () => { connectionId: string; modelId: string } | null;
 }): ProviderAdapter {
   const sessions = new Map<string, EchoSession>();
   const subscribers = new Set<(event: ChatEvent) => void>();
@@ -157,12 +155,17 @@ export function createCloudyAdapter({
         message: assistantMessage,
       });
 
-      const apiProviderId = request.model?.providerId ?? defaultApiProviderId;
+      const currentDefault = getDefault();
+      const apiProviderId =
+        request.model?.providerId ?? currentDefault?.connectionId;
+      const modelId = request.model?.modelId ?? currentDefault?.modelId;
+      if (!apiProviderId || !modelId)
+        throw new Error("No default LLM connection and model are configured");
       const apiProvider = apiProviderRegistry.getClient(apiProviderId);
       if (!apiProvider)
         throw new Error(`API provider not found: ${apiProviderId}`);
       const answerMessage = await apiProvider.chat({
-        model: request.model?.modelId ?? defaultModel,
+        model: modelId,
         message: request.content,
       });
 

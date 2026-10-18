@@ -31,6 +31,11 @@ export const providerKeys = {
   catalog: () => [...providerKeys.root(), "catalog"] as const,
 };
 
+export const llmProviderKeys = {
+  root: () => ["llm-providers"] as const,
+  settings: () => [...llmProviderKeys.root(), "settings"] as const,
+};
+
 export const settingsKeys = {
   root: () => ["settings"] as const,
   providers: () => [...settingsKeys.root(), "providers"] as const,
