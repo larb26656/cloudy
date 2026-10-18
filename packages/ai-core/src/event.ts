@@ -27,6 +27,12 @@ export interface SessionStatusEvent extends ChatEventContext {
   runStatus?: RunStatus;
 }
 
+export interface SessionTitleUpdatedEvent extends ChatEventContext {
+  type: "session.title.updated";
+  sessionId: CanonicalSessionId;
+  title: string;
+}
+
 export interface MessageUpdatedEvent extends ChatEventContext {
   type: "message.updated";
   sessionId: CanonicalSessionId;
@@ -70,6 +76,7 @@ export interface RunFailedEvent extends ChatEventContext {
 export type ChatEvent =
   | ProviderConnectionEvent
   | SessionStatusEvent
+  | SessionTitleUpdatedEvent
   | MessageUpdatedEvent
   | MessagePartUpdatedEvent
   | MessageDeltaEvent

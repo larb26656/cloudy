@@ -7,7 +7,8 @@ import type {
   ProviderSessionInput,
 } from "@repo/ai-core";
 import type { CloudyMessagesRepository } from "../sessions/cloudy-messages.repository";
-import type { LLM } from "../../lib/llm-provider";
+import type { LLM, LLMClient } from "../../lib/llm-provider";
+import { namingSession } from "./naming-session";
 
 export function createCloudyAgent({
   apiProviderRegistry,
@@ -44,9 +45,6 @@ export function createCloudyAgent({
     const isFirstMessage =
       messagesRepository.list(request.sessionId).length === 0;
 
-    if (isFirstMessage) {
-      console.log("do some thing");
-    }
     const userMessage: ChatMessage = {
       id: randomUUID(),
       sessionId: request.sessionId,
@@ -108,7 +106,15 @@ export function createCloudyAgent({
       status: "active",
       runStatus: "running",
     });
-    void run(request, provider, modelId, history, assistantMessage, controller);
+    void run(
+      request,
+      isFirstMessage,
+      provider,
+      modelId,
+      history,
+      assistantMessage,
+      controller,
+    );
     return { interactionId: request.sessionId, value: null, isFirstMessage };
   };
 
@@ -118,7 +124,8 @@ export function createCloudyAgent({
 
   async function run(
     request: ProviderMessageRequest,
-    provider: NonNullable<ReturnType<LLM["getClient"]>>,
+    isFirstMessage: boolean,
+    provider: LLMClient,
     model: string,
     history: { role: "user" | "assistant"; content: string }[],
     assistantMessage: ChatMessage,
@@ -170,6 +177,20 @@ export function createCloudyAgent({
         };
         assistantMessage.parts = [{ ...part, text }, finishPart];
         messagesRepository.update(assistantMessage, request.sessionId);
+
+        if (isFirstMessage) {
+          void namingSession(model, provider, text)
+            .then((sessionName) => {
+              publish({
+                type: "session.title.updated",
+                providerId: "cloudy",
+                sessionId: request.sessionId,
+                title: sessionName,
+              });
+            })
+            .catch(() => {});
+        }
+
         publish({
           type: "message.part.updated",
           providerId: "cloudy",

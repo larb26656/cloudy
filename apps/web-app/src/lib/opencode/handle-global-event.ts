@@ -90,6 +90,9 @@ export function handleEvent(
       }
       break;
     }
+    case "session.title.updated":
+      void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
+      break;
     case "message.updated":
     case "message.part.updated":
     case "message.delta":

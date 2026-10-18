@@ -319,6 +319,8 @@ export function createSessionsService(
     if (event.type === "session.status") {
       update.status = event.status;
       update.runStatus = event.runStatus ?? "idle";
+    } else if (event.type === "session.title.updated") {
+      update.title = event.title;
     } else if (event.type === "run.failed") {
       update.status = "idle";
       update.runStatus = "failed";
