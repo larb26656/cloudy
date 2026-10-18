@@ -12,6 +12,20 @@ vi.mock("../db", async (importOriginal) => {
   };
 });
 
+vi.mock("../providers", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../providers")>();
+  return {
+    ...actual,
+    createProviderEventHub: () => ({
+      start: () => {},
+      stop: async () => {},
+      subscribeEvents: () => ({
+        async *[Symbol.asyncIterator]() {},
+      }),
+    }),
+  };
+});
+
 describe("createServer (integration)", () => {
   it("reports the actually bound port when port is 0 and serves /api/health", async () => {
     const configDir = mkdtempSync(join(tmpdir(), "cloudy-server-test-"));
