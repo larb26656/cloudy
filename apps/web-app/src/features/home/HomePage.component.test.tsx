@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { useState } from "react";
+import { act, screen, waitFor } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import HomePage from "./HomePage";
 import { useTabStore } from "@/stores/tabStore";
@@ -59,6 +60,19 @@ vi.mock("@/hooks/useNotificationsStream", () => ({
   useNotificationsStream: () => ({}),
 }));
 
+vi.mock("./tabs/implementations/chat/ChatContent", () => ({
+  ChatContent: () => {
+    const [draft, setDraft] = useState("");
+    return (
+      <textarea
+        aria-label="chat draft"
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+      />
+    );
+  },
+}));
+
 vi.mock("@/providers", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   return {
@@ -102,6 +116,28 @@ beforeEach(() => {
 });
 
 describe("HomePage work-on-a-project flow", () => {
+  test("keeps a chat draft when switching away from and back to its tab", async () => {
+    const chatTabId = useTabStore.getState().addTab("chat", {
+      providerId: "opencode",
+      sessionId: null,
+      workspaceId: null,
+      directory: "/project",
+      sessionName: "New Chat",
+    });
+
+    renderWithProviders(<HomePage />);
+    const user = userEvent.setup();
+    const draftInput = screen.getByRole("textbox", { name: "chat draft" });
+
+    await user.type(draftInput, "unsent draft");
+    act(() => useTabStore.getState().setActiveTab("home"));
+    act(() => useTabStore.getState().setActiveTab(chatTabId));
+
+    expect(screen.getByRole("textbox", { name: "chat draft" })).toHaveValue(
+      "unsent draft",
+    );
+  });
+
   test("selecting a session opens a tab and the dialog unmounts", async () => {
     renderWithProviders(<HomePage />);
     const user = userEvent.setup();

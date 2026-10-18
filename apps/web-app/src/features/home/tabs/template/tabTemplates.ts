@@ -46,14 +46,6 @@ export interface TabTemplate<T = unknown> {
    */
   HeaderActionsComponent?: ComponentType<TabHeaderActionsProps>;
   /**
-   * Keep the tab mounted with CSS `display: none` when inactive, instead of
-   * hiding it with `<Activity mode="hidden">` (the default). Required for
-   * content that breaks when detached from the document or whose background
-   * stream must keep flowing: webview iframes reload when re-attached, and
-   * terminal WebSockets would drop output with no server-side replay.
-   */
-  keepAliveWhenHidden?: boolean;
-  /**
    * Hide the tab title in the mobile app bar (the desktop tab chip is
    * unaffected). Used by chat surfaces where the session name crowds the
    * narrow mobile header; the title stays reachable via the tabs drawer.

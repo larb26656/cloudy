@@ -50,7 +50,6 @@ export const terminalTemplate: TabTemplate<TerminalData> = {
   TitleComponent: TerminalTabTitle,
   ContentComponent: TerminalContent,
   CreateDialog: TerminalCreateDialog,
-  keepAliveWhenHidden: true,
   onClose: (tab) => {
     if (tab.type !== "terminal") return;
     const ptyId = tab.data.ptyId;

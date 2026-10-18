@@ -123,7 +123,6 @@ interface TabTemplate<T = unknown> {
   defaultData?: T; // initial `data` for newly-created tabs
   getWorkspaceId?: (data: T) => string | null; // workspace dot for the tab chip and All Tabs
   onClose?: (tab: Tab) => void; // cleanup hook (e.g. desk deletes its flow)
-  keepAliveWhenHidden?: boolean; // keep mounted with CSS `display:none` instead of `<Activity mode="hidden">` — required for webview (iframe reloads on re-attach) and terminal (WS output gap, no server replay)
   hideMobileAppBarTitle?: boolean; // hide the tab title in the mobile app bar (desktop tab chip unaffected) — used by chat/bot-chat where the session name crowds the narrow header
 }
 ```
@@ -145,7 +144,7 @@ template automatically extends the union types — no manual type edits needed.
    export const templates = { chat: chatTemplate, /*...*/, my: myTemplate } as const;
    ```
 3. Set `TitleComponent` (and `getWorkspaceId` when applicable) in the template. Both the tab chip and All Tabs use them.
-4. That's it — types (`Tab`, `TabDataMap`) and the tab bar UI pick it up automatically.
+4. That's it — types (`Tab`, `TabDataMap`) and the tab bar UI pick it up automatically. Tab contents stay mounted while hidden to preserve local state.
 
 ### Tab persistence
 
