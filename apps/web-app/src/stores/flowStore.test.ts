@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { migrateBotNodeType } from "./flowStore";
 
 describe("flowStore migration", () => {
-  it("renames persisted bot nodes to bot-chat", () => {
+  it("renames persisted bot nodes to chat", () => {
     const state = {
       flows: {
         "desk-1": {
@@ -33,7 +33,7 @@ describe("flowStore migration", () => {
           nodes: [
             {
               ...state.flows["desk-1"]!.nodes[0],
-              type: "bot-chat",
+              type: "chat",
               data: { workspaceId: "workspace-1", model: null },
             },
             {
@@ -49,7 +49,7 @@ describe("flowStore migration", () => {
   it("does not migrate current flow data", () => {
     const state = { flows: {} };
 
-    expect(migrateBotNodeType(state, 3)).toBe(state);
+    expect(migrateBotNodeType(state, 4)).toBe(state);
   });
 
   it("normalizes legacy chat-node model selections to ModelInfo", () => {
@@ -100,12 +100,13 @@ describe("flowStore migration", () => {
                   modelId: "gpt-5",
                   name: "GPT-5",
                   capabilities: { streaming: true, tools: true },
+                  description: undefined,
                 },
               },
             },
             {
               id: "bot-1",
-              type: "bot-chat",
+              type: "chat",
               position: { x: 100, y: 100 },
               data: { model: null },
             },

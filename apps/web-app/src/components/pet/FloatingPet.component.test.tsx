@@ -325,7 +325,7 @@ describe("FloatingPet", () => {
     expect(useTabStore.getState().tabs).toHaveLength(2);
   });
 
-  it("opens a bot-chat tab for sessions in bot workspaces", async () => {
+  it("opens a chat tab for sessions in bot workspaces", async () => {
     mocks.useRecentSessions.mockReturnValue({
       data: [session({ id: "session_bot", directory: "/work/bot" })],
       isLoading: false,
@@ -351,7 +351,10 @@ describe("FloatingPet", () => {
     fireEvent.click(await screen.findByText("Session session_bot"));
     const { tabs, activeTabId } = useTabStore.getState();
     const opened = tabs.find((tab) => tab.id === activeTabId);
-    expect(opened?.type).toBe("bot-chat");
+    expect(opened?.type).toBe("chat");
+    expect((opened?.data as { providerId?: string }).providerId).toBe(
+      "opencode",
+    );
     expect((opened?.data as { workspaceId?: string }).workspaceId).toBe(
       "ws_bot",
     );

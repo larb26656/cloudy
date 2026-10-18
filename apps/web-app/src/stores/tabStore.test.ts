@@ -90,7 +90,7 @@ describe("tabStore migration", () => {
     ]);
   });
 
-  it("renames persisted bot tabs to bot-chat", () => {
+  it("migrates persisted bot tabs to chat", () => {
     expect(
       migrateBotTabType([
         {
@@ -106,10 +106,14 @@ describe("tabStore migration", () => {
     ).toEqual([
       {
         id: "bot-1",
-        type: "bot-chat",
+        type: "chat",
         data: {
           workspaceId: "workspace-1",
           directory: "/work/bot",
+          providerId: "opencode",
+          sessionName: "New Chat",
+          agent: null,
+          model: null,
         },
         updatedAt: 0,
       },

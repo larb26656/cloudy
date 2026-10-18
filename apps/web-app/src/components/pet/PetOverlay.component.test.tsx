@@ -179,7 +179,7 @@ describe("PetOverlay", () => {
     expect(bridge.setSize).toHaveBeenLastCalledWith(144, 160);
   });
 
-  it("relays a bot-chat session for bot workspaces", async () => {
+  it("relays a chat session for bot workspaces", async () => {
     mocks.useRecentSessions.mockReturnValue({
       data: [session({ id: "session_bot", directory: "/work/bot" })],
       isLoading: false,
@@ -206,8 +206,9 @@ describe("PetOverlay", () => {
     fireEvent.click(await screen.findByText("Session session_bot"));
 
     expect(bridge.openSession).toHaveBeenCalledWith({
-      type: "bot-chat",
+      type: "chat",
       data: {
+        providerId: "opencode",
         sessionId: "session_bot",
         workspaceId: "ws_bot",
         directory: "/work/bot",
