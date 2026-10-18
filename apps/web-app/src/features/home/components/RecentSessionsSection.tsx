@@ -28,15 +28,6 @@ export function RecentSessionsSection() {
   const handleOpen = (session: RecentChatSession) => {
     const dir = session.directory;
     const workspace = directoryToWorkspace(dir);
-    if (workspace?.type === "bot") {
-      openTab("bot-chat", {
-        sessionId: session.id,
-        workspaceId: workspace.id,
-        directory: dir,
-        sessionName: session.title || "New Bot Chat",
-      });
-      return;
-    }
     openTab("chat", {
       providerId: session.providerId,
       sessionId: session.id,

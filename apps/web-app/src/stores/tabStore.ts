@@ -56,9 +56,21 @@ export function removeTerminalWorkspaceIdentity(
 }
 
 export function migrateBotTabType(tabs: PersistedTab[]): PersistedTab[] {
-  return tabs.map((tab) =>
-    tab.type === "bot" ? { ...tab, type: "bot-chat" } : tab,
-  );
+  return tabs.map((tab) => {
+    if (tab.type !== "bot" && tab.type !== "bot-chat") return tab;
+    const data = tab.data as Record<string, unknown>;
+    return {
+      ...tab,
+      type: "chat",
+      data: {
+        ...data,
+        providerId: data.providerId ?? "opencode",
+        sessionName: data.sessionName ?? "New Chat",
+        agent: data.agent ?? null,
+        model: toModelInfo(data.model),
+      },
+    };
+  });
 }
 
 function getSessionId(data: unknown): string | null {
@@ -144,7 +156,7 @@ export const useTabStore = create<TabStore>()(
     }),
     {
       name: "tabs",
-      version: 12,
+      version: 13,
       migrate: (persistedState, version) => {
         // Persisted shapes may predate the current `Tab` union, so read them
         // through a looser type. Old versions stored `type: "session"` which
@@ -288,13 +300,17 @@ export const useTabStore = create<TabStore>()(
           tabs = migrateBotTabType(tabs);
         }
 
+        if (version < 13) {
+          tabs = migrateBotTabType(tabs);
+        }
+
         // v10 -> v11: persisted per-tab model selections moved from the
         // legacy `providerID`/`modelID` shape to the canonical `ModelInfo`
         // contract (`providerId`/`modelId`). Entries without a usable
         // identity fall back to null (the global default).
         if (version < 11) {
           tabs = tabs.map((t) => {
-            if (t.type !== "chat" && t.type !== "bot-chat") return t;
+            if (t.type !== "chat") return t;
             const data = t.data as { model?: unknown } | null;
             return {
               ...t,

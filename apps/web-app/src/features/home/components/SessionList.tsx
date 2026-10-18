@@ -36,24 +36,22 @@ function SessionList({
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const handleSelect = (session: ChatSession) => {
-    openTab(workspaceType === "bot" ? "bot-chat" : "chat", {
-      ...(workspaceType === "agent" && { providerId: session.providerId }),
+    openTab("chat", {
+      providerId: session.providerId ?? "opencode",
       sessionId: session.id,
       workspaceId,
       directory,
-      sessionName:
-        session.title ||
-        (workspaceType === "bot" ? "New Bot Chat" : "New Chat"),
+      sessionName: session.title || "New Chat",
     });
   };
 
   const handleNewChat = () => {
-    addTab(workspaceType === "bot" ? "bot-chat" : "chat", {
-      ...(workspaceType === "agent" && { providerId: defaultProviderId }),
+    addTab("chat", {
+      providerId: defaultProviderId,
       sessionId: null,
       workspaceId,
       directory,
-      sessionName: workspaceType === "bot" ? "New Bot Chat" : "New Chat",
+      sessionName: "New Chat",
     });
   };
 

@@ -7,14 +7,10 @@ import type { RecentChatSession } from "@/types";
  * surfaces and either applied locally (`FloatingPet` → `openTab`) or relayed
  * to the main window through the desktop pet bridge.
  */
-export type SessionTabPayload =
-  | { type: "chat"; data: TabDataMap["chat"] }
-  | { type: "bot-chat"; data: TabDataMap["bot-chat"] };
+export type SessionTabPayload = { type: "chat"; data: TabDataMap["chat"] };
 
 /**
- * Resolves a chat session to the tab payload that opens it: bot workspaces
- * get a `bot-chat` tab, everything else a `chat` tab (with a nullable
- * `workspaceId` for ephemeral sessions).
+ * Resolves a chat session to the regular chat tab payload.
  */
 export function openSessionTab(
   session: RecentChatSession,
@@ -22,17 +18,6 @@ export function openSessionTab(
 ): SessionTabPayload {
   const dir = session.directory;
   const workspace = workspaces.find((w) => w.directory === dir);
-  if (workspace?.type === "bot") {
-    return {
-      type: "bot-chat",
-      data: {
-        sessionId: session.id,
-        workspaceId: workspace.id,
-        directory: dir,
-        sessionName: session.title || "New Bot Chat",
-      },
-    };
-  }
   return {
     type: "chat",
     data: {

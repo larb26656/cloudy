@@ -36,12 +36,13 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
   const [deleting, setDeleting] = useState(false);
 
   const handleNewChat = () => {
-    addTab(workspace.type === "bot" ? "bot-chat" : "chat", {
+    addTab("chat", {
+      providerId: "opencode",
       ...(workspace.type === "agent" && { providerId: defaultProviderId }),
       sessionId: null,
       workspaceId: workspace.id,
       directory: workspace.directory,
-      sessionName: workspace.type === "bot" ? "New Bot Chat" : "New Chat",
+      sessionName: "New Chat",
     });
   };
 

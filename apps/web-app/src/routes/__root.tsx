@@ -21,9 +21,6 @@ function openSessionTabInWindow(payload: SessionTabPayload) {
     case "chat":
       useTabStore.getState().openTab("chat", payload.data);
       break;
-    case "bot-chat":
-      useTabStore.getState().openTab("bot-chat", payload.data);
-      break;
   }
 }
 
