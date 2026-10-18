@@ -30,16 +30,28 @@ vi.mock("@/components/chat/message/MessageList", () => ({
 }));
 
 vi.mock("@/components/chat/chat-input", () => ({
-  ChatInput: () => {
+  ChatInput: ({
+    supportsFileMentions,
+    supportsCommands,
+  }: {
+    supportsFileMentions?: boolean;
+    supportsCommands?: boolean;
+  }) => {
     const {
       sendMessage,
       abortGeneration,
       executeImmediateCommand,
       isGenerating,
+      capabilities,
     } = useChat();
 
     return (
-      <div data-testid="chat-input">
+      <div
+        data-testid="chat-input"
+        data-commands={String(capabilities.commands)}
+        data-supports-mentions={String(supportsFileMentions)}
+        data-supports-commands={String(supportsCommands)}
+      >
         <button
           data-testid="trigger-send"
           onClick={() =>
@@ -195,7 +207,26 @@ const childrenHandler = (children: { id: string }[] = []) =>
 const emptyPermissionsHandler = () =>
   http.get(/\/api\/sessions\/[^/]+\/permissions$/, () => HttpResponse.json([]));
 
-function renderChat(sessionId: string | null) {
+function renderChat(
+  sessionId: string | null,
+  capabilities = {
+    approvals: true,
+    questions: true,
+    fileMentions: true,
+    commands: true,
+  },
+) {
+  server.use(
+    http.get(/\/api\/agent-providers$/, () =>
+      HttpResponse.json([
+        {
+          id: "opencode",
+          name: "OpenCode",
+          capabilities: { streaming: true, ...capabilities },
+        },
+      ]),
+    ),
+  );
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -214,6 +245,34 @@ function renderChat(sessionId: string | null) {
 }
 
 describe("ChatCoatainer", () => {
+  test("does not poll question or permission endpoints for unsupported capabilities", async () => {
+    const questionsRequest = vi.fn(() => HttpResponse.json([]));
+    const permissionsRequest = vi.fn(() => HttpResponse.json([]));
+    server.use(
+      http.get(/\/api\/sessions\/([^/]+)\/questions$/, questionsRequest),
+      http.get(/\/api\/sessions\/([^/]+)\/permissions$/, permissionsRequest),
+      childrenHandler(),
+    );
+
+    renderChat("ses_active", { approvals: false, questions: false });
+
+    await waitFor(() => expect(screen.getByTestId("chat-input")).toBeTruthy());
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    expect(questionsRequest).not.toHaveBeenCalled();
+    expect(permissionsRequest).not.toHaveBeenCalled();
+    expect(screen.getByTestId("chat-input")).toHaveAttribute(
+      "data-supports-mentions",
+      "false",
+    );
+    expect(screen.getByTestId("chat-input")).toHaveAttribute(
+      "data-supports-commands",
+      "false",
+    );
+    expect(screen.queryByTestId("question-banner")).toBeNull();
+    expect(screen.queryByTestId("permission-banner")).toBeNull();
+  });
+
   describe("question lookup", () => {
     let questionsData: QuestionRequest[];
 
@@ -532,6 +591,12 @@ describe("ChatCoatainer", () => {
     test("executes system command when context action is called", async () => {
       renderChat("test-session");
 
+      await waitFor(() =>
+        expect(screen.getByTestId("chat-input")).toHaveAttribute(
+          "data-commands",
+          "true",
+        ),
+      );
       const trigger = await screen.findByTestId("trigger-immediate-command");
       trigger.click();
 
@@ -554,6 +619,12 @@ describe("ChatCoatainer", () => {
 
       renderChat("test-session");
 
+      await waitFor(() =>
+        expect(screen.getByTestId("chat-input")).toHaveAttribute(
+          "data-commands",
+          "true",
+        ),
+      );
       const trigger = await screen.findByTestId("trigger-session-command");
       trigger.click();
 
@@ -570,6 +641,12 @@ describe("ChatCoatainer", () => {
 
       renderChat("test-session");
 
+      await waitFor(() =>
+        expect(screen.getByTestId("chat-input")).toHaveAttribute(
+          "data-commands",
+          "true",
+        ),
+      );
       const trigger = await screen.findByTestId("trigger-slash-command");
       trigger.click();
 

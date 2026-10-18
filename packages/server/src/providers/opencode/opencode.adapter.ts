@@ -75,6 +75,10 @@ export function createOpenCodeAdapter({
     capabilities: {
       streaming: true,
       requiresDirectory: true,
+      approvals: true,
+      questions: true,
+      fileMentions: true,
+      commands: true,
       attachments: true,
       tools: true,
       reasoning: true,

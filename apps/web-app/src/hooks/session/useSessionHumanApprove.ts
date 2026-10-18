@@ -4,18 +4,25 @@ import {
   useSessionQuestions,
   useSessionChildren,
 } from "../queries";
+import type { ProviderCapabilities } from "@repo/contracts";
 
 interface UseSessionDataProps {
   sessionId: string | null;
+  capabilities?: Pick<ProviderCapabilities, "approvals" | "questions">;
 }
 
-export function useSessionData({ sessionId }: UseSessionDataProps) {
+export function useSessionData({
+  sessionId,
+  capabilities,
+}: UseSessionDataProps) {
   const { data: questions = [] } = useSessionQuestions({
     sessionId: sessionId ?? "",
+    enabled: capabilities?.questions ?? true,
   });
 
   const { data: permissions = [] } = useSessionPermissions({
     sessionId: sessionId ?? "",
+    enabled: capabilities?.approvals ?? true,
   });
 
   const { data: childSessions = [] } = useSessionChildren({

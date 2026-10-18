@@ -22,6 +22,8 @@ interface ChatInputEditorProps {
   placeholder?: string;
   disabled?: boolean;
   directory: string;
+  supportsFileMentions?: boolean;
+  supportsCommands?: boolean;
 }
 
 function getMentions(editor: Editor) {
@@ -45,6 +47,8 @@ export function ChatInputEditor({
   placeholder,
   disabled,
   directory,
+  supportsFileMentions = true,
+  supportsCommands = true,
 }: ChatInputEditorProps) {
   const phrases = useQuickPhrasesStore((s) => s.phrases);
   const [isEditorFocused, setIsEditorFocused] = useState(false);
@@ -68,25 +72,39 @@ export function ChatInputEditor({
       Mention.configure({
         HTMLAttributes: { class: "mention" },
         suggestions: [
-          {
-            char: "@",
-            allow: () => true,
-            ...createMentionSuggestion(directory),
-          },
-          {
-            char: "/",
-            allow: shouldShowSlashCommand,
-            ...createCommandSuggestion(directory, {
-              onImmediateExecute: (cmd) => {
-                onImmediateExecute?.(cmd.name);
-              },
-            }),
-          },
+          ...(supportsFileMentions
+            ? [
+                {
+                  char: "@",
+                  allow: () => true,
+                  ...createMentionSuggestion(directory),
+                },
+              ]
+            : []),
+          ...(supportsCommands
+            ? [
+                {
+                  char: "/",
+                  allow: shouldShowSlashCommand,
+                  ...createCommandSuggestion(directory, {
+                    onImmediateExecute: (cmd) => {
+                      onImmediateExecute?.(cmd.name);
+                    },
+                  }),
+                },
+              ]
+            : []),
         ],
       }),
       Placeholder.configure({ placeholder: placeholder }),
     ];
-  }, [directory, placeholder, onImmediateExecute]);
+  }, [
+    directory,
+    placeholder,
+    onImmediateExecute,
+    supportsCommands,
+    supportsFileMentions,
+  ]);
 
   const editor = useEditor({
     extensions,

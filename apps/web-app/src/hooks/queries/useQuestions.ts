@@ -20,7 +20,13 @@ function toQuestion(request: ProviderQuestionRequest): QuestionRequest {
   };
 }
 
-export function useSessionQuestions({ sessionId }: { sessionId: string }) {
+export function useSessionQuestions({
+  sessionId,
+  enabled = true,
+}: {
+  sessionId: string;
+  enabled?: boolean;
+}) {
   return useQuery({
     queryKey: questionKeys.list(sessionId),
     queryFn: async (): Promise<QuestionRequest[]> =>
@@ -29,7 +35,7 @@ export function useSessionQuestions({ sessionId }: { sessionId: string }) {
           await sessionApi.questions(sessionId),
         )
       ).map(toQuestion),
-    enabled: !!sessionId,
+    enabled: !!sessionId && enabled,
     refetchInterval: CHAT_POLL_INTERVAL,
     refetchIntervalInBackground: false,
   });

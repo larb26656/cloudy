@@ -39,6 +39,8 @@ const providerCapabilitiesSchema = z.object({
   streaming: z.boolean(),
   approvals: z.boolean().optional(),
   questions: z.boolean().optional(),
+  fileMentions: z.boolean().optional(),
+  commands: z.boolean().optional(),
   attachments: z.boolean().optional(),
   tools: z.boolean().optional(),
   reasoning: z.boolean().optional(),

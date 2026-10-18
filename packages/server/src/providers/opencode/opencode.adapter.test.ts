@@ -14,6 +14,15 @@ describe("OpenCode cursor encoding", () => {
 });
 
 describe("OpenCode question interactions", () => {
+  it("advertises question and approval capabilities", () => {
+    const adapter = createOpenCodeAdapter({ baseUrl: "http://localhost:4096" });
+
+    expect(adapter.capabilities).toMatchObject({
+      approvals: true,
+      questions: true,
+    });
+  });
+
   it("lists pending v2 questions for a directory", async () => {
     const list = vi.fn().mockResolvedValue({
       data: {

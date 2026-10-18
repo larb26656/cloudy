@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import type { PropsWithChildren } from "react";
-import type { ModelInfo } from "@repo/contracts";
+import type { ModelInfo, ProviderCapabilities } from "@repo/contracts";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import {
   useAbortGeneration,
@@ -32,6 +32,7 @@ type ChatContextValue = {
   effectiveAgent: string | null;
   providerId: string;
   effectiveModel: ModelInfo | null;
+  capabilities: Pick<ProviderCapabilities, "fileMentions" | "commands">;
   setAgent: (agent: string | null) => void;
   setModel: (model: ModelInfo | null) => void;
   sendMessage: (
@@ -76,6 +77,7 @@ type ChatProviderProps = PropsWithChildren<{
    */
   model?: ModelInfo | null;
   onModelChange?: (model: ModelInfo | null) => void;
+  capabilities?: Pick<ProviderCapabilities, "fileMentions" | "commands">;
 }>;
 
 export function ChatProvider({
@@ -89,6 +91,7 @@ export function ChatProvider({
   onAgentChange,
   model: modelProp,
   onModelChange,
+  capabilities,
 }: ChatProviderProps) {
   const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
   const [localAgent, setLocalAgent] = useState<string | null>(null);
@@ -103,6 +106,13 @@ export function ChatProvider({
   const isModelControlled = onModelChange !== undefined;
   const agent = isAgentControlled ? (agentProp ?? null) : localAgent;
   const model = isModelControlled ? (modelProp ?? null) : localModel;
+  const chatCapabilities = useMemo(
+    () => ({
+      fileMentions: capabilities?.fileMentions ?? true,
+      commands: capabilities?.commands ?? true,
+    }),
+    [capabilities?.commands, capabilities?.fileMentions],
+  );
   const { mutateAsync: sendMessageAsync, isPending: isSending } =
     useSendMessage();
   const { mutateAsync: executeCommandAsync } = useExecuteCommand();
@@ -178,7 +188,7 @@ export function ChatProvider({
       if (!text && !hasAttachments) return;
 
       try {
-        if (isCommand(text)) {
+        if (isCommand(text) && chatCapabilities.commands) {
           const parsed = parseCommand(text);
           if (!parsed) return;
 
@@ -208,7 +218,10 @@ export function ChatProvider({
         useChatInputHistoryStore.getState().addEntry(messageSessionId, text);
         await sendMessageAsync({
           sessionId: messageSessionId,
-          content,
+          content: {
+            ...content,
+            mentions: chatCapabilities.fileMentions ? content.mentions : [],
+          },
           directory,
           providerId,
           model,
@@ -232,6 +245,7 @@ export function ChatProvider({
       openSessionPicker,
       sendMessageAsync,
       systemCommands,
+      chatCapabilities,
     ],
   );
 
@@ -269,6 +283,7 @@ export function ChatProvider({
       sessionId,
       effectiveAgent: agent ?? defaultAgent,
       effectiveModel: model ?? defaultModel,
+      capabilities: chatCapabilities,
       setAgent,
       setModel,
       sendMessage,
@@ -302,6 +317,7 @@ export function ChatProvider({
       sessionPickerOpen,
       openSessionPicker,
       workspace,
+      chatCapabilities,
     ],
   );
 

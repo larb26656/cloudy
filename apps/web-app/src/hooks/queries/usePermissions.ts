@@ -20,7 +20,13 @@ function toPermission(request: CorePermissionRequest): PermissionRequest {
   };
 }
 
-export function useSessionPermissions({ sessionId }: { sessionId: string }) {
+export function useSessionPermissions({
+  sessionId,
+  enabled = true,
+}: {
+  sessionId: string;
+  enabled?: boolean;
+}) {
   return useQuery({
     queryKey: permissionKeys.list(sessionId),
     queryFn: async (): Promise<PermissionRequest[]> =>
@@ -29,7 +35,7 @@ export function useSessionPermissions({ sessionId }: { sessionId: string }) {
           await sessionApi.permissions(sessionId),
         )
       ).map(toPermission),
-    enabled: !!sessionId,
+    enabled: !!sessionId && enabled,
     refetchInterval: CHAT_POLL_INTERVAL,
     refetchIntervalInBackground: false,
   });

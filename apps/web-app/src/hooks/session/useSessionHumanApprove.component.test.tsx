@@ -90,4 +90,40 @@ describe("useSessionData", () => {
     });
     expect(result.current.permissions).toEqual([]);
   });
+
+  test("does not fetch unsupported interactions", async () => {
+    const questionsRequest = vi.fn(() => HttpResponse.json([question]));
+    const permissionsRequest = vi.fn(() => HttpResponse.json([permission]));
+    server.use(
+      http.get(
+        new RegExp(`/api/sessions/${SESSION_ID}/questions$`),
+        questionsRequest,
+      ),
+      http.get(
+        new RegExp(`/api/sessions/${SESSION_ID}/permissions$`),
+        permissionsRequest,
+      ),
+    );
+    const queryClient = new QueryClient({
+      defaultOptions: {
+        queries: { retry: false },
+        mutations: { retry: false },
+      },
+    });
+    const wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    );
+    const { result } = renderHook(
+      () =>
+        useSessionData({
+          sessionId: SESSION_ID,
+          capabilities: { approvals: false, questions: false },
+        }),
+      { wrapper },
+    );
+
+    await waitFor(() => expect(result.current.questions).toEqual([]));
+    expect(questionsRequest).not.toHaveBeenCalled();
+    expect(permissionsRequest).not.toHaveBeenCalled();
+  });
 });

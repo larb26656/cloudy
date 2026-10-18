@@ -18,6 +18,8 @@ export interface ProviderCapabilities {
   requiresDirectory?: boolean;
   approvals?: boolean;
   questions?: boolean;
+  fileMentions?: boolean;
+  commands?: boolean;
   attachments?: boolean;
   tools?: boolean;
   reasoning?: boolean;

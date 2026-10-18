@@ -16,6 +16,7 @@ import { QuestionSheet } from "../question/QuestionSheet";
 import { ChatProvider, useChat } from "./ChatProvider";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import { AgentSelector } from "./AgentSelector";
+import { useModels } from "@/hooks/queries/useModels";
 
 interface ChatContainerProps {
   workspace?: Workspace | null;
@@ -42,12 +43,23 @@ export function ChatContainer({
 }: ChatContainerProps) {
   const effectiveProviderId = providerId ?? "opencode";
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
+  const { data: providers = [] } = useModels(effectiveProviderId);
+  const capabilities = providers.find(
+    (provider) => provider.id === effectiveProviderId,
+  )?.capabilities;
+  const chatCapabilities = {
+    approvals: capabilities?.approvals ?? false,
+    questions: capabilities?.questions ?? false,
+    fileMentions: capabilities?.fileMentions ?? false,
+    commands: capabilities?.commands ?? false,
+  };
 
   return (
     <ChatProvider
       workspace={workspace}
       directory={directory}
       providerId={effectiveProviderId}
+      capabilities={chatCapabilities}
       sessionId={sessionId}
       onSessionChange={onSessionChange}
       agent={agent}
@@ -55,16 +67,28 @@ export function ChatContainer({
       model={model}
       onModelChange={onModelChange}
     >
-      <ChatContainerContent chatplaceholder={chatplaceholder} />
+      <ChatContainerContent
+        chatplaceholder={chatplaceholder}
+        capabilities={chatCapabilities}
+      />
     </ChatProvider>
   );
 }
 
 type ChatContainerContentProps = {
   chatplaceholder: string;
+  capabilities: {
+    approvals: boolean;
+    questions: boolean;
+    fileMentions: boolean;
+    commands: boolean;
+  };
 };
 
-function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
+function ChatContainerContent({
+  chatplaceholder,
+  capabilities,
+}: ChatContainerContentProps) {
   const [questionOpen, setQuestionOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [minimapOpen, setMinimapOpen] = useState(false);
@@ -93,7 +117,13 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
     currentQuestion,
     sessionPermissions,
     currentPermission,
-  } = useSessionData({ sessionId });
+  } = useSessionData({
+    sessionId,
+    capabilities: {
+      approvals: capabilities?.approvals ?? false,
+      questions: capabilities?.questions ?? false,
+    },
+  });
 
   const handleContainerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Escape") return;
@@ -137,7 +167,11 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
             onCloseMinimap={() => setMinimapOpen(false)}
           />
 
-          <ChatInput placeholder={chatplaceholder} />
+          <ChatInput
+            placeholder={chatplaceholder}
+            supportsFileMentions={capabilities.fileMentions}
+            supportsCommands={capabilities.commands}
+          />
         </MessageScrollerProvider>
 
         <SessionStatusBar

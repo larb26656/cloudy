@@ -102,6 +102,17 @@ function ChatActions() {
       >
         Send slash command
       </button>
+      <button
+        onClick={() =>
+          void sendMessage({
+            text: "look at this",
+            mentions: [{ id: "src/index.ts", label: "index.ts" }],
+            attachments: [],
+          })
+        }
+      >
+        Send file mention
+      </button>
       <button onClick={() => void executeImmediateCommand("test-command")}>
         Run immediate command
       </button>
@@ -157,6 +168,7 @@ type ChatProviderOptions = {
   onAgentChange?: (agent: string | null) => void;
   model?: ModelInfo | null;
   onModelChange?: (model: ModelInfo | null) => void;
+  capabilities?: { fileMentions?: boolean; commands?: boolean };
 };
 
 function renderChat(
@@ -179,6 +191,7 @@ function renderChat(
         onAgentChange={options.onAgentChange}
         model={options.model}
         onModelChange={options.onModelChange}
+        capabilities={options.capabilities}
       >
         {children}
       </ChatProvider>
@@ -384,6 +397,41 @@ describe("ChatProvider", () => {
       expect.objectContaining({
         directory: "/project",
         sessionId: "ses_1",
+      }),
+    );
+  });
+
+  test("sends slash-prefixed text as a message when commands are unsupported", async () => {
+    renderChat(
+      { sessionId: "ses_1", capabilities: { commands: false } },
+      <ChatActions />,
+    );
+
+    await act(async () => {
+      screen.getByRole("button", { name: "Send slash command" }).click();
+    });
+
+    expect(mocks.executeCommand).not.toHaveBeenCalled();
+    expect(mocks.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.objectContaining({ text: "/test-command" }),
+      }),
+    );
+  });
+
+  test("drops file mentions when the provider does not support them", async () => {
+    renderChat(
+      { sessionId: "ses_1", capabilities: { fileMentions: false } },
+      <ChatActions />,
+    );
+
+    await act(async () => {
+      screen.getByRole("button", { name: "Send file mention" }).click();
+    });
+
+    expect(mocks.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.objectContaining({ mentions: [] }),
       }),
     );
   });

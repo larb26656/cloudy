@@ -18,6 +18,8 @@ interface ChatInputProps {
   placeholder?: string;
   initialValue?: string;
   initialAttachments?: ImageAttachment[];
+  supportsFileMentions?: boolean;
+  supportsCommands?: boolean;
 }
 
 const NO_HISTORY: string[] = [];
@@ -32,6 +34,8 @@ export const ChatInput = memo(function ChatInput({
   placeholder = "Type a message...",
   initialValue,
   initialAttachments,
+  supportsFileMentions,
+  supportsCommands,
 }: ChatInputProps) {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [chatInputContent, setChatInputContent] =
@@ -40,6 +44,7 @@ export const ChatInput = memo(function ChatInput({
   const {
     effectiveModel,
     effectiveAgent,
+    capabilities,
     directory,
     sessionId,
     sendMessage,
@@ -289,11 +294,19 @@ export const ChatInput = memo(function ChatInput({
                   }
                 }}
                 onKeyDown={handleKeyDown}
-                onImmediateExecute={handleImmediateExecute}
+                onImmediateExecute={
+                  (supportsCommands ?? capabilities.commands)
+                    ? handleImmediateExecute
+                    : undefined
+                }
                 onAddFiles={addFiles}
                 placeholder={placeholder}
                 disabled={isSending}
                 directory={directory}
+                supportsFileMentions={
+                  supportsFileMentions ?? capabilities.fileMentions
+                }
+                supportsCommands={supportsCommands ?? capabilities.commands}
               />
             </div>
             <div
