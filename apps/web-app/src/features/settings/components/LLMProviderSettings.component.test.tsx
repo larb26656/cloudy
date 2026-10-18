@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 import { LLMProviderSettings } from "./LLMProviderSettings";
 
@@ -72,7 +72,7 @@ describe("LLMProviderSettings", () => {
     expect(screen.queryByDisplayValue("private-key")).not.toBeInTheDocument();
   });
 
-  it("allows editing saved model IDs and saves them", () => {
+  it("allows editing saved model IDs and saves them", async () => {
     mocks.settings.mockReturnValue({
       data: {
         connections: [
@@ -100,9 +100,14 @@ describe("LLMProviderSettings", () => {
     });
     fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
 
-    expect(mocks.update).toHaveBeenCalledWith(
-      expect.objectContaining({ id: "connection-1", modelIds: ["new-model"] }),
-      expect.any(Object),
-    );
+    await waitFor(() => {
+      expect(mocks.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: "connection-1",
+          modelIds: ["new-model"],
+        }),
+        expect.any(Object),
+      );
+    });
   });
 });
