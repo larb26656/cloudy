@@ -2,9 +2,9 @@ import { randomUUID } from "node:crypto";
 import type {
   ChatEvent,
   ChatSession,
-  ProviderAdapter,
+  AgentProviderAdapter,
   ProviderEventsInput,
-  ProviderInfo,
+  AgentProviderInfo,
   ProviderMessageRequest,
   ProviderSessionInput,
 } from "@repo/ai-core";
@@ -24,7 +24,7 @@ export function createCloudyAdapter({
   getDefault: () => { connectionId: string; modelId: string } | null;
   sessionsRepository: SessionsRepository;
   messagesRepository: CloudyMessagesRepository;
-}): ProviderAdapter {
+}): AgentProviderAdapter {
   const subscribers = new Set<(event: ChatEvent) => void>();
   const capabilities = {
     streaming: true,
@@ -62,7 +62,7 @@ export function createCloudyAdapter({
   const adapter = {
     id: "cloudy",
     capabilities,
-    async getInfo(): Promise<ProviderInfo> {
+    async getInfo(): Promise<AgentProviderInfo> {
       return {
         id: "cloudy",
         providerType: "cloudy",
@@ -186,7 +186,7 @@ export function createCloudyAdapter({
         },
       };
     },
-  } satisfies ProviderAdapter;
+  } satisfies AgentProviderAdapter;
 
   return adapter;
 }

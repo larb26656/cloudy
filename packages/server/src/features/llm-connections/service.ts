@@ -7,7 +7,7 @@ import type { LLMConnectionDto, LLMConnectionInput } from "./model";
 
 type StoredConnection = AppConfig["llm"]["connections"][number];
 
-export function createLLMProvidersService(
+export function createLLMConnectionService(
   config: AppConfig,
   configDir: string | undefined,
   llm: LLM,
@@ -181,4 +181,6 @@ export function createLLMProvidersService(
   };
 }
 
-export type LLMProvidersService = ReturnType<typeof createLLMProvidersService>;
+export type LLMConnectionService = ReturnType<
+  typeof createLLMConnectionService
+>;

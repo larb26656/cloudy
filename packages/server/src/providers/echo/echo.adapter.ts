@@ -3,9 +3,9 @@ import type {
   ChatEvent,
   ChatMessage,
   ChatSession,
-  ProviderAdapter,
+  AgentProviderAdapter,
   ProviderEventsInput,
-  ProviderInfo,
+  AgentProviderInfo,
   ProviderMessageRequest,
   ProviderSessionInput,
 } from "@repo/ai-core";
@@ -15,7 +15,7 @@ interface EchoSession {
   messages: ChatMessage[];
 }
 
-export function createEchoAdapter(): ProviderAdapter {
+export function createEchoAdapter(): AgentProviderAdapter {
   const sessions = new Map<string, EchoSession>();
   const subscribers = new Set<(event: ChatEvent) => void>();
   const capabilities = { streaming: true, requiresDirectory: false };
@@ -33,7 +33,7 @@ export function createEchoAdapter(): ProviderAdapter {
   const adapter = {
     id: "echo",
     capabilities,
-    async getInfo(): Promise<ProviderInfo> {
+    async getInfo(): Promise<AgentProviderInfo> {
       return { id: "echo", providerType: "echo", name: "Echo", capabilities };
     },
     async createSession(input: ProviderSessionInput): Promise<ChatSession> {
@@ -182,7 +182,7 @@ export function createEchoAdapter(): ProviderAdapter {
         },
       };
     },
-  } satisfies ProviderAdapter;
+  } satisfies AgentProviderAdapter;
 
   return adapter;
 

@@ -3,7 +3,7 @@ import { streamSSE } from "hono/streaming";
 import { describeRoute } from "hono-openapi";
 import { zValidator } from "@hono/zod-validator";
 import { z } from "zod";
-import type { ProviderEventHub, ProviderRegistry } from "../../providers";
+import type { AgentProviderRegistry, ProviderEventHub } from "../../providers";
 import { ProvidersModel } from "./providers.model";
 import type { SessionsService } from "../sessions";
 
@@ -11,8 +11,8 @@ const providerParamSchema = z.object({
   providerId: z.string().min(1),
 });
 
-export function createProvidersController(
-  registry: ProviderRegistry,
+export function createAgentProvidersController(
+  registry: AgentProviderRegistry,
   eventHub: ProviderEventHub,
   sessionsService?: SessionsService,
 ) {

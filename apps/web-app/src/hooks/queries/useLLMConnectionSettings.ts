@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { InferRequestType, InferResponseType } from "hono/client";
 import { cloudyClient } from "@/lib/api";
-import { llmProviderKeys } from "@/lib/cloudy/query-keys";
+import { llmConnectionKeys } from "@/lib/cloudy/query-keys";
 
-type Endpoint = (typeof cloudyClient.api)["llm-providers"];
+type Endpoint = (typeof cloudyClient.api)["llm-connections"];
 type ConnectionEndpoint = Endpoint["connections"];
 export type LLMSettings = InferResponseType<Endpoint["$get"], 200>;
 export type LLMConnection = LLMSettings["connections"][number];
@@ -13,11 +13,11 @@ type UpdateInput = InferRequestType<
 >["json"];
 type DefaultInput = InferRequestType<Endpoint["default"]["$put"]>["json"];
 
-export function useLLMProviderSettings() {
+export function useLLMConnectionSettings() {
   return useQuery({
-    queryKey: llmProviderKeys.settings(),
+    queryKey: llmConnectionKeys.settings(),
     queryFn: async () => {
-      const response = await cloudyClient.api["llm-providers"].$get();
+      const response = await cloudyClient.api["llm-connections"].$get();
       if (!response.ok)
         throw new Error(`Failed to load LLM connections (${response.status})`);
       return response.json();
@@ -30,15 +30,15 @@ function useLLMMutation<T>(mutationFn: (input: T) => Promise<unknown>) {
   return useMutation({
     mutationFn,
     onSuccess: () =>
-      client.invalidateQueries({ queryKey: llmProviderKeys.settings() }),
+      client.invalidateQueries({ queryKey: llmConnectionKeys.settings() }),
   });
 }
 
 export function useCreateLLMConnection() {
   return useLLMMutation<CreateInput>(async (json) => {
-    const response = await cloudyClient.api["llm-providers"].connections.$post({
-      json,
-    });
+    const response = await cloudyClient.api[
+      "llm-connections"
+    ].connections.$post({ json });
     if (!response.ok)
       throw new Error(`Failed to add connection (${response.status})`);
     return response.json();
@@ -48,7 +48,7 @@ export function useCreateLLMConnection() {
 export function useUpdateLLMConnection() {
   return useLLMMutation<{ id: string } & UpdateInput>(
     async ({ id, ...json }) => {
-      const response = await cloudyClient.api["llm-providers"].connections[
+      const response = await cloudyClient.api["llm-connections"].connections[
         ":id"
       ].$patch({ param: { id }, json });
       if (!response.ok)
@@ -60,7 +60,7 @@ export function useUpdateLLMConnection() {
 
 export function useDeleteLLMConnection() {
   return useLLMMutation<string>(async (id) => {
-    const response = await cloudyClient.api["llm-providers"].connections[
+    const response = await cloudyClient.api["llm-connections"].connections[
       ":id"
     ].$delete({ param: { id } });
     if (!response.ok)
@@ -71,7 +71,7 @@ export function useDeleteLLMConnection() {
 
 export function useSetLLMDefault() {
   return useLLMMutation<DefaultInput>(async (json) => {
-    const response = await cloudyClient.api["llm-providers"].default.$put({
+    const response = await cloudyClient.api["llm-connections"].default.$put({
       json,
     });
     if (!response.ok)

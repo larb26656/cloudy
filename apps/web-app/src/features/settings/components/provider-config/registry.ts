@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import type { ProviderInstance } from "@/hooks/queries/useProviderSettings";
+import type { AgentProviderInstance } from "@/hooks/queries/useAgentProviderSettings";
 import { OpenCodeConfigFields } from "./OpenCodeConfigFields";
 
 type ProviderConfigFieldsProps = {
@@ -11,7 +11,7 @@ type ProviderConfigFieldsProps = {
 export const providerConfigForms = {
   opencode: OpenCodeConfigFields,
 } satisfies Record<
-  ProviderInstance["templateId"],
+  AgentProviderInstance["templateId"],
   ComponentType<ProviderConfigFieldsProps>
 >;
 

@@ -1,6 +1,6 @@
 import type { AppConfig } from "./config";
 import { createSettingsService } from "./features/settings";
-import { createLLMProvidersService } from "./features/llm-providers";
+import { createLLMConnectionService } from "./features/llm-connections";
 import { createInMemoryPtyRepository } from "./features/pty/in-memory-pty.repository";
 import { createPtyService } from "./features/pty/pty.service";
 import { createNotificationsRepository } from "./features/notifications/notifications.repository";
@@ -17,7 +17,7 @@ import { createDb, runMigrations, type DbClient } from "./db";
 import {
   createEchoAdapter,
   createProviderEventHub,
-  createProviderRegistry,
+  createAgentProviderRegistry,
   createProviderTemplateRegistry,
 } from "./providers";
 import { createCloudyAdapter } from "./providers/cloudy/cloudy.adapter";
@@ -57,18 +57,18 @@ export function createContainer(
   const templates = createProviderTemplateRegistry();
   const apiProviderRegistry = createLLM();
   apiProviderRegistry.registerProvider("openai", openaiProviderDefinition);
-  const llmProvidersService = createLLMProvidersService(
+  const llmConnectionsService = createLLMConnectionService(
     config,
     configDir,
     apiProviderRegistry,
   );
-  llmProvidersService.registerConfiguredConnections();
-  const providerRegistry = createProviderRegistry({
+  llmConnectionsService.registerConfiguredConnections();
+  const agentProviderRegistry = createAgentProviderRegistry({
     providers: [
       createEchoAdapter(),
       createCloudyAdapter({
         apiProviderRegistry,
-        getDefault: () => llmProvidersService.getDefault(),
+        getDefault: () => llmConnectionsService.getDefault(),
         sessionsRepository,
         messagesRepository: cloudyMessagesRepository,
       }),
@@ -80,13 +80,13 @@ export function createContainer(
   const settingsService = createSettingsService(
     config,
     configDir,
-    providerRegistry,
+    agentProviderRegistry,
   );
   const sessionsService = createSessionsService(
     sessionsRepository,
-    providerRegistry,
+    agentProviderRegistry,
   );
-  const providerEventHub = createProviderEventHub(providerRegistry, {
+  const providerEventHub = createProviderEventHub(agentProviderRegistry, {
     onEvent: (event) => sessionsService.applyEvent(event),
   });
   return {
@@ -97,8 +97,8 @@ export function createContainer(
     notificationsService,
     ptyService,
     settingsService,
-    llmProvidersService,
-    providerRegistry,
+    llmConnectionsService,
+    agentProviderRegistry,
     sessionsService,
     providerEventHub,
   };

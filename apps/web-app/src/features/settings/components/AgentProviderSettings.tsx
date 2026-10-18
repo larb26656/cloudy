@@ -6,25 +6,25 @@ import { Input } from "@repo/ui/components/input";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { Switch } from "@repo/ui/components/switch";
 import {
-  useCreateProviderInstance,
-  useDeleteProviderInstance,
-  useProviderSettings,
-  useProviderTemplates,
-  useUpdateProviderInstance,
-} from "@/hooks/queries/useProviderSettings";
-import type { ProviderInstance } from "@/hooks/queries/useProviderSettings";
+  useCreateAgentProviderInstance,
+  useDeleteAgentProviderInstance,
+  useAgentProviderSettings,
+  useAgentProviderTemplates,
+  useUpdateAgentProviderInstance,
+} from "@/hooks/queries/useAgentProviderSettings";
+import type { AgentProviderInstance } from "@/hooks/queries/useAgentProviderSettings";
 import { getProviderConfigForm } from "./provider-config/registry";
 
-export function ProviderSettings() {
-  const { data, isPending, error, refetch } = useProviderSettings();
-  const templates = useProviderTemplates();
-  const create = useCreateProviderInstance();
-  const update = useUpdateProviderInstance();
-  const remove = useDeleteProviderInstance();
+export function AgentProviderSettings() {
+  const { data, isPending, error, refetch } = useAgentProviderSettings();
+  const templates = useAgentProviderTemplates();
+  const create = useCreateAgentProviderInstance();
+  const update = useUpdateAgentProviderInstance();
+  const remove = useDeleteAgentProviderInstance();
   const [name, setName] = useState("OpenCode");
   const [baseUrl, setBaseUrl] = useState("http://localhost:4096");
   const [templateId, setTemplateId] =
-    useState<ProviderInstance["templateId"]>("opencode");
+    useState<AgentProviderInstance["templateId"]>("opencode");
   const [editedBaseUrls, setEditedBaseUrls] = useState<Record<string, string>>(
     {},
   );
@@ -70,9 +70,9 @@ export function ProviderSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Providers</h2>
+        <h2 className="text-lg font-semibold">Agent Providers</h2>
         <p className="text-sm text-muted-foreground">
-          Manage provider connections. Changes apply immediately.
+          Manage agent provider connections. Changes apply immediately.
         </p>
       </div>
       <div className="space-y-3">

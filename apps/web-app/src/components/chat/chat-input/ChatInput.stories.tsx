@@ -17,13 +17,13 @@ const DIRECTORY = "/demo/project";
 
 function makeHandlers(status: SessionStatus) {
   return [
-    http.get("*/api/providers/opencode/sessions/status", () =>
+    http.get("*/api/agent-providers/opencode/sessions/status", () =>
       HttpResponse.json({ [SESSION_ID]: status }),
     ),
-    http.post("*/api/providers/opencode/messages", () =>
+    http.post("*/api/agent-providers/opencode/messages", () =>
       HttpResponse.json({ id: "msg_story_sent" }),
     ),
-    http.post("*/api/providers/opencode/sessions/*/abort", () =>
+    http.post("*/api/agent-providers/opencode/sessions/*/abort", () =>
       HttpResponse.json(null),
     ),
   ];

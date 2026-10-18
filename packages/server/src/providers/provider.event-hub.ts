@@ -1,5 +1,5 @@
 import type { ChatEvent, ProviderEventsInput } from "@repo/ai-core";
-import type { ProviderRegistry } from "./provider.registry";
+import type { AgentProviderRegistry } from "./provider.registry";
 
 export interface ProviderEventSubscriptionInput extends ProviderEventsInput {
   providerId?: string;
@@ -29,7 +29,7 @@ interface Subscriber {
 const MAX_BUFFERED_EVENTS = 256;
 
 export function createProviderEventHub(
-  registry: ProviderRegistry,
+  registry: AgentProviderRegistry,
   options: {
     onEvent?: (
       event: ChatEvent,

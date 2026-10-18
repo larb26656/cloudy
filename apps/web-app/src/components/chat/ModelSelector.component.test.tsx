@@ -5,9 +5,9 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ModelSelector } from "./ModelSelector";
 import { useFavoriteModelsStore } from "@/stores/favoriteModelsStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
-import type { ModelInfo, ProviderInfo } from "@repo/contracts";
+import type { AgentProviderInfo, ModelInfo } from "@repo/contracts";
 
-const fixtures: ProviderInfo[] = [
+const fixtures: AgentProviderInfo[] = [
   {
     id: "opencode",
     name: "OpenCode",

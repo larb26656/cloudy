@@ -1,6 +1,6 @@
-import type { ChatSession, ProviderAdapter } from "@repo/ai-core";
+import type { AgentProviderAdapter, ChatSession } from "@repo/ai-core";
 import { describe, expect, it, vi } from "vitest";
-import { createProviderRegistry } from "../../providers";
+import { createAgentProviderRegistry } from "../../providers";
 import type { SessionRecord } from "../../db/schema";
 import { createSessionsService } from "./sessions.service";
 import type { SessionsRepository } from "./sessions.repository";
@@ -67,7 +67,7 @@ function repository(): SessionsRepository & { rows: SessionRecord[] } {
 
 function registry() {
   let next = 0;
-  const provider: ProviderAdapter = {
+  const provider: AgentProviderAdapter = {
     id: "test",
     capabilities: { streaming: true },
     getInfo: async () => ({
@@ -78,7 +78,7 @@ function registry() {
     createSession: async () => providerSession(`native-${++next}`),
     subscribeEvents: async function* () {},
   };
-  return createProviderRegistry({ providers: [provider] });
+  return createAgentProviderRegistry({ providers: [provider] });
 }
 
 describe("sessions service", () => {
@@ -199,7 +199,7 @@ describe("sessions service", () => {
         patterns: ["src/**"],
       },
     ]);
-    const provider: ProviderAdapter = {
+    const provider: AgentProviderAdapter = {
       id: "test",
       capabilities: { streaming: true },
       getInfo: async () => ({
@@ -213,7 +213,7 @@ describe("sessions service", () => {
     };
     const service = createSessionsService(
       repo,
-      createProviderRegistry({ providers: [provider] }),
+      createAgentProviderRegistry({ providers: [provider] }),
     );
     const session = await service.create({ providerId: "test" });
     const child = repo.create({
@@ -240,7 +240,7 @@ describe("sessions service", () => {
       interactionId: "question-1",
       value: null,
     });
-    const provider: ProviderAdapter = {
+    const provider: AgentProviderAdapter = {
       id: "test",
       capabilities: { streaming: true },
       getInfo: async () => ({
@@ -254,7 +254,7 @@ describe("sessions service", () => {
     };
     const service = createSessionsService(
       repo,
-      createProviderRegistry({ providers: [provider] }),
+      createAgentProviderRegistry({ providers: [provider] }),
     );
     const session = await service.create({ providerId: "test" });
 
@@ -275,7 +275,7 @@ describe("sessions service", () => {
       interactionId: "permission-1",
       value: null,
     });
-    const provider: ProviderAdapter = {
+    const provider: AgentProviderAdapter = {
       id: "test",
       capabilities: { streaming: true },
       getInfo: async () => ({
@@ -289,7 +289,7 @@ describe("sessions service", () => {
     };
     const service = createSessionsService(
       repo,
-      createProviderRegistry({ providers: [provider] }),
+      createAgentProviderRegistry({ providers: [provider] }),
     );
     const session = await service.create({ providerId: "test" });
 
@@ -307,7 +307,7 @@ describe("sessions service", () => {
   it("uses the provider session ID for command execution", async () => {
     const repo = repository();
     const executeCommand = vi.fn().mockResolvedValue(undefined);
-    const provider: ProviderAdapter = {
+    const provider: AgentProviderAdapter = {
       id: "test",
       capabilities: { streaming: true },
       getInfo: async () => ({
@@ -321,7 +321,7 @@ describe("sessions service", () => {
     };
     const service = createSessionsService(
       repo,
-      createProviderRegistry({ providers: [provider] }),
+      createAgentProviderRegistry({ providers: [provider] }),
     );
     const session = await service.create({ providerId: "test" });
 

@@ -1,19 +1,19 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import type { LLMProvidersService } from "./service";
-import { LLMProvidersModel } from "./model";
+import type { LLMConnectionService } from "./service";
+import { LLMConnectionModel } from "./model";
 
-export function createLLMProvidersController(service: LLMProvidersService) {
+export function createLLMConnectionsController(service: LLMConnectionService) {
   return new Hono()
     .get("/", (c) => c.json(service.getSettings()))
     .post(
       "/connections",
-      zValidator("json", LLMProvidersModel.createConnectionSchema),
+      zValidator("json", LLMConnectionModel.createConnectionSchema),
       (c) => c.json(service.createConnection(c.req.valid("json")), 201),
     )
     .patch(
       "/connections/:id",
-      zValidator("json", LLMProvidersModel.updateConnectionSchema),
+      zValidator("json", LLMConnectionModel.updateConnectionSchema),
       (c) =>
         c.json(
           service.updateConnection(c.req.param("id"), c.req.valid("json")),
@@ -22,7 +22,9 @@ export function createLLMProvidersController(service: LLMProvidersService) {
     .delete("/connections/:id", (c) =>
       c.json(service.deleteConnection(c.req.param("id"))),
     )
-    .put("/default", zValidator("json", LLMProvidersModel.defaultSchema), (c) =>
-      c.json(service.setDefault(c.req.valid("json"))),
+    .put(
+      "/default",
+      zValidator("json", LLMConnectionModel.defaultSchema),
+      (c) => c.json(service.setDefault(c.req.valid("json"))),
     );
 }

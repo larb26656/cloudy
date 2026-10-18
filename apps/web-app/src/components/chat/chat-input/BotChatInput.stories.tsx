@@ -39,14 +39,16 @@ const SAMPLE_PROVIDERS = {
 
 function makeHandlers(status: SessionStatus) {
   return [
-    http.get("*/api/providers/opencode/sessions/status", () =>
+    http.get("*/api/agent-providers/opencode/sessions/status", () =>
       HttpResponse.json({ [SESSION_ID]: status }),
     ),
-    http.get("*/api/providers", () => HttpResponse.json(SAMPLE_PROVIDERS)),
-    http.post("*/api/providers/opencode/messages", () =>
+    http.get("*/api/agent-providers", () =>
+      HttpResponse.json(SAMPLE_PROVIDERS),
+    ),
+    http.post("*/api/agent-providers/opencode/messages", () =>
       HttpResponse.json({ id: "msg_story_sent" }),
     ),
-    http.post("*/api/providers/opencode/sessions/*/abort", () =>
+    http.post("*/api/agent-providers/opencode/sessions/*/abort", () =>
       HttpResponse.json(null),
     ),
   ];

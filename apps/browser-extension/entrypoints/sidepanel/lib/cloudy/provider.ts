@@ -4,11 +4,11 @@ import type {
   ChatMessage,
   ChatSession as CoreChatSession,
   ModelInfo,
-  ProviderInfo,
+  AgentProviderInfo,
 } from "@repo/contracts";
 
-const providerPath = `${cloudyApiUrl}/api/providers/opencode`;
-const catalogPath = `${cloudyApiUrl}/api/providers`;
+const providerPath = `${cloudyApiUrl}/api/agent-providers/opencode`;
+const catalogPath = `${cloudyApiUrl}/api/agent-providers`;
 
 export interface ProviderSession {
   id: string;
@@ -148,7 +148,7 @@ export async function listProviderModels(): Promise<ModelInfo[]> {
     credentials: "include",
     headers: { Accept: "application/json" },
   });
-  const providers = await json<ProviderInfo[]>(response);
+  const providers = await json<AgentProviderInfo[]>(response);
   return providers.flatMap((provider) => provider.models ?? []);
 }
 

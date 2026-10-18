@@ -5,20 +5,24 @@ import { SettingsModel } from "./model";
 
 export function createSettingsController(service: SettingsService) {
   return new Hono()
-    .get("/providers", (c) => c.json(service.getProviders()))
-    .get("/provider-templates", (c) => c.json(service.getProviderTemplates()))
+    .get("/agent-providers", (c) => c.json(service.getAgentProviders()))
+    .get("/agent-provider-templates", (c) =>
+      c.json(service.getAgentProviderTemplates()),
+    )
     .post(
-      "/providers",
-      zValidator("json", SettingsModel.createProviderSchema),
-      (c) => c.json(service.createProvider(c.req.valid("json")), 201),
+      "/agent-providers",
+      zValidator("json", SettingsModel.createAgentProviderSchema),
+      (c) => c.json(service.createAgentProvider(c.req.valid("json")), 201),
     )
     .patch(
-      "/providers/:id",
-      zValidator("json", SettingsModel.updateProviderSchema),
+      "/agent-providers/:id",
+      zValidator("json", SettingsModel.updateAgentProviderSchema),
       (c) =>
-        c.json(service.updateProvider(c.req.param("id"), c.req.valid("json"))),
+        c.json(
+          service.updateAgentProvider(c.req.param("id"), c.req.valid("json")),
+        ),
     )
-    .delete("/providers/:id", (c) =>
-      c.json(service.deleteProvider(c.req.param("id"))),
+    .delete("/agent-providers/:id", (c) =>
+      c.json(service.deleteAgentProvider(c.req.param("id"))),
     );
 }

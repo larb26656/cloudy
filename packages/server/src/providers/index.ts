@@ -1,7 +1,7 @@
 export {
-  createProviderRegistry,
-  type ProviderRegistry,
-  type ProviderRegistryOptions,
+  createAgentProviderRegistry,
+  type AgentProviderRegistry,
+  type AgentProviderRegistryOptions,
 } from "./provider.registry";
 export {
   ProviderNotFoundError,

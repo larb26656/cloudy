@@ -1,6 +1,6 @@
-import type { ChatSession, ProviderAdapter } from "@repo/ai-core";
+import type { AgentProviderAdapter, ChatSession } from "@repo/ai-core";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createProviderRegistry } from "../../providers";
+import { createAgentProviderRegistry } from "../../providers";
 import { createApp, type AppType } from "../../server";
 import { createTestApp } from "../../test-utils";
 import { createSessionsRepository } from "./sessions.repository";
@@ -19,8 +19,8 @@ function session(id: string, directory?: string): ChatSession {
 }
 
 function provider(
-  executeCommand?: ProviderAdapter["executeCommand"],
-): ProviderAdapter {
+  executeCommand?: AgentProviderAdapter["executeCommand"],
+): AgentProviderAdapter {
   let next = 0;
   return {
     id: "test",
@@ -57,10 +57,10 @@ const executeCommand = vi.fn().mockResolvedValue(undefined);
 beforeEach(() => {
   env = createTestApp();
   executeCommand.mockClear();
-  const registry = createProviderRegistry({
+  const registry = createAgentProviderRegistry({
     providers: [provider(executeCommand)],
   });
-  env.container.providerRegistry = registry;
+  env.container.agentProviderRegistry = registry;
   env.container.sessionsService = createSessionsService(
     createSessionsRepository(env.db.db),
     registry,
@@ -146,7 +146,7 @@ describe("sessions integration", () => {
       interactionId: "permission-1",
       value: null,
     });
-    const registry = createProviderRegistry({
+    const registry = createAgentProviderRegistry({
       providers: [
         {
           ...provider(executeCommand),
@@ -155,7 +155,7 @@ describe("sessions integration", () => {
         },
       ],
     });
-    env.container.providerRegistry = registry;
+    env.container.agentProviderRegistry = registry;
     env.container.sessionsService = createSessionsService(
       createSessionsRepository(env.db.db),
       registry,

@@ -10,7 +10,7 @@ describe("LLM provider API", () => {
   it("manages connections and defaults without returning API keys", async () => {
     env = createTestApp();
     const createdResponse = await env.app.request(
-      "/api/llm-providers/connections",
+      "/api/llm-connections/connections",
       {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -37,7 +37,7 @@ describe("LLM provider API", () => {
 
     const id = created.id as string;
     const defaultResponse = await env.app.request(
-      "/api/llm-providers/default",
+      "/api/llm-connections/default",
       {
         method: "PUT",
         headers: { "content-type": "application/json" },
@@ -45,7 +45,7 @@ describe("LLM provider API", () => {
       },
     );
     expect(defaultResponse.status).toBe(200);
-    const listResponse = await env.app.request("/api/llm-providers");
+    const listResponse = await env.app.request("/api/llm-connections");
     expect(await listResponse.json()).toMatchObject({
       providerTypes: [
         {

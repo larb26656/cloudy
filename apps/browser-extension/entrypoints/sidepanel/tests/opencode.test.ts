@@ -67,12 +67,14 @@ describe("extension provider message handling", () => {
   it("applies normalized part updates and deltas", () => {
     const updated: ChatEvent = {
       type: "message.part.updated",
+      providerId: "opencode",
       sessionId,
       messageId: "message-1",
       part: textPart("text-1", " world"),
     };
     const delta: ChatEvent = {
       type: "message.delta",
+      providerId: "opencode",
       sessionId,
       messageId: "message-1",
       partId: "text-1",
@@ -91,6 +93,7 @@ describe("extension provider message handling", () => {
   it("ignores events for another session", () => {
     const event: ChatEvent = {
       type: "message.delta",
+      providerId: "opencode",
       sessionId: "other-session",
       messageId: "message-1",
       partId: "text-1",
@@ -104,6 +107,7 @@ describe("extension provider message handling", () => {
     const controller = new AbortController();
     const event: ChatEvent = {
       type: "message.delta",
+      providerId: "opencode",
       sessionId,
       messageId: "message-1",
       partId: "text-1",

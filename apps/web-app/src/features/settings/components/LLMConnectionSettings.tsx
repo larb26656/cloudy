@@ -8,16 +8,16 @@ import { LoadingState } from "@repo/ui/components/loading-state";
 import {
   useCreateLLMConnection,
   useDeleteLLMConnection,
-  useLLMProviderSettings,
+  useLLMConnectionSettings,
   useSetLLMDefault,
   useUpdateLLMConnection,
-} from "@/hooks/queries/useLLMProviderSettings";
-import type { LLMConnection } from "@/hooks/queries/useLLMProviderSettings";
+} from "@/hooks/queries/useLLMConnectionSettings";
+import type { LLMConnection } from "@/hooks/queries/useLLMConnectionSettings";
 import { LLMConnectionCard } from "./LLMConnectionCard";
 import { LLMConnectionDialog } from "./LLMConnectionDialog";
 
-export function LLMProviderSettings() {
-  const { data, isPending, error, refetch } = useLLMProviderSettings();
+export function LLMConnectionSettings() {
+  const { data, isPending, error, refetch } = useLLMConnectionSettings();
   const create = useCreateLLMConnection();
   const update = useUpdateLLMConnection();
   const remove = useDeleteLLMConnection();

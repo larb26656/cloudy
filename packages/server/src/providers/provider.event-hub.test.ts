@@ -1,12 +1,12 @@
-import type { ProviderAdapter } from "@repo/ai-core";
+import type { AgentProviderAdapter } from "@repo/ai-core";
 import { describe, expect, it } from "vitest";
 import { createProviderEventHub } from "./provider.event-hub";
-import { createProviderRegistry } from "./provider.registry";
+import { createAgentProviderRegistry } from "./provider.registry";
 
 function provider(
   id: string,
-  subscribeEvents: ProviderAdapter["subscribeEvents"],
-): ProviderAdapter {
+  subscribeEvents: AgentProviderAdapter["subscribeEvents"],
+): AgentProviderAdapter {
   return {
     id,
     capabilities: { streaming: true },
@@ -26,7 +26,7 @@ function waitForEvent() {
 describe("provider event hub", () => {
   it("consumes upstream events with zero subscribers", async () => {
     const consumed = waitForEvent();
-    const registry = createProviderRegistry({
+    const registry = createAgentProviderRegistry({
       providers: [
         provider("one", async function* ({ signal } = {}) {
           consumed.resolve();
@@ -48,7 +48,7 @@ describe("provider event hub", () => {
 
   it("fans out events and isolates subscriber aborts", async () => {
     const emitted = waitForEvent();
-    const registry = createProviderRegistry({
+    const registry = createAgentProviderRegistry({
       providers: [
         provider("one", async function* ({ signal } = {}) {
           yield {
@@ -86,7 +86,7 @@ describe("provider event hub", () => {
 
   it("only closes upstream subscriptions during hub shutdown", async () => {
     let stopped = false;
-    const registry = createProviderRegistry({
+    const registry = createAgentProviderRegistry({
       providers: [
         provider("one", async function* ({ signal } = {}) {
           try {

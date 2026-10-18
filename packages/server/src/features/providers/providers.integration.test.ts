@@ -1,13 +1,13 @@
-import type { ProviderAdapter } from "@repo/ai-core";
+import type { AgentProviderAdapter } from "@repo/ai-core";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   createProviderEventHub,
-  createProviderRegistry,
+  createAgentProviderRegistry,
 } from "../../providers";
 import { createApp } from "../../server";
 import { createTestApp, type AppType } from "../../test-utils";
 
-function fakeProvider(): ProviderAdapter {
+function fakeProvider(): AgentProviderAdapter {
   return {
     id: "opencode",
     capabilities: { streaming: true, models: true, agents: true },
@@ -41,11 +41,11 @@ let env: ReturnType<typeof createTestApp>;
 
 beforeEach(() => {
   env = createTestApp();
-  env.container.providerRegistry = createProviderRegistry({
+  env.container.agentProviderRegistry = createAgentProviderRegistry({
     providers: [fakeProvider()],
   });
   env.container.providerEventHub = createProviderEventHub(
-    env.container.providerRegistry,
+    env.container.agentProviderRegistry,
     { onEvent: (event) => env.container.sessionsService.applyEvent(event) },
   );
   app = createApp({ container: env.container });
@@ -56,7 +56,7 @@ afterEach(() => close());
 
 describe("providers integration", () => {
   it("returns a normalized provider catalog", async () => {
-    const response = await app.request("/api/providers");
+    const response = await app.request("/api/agent-providers");
 
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual([
@@ -74,7 +74,7 @@ describe("providers integration", () => {
   });
 
   it("streams normalized events from the Cloudy-wide endpoint", async () => {
-    const response = await app.request("/api/providers/events");
+    const response = await app.request("/api/agent-providers/events");
 
     expect(response.status).toBe(200);
     await env.container.providerEventHub.stop();

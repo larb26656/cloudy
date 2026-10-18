@@ -24,10 +24,10 @@ export const settingsSections: SettingsSection[] = [
     icon: BrainCircuit,
   },
   {
-    id: "providers",
-    label: "Providers",
-    description: "Configure connections for each AI provider.",
-    to: "/settings/providers",
+    id: "agent-providers",
+    label: "Agent Providers",
+    description: "Configure agent and session providers.",
+    to: "/settings/agent-providers",
     icon: PlugZap,
   },
   {

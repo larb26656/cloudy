@@ -39,5 +39,5 @@
 
 export type { AppType } from "@repo/server";
 export type { CreateNotificationInput, NotificationDto } from "@repo/server";
-export type { ProviderSettings } from "@repo/server";
+export type { AgentProviderSettings } from "@repo/server";
 export type * from "@repo/ai-core";

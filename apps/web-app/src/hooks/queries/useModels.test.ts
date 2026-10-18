@@ -1,18 +1,18 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import type { ProviderInfo } from "@repo/contracts";
-import { fetchProviderCatalog } from "./useModels";
+import type { AgentProviderInfo } from "@repo/contracts";
+import { fetchAgentProviderCatalog } from "./useModels";
 
 const mocks = vi.hoisted(() => ({ $get: vi.fn() }));
 
 vi.mock("@/lib/api", () => ({
   cloudyClient: {
     api: {
-      providers: { $get: mocks.$get },
+      "agent-providers": { $get: mocks.$get },
     },
   },
 }));
 
-const catalog: ProviderInfo[] = [
+const catalog: AgentProviderInfo[] = [
   {
     id: "opencode",
     name: "OpenCode",
@@ -29,7 +29,7 @@ const catalog: ProviderInfo[] = [
   },
 ];
 
-describe("fetchProviderCatalog", () => {
+describe("fetchAgentProviderCatalog", () => {
   beforeEach(() => {
     mocks.$get.mockReset();
   });
@@ -41,7 +41,7 @@ describe("fetchProviderCatalog", () => {
       json: async () => catalog,
     });
 
-    await expect(fetchProviderCatalog()).resolves.toEqual(catalog);
+    await expect(fetchAgentProviderCatalog()).resolves.toEqual(catalog);
     expect(mocks.$get).toHaveBeenCalledTimes(1);
   });
 
@@ -52,7 +52,7 @@ describe("fetchProviderCatalog", () => {
       json: async () => ({}),
     });
 
-    await expect(fetchProviderCatalog()).rejects.toThrow(
+    await expect(fetchAgentProviderCatalog()).rejects.toThrow(
       "Failed to load model catalog (502)",
     );
   });

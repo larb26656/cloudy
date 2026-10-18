@@ -132,7 +132,7 @@ const demoSession = { id: DEMO_SESSION_ID, title: "Demo Chat Session" };
 
 function createMessageHandlers(messages: MockMessage[]) {
   return [
-    http.get("/api/providers/opencode/sessions/status", () =>
+    http.get("/api/agent-providers/opencode/sessions/status", () =>
       HttpResponse.json({ [DEMO_SESSION_ID]: { type: "idle" } }),
     ),
     http.get(sessionDetailPattern, () => HttpResponse.json(demoSession)),
@@ -145,7 +145,7 @@ function createMessageHandlers(messages: MockMessage[]) {
 }
 
 const errorHandlers = [
-  http.get("/api/providers/opencode/sessions/status", () =>
+  http.get("/api/agent-providers/opencode/sessions/status", () =>
     HttpResponse.json({}),
   ),
   http.get(sessionDetailPattern, () => HttpResponse.json(demoSession)),

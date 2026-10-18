@@ -20,7 +20,7 @@ import {
 import type {
   LLMConnection,
   LLMSettings,
-} from "@/hooks/queries/useLLMProviderSettings";
+} from "@/hooks/queries/useLLMConnectionSettings";
 
 type ConfigField = LLMSettings["providerTypes"][number]["configFields"][number];
 type FormValues = {

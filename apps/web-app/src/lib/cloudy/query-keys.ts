@@ -26,17 +26,17 @@ export const notificationKeys = {
   list: () => [...notificationKeys.root(), "list"] as const,
 };
 
-export const providerKeys = {
-  root: () => ["providers"] as const,
-  catalog: () => [...providerKeys.root(), "catalog"] as const,
+export const agentProviderKeys = {
+  root: () => ["agent-providers"] as const,
+  catalog: () => [...agentProviderKeys.root(), "catalog"] as const,
 };
 
-export const llmProviderKeys = {
-  root: () => ["llm-providers"] as const,
-  settings: () => [...llmProviderKeys.root(), "settings"] as const,
+export const llmConnectionKeys = {
+  root: () => ["llm-connections"] as const,
+  settings: () => [...llmConnectionKeys.root(), "settings"] as const,
 };
 
 export const settingsKeys = {
   root: () => ["settings"] as const,
-  providers: () => [...settingsKeys.root(), "providers"] as const,
+  agentProviders: () => [...settingsKeys.root(), "agent-providers"] as const,
 };

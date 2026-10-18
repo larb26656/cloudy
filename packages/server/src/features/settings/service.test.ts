@@ -50,7 +50,7 @@ describe("settings service", () => {
       "/tmp/cloudy-settings-templates",
     );
 
-    expect(service.getProviderTemplates()).toEqual({
+    expect(service.getAgentProviderTemplates()).toEqual({
       templates: [
         {
           id: "opencode",
@@ -66,7 +66,7 @@ describe("settings service", () => {
     tempDirs.push(configDir);
     const service = createSettingsService(config, configDir);
 
-    const result = service.updateProvider("opencode", {
+    const result = service.updateAgentProvider("opencode", {
       enabled: false,
       baseUrl: "http://localhost:5000",
     });

@@ -4,7 +4,7 @@ import type {
   ChatMessage,
   MessagePart,
   ModelInfo,
-  ProviderInfo,
+  AgentProviderInfo,
   RunStatus,
   SessionStatus,
   ChatSession,
@@ -473,10 +473,10 @@ export function toAgentInfo(agent: Agent | AgentV2Info): AgentInfo {
   };
 }
 
-export function toProviderInfo(
+export function toAgentProviderInfo(
   provider: Provider,
   agents: Agent[],
-): ProviderInfo {
+): AgentProviderInfo {
   return {
     id: provider.id,
     name: provider.name,

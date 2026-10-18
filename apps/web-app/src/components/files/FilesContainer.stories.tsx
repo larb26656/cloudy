@@ -171,19 +171,21 @@ function createSuccessHandlers({
   searchResults?: string[];
 } = {}) {
   return [
-    http.get("*/api/providers/opencode/diff", () => HttpResponse.json(vcsDiff)),
-    http.get("*/api/providers/opencode/files", ({ request }) => {
+    http.get("*/api/agent-providers/opencode/diff", () =>
+      HttpResponse.json(vcsDiff),
+    ),
+    http.get("*/api/agent-providers/opencode/files", ({ request }) => {
       const path = new URL(request.url).searchParams.get("path") ?? ".";
       return HttpResponse.json(filesByPath[path] ?? []);
     }),
-    http.get("*/api/providers/opencode/file", ({ request }) => {
+    http.get("*/api/agent-providers/opencode/file", ({ request }) => {
       const path = new URL(request.url).searchParams.get("path") ?? "";
       const content = fileContents[path];
       return content
         ? HttpResponse.json(content)
         : HttpResponse.json({ message: "File not found" }, { status: 404 });
     }),
-    http.get("*/api/providers/opencode/file-search", ({ request }) => {
+    http.get("*/api/agent-providers/opencode/file-search", ({ request }) => {
       const query = new URL(request.url).searchParams.get("query") ?? "";
       const matches = searchResults.filter((path) =>
         path.toLowerCase().includes(query.toLowerCase()),
@@ -201,10 +203,10 @@ function createErrorHandlers() {
     );
 
   return [
-    http.get("*/api/providers/opencode/diff", errorResponse),
-    http.get("*/api/providers/opencode/files", errorResponse),
-    http.get("*/api/providers/opencode/file", errorResponse),
-    http.get("*/api/providers/opencode/file-search", errorResponse),
+    http.get("*/api/agent-providers/opencode/diff", errorResponse),
+    http.get("*/api/agent-providers/opencode/files", errorResponse),
+    http.get("*/api/agent-providers/opencode/file", errorResponse),
+    http.get("*/api/agent-providers/opencode/file-search", errorResponse),
   ];
 }
 

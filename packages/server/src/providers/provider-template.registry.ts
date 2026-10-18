@@ -1,4 +1,4 @@
-import type { ProviderAdapter } from "@repo/ai-core";
+import type { AgentProviderAdapter } from "@repo/ai-core";
 import { createOpenCodeAdapter } from "./opencode/opencode.adapter";
 
 const providerTemplates = {
@@ -6,7 +6,7 @@ const providerTemplates = {
     id: "opencode",
     name: "OpenCode",
     description: "Connect to an OpenCode server.",
-    create(config: ProviderInstanceConfig): ProviderAdapter {
+    create(config: ProviderInstanceConfig): AgentProviderAdapter {
       return createOpenCodeAdapter({
         id: config.id,
         name: config.name,
@@ -35,7 +35,7 @@ export function createProviderTemplateRegistry() {
         }),
       );
     },
-    create(config: ProviderInstanceConfig): ProviderAdapter {
+    create(config: ProviderInstanceConfig): AgentProviderAdapter {
       const template = providerTemplates[config.templateId];
       return template.create(config);
     },

@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { loadFileConfig } from "../../config/file-loader";
 import { createLLM, openaiProviderDefinition } from "../../lib/llm-provider";
 import { testConfig } from "../../test-utils";
-import { createLLMProvidersService } from "./service";
+import { createLLMConnectionService } from "./service";
 
 const tempDirs: string[] = [];
 afterEach(() => {
@@ -19,7 +19,7 @@ describe("LLM providers service", () => {
     tempDirs.push(configDir);
     const llm = createLLM();
     llm.registerProvider("openai", openaiProviderDefinition);
-    const service = createLLMProvidersService(testConfig, configDir, llm);
+    const service = createLLMConnectionService(testConfig, configDir, llm);
     const connection = service.createConnection({
       name: "Primary",
       type: "openai",

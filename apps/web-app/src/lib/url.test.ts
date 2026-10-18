@@ -8,20 +8,25 @@ describe("resolveUrl", () => {
   it("joins origin and paths with one slash", () => {
     vi.stubGlobal("window", { origin: "http://127.0.0.1:4122" });
 
-    expect(resolveUrl("//api/providers/opencode")).toBe(
-      "http://127.0.0.1:4122/api/providers/opencode",
+    expect(resolveUrl("//api/agent-providers/opencode")).toBe(
+      "http://127.0.0.1:4122/api/agent-providers/opencode",
     );
   });
 
   it("joins an API base URL and path with one slash", () => {
-    expect(joinUrl("http://127.0.0.1:4122/", "/api/providers/events")).toBe(
-      "http://127.0.0.1:4122/api/providers/events",
-    );
+    expect(
+      joinUrl("http://127.0.0.1:4122/", "/api/agent-providers/events"),
+    ).toBe("http://127.0.0.1:4122/api/agent-providers/events");
   });
 
   it("joins multiple path segments", () => {
     expect(
-      joinUrl("http://127.0.0.1:4122/", "/api/", "/providers/", "opencode"),
-    ).toBe("http://127.0.0.1:4122/api/providers/opencode");
+      joinUrl(
+        "http://127.0.0.1:4122/",
+        "/api/",
+        "/agent-providers/",
+        "opencode",
+      ),
+    ).toBe("http://127.0.0.1:4122/api/agent-providers/opencode");
   });
 });

@@ -5,12 +5,12 @@ import {
 import type {
   ChatEvent,
   ChatSession,
-  ProviderAdapter,
+  AgentProviderAdapter,
   ProviderMessageRequest,
   ProviderMessagesInput,
   ProviderSessionInput,
   ProviderEventsInput,
-  ProviderInfo,
+  AgentProviderInfo,
   PermissionRequest,
   ProviderQuestionRequest,
   RunStatus,
@@ -69,7 +69,7 @@ export function createOpenCodeAdapter({
   name = "OpenCode",
   baseUrl,
   client = createOpencodeClient({ baseUrl }),
-}: OpenCodeAdapterOptions): ProviderAdapter {
+}: OpenCodeAdapterOptions): AgentProviderAdapter {
   const adapter = {
     id,
     capabilities: {
@@ -405,7 +405,7 @@ export function createOpenCodeAdapter({
       if (result.error) throw result.error;
       return result.data;
     },
-    async getInfo(): Promise<ProviderInfo> {
+    async getInfo(): Promise<AgentProviderInfo> {
       const [providerResult, agentResult] = await Promise.all([
         client.config.providers(),
         client.v2.agent.list({}),
@@ -440,7 +440,7 @@ export function createOpenCodeAdapter({
     subscribeEvents(input: ProviderEventsInput = {}): AsyncIterable<ChatEvent> {
       return streamEvents(client, input, id);
     },
-  } satisfies ProviderAdapter;
+  } satisfies AgentProviderAdapter;
 
   return adapter;
 }

@@ -1,15 +1,15 @@
 import path from "node:path";
 import type { AppConfig } from "../../config";
 import { updateFileConfig } from "../../config/file-loader";
-import type { ProviderSettings } from "./model";
+import type { AgentProviderSettings } from "./model";
 import { randomUUID } from "node:crypto";
-import type { ProviderRegistry } from "../../providers/provider.registry";
+import type { AgentProviderRegistry } from "../../providers/provider.registry";
 import { createProviderTemplateRegistry } from "../../providers/provider-template.registry";
 
 export function createSettingsService(
   config: AppConfig,
   configDir?: string,
-  registry?: ProviderRegistry,
+  registry?: AgentProviderRegistry,
 ) {
   const settingsDir = configDir ?? path.dirname(config.dbPath);
   const templates = createProviderTemplateRegistry();
@@ -19,19 +19,19 @@ export function createSettingsService(
       ...current,
       providers: { instances },
     }));
-  const reconcile = (instance: ProviderSettings) => {
+  const reconcile = (instance: AgentProviderSettings) => {
     registry?.remove(instance.id);
     if (instance.enabled) registry?.register(templates.create(instance));
   };
 
   return {
-    getProviders() {
+    getAgentProviders() {
       return { instances };
     },
-    getProviderTemplates() {
+    getAgentProviderTemplates() {
       return { templates: templates.list() };
     },
-    createProvider(input: Omit<ProviderSettings, "id">) {
+    createAgentProvider(input: Omit<AgentProviderSettings, "id">) {
       const instance = { ...input, id: randomUUID() };
       instances.push(instance);
       try {
@@ -43,7 +43,10 @@ export function createSettingsService(
       reconcile(instance);
       return instance;
     },
-    updateProvider(id: string, patch: Partial<Omit<ProviderSettings, "id">>) {
+    updateAgentProvider(
+      id: string,
+      patch: Partial<Omit<AgentProviderSettings, "id">>,
+    ) {
       const index = instances.findIndex((item) => item.id === id);
       if (index < 0) throw new Error(`Provider instance not found: ${id}`);
       const previous = instances[index]!;
@@ -58,7 +61,7 @@ export function createSettingsService(
       reconcile(updated);
       return updated;
     },
-    deleteProvider(id: string) {
+    deleteAgentProvider(id: string) {
       const index = instances.findIndex((item) => item.id === id);
       if (index < 0) throw new Error(`Provider instance not found: ${id}`);
       const [removed] = instances.splice(index, 1);

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-import { LLMProviderSettings } from "./LLMProviderSettings";
+import { LLMConnectionSettings } from "./LLMConnectionSettings";
 
 const mocks = vi.hoisted(() => ({
   settings: vi.fn(),
@@ -10,15 +10,15 @@ const mocks = vi.hoisted(() => ({
   setDefault: vi.fn(),
 }));
 
-vi.mock("@/hooks/queries/useLLMProviderSettings", () => ({
-  useLLMProviderSettings: mocks.settings,
+vi.mock("@/hooks/queries/useLLMConnectionSettings", () => ({
+  useLLMConnectionSettings: mocks.settings,
   useCreateLLMConnection: () => ({ mutate: mocks.create, isPending: false }),
   useUpdateLLMConnection: () => ({ mutate: mocks.update }),
   useDeleteLLMConnection: () => ({ mutate: mocks.remove }),
   useSetLLMDefault: () => ({ mutate: mocks.setDefault }),
 }));
 
-describe("LLMProviderSettings", () => {
+describe("LLMConnectionSettings", () => {
   it("shows saved connection details without rendering the API key", () => {
     mocks.settings.mockReturnValue({
       data: {
@@ -54,7 +54,7 @@ describe("LLMProviderSettings", () => {
       refetch: vi.fn(),
     });
 
-    render(<LLMProviderSettings />);
+    render(<LLMConnectionSettings />);
 
     expect(
       screen.getByRole("combobox", { name: "Primary default model" }),
@@ -93,7 +93,7 @@ describe("LLMProviderSettings", () => {
       refetch: vi.fn(),
     });
 
-    render(<LLMProviderSettings />);
+    render(<LLMConnectionSettings />);
     fireEvent.click(screen.getByRole("button", { name: "Edit" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Model 1" }), {
       target: { value: "new-model" },

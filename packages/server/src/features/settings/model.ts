@@ -1,18 +1,22 @@
 import { z } from "zod";
 
-const providerSettingsSchema = z.object({
+const agentProviderSettingsSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
   templateId: z.literal("opencode"),
   enabled: z.boolean(),
   baseUrl: z.string().url(),
 });
-const createProviderSchema = providerSettingsSchema.omit({ id: true });
+const createAgentProviderSchema = agentProviderSettingsSchema.omit({
+  id: true,
+});
 
 export const SettingsModel = {
-  providerSettingsSchema,
-  providersSchema: z.object({ instances: z.array(providerSettingsSchema) }),
-  providerTemplatesSchema: z.object({
+  agentProviderSettingsSchema,
+  agentProvidersSchema: z.object({
+    instances: z.array(agentProviderSettingsSchema),
+  }),
+  agentProviderTemplatesSchema: z.object({
     templates: z.array(
       z.object({
         id: z.literal("opencode"),
@@ -21,8 +25,8 @@ export const SettingsModel = {
       }),
     ),
   }),
-  createProviderSchema,
-  updateProviderSchema: createProviderSchema.partial(),
+  createAgentProviderSchema,
+  updateAgentProviderSchema: createAgentProviderSchema.partial(),
 };
 
-export type ProviderSettings = z.infer<typeof providerSettingsSchema>;
+export type AgentProviderSettings = z.infer<typeof agentProviderSettingsSchema>;

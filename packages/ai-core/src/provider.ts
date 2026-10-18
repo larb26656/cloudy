@@ -25,7 +25,7 @@ export interface ProviderCapabilities {
   agents?: boolean;
 }
 
-export interface ProviderInfo {
+export interface AgentProviderInfo {
   id: string;
   providerType?: string;
   name: string;
@@ -72,10 +72,10 @@ export interface ProviderMessagePage {
  * Adapters expose canonical session IDs. A provider with directory-scoped native
  * IDs must reversibly namespace them for every session operation and event.
  */
-export interface ProviderAdapter {
+export interface AgentProviderAdapter {
   readonly id: string;
   readonly capabilities: ProviderCapabilities;
-  getInfo(): Promise<ProviderInfo>;
+  getInfo(): Promise<AgentProviderInfo>;
   listSessions?(input: {
     directory?: string;
     limit?: number;

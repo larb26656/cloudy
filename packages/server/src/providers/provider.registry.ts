@@ -1,9 +1,9 @@
 import type {
   InteractionResponse,
   InteractionResponseInput,
-  ProviderAdapter,
+  AgentProviderAdapter,
   ProviderEventsInput,
-  ProviderInfo,
+  AgentProviderInfo,
   ProviderMessageRequest,
   ProviderMessagesInput,
   ProviderSessionInput,
@@ -20,11 +20,13 @@ import {
   UnsupportedProviderOperationError,
 } from "./provider.errors";
 
-export interface ProviderRegistryOptions {
-  providers: ProviderAdapter[];
+export interface AgentProviderRegistryOptions {
+  providers: AgentProviderAdapter[];
 }
 
-export function createProviderRegistry({ providers }: ProviderRegistryOptions) {
+export function createAgentProviderRegistry({
+  providers,
+}: AgentProviderRegistryOptions) {
   const providerMap = new Map(
     providers.map((provider) => [provider.id, provider]),
   );
@@ -34,16 +36,16 @@ export function createProviderRegistry({ providers }: ProviderRegistryOptions) {
     throw new Error("Provider IDs must be unique");
   }
 
-  const get = (providerId: string): ProviderAdapter => {
+  const get = (providerId: string): AgentProviderAdapter => {
     const provider = providerMap.get(providerId);
     if (!provider) throw new ProviderNotFoundError(providerId);
     return provider;
   };
 
-  const requireOperation = <K extends keyof ProviderAdapter>(
+  const requireOperation = <K extends keyof AgentProviderAdapter>(
     providerId: string,
     operation: K,
-  ): NonNullable<ProviderAdapter[K]> => {
+  ): NonNullable<AgentProviderAdapter[K]> => {
     const provider = get(providerId);
     const implementation = provider[operation];
     if (typeof implementation !== "function") {
@@ -52,23 +54,23 @@ export function createProviderRegistry({ providers }: ProviderRegistryOptions) {
         String(operation),
       );
     }
-    return implementation as NonNullable<ProviderAdapter[K]>;
+    return implementation as NonNullable<AgentProviderAdapter[K]>;
   };
 
   return {
     get,
-    list: (): ProviderAdapter[] => [...providerMap.values()],
+    list: (): AgentProviderAdapter[] => [...providerMap.values()],
     onChange(listener: () => void) {
       listeners.add(listener);
       return () => listeners.delete(listener);
     },
-    register(provider: ProviderAdapter) {
+    register(provider: AgentProviderAdapter) {
       if (providerMap.has(provider.id))
         throw new Error(`Provider already exists: ${provider.id}`);
       providerMap.set(provider.id, provider);
       listeners.forEach((listener) => listener());
     },
-    replace(provider: ProviderAdapter) {
+    replace(provider: AgentProviderAdapter) {
       if (!providerMap.has(provider.id))
         throw new ProviderNotFoundError(provider.id);
       providerMap.set(provider.id, provider);
@@ -78,7 +80,7 @@ export function createProviderRegistry({ providers }: ProviderRegistryOptions) {
       if (!providerMap.delete(providerId)) return;
       listeners.forEach((listener) => listener());
     },
-    async catalog(): Promise<ProviderInfo[]> {
+    async catalog(): Promise<AgentProviderInfo[]> {
       return Promise.all(
         [...providerMap.values()].map((provider) => provider.getInfo()),
       );
@@ -223,4 +225,6 @@ export function createProviderRegistry({ providers }: ProviderRegistryOptions) {
   };
 }
 
-export type ProviderRegistry = ReturnType<typeof createProviderRegistry>;
+export type AgentProviderRegistry = ReturnType<
+  typeof createAgentProviderRegistry
+>;

@@ -10,7 +10,7 @@ const connectionSchema = z.object({
   modelIds: z.array(z.string()),
 });
 
-export const LLMProvidersModel = {
+export const LLMConnectionModel = {
   connectionSchema,
   settingsSchema: z.object({
     providerTypes: z.array(
@@ -50,6 +50,6 @@ export const LLMProvidersModel = {
 };
 
 export type LLMConnectionInput = z.infer<
-  typeof LLMProvidersModel.createConnectionSchema
+  typeof LLMConnectionModel.createConnectionSchema
 >;
 export type LLMConnectionDto = z.infer<typeof connectionSchema>;

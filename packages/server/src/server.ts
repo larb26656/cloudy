@@ -9,10 +9,10 @@ import { createPtyController } from "./features/pty";
 import { createNotificationsController } from "./features/notifications";
 import { createWorkspacesController } from "./features/workspaces";
 import { createBrowserWorkspaceController } from "./features/browser-workspace";
-import { createProvidersController } from "./features/providers";
+import { createAgentProvidersController } from "./features/providers";
 import { createSessionsController } from "./features/sessions";
 import { createSettingsController } from "./features/settings";
-import { createLLMProvidersController } from "./features/llm-providers";
+import { createLLMConnectionsController } from "./features/llm-connections";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
 
@@ -57,9 +57,9 @@ export function createApp({
     .onError(domainErrorHandler)
     .get("/api/health", (c) => c.json({ status: "ok" }))
     .route(
-      "/api/providers",
-      createProvidersController(
-        container.providerRegistry,
+      "/api/agent-providers",
+      createAgentProvidersController(
+        container.agentProviderRegistry,
         container.providerEventHub,
         container.sessionsService,
       ),
@@ -67,8 +67,8 @@ export function createApp({
     .route("/api/sessions", createSessionsController(container.sessionsService))
     .route("/api/settings", createSettingsController(container.settingsService))
     .route(
-      "/api/llm-providers",
-      createLLMProvidersController(container.llmProvidersService),
+      "/api/llm-connections",
+      createLLMConnectionsController(container.llmConnectionsService),
     )
     .route("/api/pty", createPtyController(container.ptyService))
     .route(

@@ -174,11 +174,12 @@ const idleStatus: Record<string, SessionStatus> = {
 
 function createHandlers() {
   return [
-    http.get("*/api/providers/opencode/sessions/status", () =>
+    http.get("*/api/agent-providers/opencode/sessions/status", () =>
       HttpResponse.json(idleStatus),
     ),
-    http.get(`*/api/providers/opencode/sessions/${SESSION_ID}/messages`, () =>
-      HttpResponse.json([makeUserMessage()]),
+    http.get(
+      `*/api/agent-providers/opencode/sessions/${SESSION_ID}/messages`,
+      () => HttpResponse.json([makeUserMessage()]),
     ),
   ];
 }

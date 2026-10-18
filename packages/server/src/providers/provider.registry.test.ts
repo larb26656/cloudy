@@ -1,12 +1,14 @@
-import type { ChatEvent, ProviderAdapter } from "@repo/ai-core";
+import type { AgentProviderAdapter, ChatEvent } from "@repo/ai-core";
 import { describe, expect, it } from "vitest";
 import {
   ProviderNotFoundError,
   UnsupportedProviderOperationError,
 } from "./provider.errors";
-import { createProviderRegistry } from "./provider.registry";
+import { createAgentProviderRegistry } from "./provider.registry";
 
-function provider(overrides: Partial<ProviderAdapter> = {}): ProviderAdapter {
+function provider(
+  overrides: Partial<AgentProviderAdapter> = {},
+): AgentProviderAdapter {
   return {
     id: "test",
     capabilities: { streaming: true },
@@ -29,7 +31,7 @@ function provider(overrides: Partial<ProviderAdapter> = {}): ProviderAdapter {
 
 describe("provider registry", () => {
   it("looks up providers and returns a catalog", async () => {
-    const registry = createProviderRegistry({ providers: [provider()] });
+    const registry = createAgentProviderRegistry({ providers: [provider()] });
 
     expect(registry.get("test").id).toBe("test");
     expect(await registry.catalog()).toEqual([
@@ -38,19 +40,19 @@ describe("provider registry", () => {
   });
 
   it("rejects unknown providers", () => {
-    const registry = createProviderRegistry({ providers: [provider()] });
+    const registry = createAgentProviderRegistry({ providers: [provider()] });
 
     expect(() => registry.get("missing")).toThrow(ProviderNotFoundError);
   });
 
   it("rejects duplicate provider IDs", () => {
     expect(() =>
-      createProviderRegistry({ providers: [provider(), provider()] }),
+      createAgentProviderRegistry({ providers: [provider(), provider()] }),
     ).toThrow("Provider IDs must be unique");
   });
 
   it("reports unsupported operations", () => {
-    const registry = createProviderRegistry({ providers: [provider()] });
+    const registry = createAgentProviderRegistry({ providers: [provider()] });
 
     expect(() =>
       registry.sendMessage("test", {

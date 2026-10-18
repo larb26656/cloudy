@@ -6,7 +6,7 @@ import type {
 } from "@repo/ai-core";
 import type { SessionRecord } from "../../db/schema";
 import { ValidationError } from "../../shared/domain-error";
-import type { ProviderRegistry } from "../../providers";
+import type { AgentProviderRegistry } from "../../providers";
 import type {
   CommandInput,
   CreateSessionInput,
@@ -33,7 +33,7 @@ function toSession(record: SessionRecord): ChatSession {
 
 export function createSessionsService(
   repository: SessionsRepository,
-  registry: ProviderRegistry,
+  registry: AgentProviderRegistry,
 ) {
   const getRecord = (id: string): SessionRecord => {
     const session = repository.findById(id);
