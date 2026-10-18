@@ -1,10 +1,34 @@
 import { useState } from "react";
+import { Plus } from "lucide-react";
 import { toast } from "@repo/ui/components/sonner";
 import { Button } from "@repo/ui/components/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@repo/ui/components/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/ui/components/dialog";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { Input } from "@repo/ui/components/input";
 import { LoadingState } from "@repo/ui/components/loading-state";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/components/select";
 import {
   useCreateLLMConnection,
   useDeleteLLMConnection,
@@ -26,16 +50,12 @@ export function LLMProviderSettings() {
   const update = useUpdateLLMConnection();
   const remove = useDeleteLLMConnection();
   const setDefault = useSetLLMDefault();
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [config, setConfig] = useState<Record<string, string>>({});
-  const [modelIds, setModelIds] = useState("");
-  const [edits, setEdits] = useState<
-    Record<
-      string,
-      { name?: string; config?: Record<string, string>; modelIds?: string[] }
-    >
-  >({});
+  const [modelIds, setModelIds] = useState<string[]>([""]);
 
   if (isPending) return <LoadingState className="py-12" />;
   if (error)
@@ -47,27 +67,85 @@ export function LLMProviderSettings() {
       />
     );
 
-  const selectedType = type || data.providerTypes[0]?.id || "";
+  const editingConnection = data.connections.find(
+    (connection) => connection.id === editingId,
+  );
+  const selectedType = editingConnection?.type ?? type;
   const selectedProvider = data.providerTypes.find(
     (provider) => provider.id === selectedType,
   );
   const missingRequiredConfig =
     selectedProvider?.configFields.some(
-      (field: ConfigField) => field.required && !config[field.key]?.trim(),
+      (field: ConfigField) =>
+        field.required &&
+        !config[field.key]?.trim() &&
+        !(
+          editingConnection?.secretsConfigured[field.key] &&
+          field.type === "secret"
+        ),
     ) ?? false;
+  const cleanModels = modelIds.map((model) => model.trim()).filter(Boolean);
+  const canSave =
+    name.trim() &&
+    selectedType &&
+    !missingRequiredConfig &&
+    cleanModels.length > 0;
 
-  const addConnection = () => {
-    const models = modelIds
-      .split(",")
-      .map((model) => model.trim())
-      .filter(Boolean);
+  const openCreateDialog = () => {
+    setEditingId(null);
+    setName("");
+    setType(data.providerTypes[0]?.id ?? "");
+    setConfig({});
+    setModelIds([""]);
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (connection: (typeof data.connections)[number]) => {
+    setEditingId(connection.id);
+    setName(connection.name);
+    setConfig(
+      Object.fromEntries(
+        Object.entries(connection.config).map(([key, value]) => [
+          key,
+          String(value ?? ""),
+        ]),
+      ),
+    );
+    setModelIds(connection.modelIds.length ? [...connection.modelIds] : [""]);
+    setDialogOpen(true);
+  };
+
+  const saveConnection = () => {
+    if (!canSave) return;
+    if (editingConnection) {
+      const updatedConfig = { ...editingConnection.config, ...config };
+      for (const field of selectedProvider?.configFields ?? []) {
+        if (field.type === "secret" && !config[field.key]?.trim()) {
+          delete updatedConfig[field.key];
+        }
+      }
+      update.mutate(
+        {
+          id: editingConnection.id,
+          name: name.trim(),
+          config: updatedConfig,
+          modelIds: cleanModels,
+        },
+        {
+          onSuccess: () => {
+            setDialogOpen(false);
+            toast.success("LLM connection updated");
+          },
+          onError: (err) => toast.error(err.message),
+        },
+      );
+      return;
+    }
     create.mutate(
-      { name, type: selectedType, config, modelIds: models },
+      { name: name.trim(), type: selectedType, config, modelIds: cleanModels },
       {
         onSuccess: () => {
-          setName("");
-          setConfig({});
-          setModelIds("");
+          setDialogOpen(false);
           toast.success("LLM connection added");
         },
         onError: (err) => toast.error(err.message),
@@ -75,232 +153,257 @@ export function LLMProviderSettings() {
     );
   };
 
-  const content = data.connections.length ? (
-    data.connections.map((connection) => {
-      const changes = edits[connection.id] ?? {};
-      const values = { ...connection, ...changes };
-      const provider = data.providerTypes.find(
-        (item) => item.id === connection.type,
-      );
-      return (
-        <section
-          key={connection.id}
-          className="space-y-3 rounded-lg border p-4"
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-semibold">LLM Connections</h2>
+          <p className="text-sm text-muted-foreground">
+            Manage connections used by Cloudy AI. Secret values are never
+            returned after saving.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="icon"
+          aria-label="Add connection"
+          title="Add connection"
+          onClick={openCreateDialog}
         >
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Input
-              aria-label={`${connection.name} name`}
-              value={values.name}
-              onChange={(event) =>
-                setEdits((current) => ({
-                  ...current,
-                  [connection.id]: {
-                    ...current[connection.id],
-                    name: event.target.value,
-                  },
-                }))
-              }
-            />
-            <Input
-              aria-label={`${connection.name} model IDs`}
-              value={(values.modelIds ?? connection.modelIds).join(", ")}
-              onChange={(event) =>
-                setEdits((current) => ({
-                  ...current,
-                  [connection.id]: {
-                    ...current[connection.id],
-                    modelIds: event.target.value
-                      .split(",")
-                      .map((model) => model.trim())
-                      .filter(Boolean),
-                  },
-                }))
-              }
-            />
-            {provider?.configFields.map((field: ConfigField) => {
-              const configured = connection.secretsConfigured[field.key];
-              const fieldValue =
-                changes.config?.[field.key] ??
-                String(connection.config[field.key] ?? "");
+          <Plus data-icon="inline-start" />
+        </Button>
+      </div>
+
+      {data.connections.length ? (
+        <div className="grid gap-3 lg:grid-cols-2">
+          {data.connections.map((connection) => {
+            const provider = data.providerTypes.find(
+              (item) => item.id === connection.type,
+            );
+            const isDefault = data.default?.connectionId === connection.id;
+            return (
+              <Card key={connection.id}>
+                <CardHeader>
+                  <CardTitle>{connection.name}</CardTitle>
+                  <CardAction>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openEditDialog(connection)}
+                    >
+                      Edit
+                    </Button>
+                  </CardAction>
+                  <p className="text-sm text-muted-foreground">
+                    {provider?.name ?? connection.type}
+                  </p>
+                </CardHeader>
+                <CardContent className="flex flex-wrap gap-2">
+                  {connection.modelIds.map((model) => (
+                    <span
+                      key={model}
+                      className="max-w-full truncate rounded-md border bg-muted px-2 py-1 text-xs"
+                      title={model}
+                    >
+                      {model}
+                    </span>
+                  ))}
+                </CardContent>
+                <CardFooter className="flex flex-wrap items-center justify-between gap-3">
+                  <label className="flex min-w-0 items-center gap-2 text-sm">
+                    <span className="shrink-0">Default model</span>
+                    <Select
+                      value={isDefault ? (data.default?.modelId ?? null) : null}
+                      onValueChange={(modelId) =>
+                        modelId &&
+                        setDefault.mutate(
+                          { connectionId: connection.id, modelId },
+                          { onError: (err) => toast.error(err.message) },
+                        )
+                      }
+                    >
+                      <SelectTrigger
+                        aria-label={`${connection.name} default model`}
+                        className="min-w-0"
+                      >
+                        <SelectValue placeholder="Select model" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {connection.modelIds.map((model) => (
+                          <SelectItem key={model} value={model}>
+                            {model}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </label>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() =>
+                      remove.mutate(connection.id, {
+                        onError: (err) => toast.error(err.message),
+                      })
+                    }
+                  >
+                    Remove
+                  </Button>
+                </CardFooter>
+              </Card>
+            );
+          })}
+        </div>
+      ) : (
+        <EmptyState
+          title="No LLM connections yet"
+          description="Add a connection to use Cloudy's built-in AI."
+          action={<Button onClick={openCreateDialog}>Add connection</Button>}
+        />
+      )}
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingConnection ? "Edit connection" : "Add connection"}
+            </DialogTitle>
+            <DialogDescription>
+              Configure the provider, credentials, and models available to
+              Cloudy AI.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex flex-col gap-4">
+            {!editingConnection && (
+              <label className="flex flex-col gap-2 text-sm font-medium">
+                Provider
+                <Select
+                  value={type}
+                  onValueChange={(value) => {
+                    setType(value ?? "");
+                    setConfig({});
+                  }}
+                >
+                  <SelectTrigger
+                    aria-label="Provider type"
+                    className="w-full font-normal"
+                  >
+                    <SelectValue placeholder="Select provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {data.providerTypes.map((provider) => (
+                      <SelectItem key={provider.id} value={provider.id}>
+                        {provider.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </label>
+            )}
+            <label className="flex flex-col gap-2 text-sm font-medium">
+              Connection name
+              <Input
+                aria-label="Connection name"
+                placeholder="e.g. Personal OpenAI"
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+            </label>
+            {selectedProvider?.configFields.map((field: ConfigField) => {
+              const configuredSecret =
+                field.type === "secret" &&
+                editingConnection?.secretsConfigured[field.key];
               return (
-                <Input
+                <label
                   key={field.key}
-                  aria-label={`${connection.name} ${field.label}`}
-                  type={field.type === "secret" ? "password" : "text"}
-                  placeholder={
-                    field.type === "secret" && configured
-                      ? `${field.label} configured — enter replacement`
-                      : field.label
-                  }
-                  value={
-                    field.type === "secret" &&
-                    changes.config?.[field.key] === undefined
-                      ? ""
-                      : fieldValue
-                  }
-                  onChange={(event) =>
-                    setEdits((current) => ({
-                      ...current,
-                      [connection.id]: {
-                        ...current[connection.id],
-                        config: {
-                          ...current[connection.id]?.config,
-                          [field.key]: event.target.value,
-                        },
-                      },
-                    }))
-                  }
-                />
+                  className="flex flex-col gap-2 text-sm font-medium"
+                >
+                  {field.label}
+                  <Input
+                    aria-label={field.label}
+                    type={field.type === "secret" ? "password" : "text"}
+                    placeholder={
+                      configuredSecret
+                        ? "Configured — enter replacement"
+                        : field.label
+                    }
+                    value={
+                      configuredSecret && !config[field.key]
+                        ? ""
+                        : (config[field.key] ?? "")
+                    }
+                    onChange={(event) =>
+                      setConfig((current) => ({
+                        ...current,
+                        [field.key]: event.target.value,
+                      }))
+                    }
+                  />
+                </label>
               );
             })}
+            <div className="flex flex-col gap-2">
+              <div>
+                <p className="text-sm font-medium">Models</p>
+                <p className="text-xs text-muted-foreground">
+                  Add each model using its exact provider ID.
+                </p>
+              </div>
+              {modelIds.map((model, index) => (
+                <div key={`model-${index}`} className="flex gap-2">
+                  <Input
+                    aria-label={`Model ${index + 1}`}
+                    placeholder="Model ID (for example: gpt-4.1)"
+                    value={model}
+                    onChange={(event) =>
+                      setModelIds((current) =>
+                        current.map((value, modelIndex) =>
+                          modelIndex === index ? event.target.value : value,
+                        ),
+                      )
+                    }
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    aria-label={`Remove model ${index + 1}`}
+                    disabled={modelIds.length === 1}
+                    onClick={() =>
+                      setModelIds((current) =>
+                        current.filter((_, modelIndex) => modelIndex !== index),
+                      )
+                    }
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+              <div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setModelIds((current) => [...current, ""])}
+                >
+                  Add model
+                </Button>
+              </div>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <Button
-              variant="outline"
-              onClick={() =>
-                update.mutate(
-                  {
-                    id: connection.id,
-                    name: changes.name,
-                    config: changes.config
-                      ? { ...connection.config, ...changes.config }
-                      : undefined,
-                    modelIds: changes.modelIds,
-                  },
-                  {
-                    onSuccess: () =>
-                      setEdits((current) => {
-                        const next = { ...current };
-                        delete next[connection.id];
-                        return next;
-                      }),
-                    onError: (err) => toast.error(err.message),
-                  },
-                )
-              }
-            >
-              Save
-            </Button>
-            <label className="flex items-center gap-2 text-sm">
-              Default model
-              <select
-                aria-label={`${connection.name} default model`}
-                className="h-9 rounded-md border border-input bg-background px-3"
-                value={
-                  data.default?.connectionId === connection.id
-                    ? data.default.modelId
-                    : ""
-                }
-                onChange={(event) =>
-                  event.target.value &&
-                  setDefault.mutate(
-                    {
-                      connectionId: connection.id,
-                      modelId: event.target.value,
-                    },
-                    { onError: (err) => toast.error(err.message) },
-                  )
-                }
-              >
-                <option value="">Select model</option>
-                {(values.modelIds ?? connection.modelIds).map((model) => (
-                  <option key={model} value={model}>
-                    {model}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <Button
-              variant="destructive"
-              onClick={() =>
-                remove.mutate(connection.id, {
-                  onError: (err) => toast.error(err.message),
-                })
-              }
-            >
-              Remove
-            </Button>
-          </div>
-        </section>
-      );
-    })
-  ) : (
-    <EmptyState
-      title="No LLM connections yet"
-      description="Add a connection to use Cloudy's built-in AI."
-    />
-  );
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">LLM Connections</h2>
-        <p className="text-sm text-muted-foreground">
-          Manage connections used by Cloudy AI. Secret values are never returned
-          after saving.
-        </p>
-      </div>
-      <div className="space-y-3">{content}</div>
-      <section className="space-y-3 rounded-lg border p-4">
-        <h3 className="text-sm font-medium">Add connection</h3>
-        <label className="block space-y-1 text-sm">
-          Provider type
-          <select
-            aria-label="Provider type"
-            className="h-9 w-full rounded-md border border-input bg-background px-3"
-            value={selectedType}
-            onChange={(event) => {
-              setType(event.target.value);
-              setConfig({});
-            }}
-          >
-            {data.providerTypes.map((provider) => (
-              <option key={provider.id} value={provider.id}>
-                {provider.name}
-              </option>
-            ))}
-          </select>
-        </label>
-        {selectedProvider?.configFields.map((field: ConfigField) => (
-          <Input
-            key={field.key}
-            aria-label={field.label}
-            type={field.type === "secret" ? "password" : "text"}
-            placeholder={field.label}
-            value={config[field.key] ?? ""}
-            onChange={(event) =>
-              setConfig((current) => ({
-                ...current,
-                [field.key]: event.target.value,
-              }))
-            }
-          />
-        ))}
-        <Input
-          aria-label="Connection name"
-          placeholder="Connection name"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-        />
-        <Input
-          aria-label="Model IDs"
-          placeholder="Model IDs, comma separated (for example: gpt-4o-mini, gpt-4.1)"
-          value={modelIds}
-          onChange={(event) => setModelIds(event.target.value)}
-        />
-        <Button
-          disabled={
-            !name.trim() ||
-            !selectedType ||
-            missingRequiredConfig ||
-            !modelIds.split(",").some((model) => model.trim()) ||
-            create.isPending
-          }
-          onClick={addConnection}
-        >
-          Add connection
-        </Button>
-      </section>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              disabled={!canSave || create.isPending || update.isPending}
+              onClick={saveConnection}
+            >
+              {editingConnection ? "Save changes" : "Add connection"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

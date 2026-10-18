@@ -8,7 +8,7 @@ import {
 } from "@/lib/opencode";
 import type { Message, SessionRunStatus } from "@/types";
 
-const MESSAGES_LIMIT = 2;
+const MESSAGES_LIMIT = 50;
 
 type MessagePage = { messages: Message[]; nextCursor?: string };
 

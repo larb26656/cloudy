@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { vi } from "vitest";
 import { LLMProviderSettings } from "./LLMProviderSettings";
 
@@ -58,10 +58,51 @@ describe("LLMProviderSettings", () => {
 
     expect(
       screen.getByRole("combobox", { name: "Primary default model" }),
-    ).toHaveValue("custom-model");
+    ).toHaveTextContent("custom-model");
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    expect(screen.getByRole("textbox", { name: "Model 1" })).toHaveValue(
+      "custom-model",
+    );
+    expect(screen.getByRole("textbox", { name: "Model 2" })).toHaveValue(
+      "other-model",
+    );
     expect(
-      screen.getByPlaceholderText(/API key configured/),
+      screen.getByPlaceholderText(/enter replacement/),
     ).toBeInTheDocument();
     expect(screen.queryByDisplayValue("private-key")).not.toBeInTheDocument();
+  });
+
+  it("allows editing saved model IDs and saves them", () => {
+    mocks.settings.mockReturnValue({
+      data: {
+        connections: [
+          {
+            id: "connection-1",
+            name: "Primary",
+            type: "openai",
+            config: {},
+            secretsConfigured: {},
+            modelIds: ["old-model"],
+          },
+        ],
+        default: null,
+        providerTypes: [{ id: "openai", name: "OpenAI", configFields: [] }],
+      },
+      isPending: false,
+      error: null,
+      refetch: vi.fn(),
+    });
+
+    render(<LLMProviderSettings />);
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Model 1" }), {
+      target: { value: "new-model" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Save changes" }));
+
+    expect(mocks.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "connection-1", modelIds: ["new-model"] }),
+      expect.any(Object),
+    );
   });
 });
