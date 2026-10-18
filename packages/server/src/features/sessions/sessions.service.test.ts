@@ -112,6 +112,30 @@ describe("sessions service", () => {
     expect(event).toMatchObject({ sessionId: session.id });
   });
 
+  it("maps nested message session IDs to the Cloudy session UUID", async () => {
+    const repo = repository();
+    const service = createSessionsService(repo, registry());
+    const session = await service.create({ providerId: "test" });
+
+    const event = service.mapEvent({
+      type: "message.updated",
+      providerId: "test",
+      sessionId: "native-1",
+      message: {
+        id: "message-1",
+        sessionId: "native-1",
+        role: "assistant",
+        parts: [],
+        createdAt: new Date(0).toISOString(),
+      },
+    });
+
+    expect(event).toMatchObject({
+      sessionId: session.id,
+      message: { sessionId: session.id },
+    });
+  });
+
   it("persists status events and maps them to the Cloudy session UUID", async () => {
     const repo = repository();
     const service = createSessionsService(repo, registry());

@@ -297,6 +297,13 @@ export function createSessionsService(
         request: { ...event.request, sessionId: session.id },
       };
     }
+    if (event.type === "message.updated") {
+      return {
+        ...event,
+        sessionId: session.id,
+        message: { ...event.message, sessionId: session.id },
+      };
+    }
     return { ...event, sessionId: session.id };
   };
 
