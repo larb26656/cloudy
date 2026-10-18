@@ -14,6 +14,8 @@ import {
 import { appendStreamingMessages } from "@/lib/opencode/appendStreamingMessages";
 import type { Message, SessionErrorInfo, SessionRunStatus } from "@/types";
 
+type MessagePage = { messages: Message[]; nextCursor?: string };
+
 function postNotification(
   type: "info" | "success" | "warning",
   title: string,
@@ -65,9 +67,10 @@ export function handleEvent(
           .getState()
           .takeSessionStreaming(event.sessionId);
         if (flushed.length > 0)
-          queryClient.setQueryData<InfiniteData<Message[], string | undefined>>(
-            messageKeys.infinite(event.sessionId),
-            (old) => appendStreamingMessages(old, flushed),
+          queryClient.setQueryData<
+            InfiniteData<MessagePage, string | undefined>
+          >(messageKeys.infinite(event.sessionId), (old) =>
+            appendStreamingMessages(old, flushed),
           );
         if (eventDirectory) {
           void queryClient.invalidateQueries({

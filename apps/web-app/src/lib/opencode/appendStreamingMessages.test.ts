@@ -42,22 +42,31 @@ const makeCoreMessage = (message: Message) => message;
 
 const makeInfiniteData = (
   pages: Message[][],
-): InfiniteData<Message[], string | undefined> => ({
-  pages,
+): InfiniteData<
+  { messages: Message[]; nextCursor?: string },
+  string | undefined
+> => ({
+  pages: pages.map((messages, index) => ({
+    messages,
+    ...(index > 0 ? { nextCursor: `cursor_${index}` } : {}),
+  })),
   pageParams: pages.map((_, i) => (i === 0 ? undefined : `cursor_${i}`)),
 });
 
 describe("appendStreamingMessages", () => {
   test("returns placeholder pages when old is undefined and newMessages empty", () => {
     const result = appendStreamingMessages(undefined, []);
-    expect(result).toEqual({ pages: [[]], pageParams: [undefined] });
+    expect(result).toEqual({
+      pages: [{ messages: [] }],
+      pageParams: [undefined],
+    });
   });
 
   test("returns newMessages as single page when old is undefined", () => {
     const msg = makeMessage();
     const result = appendStreamingMessages(undefined, [makeCoreMessage(msg)]);
-    expect(result.pages[0]).toHaveLength(1);
-    expect(result.pages[0]?.[0]).toMatchObject({
+    expect(result.pages[0]?.messages).toHaveLength(1);
+    expect(result.pages[0]?.messages[0]).toMatchObject({
       id: msg.id,
       role: msg.role,
       parts: [],
@@ -77,9 +86,9 @@ describe("appendStreamingMessages", () => {
 
     const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
-    expect(result.pages[0]).toHaveLength(2);
-    expect(result.pages[0]?.[0]).toEqual(existing);
-    expect(result.pages[0]?.[1]).toMatchObject({
+    expect(result.pages[0]?.messages).toHaveLength(2);
+    expect(result.pages[0]?.messages[0]).toEqual(existing);
+    expect(result.pages[0]?.messages[1]).toMatchObject({
       id: streaming.id,
       role: streaming.role,
       parts: [],
@@ -101,8 +110,8 @@ describe("appendStreamingMessages", () => {
 
     const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
-    expect(result.pages[0]).toHaveLength(1);
-    const merged = result.pages[0]?.[0];
+    expect(result.pages[0]?.messages).toHaveLength(1);
+    const merged = result.pages[0]?.messages[0];
     expect((merged?.metadata?.raw as AssistantMessage).cost).toBe(100);
     expect(merged?.parts).toHaveLength(1);
     expect(merged?.parts[0]).toMatchObject({
@@ -131,7 +140,7 @@ describe("appendStreamingMessages", () => {
 
     const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
-    const merged = result.pages[0]?.[0];
+    const merged = result.pages[0]?.messages[0];
     expect(merged?.parts).toHaveLength(2);
     const ids = merged?.parts.map((p) => p.id);
     expect(ids).toContain("part_step_start");
@@ -153,7 +162,7 @@ describe("appendStreamingMessages", () => {
 
     const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
-    const merged = result.pages[0]?.[0];
+    const merged = result.pages[0]?.messages[0];
     expect(merged?.parts).toHaveLength(1);
     expect((merged?.parts[0] as { text: string }).text).toBe("fresh");
   });
@@ -172,7 +181,7 @@ describe("appendStreamingMessages", () => {
 
     const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
-    const merged = result.pages[0]?.[0];
+    const merged = result.pages[0]?.messages[0];
     expect(merged?.parts).toHaveLength(1);
     expect((merged?.parts[0] as { text: string }).text).toBe("cached");
   });
@@ -199,6 +208,16 @@ describe("appendStreamingMessages", () => {
     const result = appendStreamingMessages(old, [makeCoreMessage(streaming)]);
 
     expect(result.pages).toHaveLength(2);
-    expect(result.pages[1]).toEqual(page1);
+    expect(result.pages[1]?.messages).toEqual(page1);
+  });
+
+  test("preserves the cursor when appending to a paginated message cache", () => {
+    const old = makeInfiniteData([[makeMessage({ id: "msg_a" })], []]);
+    const result = appendStreamingMessages(old, [
+      makeCoreMessage(makeMessage({ id: "msg_b" })),
+    ]);
+
+    expect(result.pages[0]?.nextCursor).toBeUndefined();
+    expect(result.pages[1]?.nextCursor).toBe("cursor_1");
   });
 });

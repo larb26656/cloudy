@@ -162,6 +162,10 @@ describe("handleEvent", () => {
 
   test("flushes streaming messages when a session completes", () => {
     const client = queryClient();
+    client.setQueryData(messageKeys.infinite(SESSION_ID), {
+      pages: [{ messages: [], nextCursor: "older-cursor" }],
+      pageParams: [undefined],
+    });
     useStreamingMessagesStore
       .getState()
       .onMessageInfoUpdated(SESSION_ID, message());
@@ -177,7 +181,7 @@ describe("handleEvent", () => {
     );
 
     expect(client.getQueryData(messageKeys.infinite(SESSION_ID))).toEqual({
-      pages: [[message()]],
+      pages: [{ messages: [message()], nextCursor: "older-cursor" }],
       pageParams: [undefined],
     });
   });
