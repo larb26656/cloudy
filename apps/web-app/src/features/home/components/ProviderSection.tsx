@@ -12,6 +12,18 @@ export function ProviderSection() {
   const createTempWorkspace = useCreateTempWorkspace();
 
   const handleProviderSelect = (providerId: string) => {
+    const provider = providers.find((item) => item.id === providerId);
+    if (provider?.capabilities.requiresDirectory === false) {
+      addTab("chat", {
+        providerId,
+        sessionId: null,
+        workspaceId: null,
+        directory: "",
+        sessionName: "New Chat",
+      });
+      return;
+    }
+
     createTempWorkspace.mutate(undefined, {
       onSuccess: ({ name, directory }) => {
         pushRecentDirectory(directory);
