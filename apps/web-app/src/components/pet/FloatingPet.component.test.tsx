@@ -8,6 +8,7 @@ import type { RecentChatSession } from "@/types";
 const mocks = vi.hoisted(() => ({
   useRecentSessions: vi.fn(),
   useWorkspaces: vi.fn(),
+  useModels: vi.fn(),
   sessionQuestions: vi.fn(),
   sessionPermissions: vi.fn(),
 }));
@@ -17,6 +18,7 @@ vi.mock("@/hooks/queries/useSessions", () => ({
 }));
 
 vi.mock("@/hooks/queries", () => ({
+  useModels: mocks.useModels,
   useWorkspaces: mocks.useWorkspaces,
 }));
 
@@ -87,6 +89,14 @@ describe("FloatingPet", () => {
       data: [],
       isLoading: false,
       error: null,
+    });
+    mocks.useModels.mockReturnValue({
+      data: [
+        {
+          id: "opencode",
+          capabilities: { approvals: true, questions: true },
+        },
+      ],
     });
     mocks.useWorkspaces.mockReturnValue({ data: [] });
     mocks.sessionQuestions.mockImplementation(async () => jsonResponse([]));
@@ -258,6 +268,33 @@ describe("FloatingPet", () => {
       screen.getByRole("button", { name: "Agent activity" }),
     ).toHaveAttribute("data-pet-state", "idle");
 
+    expect(
+      await screen.findByText("No session needs attention"),
+    ).toBeInTheDocument();
+  });
+
+  it("does not poll interactions for providers without approval or question capabilities", async () => {
+    mocks.useRecentSessions.mockReturnValue({
+      data: [session({ id: "cloudy_session", providerId: "cloudy" })],
+      isLoading: false,
+      error: null,
+    });
+    mocks.useModels.mockReturnValue({
+      data: [
+        {
+          id: "cloudy",
+          capabilities: { approvals: false, questions: false },
+        },
+      ],
+    });
+    mocks.sessionQuestions.mockClear();
+    mocks.sessionPermissions.mockClear();
+
+    renderPet();
+    await openSummary();
+
+    expect(mocks.sessionQuestions).not.toHaveBeenCalled();
+    expect(mocks.sessionPermissions).not.toHaveBeenCalled();
     expect(
       await screen.findByText("No session needs attention"),
     ).toBeInTheDocument();

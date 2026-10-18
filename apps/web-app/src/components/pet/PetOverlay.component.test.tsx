@@ -7,6 +7,7 @@ import type { RecentChatSession } from "@/types";
 const mocks = vi.hoisted(() => ({
   useRecentSessions: vi.fn(),
   useWorkspaces: vi.fn(),
+  useModels: vi.fn(),
   sessionQuestions: vi.fn(),
   sessionPermissions: vi.fn(),
 }));
@@ -16,6 +17,7 @@ vi.mock("@/hooks/queries/useSessions", () => ({
 }));
 
 vi.mock("@/hooks/queries", () => ({
+  useModels: mocks.useModels,
   useWorkspaces: mocks.useWorkspaces,
 }));
 
@@ -91,6 +93,14 @@ describe("PetOverlay", () => {
       data: [session({ id: "session_1" })],
       isLoading: false,
       error: null,
+    });
+    mocks.useModels.mockReturnValue({
+      data: [
+        {
+          id: "opencode",
+          capabilities: { approvals: true, questions: true },
+        },
+      ],
     });
     mocks.useWorkspaces.mockReturnValue({ data: [] });
     mocks.sessionQuestions.mockImplementation(async () => jsonResponse([]));

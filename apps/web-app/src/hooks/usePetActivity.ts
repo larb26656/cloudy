@@ -5,7 +5,7 @@ import type {
   ProviderQuestionRequest,
 } from "@repo/contracts";
 import { useRecentSessions } from "@/hooks/queries/useSessions";
-import { useWorkspaces } from "@/hooks/queries";
+import { useModels, useWorkspaces } from "@/hooks/queries";
 import {
   CHAT_POLL_INTERVAL,
   permissionKeys,
@@ -78,14 +78,20 @@ async function fetchSessionPermissions(
 export function usePetActivity() {
   const { data: sessions, isLoading, error } = useRecentSessions({ limit: 8 });
   const { data: workspaces = [] } = useWorkspaces();
+  const { data: providers = [] } = useModels();
 
   const candidates = useMemo(
     () =>
-      (sessions ?? []).filter(
-        (session) =>
-          session.runStatus === "running" || session.status === "active",
-      ),
-    [sessions],
+      (sessions ?? []).filter((session) => {
+        const capabilities = providers.find(
+          (provider) => provider.id === session.providerId,
+        )?.capabilities;
+        return (
+          (session.runStatus === "running" || session.status === "active") &&
+          (capabilities?.approvals || capabilities?.questions)
+        );
+      }),
+    [providers, sessions],
   );
 
   const questionResults = useQueries({
