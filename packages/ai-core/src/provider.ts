@@ -27,6 +27,20 @@ export interface ProviderCapabilities {
   agents?: boolean;
 }
 
+export interface ResolvedProviderCapabilities {
+  streaming: boolean;
+  requiresDirectory: boolean;
+  approvals: boolean;
+  questions: boolean;
+  fileMentions: boolean;
+  commands: boolean;
+  attachments: boolean;
+  tools: boolean;
+  reasoning: boolean;
+  models: boolean;
+  agents: boolean;
+}
+
 export interface AgentProviderInfo {
   id: string;
   providerType?: string;
@@ -35,6 +49,13 @@ export interface AgentProviderInfo {
   models?: ModelInfo[];
   agents?: AgentInfo[];
   metadata?: Record<string, unknown>;
+}
+
+export interface ResolvedAgentProviderInfo extends Omit<
+  AgentProviderInfo,
+  "capabilities"
+> {
+  capabilities: ResolvedProviderCapabilities;
 }
 
 export interface ProviderMessageRequest extends SendMessageInput {

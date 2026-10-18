@@ -116,6 +116,26 @@ beforeEach(() => {
 });
 
 describe("HomePage work-on-a-project flow", () => {
+  test("Ask anything opens a chat with the Cloudy provider", async () => {
+    renderWithProviders(<HomePage />);
+    const user = userEvent.setup();
+
+    await user.click(screen.getByRole("button", { name: /ask anything/i }));
+
+    const activeTab = useTabStore
+      .getState()
+      .tabs.find((tab) => tab.id === useTabStore.getState().activeTabId);
+    expect(activeTab).toMatchObject({
+      type: "chat",
+      data: {
+        providerId: "cloudy",
+        sessionId: null,
+        directory: "",
+        sessionName: "Cloudy Chat",
+      },
+    });
+  });
+
   test("keeps a chat draft when switching away from and back to its tab", async () => {
     const chatTabId = useTabStore.getState().addTab("chat", {
       providerId: "opencode",

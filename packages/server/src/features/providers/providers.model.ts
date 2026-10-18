@@ -36,16 +36,17 @@ const agentSchema = z.object({
 });
 
 const providerCapabilitiesSchema = z.object({
-  streaming: z.boolean(),
-  approvals: z.boolean().optional(),
-  questions: z.boolean().optional(),
-  fileMentions: z.boolean().optional(),
-  commands: z.boolean().optional(),
-  attachments: z.boolean().optional(),
-  tools: z.boolean().optional(),
-  reasoning: z.boolean().optional(),
-  models: z.boolean().optional(),
-  agents: z.boolean().optional(),
+  streaming: z.boolean().default(false),
+  requiresDirectory: z.boolean().default(false),
+  approvals: z.boolean().default(false),
+  questions: z.boolean().default(false),
+  fileMentions: z.boolean().default(false),
+  commands: z.boolean().default(false),
+  attachments: z.boolean().default(false),
+  tools: z.boolean().default(false),
+  reasoning: z.boolean().default(false),
+  models: z.boolean().default(false),
+  agents: z.boolean().default(false),
 });
 
 const providerSchema = z.object({

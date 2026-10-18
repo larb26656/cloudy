@@ -1,8 +1,5 @@
 import { ChevronRight, MessageCircle, Terminal } from "lucide-react";
 import { useTabStore } from "@/stores/tabStore";
-import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
-import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
-import { useCreateTempWorkspace } from "@/hooks/queries";
 
 interface QuickActionsProps {
   onOpenProjectChat: () => void;
@@ -10,22 +7,14 @@ interface QuickActionsProps {
 
 export function QuickActions({ onOpenProjectChat }: QuickActionsProps) {
   const addTab = useTabStore((s) => s.addTab);
-  const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
-  const pushRecentDirectory = useRecentDirectoryStore((s) => s.push);
-  const createTempWorkspace = useCreateTempWorkspace();
 
   const handleAskAnything = () => {
-    createTempWorkspace.mutate(undefined, {
-      onSuccess: ({ name, directory }) => {
-        pushRecentDirectory(directory);
-        addTab("chat", {
-          providerId: defaultProviderId,
-          sessionId: null,
-          workspaceId: null,
-          directory,
-          sessionName: name,
-        });
-      },
+    addTab("chat", {
+      providerId: "cloudy",
+      sessionId: null,
+      workspaceId: null,
+      directory: "",
+      sessionName: "Cloudy Chat",
     });
   };
 
@@ -34,7 +23,6 @@ export function QuickActions({ onOpenProjectChat }: QuickActionsProps) {
       <button
         type="button"
         onClick={handleAskAnything}
-        disabled={createTempWorkspace.isPending}
         className="group flex flex-col rounded-xl border border-primary/25 bg-primary/10 p-5 text-left transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50"
       >
         <div className="mb-4 flex size-10 items-center justify-center rounded-lg bg-primary text-primary-foreground">

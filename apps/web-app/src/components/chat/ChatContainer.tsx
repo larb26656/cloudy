@@ -46,12 +46,24 @@ export function ChatContainer({
   const { data: providers = [] } = useModels(effectiveProviderId);
   const capabilities = providers.find(
     (provider) => provider.id === effectiveProviderId,
-  )?.capabilities;
+  )?.capabilities ?? {
+    streaming: false,
+    requiresDirectory: false,
+    approvals: false,
+    questions: false,
+    fileMentions: false,
+    commands: false,
+    attachments: false,
+    tools: false,
+    reasoning: false,
+    models: false,
+    agents: false,
+  };
   const chatCapabilities = {
-    approvals: capabilities?.approvals ?? false,
-    questions: capabilities?.questions ?? false,
-    fileMentions: capabilities?.fileMentions ?? false,
-    commands: capabilities?.commands ?? false,
+    approvals: capabilities.approvals,
+    questions: capabilities.questions,
+    fileMentions: capabilities.fileMentions,
+    commands: capabilities.commands,
   };
 
   return (
@@ -120,8 +132,8 @@ function ChatContainerContent({
   } = useSessionData({
     sessionId,
     capabilities: {
-      approvals: capabilities?.approvals ?? false,
-      questions: capabilities?.questions ?? false,
+      approvals: capabilities.approvals,
+      questions: capabilities.questions,
     },
   });
 

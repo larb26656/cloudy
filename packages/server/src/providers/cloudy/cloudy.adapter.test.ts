@@ -41,6 +41,14 @@ describe("createCloudyAdapter", () => {
     );
   });
 
+  it("does not support approvals or questions", async () => {
+    const { adapter } = createAdapter();
+    const { capabilities } = await adapter.getInfo();
+
+    expect(capabilities.approvals).toBe(false);
+    expect(capabilities.questions).toBe(false);
+  });
+
   it("exposes registered API provider models", async () => {
     const apiProviderRegistry = createTestLLM();
     apiProviderRegistry.registerClient({

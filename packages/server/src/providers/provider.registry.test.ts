@@ -35,8 +35,42 @@ describe("provider registry", () => {
 
     expect(registry.get("test").id).toBe("test");
     expect(await registry.catalog()).toEqual([
-      expect.objectContaining({ id: "test" }),
+      expect.objectContaining({
+        id: "test",
+        capabilities: {
+          streaming: true,
+          requiresDirectory: false,
+          approvals: false,
+          questions: false,
+          fileMentions: false,
+          commands: false,
+          attachments: false,
+          tools: false,
+          reasoning: false,
+          models: false,
+          agents: false,
+        },
+      }),
     ]);
+  });
+
+  it("preserves explicitly configured capabilities", async () => {
+    const registry = createAgentProviderRegistry({
+      providers: [
+        provider({
+          getInfo: async () => ({
+            id: "test",
+            name: "Test",
+            capabilities: { streaming: true, approvals: true },
+          }),
+        }),
+      ],
+    });
+
+    const [catalogProvider] = await registry.catalog();
+
+    expect(catalogProvider?.capabilities.approvals).toBe(true);
+    expect(catalogProvider?.capabilities.questions).toBe(false);
   });
 
   it("rejects unknown providers", () => {

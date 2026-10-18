@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import type { AgentProviderInfo } from "@repo/contracts";
+import type { ResolvedAgentProviderInfo } from "@repo/contracts";
 import { cloudyClient } from "@/lib/api";
 import { agentProviderKeys } from "@/lib/cloudy/query-keys";
 
 export async function fetchAgentProviderCatalog(): Promise<
-  AgentProviderInfo[]
+  ResolvedAgentProviderInfo[]
 > {
   const res = await cloudyClient.api["agent-providers"].$get();
   if (!res.ok) {

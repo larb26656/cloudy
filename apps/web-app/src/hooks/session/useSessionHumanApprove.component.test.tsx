@@ -152,7 +152,14 @@ describe("useSessionData", () => {
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     );
 
-    renderHook(() => useSessionData({ sessionId: SESSION_ID }), { wrapper });
+    renderHook(
+      () =>
+        useSessionData({
+          sessionId: SESSION_ID,
+          capabilities: { approvals: false, questions: false },
+        }),
+      { wrapper },
+    );
 
     await waitFor(() => {
       expect(questionsRequest).not.toHaveBeenCalled();

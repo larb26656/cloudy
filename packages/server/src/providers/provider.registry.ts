@@ -3,7 +3,7 @@ import type {
   InteractionResponseInput,
   AgentProviderAdapter,
   ProviderEventsInput,
-  AgentProviderInfo,
+  ResolvedAgentProviderInfo,
   ProviderMessageRequest,
   ProviderMessagesInput,
   ProviderSessionInput,
@@ -19,6 +19,20 @@ import {
   ProviderNotFoundError,
   UnsupportedProviderOperationError,
 } from "./provider.errors";
+
+const defaultCapabilities = {
+  streaming: false,
+  requiresDirectory: false,
+  approvals: false,
+  questions: false,
+  fileMentions: false,
+  commands: false,
+  attachments: false,
+  tools: false,
+  reasoning: false,
+  models: false,
+  agents: false,
+} as const;
 
 export interface AgentProviderRegistryOptions {
   providers: AgentProviderAdapter[];
@@ -80,10 +94,17 @@ export function createAgentProviderRegistry({
       if (!providerMap.delete(providerId)) return;
       listeners.forEach((listener) => listener());
     },
-    async catalog(): Promise<AgentProviderInfo[]> {
-      return Promise.all(
+    async catalog(): Promise<ResolvedAgentProviderInfo[]> {
+      const providers = await Promise.all(
         [...providerMap.values()].map((provider) => provider.getInfo()),
       );
+      return providers.map((provider) => ({
+        ...provider,
+        capabilities: {
+          ...defaultCapabilities,
+          ...provider.capabilities,
+        },
+      }));
     },
     listSessions(
       providerId: string,

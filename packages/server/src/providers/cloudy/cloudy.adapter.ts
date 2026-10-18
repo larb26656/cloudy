@@ -27,6 +27,8 @@ export function createCloudyAdapter({
   const capabilities = {
     streaming: true,
     requiresDirectory: false,
+    approvals: false,
+    questions: false,
     models: true,
   };
 

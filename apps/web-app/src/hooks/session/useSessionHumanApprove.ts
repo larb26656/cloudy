@@ -4,11 +4,11 @@ import {
   useSessionQuestions,
   useSessionChildren,
 } from "../queries";
-import type { ProviderCapabilities } from "@repo/contracts";
+import type { ResolvedProviderCapabilities } from "@repo/contracts";
 
 interface UseSessionDataProps {
   sessionId: string | null;
-  capabilities?: Pick<ProviderCapabilities, "approvals" | "questions">;
+  capabilities: Pick<ResolvedProviderCapabilities, "approvals" | "questions">;
 }
 
 export function useSessionData({
@@ -17,12 +17,12 @@ export function useSessionData({
 }: UseSessionDataProps) {
   const { data: questions = [] } = useSessionQuestions({
     sessionId: sessionId ?? "",
-    enabled: capabilities?.questions ?? false,
+    enabled: capabilities.questions,
   });
 
   const { data: permissions = [] } = useSessionPermissions({
     sessionId: sessionId ?? "",
-    enabled: capabilities?.approvals ?? false,
+    enabled: capabilities.approvals,
   });
 
   const { data: childSessions = [] } = useSessionChildren({
