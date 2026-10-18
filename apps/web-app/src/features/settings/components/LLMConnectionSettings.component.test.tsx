@@ -7,7 +7,6 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   update: vi.fn(),
   remove: vi.fn(),
-  setDefault: vi.fn(),
 }));
 
 vi.mock("@/hooks/queries/useLLMConnectionSettings", () => ({
@@ -15,7 +14,6 @@ vi.mock("@/hooks/queries/useLLMConnectionSettings", () => ({
   useCreateLLMConnection: () => ({ mutate: mocks.create, isPending: false }),
   useUpdateLLMConnection: () => ({ mutate: mocks.update }),
   useDeleteLLMConnection: () => ({ mutate: mocks.remove }),
-  useSetLLMDefault: () => ({ mutate: mocks.setDefault }),
 }));
 
 describe("LLMConnectionSettings", () => {
@@ -32,7 +30,6 @@ describe("LLMConnectionSettings", () => {
             modelIds: ["custom-model", "other-model"],
           },
         ],
-        default: { connectionId: "connection-1", modelId: "custom-model" },
         providerTypes: [
           {
             id: "openai",
@@ -56,10 +53,11 @@ describe("LLMConnectionSettings", () => {
 
     render(<LLMConnectionSettings />);
 
-    expect(
-      screen.getByRole("combobox", { name: "Primary default model" }),
-    ).toHaveTextContent("custom-model");
-    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    expect(screen.getByText("2 models available")).toBeInTheDocument();
+    fireEvent.click(
+      screen.getByRole("button", { name: "More actions for Primary" }),
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit provider" }));
     expect(screen.getByRole("textbox", { name: "Model 1" })).toHaveValue(
       "custom-model",
     );
@@ -85,7 +83,6 @@ describe("LLMConnectionSettings", () => {
             modelIds: ["old-model"],
           },
         ],
-        default: null,
         providerTypes: [{ id: "openai", name: "OpenAI", configFields: [] }],
       },
       isPending: false,
@@ -94,7 +91,10 @@ describe("LLMConnectionSettings", () => {
     });
 
     render(<LLMConnectionSettings />);
-    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "More actions for Primary" }),
+    );
+    fireEvent.click(screen.getByRole("menuitem", { name: "Edit provider" }));
     fireEvent.change(screen.getByRole("textbox", { name: "Model 1" }), {
       target: { value: "new-model" },
     });

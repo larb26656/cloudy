@@ -99,14 +99,8 @@ export const ConfigurableSchema = z.object({
   llm: z
     .object({
       connections: z.array(LLMConnectionSchema).default([]),
-      defaultConnectionId: z.string().nullable().default(null),
-      defaultModelId: z.string().nullable().default(null),
     })
-    .default({
-      connections: [],
-      defaultConnectionId: null,
-      defaultModelId: null,
-    }),
+    .default({ connections: [] }),
   publicDir: z.string().optional(),
   tempWorkspaceDir: z.string(),
   extensionWorkspaceDir: z.string(),

@@ -35,7 +35,7 @@ export const testConfig: AppConfig = {
       baseUrl: "http://opencode.test",
     },
   },
-  llm: { connections: [], defaultConnectionId: null, defaultModelId: null },
+  llm: { connections: [] },
   tempWorkspaceDir: "/tmp/workspaces",
   extensionWorkspaceDir: "/tmp/extensions",
 };

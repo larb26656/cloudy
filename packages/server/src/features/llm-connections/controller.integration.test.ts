@@ -7,7 +7,7 @@ describe("LLM provider API", () => {
     env?.close();
   });
 
-  it("manages connections and defaults without returning API keys", async () => {
+  it("manages connections without returning API keys or storing defaults", async () => {
     env = createTestApp();
     const createdResponse = await env.app.request(
       "/api/llm-connections/connections",
@@ -36,17 +36,9 @@ describe("LLM provider API", () => {
     expect(JSON.stringify(created)).not.toContain("top-secret");
 
     const id = created.id as string;
-    const defaultResponse = await env.app.request(
-      "/api/llm-connections/default",
-      {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ connectionId: id, modelId: "second-model" }),
-      },
-    );
-    expect(defaultResponse.status).toBe(200);
     const listResponse = await env.app.request("/api/llm-connections");
-    expect(await listResponse.json()).toMatchObject({
+    const settings = await listResponse.json();
+    expect(settings).toMatchObject({
       providerTypes: [
         {
           id: "openai",
@@ -56,7 +48,9 @@ describe("LLM provider API", () => {
           ],
         },
       ],
-      default: { connectionId: id, modelId: "second-model" },
+      connections: [{ id }],
     });
+    expect(listResponse.status).toBe(200);
+    expect(settings.default).toBeUndefined();
   });
 });

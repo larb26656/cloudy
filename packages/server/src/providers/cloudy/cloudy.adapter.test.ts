@@ -7,17 +7,12 @@ import { createSessionsRepository } from "../../features/sessions/sessions.repos
 import { createCloudyMessagesRepository } from "../../features/sessions/cloudy-messages.repository";
 import { createCloudyAdapter } from "./cloudy.adapter";
 
-function createAdapter(
-  apiProviderRegistry = createTestLLM(),
-  getDefault: () => { connectionId: string; modelId: string } | null = () =>
-    null,
-) {
+function createAdapter(apiProviderRegistry = createTestLLM()) {
   const { db } = createTestDb();
   const sessionsRepository = createSessionsRepository(db);
   const messagesRepository = createCloudyMessagesRepository(db);
   const adapter = createCloudyAdapter({
     apiProviderRegistry,
-    getDefault,
     sessionsRepository,
     messagesRepository,
   });
@@ -61,7 +56,7 @@ describe("createCloudyAdapter", () => {
     ]);
   });
 
-  it("requires a configured default when no model is selected", async () => {
+  it("requires a model to be selected for the request", async () => {
     const { adapter, sessionsRepository } = createAdapter();
     const session = await adapter.createSession!({});
     sessionsRepository.create({
@@ -72,7 +67,7 @@ describe("createCloudyAdapter", () => {
 
     await expect(
       adapter.sendMessage!({ sessionId: session.id, content: "Hello" }),
-    ).rejects.toThrow("No default LLM connection and model are configured");
+    ).rejects.toThrow("A model must be selected for Cloudy AI");
   });
 
   it("uses the selected configured model when sent by the client", async () => {
@@ -84,13 +79,7 @@ describe("createCloudyAdapter", () => {
       config: {},
       models: [{ modelId: "selected-model", name: "Selected model" }],
     });
-    const { adapter, sessionsRepository } = createAdapter(
-      apiProviderRegistry,
-      () => ({
-        connectionId: "configured-connection",
-        modelId: "configured-model",
-      }),
-    );
+    const { adapter, sessionsRepository } = createAdapter(apiProviderRegistry);
     const client = apiProviderRegistry.getClient("selected-connection");
     if (!client) throw new Error("Expected selected provider client");
     client.chatAsync = async function* ({ model }) {

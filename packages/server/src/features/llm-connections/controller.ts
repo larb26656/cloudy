@@ -21,10 +21,5 @@ export function createLLMConnectionsController(service: LLMConnectionService) {
     )
     .delete("/connections/:id", (c) =>
       c.json(service.deleteConnection(c.req.param("id"))),
-    )
-    .put(
-      "/default",
-      zValidator("json", LLMConnectionModel.defaultSchema),
-      (c) => c.json(service.setDefault(c.req.valid("json"))),
     );
 }

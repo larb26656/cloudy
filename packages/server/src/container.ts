@@ -68,7 +68,6 @@ export function createContainer(
       createEchoAdapter(),
       createCloudyAdapter({
         apiProviderRegistry,
-        getDefault: () => llmConnectionsService.getDefault(),
         sessionsRepository,
         messagesRepository: cloudyMessagesRepository,
       }),

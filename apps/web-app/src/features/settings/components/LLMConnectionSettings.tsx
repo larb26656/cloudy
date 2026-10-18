@@ -9,7 +9,6 @@ import {
   useCreateLLMConnection,
   useDeleteLLMConnection,
   useLLMConnectionSettings,
-  useSetLLMDefault,
   useUpdateLLMConnection,
 } from "@/hooks/queries/useLLMConnectionSettings";
 import type { LLMConnection } from "@/hooks/queries/useLLMConnectionSettings";
@@ -21,7 +20,6 @@ export function LLMConnectionSettings() {
   const create = useCreateLLMConnection();
   const update = useUpdateLLMConnection();
   const remove = useDeleteLLMConnection();
-  const setDefault = useSetLLMDefault();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -121,19 +119,11 @@ export function LLMConnectionSettings() {
               key={connection.id}
               connection={connection}
               providerTypes={data.providerTypes}
-              defaultModelId={data.default?.modelId}
-              isDefault={data.default?.connectionId === connection.id}
               onEdit={() => openEditDialog(connection)}
               onRemove={() =>
                 remove.mutate(connection.id, {
                   onError: (err) => toast.error(err.message),
                 })
-              }
-              onSetDefault={(modelId) =>
-                setDefault.mutate(
-                  { connectionId: connection.id, modelId },
-                  { onError: (err) => toast.error(err.message) },
-                )
               }
             />
           ))}

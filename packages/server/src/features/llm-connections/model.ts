@@ -28,9 +28,6 @@ export const LLMConnectionModel = {
       }),
     ),
     connections: z.array(connectionSchema),
-    default: z
-      .object({ connectionId: z.string(), modelId: z.string() })
-      .nullable(),
   }),
   createConnectionSchema: z.object({
     name: z.string().trim().min(1),
@@ -42,10 +39,6 @@ export const LLMConnectionModel = {
     name: z.string().trim().min(1).optional(),
     config: configSchema.optional(),
     modelIds: z.array(z.string().trim().min(1)).min(1).optional(),
-  }),
-  defaultSchema: z.object({
-    connectionId: z.string().min(1),
-    modelId: z.string().min(1),
   }),
 };
 

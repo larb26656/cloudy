@@ -9,12 +9,10 @@ import type { LLM } from "../../lib/llm-provider";
 
 export function createCloudyAgent({
   apiProviderRegistry,
-  getDefault,
   messagesRepository,
   publish,
 }: {
   apiProviderRegistry: LLM;
-  getDefault: () => { connectionId: string; modelId: string } | null;
   messagesRepository: CloudyMessagesRepository;
   publish: (event: ChatEvent) => void;
 }) {
@@ -50,12 +48,10 @@ export function createCloudyAgent({
       message: assistantMessage,
     });
 
-    const currentDefault = getDefault();
-    const connectionId =
-      request.model?.providerId ?? currentDefault?.connectionId;
-    const modelId = request.model?.modelId ?? currentDefault?.modelId;
+    const connectionId = request.model?.providerId;
+    const modelId = request.model?.modelId;
     if (!connectionId || !modelId)
-      throw new Error("No default LLM connection and model are configured");
+      throw new Error("A model must be selected for Cloudy AI");
     const provider = apiProviderRegistry.getClient(connectionId);
     if (!provider) throw new Error(`API provider not found: ${connectionId}`);
 

@@ -14,7 +14,7 @@ afterEach(() => {
 });
 
 describe("LLM providers service", () => {
-  it("creates typed connections, redacts secrets, and persists defaults", () => {
+  it("creates typed connections and redacts secrets", () => {
     const configDir = mkdtempSync(path.join(tmpdir(), "cloudy-llm-"));
     tempDirs.push(configDir);
     const llm = createLLM();
@@ -40,13 +40,11 @@ describe("LLM providers service", () => {
       llm.getClient(connection.id)?.models.map((model) => model.modelId),
     ).toEqual(["model-a", "model-b"]);
 
-    service.setDefault({ connectionId: connection.id, modelId: "model-b" });
     expect(loadFileConfig(configDir)).toMatchObject({
       llm: {
         connections: [{ config: { apiKey: "private-key" } }],
-        defaultConnectionId: connection.id,
-        defaultModelId: "model-b",
       },
     });
+    expect(service.getSettings()).not.toHaveProperty("default");
   });
 });

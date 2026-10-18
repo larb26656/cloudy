@@ -14,21 +14,11 @@ export function createLLMConnectionService(
 ) {
   const settingsDir = configDir ?? path.dirname(config.dbPath);
   let connections = [...config.llm.connections];
-  let defaultValue =
-    config.llm.defaultConnectionId && config.llm.defaultModelId
-      ? {
-          connectionId: config.llm.defaultConnectionId,
-          modelId: config.llm.defaultModelId,
-        }
-      : null;
-
-  const persist = (nextConnections = connections, nextDefault = defaultValue) =>
+  const persist = (nextConnections = connections) =>
     updateFileConfig(settingsDir, (current) => ({
       ...current,
       llm: {
         connections: nextConnections,
-        defaultConnectionId: nextDefault?.connectionId ?? null,
-        defaultModelId: nextDefault?.modelId ?? null,
       },
     }));
 
@@ -100,11 +90,7 @@ export function createLLMConnectionService(
       return {
         providerTypes: llm.listProviderTypes(),
         connections: connections.map(safeConnection),
-        default: defaultValue,
       };
-    },
-    getDefault() {
-      return defaultValue;
     },
     createConnection(input: LLMConnectionInput) {
       const connection: StoredConnection = {
@@ -136,18 +122,8 @@ export function createLLMConnectionService(
         ...(patch.modelIds ? { modelIds: patch.modelIds } : {}),
       };
       const next = connections.map((item) => (item.id === id ? updated : item));
-      const nextDefault =
-        defaultValue?.connectionId === id
-          ? {
-              connectionId: id,
-              modelId: updated.modelIds.includes(defaultValue.modelId)
-                ? defaultValue.modelId
-                : updated.modelIds[0]!,
-            }
-          : defaultValue;
-      persist(next, nextDefault);
+      persist(next);
       connections = next;
-      defaultValue = nextDefault;
       register(updated, true);
       return safeConnection(updated);
     },
@@ -155,25 +131,10 @@ export function createLLMConnectionService(
       const next = connections.filter((item) => item.id !== id);
       if (next.length === connections.length)
         throw new Error(`LLM connection not found: ${id}`);
-      const nextDefault =
-        defaultValue?.connectionId === id ? null : defaultValue;
-      persist(next, nextDefault);
+      persist(next);
       connections = next;
-      defaultValue = nextDefault;
       llm.deleteClient(id);
       return { id };
-    },
-    setDefault(value: { connectionId: string; modelId: string }) {
-      const connection = connections.find(
-        (item) => item.id === value.connectionId,
-      );
-      if (!connection || !connection.modelIds.includes(value.modelId))
-        throw new Error(
-          "Default must reference a configured connection and model",
-        );
-      persist(connections, value);
-      defaultValue = value;
-      return value;
     },
     registerConfiguredConnections() {
       for (const connection of connections) register(connection);

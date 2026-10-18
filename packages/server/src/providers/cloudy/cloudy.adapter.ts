@@ -16,12 +16,10 @@ import { createCloudyAgent } from "../../features/cloudy-agent/cloudy-agent.serv
 
 export function createCloudyAdapter({
   apiProviderRegistry,
-  getDefault,
   sessionsRepository,
   messagesRepository,
 }: {
   apiProviderRegistry: LLM;
-  getDefault: () => { connectionId: string; modelId: string } | null;
   sessionsRepository: SessionsRepository;
   messagesRepository: CloudyMessagesRepository;
 }): AgentProviderAdapter {
@@ -54,7 +52,6 @@ export function createCloudyAdapter({
   };
   const agent = createCloudyAgent({
     apiProviderRegistry,
-    getDefault,
     messagesRepository,
     publish,
   });

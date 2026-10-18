@@ -11,7 +11,6 @@ type CreateInput = InferRequestType<ConnectionEndpoint["$post"]>["json"];
 type UpdateInput = InferRequestType<
   ConnectionEndpoint[":id"]["$patch"]
 >["json"];
-type DefaultInput = InferRequestType<Endpoint["default"]["$put"]>["json"];
 
 export function useLLMConnectionSettings() {
   return useQuery({
@@ -65,17 +64,6 @@ export function useDeleteLLMConnection() {
     ].$delete({ param: { id } });
     if (!response.ok)
       throw new Error(`Failed to delete connection (${response.status})`);
-    return response.json();
-  });
-}
-
-export function useSetLLMDefault() {
-  return useLLMMutation<DefaultInput>(async (json) => {
-    const response = await cloudyClient.api["llm-connections"].default.$put({
-      json,
-    });
-    if (!response.ok)
-      throw new Error(`Failed to set default (${response.status})`);
     return response.json();
   });
 }
