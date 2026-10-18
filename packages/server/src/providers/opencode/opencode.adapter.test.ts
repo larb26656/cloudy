@@ -1,6 +1,17 @@
 import type { OpencodeClient } from "@opencode-ai/sdk/v2/client";
 import { describe, expect, it, vi } from "vitest";
-import { createOpenCodeAdapter } from "./opencode.adapter";
+import {
+  createOpenCodeAdapter,
+  encodeOpenCodeCursor,
+} from "./opencode.adapter";
+
+describe("OpenCode cursor encoding", () => {
+  it("encodes the message id and creation time as base64 JSON", () => {
+    expect(encodeOpenCodeCursor("msg_oldest", 1)).toBe(
+      btoa(JSON.stringify({ id: "msg_oldest", time: 1 })),
+    );
+  });
+});
 
 describe("OpenCode question interactions", () => {
   it("lists pending v2 questions for a directory", async () => {
@@ -105,6 +116,54 @@ describe("OpenCode session mapping", () => {
       }),
     ]);
     expect(list).toHaveBeenCalledWith({ limit: 8 });
+  });
+});
+
+describe("OpenCode message pagination", () => {
+  it("maps a full result page to a provider-specific next cursor", async () => {
+    const messages = vi.fn().mockResolvedValue({
+      data: [
+        {
+          info: {
+            id: "msg_oldest",
+            sessionID: "ses_test",
+            role: "user",
+            time: { created: 1, updated: 1 },
+          },
+          parts: [],
+        },
+        {
+          info: {
+            id: "msg_newest",
+            sessionID: "ses_test",
+            role: "assistant",
+            time: { created: 2, updated: 2 },
+          },
+          parts: [],
+        },
+      ],
+    });
+    const client = { session: { messages } } as unknown as OpencodeClient;
+    const adapter = createOpenCodeAdapter({
+      baseUrl: "http://localhost:4096",
+      client,
+    });
+
+    const page = await adapter.listMessages?.({
+      sessionId: "ses_test",
+      limit: 2,
+      before: "opaque-cursor-from-previous-page",
+    });
+
+    expect(messages).toHaveBeenCalledWith({
+      sessionID: "ses_test",
+      directory: undefined,
+      limit: 2,
+      before: "opaque-cursor-from-previous-page",
+    });
+    expect(page?.nextCursor).toBe(
+      btoa(JSON.stringify({ id: "msg_oldest", time: 1 })),
+    );
   });
 });
 

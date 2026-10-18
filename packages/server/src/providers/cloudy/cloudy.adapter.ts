@@ -1,7 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type {
   ChatEvent,
-  ChatMessage,
   ChatSession,
   ProviderAdapter,
   ProviderEventsInput,
@@ -11,20 +10,21 @@ import type {
 } from "@repo/ai-core";
 
 import type { LLM } from "../../lib/llm-provider";
-
-interface EchoSession {
-  session: ChatSession;
-  messages: ChatMessage[];
-}
+import type { SessionsRepository } from "../../features/sessions/sessions.repository";
+import type { CloudyMessagesRepository } from "../../features/sessions/cloudy-messages.repository";
+import { createCloudyAgent } from "../../features/cloudy-agent/cloudy-agent.service";
 
 export function createCloudyAdapter({
   apiProviderRegistry,
   getDefault,
+  sessionsRepository,
+  messagesRepository,
 }: {
   apiProviderRegistry: LLM;
   getDefault: () => { connectionId: string; modelId: string } | null;
+  sessionsRepository: SessionsRepository;
+  messagesRepository: CloudyMessagesRepository;
 }): ProviderAdapter {
-  const sessions = new Map<string, EchoSession>();
   const subscribers = new Set<(event: ChatEvent) => void>();
   const capabilities = {
     streaming: true,
@@ -32,15 +32,32 @@ export function createCloudyAdapter({
     models: true,
   };
 
-  const get = (sessionId: string) => {
-    const value = sessions.get(sessionId);
-    if (!value) throw new Error(`Echo session not found: ${sessionId}`);
-    return value;
+  const toSession = (id: string): ChatSession => {
+    const record = sessionsRepository.findByProviderSessionId("cloudy", id);
+    if (!record) throw new Error(`Cloudy session not found: ${id}`);
+    return {
+      id,
+      title: record.title ?? "Cloudy chat",
+      status: record.status,
+      runStatus: record.runStatus,
+      providerId: "cloudy",
+      createdAt: record.createdAt.toISOString(),
+      updatedAt: record.updatedAt.toISOString(),
+      directory: record.directory ?? undefined,
+      parentId: record.parentId ?? undefined,
+      metadata: record.metadata ?? undefined,
+    };
   };
 
   const publish = (event: ChatEvent) => {
     for (const subscriber of subscribers) subscriber(event);
   };
+  const agent = createCloudyAgent({
+    apiProviderRegistry,
+    getDefault,
+    messagesRepository,
+    publish,
+  });
 
   const adapter = {
     id: "cloudy",
@@ -67,12 +84,13 @@ export function createCloudyAdapter({
         directory: input.directory,
         parentId: input.parentId,
       };
-      sessions.set(session.id, { session, messages: [] });
       return session;
     },
     async listSessions(input: { directory?: string; limit?: number }) {
-      const values = [...sessions.values()]
-        .map(({ session }) => session)
+      const values = sessionsRepository
+        .list(input)
+        .filter((record) => record.providerId === "cloudy")
+        .map((record) => toSession(record.providerSessionId))
         .filter(
           (session) =>
             !input.directory || session.directory === input.directory,
@@ -80,28 +98,29 @@ export function createCloudyAdapter({
       return input.limit ? values.slice(0, input.limit) : values;
     },
     async getSession(input: { sessionId: string }) {
-      return get(input.sessionId).session;
+      return toSession(input.sessionId);
     },
     async updateSession(input: ProviderSessionInput) {
-      const value = get(input.sessionId ?? "");
-      value.session = {
-        ...value.session,
-        title: input.title ?? value.session.title,
-        updatedAt: new Date().toISOString(),
-      };
-      return value.session;
+      const session = toSession(input.sessionId ?? "");
+      sessionsRepository.update(session.id, { title: input.title });
+      return toSession(session.id);
     },
     async deleteSession(input: { sessionId: string }) {
-      sessions.delete(input.sessionId);
+      messagesRepository.deleteForSession(input.sessionId);
     },
     async getSessionChildren(input: { sessionId: string }) {
-      return [...sessions.values()]
-        .map(({ session }) => session)
+      return sessionsRepository
+        .list({})
+        .filter((record) => record.providerId === "cloudy")
+        .map((record) => toSession(record.providerSessionId))
         .filter((session) => session.parentId === input.sessionId);
     },
     async getSessionStatuses() {
       return Object.fromEntries(
-        [...sessions.keys()].map((id) => [id, "idle" as const]),
+        sessionsRepository
+          .list({})
+          .filter((record) => record.providerId === "cloudy")
+          .map((record) => [record.providerSessionId, record.runStatus]),
       );
     },
     async listMessages(input: {
@@ -109,7 +128,7 @@ export function createCloudyAdapter({
       limit?: number;
       before?: string;
     }) {
-      const messages = get(input.sessionId).messages;
+      const messages = messagesRepository.list(input.sessionId);
       const beforeIndex = input.before
         ? messages.findIndex((message) => message.id === input.before)
         : messages.length;
@@ -121,60 +140,11 @@ export function createCloudyAdapter({
       };
     },
     async sendMessage(request: ProviderMessageRequest) {
-      const value = get(request.sessionId);
-      const now = new Date().toISOString();
-      const userMessage: ChatMessage = {
-        id: randomUUID(),
-        sessionId: request.sessionId,
-        role: "user",
-        parts: [{ id: randomUUID(), type: "text", text: request.content }],
-        createdAt: now,
-      };
-      const assistantMessage: ChatMessage = {
-        id: randomUUID(),
-        sessionId: request.sessionId,
-        role: "assistant",
-        parts: [{ id: randomUUID(), type: "text", text: "" }],
-        createdAt: new Date().toISOString(),
-      };
-      value.messages.push(userMessage);
-      value.session = {
-        ...value.session,
-        updatedAt: assistantMessage.createdAt,
-      };
-      publish({
-        type: "message.updated",
-        providerId: "cloudy",
-        sessionId: request.sessionId,
-        message: userMessage,
-      });
-      publish({
-        type: "message.updated",
-        providerId: "cloudy",
-        sessionId: request.sessionId,
-        message: assistantMessage,
-      });
-
-      const currentDefault = getDefault();
-      const apiProviderId =
-        request.model?.providerId ?? currentDefault?.connectionId;
-      const modelId = request.model?.modelId ?? currentDefault?.modelId;
-      if (!apiProviderId || !modelId)
-        throw new Error("No default LLM connection and model are configured");
-      const apiProvider = apiProviderRegistry.getClient(apiProviderId);
-      if (!apiProvider)
-        throw new Error(`API provider not found: ${apiProviderId}`);
-      const answerMessage = await apiProvider.chat({
-        model: modelId,
-        message: request.content,
-      });
-
-      // if (request.content !== "ping") {
-      //   answerMessage = "I don't understand what you want";
-      // }
-
-      void streamEcho(request, answerMessage, value, assistantMessage);
-      return { interactionId: request.sessionId, value: null };
+      toSession(request.sessionId);
+      return agent.sendMessage(request);
+    },
+    async abortSession(input: { sessionId: string }) {
+      await agent.abortSession(input.sessionId);
     },
     subscribeEvents(input: ProviderEventsInput = {}): AsyncIterable<ChatEvent> {
       return {
@@ -222,38 +192,4 @@ export function createCloudyAdapter({
   } satisfies ProviderAdapter;
 
   return adapter;
-
-  async function streamEcho(
-    request: ProviderMessageRequest,
-    answer: string,
-    value: EchoSession,
-    assistantMessage: ChatMessage,
-  ) {
-    const part = assistantMessage.parts[0];
-    if (!part || part.type !== "text") return;
-    const characters = Array.from(answer);
-    let text = "";
-    for (let index = 0; index < characters.length; index += 4) {
-      const delta = characters.slice(index, index + 4).join("");
-      await new Promise((resolve) => setTimeout(resolve, 50));
-      text += delta;
-      publish({
-        type: "message.delta",
-        providerId: "echo",
-        sessionId: request.sessionId,
-        messageId: assistantMessage.id,
-        partId: part.id,
-        delta,
-      });
-    }
-    assistantMessage.parts = [{ ...part, text }];
-    value.messages.push(assistantMessage);
-    publish({
-      type: "message.part.updated",
-      providerId: "echo",
-      sessionId: request.sessionId,
-      messageId: assistantMessage.id,
-      part: assistantMessage.parts[0]!,
-    });
-  }
 }

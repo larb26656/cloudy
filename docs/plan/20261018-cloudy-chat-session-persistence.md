@@ -2,7 +2,7 @@
 title: Persist Cloudy Chat Sessions and Messages
 slug: cloudy-chat-session-persistence
 id: 20261018-cloudy-chat-session-persistence
-status: ready
+status: complete
 created: 2026-10-18
 source: planning session 2026-10-18
 ---
@@ -38,13 +38,13 @@ Cloudy's chat provider keeps its sessions and messages in in-memory maps, so ses
 
 ## Tasks
 
-- [ ] 1. Define the Cloudy message table with provider-session key, role, JSON parts, timestamps, stable ordering, and any required indexes.
+- [x] 1. Define the Cloudy message table with provider-session key, role, JSON parts, timestamps, stable ordering, and any required indexes.
   - verify: `pnpm --filter @repo/server db:generate` creates a migration adding only the intended Cloudy message schema, and `pnpm --filter @repo/server check-types` passes.
   - files: `packages/server/src/db/schema/cloudy-messages.ts`, `packages/server/src/db/schema/index.ts`, `packages/server/drizzle/<generated migration>.sql`
-- [ ] 2. Implement repository operations to append messages, list a session's messages with the existing `limit`/`before` pagination semantics, and remove messages when a Cloudy session is deleted.
+- [x] 2. Implement repository operations to append messages, list a session's messages with the existing `limit`/`before` pagination semantics, and remove messages when a Cloudy session is deleted.
   - verify: focused repository tests cover chronological ordering, pagination cursor behavior, isolation between provider session IDs, and deletion cleanup.
   - files: `packages/server/src/features/sessions/cloudy-messages.repository.ts`, `packages/server/src/features/sessions/cloudy-messages.repository.test.ts`
-- [ ] 3. Inject both repositories and replace Cloudy's in-memory session/message maps with central-session lookups and SQLite-backed message reads/writes.
+- [x] 3. Inject both repositories and replace Cloudy's in-memory session/message maps with central-session lookups and SQLite-backed message reads/writes.
   - verify: `pnpm --filter @repo/server exec vitest run src/providers/cloudy/cloudy.adapter.test.ts` passes, including a newly created adapter reconstructing a session and reading messages written by a previous adapter using the same database.
   - files: `packages/server/src/providers/cloudy/cloudy.adapter.ts`, `packages/server/src/container.ts`, `packages/server/src/providers/cloudy/cloudy.adapter.test.ts`
 - [ ] 4. Verify history through existing session endpoints after reconstructing the container against the same SQLite database.
@@ -56,9 +56,9 @@ Cloudy's chat provider keeps its sessions and messages in in-memory maps, so ses
 
 ## Done when
 
-- [ ] Cloudy user and assistant messages are stored in SQLite rather than an adapter-local map.
+- [x] Cloudy user and assistant messages are stored in SQLite rather than an adapter-local map.
 - [ ] Existing session message APIs return persisted messages with stable order and pagination after a server/container restart.
-- [ ] Messages remain isolated by Cloudy provider session ID and retain their message parts and timestamps.
+- [x] Messages remain isolated by Cloudy provider session ID and retain their message parts and timestamps.
 - [ ] The generated Drizzle migration is included and server tests, lint, and typecheck pass.
 
 ## Notes for implementer

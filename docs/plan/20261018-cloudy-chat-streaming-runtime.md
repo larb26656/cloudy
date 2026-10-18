@@ -2,7 +2,7 @@
 title: Stream Cloudy Chat Through the LLM Runtime
 slug: cloudy-chat-streaming-runtime
 id: 20261018-cloudy-chat-streaming-runtime
-status: ready
+status: in_progress
 created: 2026-10-18
 source: planning session 2026-10-18
 ---
@@ -37,16 +37,16 @@ Cloudy's adapter currently sends only the newest user message to the LLM using `
 
 ## Tasks
 
-- [ ] 1. Extend the LLM provider types to accept ordered conversation messages and a cancellation signal for streaming.
+- [x] 1. Extend the LLM provider types to accept ordered conversation messages and a cancellation signal for streaming.
   - verify: `pnpm --filter @repo/server check-types` passes and `create-llm.test.ts` covers the new `chatAsync` input contract.
   - files: `packages/server/src/lib/llm-provider/types.ts`, `packages/server/src/lib/llm-provider/create-llm.test.ts`
-- [ ] 2. Update the OpenAI-compatible adapter to send every conversation turn and yield real streamed deltas, honoring cancellation.
+- [x] 2. Update the OpenAI-compatible adapter to send every conversation turn and yield real streamed deltas, honoring cancellation.
   - verify: `pnpm --filter @repo/server exec vitest run src/lib/llm-provider/providers/openai.test.ts` asserts the SDK receives user/assistant history in order and streamed chunks are yielded; abort and provider errors propagate.
   - files: `packages/server/src/lib/llm-provider/providers/openai.ts`, `packages/server/src/lib/llm-provider/providers/openai.test.ts`
-- [ ] 3. Replace the Cloudy fake-stream path with a persistent multi-turn run that streams provider events and final message updates.
+- [x] 3. Replace the Cloudy fake-stream path with a persistent multi-turn run that streams provider events and final message updates.
   - verify: `pnpm --filter @repo/server exec vitest run src/providers/cloudy/cloudy.adapter.test.ts` proves the second turn receives prior persisted turns, emits actual deltas with `providerId: "cloudy"`, and persists the completed assistant message.
   - files: `packages/server/src/providers/cloudy/cloudy.adapter.ts`, `packages/server/src/providers/cloudy/cloudy.adapter.test.ts`
-- [ ] 4. Implement run status/error cleanup and session abort handling for active streamed runs.
+- [x] 4. Implement run status/error cleanup and session abort handling for active streamed runs.
   - verify: focused Cloudy adapter tests assert running → completed, failed runs emit `run.failed` and settle to failed/idle state, abort stops further deltas and clears the active controller.
   - files: `packages/server/src/providers/cloudy/cloudy.adapter.ts`, `packages/server/src/providers/cloudy/cloudy.adapter.test.ts`
 - [ ] 5. Run server validation for the LLM runtime change.

@@ -7,7 +7,9 @@ export interface ChatEvent {
 
 export interface ChatInput {
   model: string;
+  messages?: { role: "system" | "user" | "assistant"; content: string }[];
   message: string;
+  signal?: AbortSignal;
 }
 
 export interface LLMProviderAdapter {

@@ -30,6 +30,10 @@ import {
 } from "./opencode.mapper";
 import { NotFoundError } from "../../shared/domain-error";
 
+export function encodeOpenCodeCursor(id: string, time: number): string {
+  return btoa(JSON.stringify({ id, time }));
+}
+
 function throwInteractionError(error: unknown): never {
   if (typeof error === "object" && error !== null) {
     const value = error as { _tag?: unknown; message?: unknown };
@@ -137,10 +141,21 @@ export function createOpenCodeAdapter({
         before: input.before,
       });
       if (result.error) throw result.error;
+      const messages = result.data.map(({ info, parts }) =>
+        toChatMessage(info, parts),
+      );
       return {
-        messages: result.data.map(({ info, parts }) =>
-          toChatMessage(info, parts),
-        ),
+        messages,
+        ...(input.limit && messages.length >= input.limit
+          ? {
+              nextCursor: result.data[0]
+                ? encodeOpenCodeCursor(
+                    result.data[0].info.id,
+                    result.data[0].info.time.created,
+                  )
+                : undefined,
+            }
+          : {}),
       };
     },
     async createSession(input: ProviderSessionInput): Promise<ChatSession> {

@@ -6,10 +6,15 @@ import {
   type ChatInputContent,
   buildPromptParts,
 } from "@/lib/opencode";
-import { encodeCursor } from "@/lib/opencode/cursor";
 import type { Message, SessionRunStatus } from "@/types";
 
-const MESSAGES_LIMIT = 50;
+const MESSAGES_LIMIT = 2;
+
+type MessagePage = { messages: Message[]; nextCursor?: string };
+
+export function getNextMessageCursor(page: MessagePage): string | undefined {
+  return page.nextCursor;
+}
 
 async function json<T>(response: Response): Promise<T> {
   if (!response.ok) throw new Error(await response.text());
@@ -24,22 +29,16 @@ export function useMessages({
 }) {
   return useInfiniteQuery({
     queryKey: messageKeys.infinite(sessionId),
-    queryFn: async ({ pageParam }): Promise<Message[]> => {
-      const result = await json<{ messages: ChatMessage[] }>(
-        await sessionApi.messages(sessionId, MESSAGES_LIMIT, pageParam),
-      );
-      return result.messages;
+    queryFn: async ({ pageParam }): Promise<MessagePage> => {
+      const result = await json<{
+        messages: ChatMessage[];
+        nextCursor?: string;
+      }>(await sessionApi.messages(sessionId, MESSAGES_LIMIT, pageParam));
+      return { messages: result.messages, nextCursor: result.nextCursor };
     },
     initialPageParam: undefined as string | undefined,
     getPreviousPageParam: undefined,
-    getNextPageParam: (message: Message[]) => {
-      if (message.length === 0) return undefined;
-      const firstMsg = message[0];
-      return encodeCursor({
-        id: firstMsg.id,
-        time: Date.parse(firstMsg.createdAt),
-      });
-    },
+    getNextPageParam: getNextMessageCursor,
     select: (data) => ({ ...data, pages: [...data.pages].reverse() }),
     enabled: !!sessionId,
   });

@@ -65,7 +65,10 @@ export function useMessageListData({
     sessionId: selectedSessionId ?? "",
   });
 
-  const remoteMessages = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);
+  const remoteMessages = useMemo(
+    () => data?.pages.flatMap((page) => page.messages) ?? [],
+    [data?.pages],
+  );
   const coreMessages = remoteMessages;
   const { displayItems: coreDisplayItems, streamingIds } =
     useStreamingMessageDisplayItems(coreMessages, selectedSessionId);

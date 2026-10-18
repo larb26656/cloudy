@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { z } from "zod";
-import { LLMProviderDefinition } from "../types";
+import type { LLMProviderDefinition } from "../types";
 
 const configSchema = z.object({
   apiKey: z.string().min(1),
@@ -34,28 +34,26 @@ export const openaiProviderDefinition = {
       async chat(input) {
         const response = await client.chat.completions.create({
           model: input.model,
-          messages: [
-            {
-              role: "user",
-              content: input.message,
-            },
+          messages: input.messages ?? [
+            { role: "user", content: input.message },
           ],
+          ...(input.signal ? { signal: input.signal } : {}),
         });
 
         return response.choices[0]?.message.content ?? "";
       },
 
       async *chatAsync(input) {
-        const stream = await client.chat.completions.create({
-          model: input.model,
-          messages: [
-            {
-              role: "user",
-              content: input.message,
-            },
-          ],
-          stream: true,
-        });
+        const stream = await client.chat.completions.create(
+          {
+            model: input.model,
+            messages: input.messages ?? [
+              { role: "user", content: input.message },
+            ],
+            stream: true,
+          },
+          input.signal ? { signal: input.signal } : undefined,
+        );
 
         for await (const chunk of stream) {
           yield {

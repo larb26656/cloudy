@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { buildParts } from "./useMessages";
+import { buildParts, getNextMessageCursor } from "./useMessages";
 import type { ChatInputContent } from "@/lib/opencode";
 
 describe("buildParts", () => {
@@ -38,5 +38,28 @@ describe("buildParts", () => {
       url: "data:image/png;base64,AAA",
       filename: "x.png",
     });
+  });
+});
+
+describe("getNextMessageCursor", () => {
+  test("uses the server cursor when one is returned", () => {
+    expect(
+      getNextMessageCursor({
+        messages: [
+          { id: "first", createdAt: "2026-01-01T00:00:00.000Z" } as never,
+        ],
+        nextCursor: "older-than-first",
+      }),
+    ).toBe("older-than-first");
+  });
+
+  test("does not synthesize a cursor when the provider omits one", () => {
+    expect(
+      getNextMessageCursor({
+        messages: [
+          { id: "only", createdAt: "2026-01-01T00:00:00.000Z" } as never,
+        ],
+      }),
+    ).toBeUndefined();
   });
 });

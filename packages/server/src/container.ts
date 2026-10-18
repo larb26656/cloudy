@@ -12,6 +12,7 @@ import {
   createSessionsRepository,
   createSessionsService,
 } from "./features/sessions";
+import { createCloudyMessagesRepository } from "./features/sessions/cloudy-messages.repository";
 import { createDb, runMigrations, type DbClient } from "./db";
 import {
   createEchoAdapter,
@@ -51,6 +52,8 @@ export function createContainer(
 
   const ptyRepository = createInMemoryPtyRepository();
   const ptyService = createPtyService(ptyRepository);
+  const sessionsRepository = createSessionsRepository(db);
+  const cloudyMessagesRepository = createCloudyMessagesRepository(db);
   const templates = createProviderTemplateRegistry();
   const apiProviderRegistry = createLLM();
   apiProviderRegistry.registerProvider("openai", openaiProviderDefinition);
@@ -66,6 +69,8 @@ export function createContainer(
       createCloudyAdapter({
         apiProviderRegistry,
         getDefault: () => llmProvidersService.getDefault(),
+        sessionsRepository,
+        messagesRepository: cloudyMessagesRepository,
       }),
       ...config.providers.instances
         .filter((instance) => instance.enabled)
@@ -77,7 +82,6 @@ export function createContainer(
     configDir,
     providerRegistry,
   );
-  const sessionsRepository = createSessionsRepository(db);
   const sessionsService = createSessionsService(
     sessionsRepository,
     providerRegistry,
