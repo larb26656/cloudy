@@ -126,14 +126,28 @@ export function createCloudyAgent({
           runStatus: "cancelled",
         });
       } else {
-        assistantMessage.parts = [{ ...part, text }];
+        const finishPart: ChatMessage["parts"][number] = {
+          id: randomUUID(),
+          type: "step-finish",
+          reason: "stop",
+          modelID: model,
+          agent: request.agentId,
+          cost: 0,
+          tokens: {
+            input: 0,
+            output: 0,
+            reasoning: 0,
+            cache: { read: 0, write: 0 },
+          },
+        };
+        assistantMessage.parts = [{ ...part, text }, finishPart];
         messagesRepository.update(assistantMessage, request.sessionId);
         publish({
           type: "message.part.updated",
           providerId: "cloudy",
           sessionId: request.sessionId,
           messageId: assistantMessage.id,
-          part: assistantMessage.parts[0]!,
+          part: finishPart,
         });
         publish({
           type: "session.status",
