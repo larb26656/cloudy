@@ -10,7 +10,7 @@ import type {
   ProviderSessionInput,
 } from "@repo/ai-core";
 
-import type { ApiProviderRegistry } from "../../ai-provider/type";
+import type { LLM } from "../../lib/llm-provider";
 
 interface EchoSession {
   session: ChatSession;
@@ -22,7 +22,7 @@ export function createCloudyAdapter({
   defaultApiProviderId,
   defaultModel,
 }: {
-  apiProviderRegistry: ApiProviderRegistry;
+  apiProviderRegistry: LLM;
   defaultApiProviderId: string;
   defaultModel: string;
 }): ProviderAdapter {
@@ -63,7 +63,7 @@ export function createCloudyAdapter({
         title: input.title ?? "Cloudy chat",
         status: "idle",
         runStatus: "idle",
-        providerId: "echo",
+        providerId: "cloudy",
         createdAt: now,
         updatedAt: now,
         directory: input.directory,
@@ -146,19 +146,19 @@ export function createCloudyAdapter({
       };
       publish({
         type: "message.updated",
-        providerId: "echo",
+        providerId: "cloudy",
         sessionId: request.sessionId,
         message: userMessage,
       });
       publish({
         type: "message.updated",
-        providerId: "echo",
+        providerId: "cloudy",
         sessionId: request.sessionId,
         message: assistantMessage,
       });
 
       const apiProviderId = request.model?.providerId ?? defaultApiProviderId;
-      const apiProvider = apiProviderRegistry.getById(apiProviderId);
+      const apiProvider = apiProviderRegistry.getClient(apiProviderId);
       if (!apiProvider)
         throw new Error(`API provider not found: ${apiProviderId}`);
       const answerMessage = await apiProvider.chat({

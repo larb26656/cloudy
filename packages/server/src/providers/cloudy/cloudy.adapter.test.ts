@@ -1,11 +1,24 @@
 import { describe, expect, it } from "vitest";
-import { createApiProviderRegistry } from "../../ai-provider/registry";
+import { z } from "zod";
+import { createLLM } from "../../lib/llm-provider";
 import { createCloudyAdapter } from "./cloudy.adapter";
+
+function createTestLLM() {
+  const llm = createLLM();
+  llm.registerProvider("test", {
+    configSchema: z.object({}),
+    create: () => ({
+      chat: async () => "",
+      chatAsync: async function* () {},
+    }),
+  });
+  return llm;
+}
 
 describe("createCloudyAdapter", () => {
   it("does not require a directory", async () => {
     const adapter = createCloudyAdapter({
-      apiProviderRegistry: createApiProviderRegistry(),
+      apiProviderRegistry: createTestLLM(),
       defaultApiProviderId: "test",
       defaultModel: "test-model",
     });
@@ -16,15 +29,13 @@ describe("createCloudyAdapter", () => {
   });
 
   it("exposes registered API provider models", async () => {
-    const apiProviderRegistry = createApiProviderRegistry();
-    apiProviderRegistry.register(
-      "test",
-      {
-        chat: async () => "",
-        chatAsync: async function* () {},
-      },
-      [{ modelId: "test-model", name: "Test model" }],
-    );
+    const apiProviderRegistry = createTestLLM();
+    apiProviderRegistry.registerClient({
+      id: "test",
+      type: "test",
+      config: {},
+      models: [{ modelId: "test-model", name: "Test model" }],
+    });
     const adapter = createCloudyAdapter({
       apiProviderRegistry,
       defaultApiProviderId: "test",
