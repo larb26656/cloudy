@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@repo/ui/components/card";
-import { Ellipsis, Hexagon, Pencil, Trash2 } from "lucide-react";
+import { Cpu, Ellipsis, Pencil, Sparkles, Trash2 } from "lucide-react";
 import type {
   LLMConnection,
   LLMSettings,
@@ -37,7 +37,13 @@ export function LLMConnectionCard({
     <Card className="gap-0 py-0">
       <CardHeader className="flex flex-row items-center gap-3 px-4 py-4">
         <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Hexagon aria-hidden="true" className="size-6" />
+          <span className="relative flex size-6 items-center justify-center">
+            <Cpu aria-hidden="true" className="size-6" />
+            <Sparkles
+              aria-hidden="true"
+              className="absolute -right-1 -top-1 size-3 fill-background"
+            />
+          </span>
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
