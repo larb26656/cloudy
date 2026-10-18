@@ -113,7 +113,7 @@ describe("createCloudyAdapter", () => {
     expect(receivedModel).toBe("selected-model");
   });
 
-  it("returns distinct older message pages using the message ID cursor", async () => {
+  it("returns older message pages in insertion order when timestamps collide", async () => {
     const { adapter, sessionsRepository, messagesRepository } = createAdapter();
     const session = await adapter.createSession!({});
     sessionsRepository.create({
@@ -121,16 +121,14 @@ describe("createCloudyAdapter", () => {
       providerId: "cloudy",
       providerSessionId: session.id,
     });
-    for (const id of ["m1", "m2", "m3", "m4", "m5"]) {
+    for (const id of ["c3", "a1", "e5", "b2", "d4"]) {
       messagesRepository.append(
         {
           id,
           sessionId: session.id,
           role: "user",
           parts: [{ id: `part-${id}`, type: "text", text: id }],
-          createdAt: new Date(
-            `2026-01-01T00:00:0${id.slice(1)}.000Z`,
-          ).toISOString(),
+          createdAt: "2026-01-01T00:00:00.000Z",
         } satisfies ChatMessage,
         session.id,
       );
@@ -145,15 +143,61 @@ describe("createCloudyAdapter", () => {
       limit: 2,
       before: newerPage.nextCursor,
     });
+    const oldestPage = await adapter.listMessages!({
+      sessionId: session.id,
+      limit: 2,
+      before: olderPage.nextCursor,
+    });
 
     expect(newerPage.messages.map((message) => message.id)).toEqual([
-      "m4",
-      "m5",
+      "b2",
+      "d4",
     ]);
-    expect(newerPage.nextCursor).toBe("m4");
+    expect(newerPage.nextCursor).toBe("b2");
     expect(olderPage.messages.map((message) => message.id)).toEqual([
-      "m2",
-      "m3",
+      "a1",
+      "e5",
     ]);
+    expect(olderPage.nextCursor).toBe("a1");
+    expect(oldestPage.messages.map((message) => message.id)).toEqual(["c3"]);
+    expect(oldestPage.nextCursor).toBeUndefined();
+    expect(
+      [
+        ...oldestPage.messages,
+        ...olderPage.messages,
+        ...newerPage.messages,
+      ].map((message) => message.id),
+    ).toEqual(["c3", "a1", "e5", "b2", "d4"]);
+  });
+
+  it("treats a missing message cursor as a request for the latest page", async () => {
+    const { adapter, sessionsRepository, messagesRepository } = createAdapter();
+    const session = await adapter.createSession!({});
+    sessionsRepository.create({
+      id: session.id,
+      providerId: "cloudy",
+      providerSessionId: session.id,
+    });
+    for (const id of ["m1", "m2", "m3"]) {
+      messagesRepository.append(
+        {
+          id,
+          sessionId: session.id,
+          role: "user",
+          parts: [{ id: `part-${id}`, type: "text", text: id }],
+          createdAt: "2026-01-01T00:00:00.000Z",
+        } satisfies ChatMessage,
+        session.id,
+      );
+    }
+
+    const page = await adapter.listMessages!({
+      sessionId: session.id,
+      limit: 2,
+      before: "missing-cursor",
+    });
+
+    expect(page.messages.map((message) => message.id)).toEqual(["m2", "m3"]);
+    expect(page.nextCursor).toBe("m2");
   });
 });

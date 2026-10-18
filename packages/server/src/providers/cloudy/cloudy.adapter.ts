@@ -128,15 +128,12 @@ export function createCloudyAdapter({
       limit?: number;
       before?: string;
     }) {
-      const messages = messagesRepository.list(input.sessionId);
-      const beforeIndex = input.before
-        ? messages.findIndex((message) => message.id === input.before)
-        : messages.length;
-      const end = beforeIndex < 0 ? messages.length : beforeIndex;
-      const start = Math.max(0, end - (input.limit ?? messages.length));
+      const rows = messagesRepository.listBefore(input.sessionId, input);
+      const hasMore = input.limit !== undefined && rows.length > input.limit;
+      const messages = (hasMore ? rows.slice(0, input.limit) : rows).reverse();
       return {
-        messages: messages.slice(start, end),
-        ...(start > 0 ? { nextCursor: messages[start]?.id } : {}),
+        messages,
+        ...(hasMore && messages[0] ? { nextCursor: messages[0].id } : {}),
       };
     },
     async sendMessage(request: ProviderMessageRequest) {
