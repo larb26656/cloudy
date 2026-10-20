@@ -2,6 +2,7 @@ import { useWindowFocus } from "@/hooks";
 import { env } from "@/config/env";
 import { joinUrl } from "@/lib/url";
 import { handleEvent } from "@/lib/opencode";
+import { useGlobalEventLogStore } from "@/stores/globalEventLogStore";
 import { useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
@@ -85,6 +86,7 @@ export function GlobalEventProvider({ children }: { children: ReactNode }) {
           response,
           (event) => {
             if (cancelled) return;
+            useGlobalEventLogStore.getState().appendEvent(event);
             if (
               typeof event === "object" &&
               event !== null &&

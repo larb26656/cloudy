@@ -9,6 +9,7 @@ import { pomodoroNodeTemplate } from "../implementations/pomodoro-node";
 import { stopwatchNodeTemplate } from "../implementations/stopwatch-node";
 import { timerNodeTemplate } from "../implementations/timer-node";
 import { webviewNodeTemplate } from "../implementations/webview-node";
+import { globalEventNodeTemplate } from "../implementations/global-event-node";
 import type { NodeTemplate } from "./nodeTemplates";
 
 export * from "./nodeTemplates";
@@ -25,6 +26,7 @@ export const nodeTemplates: NodeTemplate[] = [
   pomodoroNodeTemplate,
   stopwatchNodeTemplate,
   timerNodeTemplate,
+  globalEventNodeTemplate,
 ];
 
 export const nodeTypes = nodeTemplates.reduce<
