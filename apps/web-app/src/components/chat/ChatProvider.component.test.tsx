@@ -7,6 +7,20 @@ import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
 import type { ModelInfo } from "@repo/contracts";
 
+const capacity = {
+  streaming: true,
+  requiresDirectory: false,
+  approvals: true,
+  questions: true,
+  fileMentions: true,
+  commands: true,
+  attachments: true,
+  tools: true,
+  reasoning: true,
+  models: true,
+  agents: true,
+};
+
 const mocks = vi.hoisted(() => ({
   abort: vi.fn(),
   createSession: vi.fn(),
@@ -143,6 +157,7 @@ function ControlledWrapper({
     <ChatProvider
       workspace={null}
       directory="/project"
+      capacity={capacity}
       sessionId="ses_1"
       agent={agent}
       onAgentChange={(a) => {
@@ -168,7 +183,7 @@ type ChatProviderOptions = {
   onAgentChange?: (agent: string | null) => void;
   model?: ModelInfo | null;
   onModelChange?: (model: ModelInfo | null) => void;
-  capabilities?: { fileMentions?: boolean; commands?: boolean };
+  capacity?: typeof capacity;
 };
 
 function renderChat(
@@ -184,6 +199,7 @@ function renderChat(
       <ChatProvider
         workspace={null}
         directory="/project"
+        capacity={options.capacity ?? capacity}
         providerId={options.providerId}
         sessionId={options.sessionId}
         onSessionChange={options.onSessionChange}
@@ -191,7 +207,6 @@ function renderChat(
         onAgentChange={options.onAgentChange}
         model={options.model}
         onModelChange={options.onModelChange}
-        capabilities={options.capabilities}
       >
         {children}
       </ChatProvider>
@@ -344,6 +359,7 @@ describe("ChatProvider", () => {
         <ChatProvider
           workspace={null}
           directory="/project"
+          capacity={capacity}
           sessionId="ses_2"
           onAgentChange={onAgentChange}
           onModelChange={onModelChange}
@@ -403,7 +419,7 @@ describe("ChatProvider", () => {
 
   test("sends slash-prefixed text as a message when commands are unsupported", async () => {
     renderChat(
-      { sessionId: "ses_1", capabilities: { commands: false } },
+      { sessionId: "ses_1", capacity: { ...capacity, commands: false } },
       <ChatActions />,
     );
 
@@ -421,7 +437,7 @@ describe("ChatProvider", () => {
 
   test("drops file mentions when the provider does not support them", async () => {
     renderChat(
-      { sessionId: "ses_1", capabilities: { fileMentions: false } },
+      { sessionId: "ses_1", capacity: { ...capacity, fileMentions: false } },
       <ChatActions />,
     );
 

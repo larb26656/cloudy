@@ -32,6 +32,10 @@ vi.mock("@/hooks/queries", () => ({
 
 vi.mock("@/hooks/queries/useModels", () => ({
   useModels: () => ({ data: mocks.providers }),
+  useCapacity: (providerId: string) => ({
+    data: mocks.providers.find((provider) => provider.id === providerId)
+      ?.capabilities,
+  }),
 }));
 
 vi.mock("@/features/workspace/WorkspaceSelectStep", () => ({

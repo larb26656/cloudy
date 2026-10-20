@@ -1,5 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import type { ResolvedAgentProviderInfo } from "@repo/contracts";
+import type {
+  ResolvedAgentProviderInfo,
+  ResolvedProviderCapabilities,
+} from "@repo/contracts";
 import { cloudyClient } from "@/lib/api";
 import { agentProviderKeys } from "@/lib/cloudy/query-keys";
 
@@ -15,12 +18,20 @@ export async function fetchAgentProviderCatalog(): Promise<
 
 export function useModels(providerId?: string) {
   return useQuery({
-    queryKey: [...agentProviderKeys.catalog(), providerId ?? "all"],
-    queryFn: async () => {
-      const providers = await fetchAgentProviderCatalog();
-      return providerId
+    queryKey: agentProviderKeys.catalog(),
+    queryFn: fetchAgentProviderCatalog,
+    select: (providers) =>
+      providerId
         ? providers.filter((provider) => provider.id === providerId)
-        : providers;
-    },
+        : providers,
+  });
+}
+
+export function useCapacity(providerId: string) {
+  return useQuery({
+    queryKey: agentProviderKeys.catalog(),
+    queryFn: fetchAgentProviderCatalog,
+    select: (providers): ResolvedProviderCapabilities | undefined =>
+      providers.find((provider) => provider.id === providerId)?.capabilities,
   });
 }

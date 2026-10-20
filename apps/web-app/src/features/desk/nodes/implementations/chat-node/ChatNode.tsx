@@ -32,7 +32,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const updateSession = useUpdateSession();
 
   const { data: session } = useSession({ sessionId: data.sessionId });
-  const title = session?.title ?? "Chat";
+  const title = session?.title ?? data.sessionName ?? "Chat";
   const directory = workspace?.directory ?? data.directory ?? "";
   const providerId = data.providerId;
 
@@ -97,7 +97,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       nodeId={id}
       selected={selected}
       headerAction={
-        <ProviderIcon providerId={session?.providerId ?? "opencode"} />
+        <ProviderIcon providerId={session?.providerId ?? providerId} />
       }
       maxWidth={1200}
       maxHeight={1200}

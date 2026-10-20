@@ -11,9 +11,9 @@ export function ProviderSection() {
   const pushRecentDirectory = useRecentDirectoryStore((s) => s.push);
   const createTempWorkspace = useCreateTempWorkspace();
 
-  const handleProviderSelect = (providerId: string) => {
-    const provider = providers.find((item) => item.id === providerId);
-    if (provider?.capabilities.requiresDirectory === false) {
+  const handleProviderSelect = (provider: (typeof providers)[number]) => {
+    const { id: providerId } = provider;
+    if (provider.capabilities.requiresDirectory === false) {
       addTab("chat", {
         providerId,
         sessionId: null,
@@ -57,7 +57,7 @@ export function ProviderSection() {
             <button
               key={provider.id}
               type="button"
-              onClick={() => handleProviderSelect(provider.id)}
+              onClick={() => handleProviderSelect(provider)}
               disabled={createTempWorkspace.isPending}
               className="flex min-h-14 items-center gap-3 rounded-lg border bg-background px-4 py-3 text-left text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-wait disabled:opacity-50"
             >

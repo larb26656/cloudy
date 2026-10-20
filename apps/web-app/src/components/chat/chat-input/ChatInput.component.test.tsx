@@ -133,6 +133,19 @@ function renderInput(options: RenderInputOptions = {}) {
       <ChatProvider
         workspace={null}
         directory="/proj"
+        capacity={{
+          streaming: true,
+          requiresDirectory: false,
+          approvals: true,
+          questions: true,
+          fileMentions: true,
+          commands: true,
+          attachments: true,
+          tools: true,
+          reasoning: true,
+          models: true,
+          agents: true,
+        }}
         sessionId={SESSION_ID}
         agent={options.initialAgent}
         onAgentChange={options.onAgentChange}

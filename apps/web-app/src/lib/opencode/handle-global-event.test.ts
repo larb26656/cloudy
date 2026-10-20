@@ -100,6 +100,7 @@ describe("handleEvent", () => {
   test("applies normalized message events to the streaming store", () => {
     const event: ChatEvent = {
       type: "message.updated",
+      providerId: "cloudy",
       sessionId: SESSION_ID,
       message: message(),
     };
@@ -173,6 +174,7 @@ describe("handleEvent", () => {
     handleEvent(
       {
         type: "session.status",
+        providerId: "cloudy",
         sessionId: SESSION_ID,
         status: "idle",
         runStatus: "completed",

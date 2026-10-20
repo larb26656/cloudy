@@ -44,7 +44,24 @@ function ChatInputStory({
   initialAttachments?: ImageAttachment[];
 }) {
   return (
-    <ChatProvider workspace={null} directory={DIRECTORY} sessionId={SESSION_ID}>
+    <ChatProvider
+      workspace={null}
+      directory={DIRECTORY}
+      sessionId={SESSION_ID}
+      capacity={{
+        streaming: true,
+        requiresDirectory: true,
+        approvals: true,
+        questions: true,
+        fileMentions: true,
+        commands: true,
+        attachments: true,
+        tools: true,
+        reasoning: true,
+        models: true,
+        agents: true,
+      }}
+    >
       <MessageScrollerProvider autoScroll>
         <ChatInput
           initialValue={initialValue}

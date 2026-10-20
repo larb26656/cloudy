@@ -11,11 +11,7 @@ import {
 export interface StreamingMessagesStore {
   streamingMessages: Map<string, Map<string, ChatMessage>>;
   pendingDeltas: Map<string, Map<string, string>>;
-  applyEvent: (
-    sessionId: string,
-    event: ChatEvent,
-    providerId?: string,
-  ) => void;
+  applyEvent: (sessionId: string, event: ChatEvent) => void;
   onMessageInfoUpdated: (sessionId: string, message: ChatMessage) => void;
   onMessagePartUpdated: (
     sessionId: string,
@@ -28,10 +24,7 @@ export interface StreamingMessagesStore {
     partId: string,
     delta: string,
   ) => void;
-  takeSessionStreaming: (
-    sessionId: string,
-    providerId?: string,
-  ) => ChatMessage[];
+  takeSessionStreaming: (sessionId: string) => ChatMessage[];
   removeStreamingMessage: (sessionId: string, messageId: string) => void;
 }
 
@@ -43,10 +36,6 @@ function sessionState(
     messages: store.streamingMessages.get(sessionId) ?? new Map(),
     pendingDeltas: store.pendingDeltas.get(sessionId) ?? new Map(),
   };
-}
-
-function sessionKey(sessionId: string, providerId = "opencode") {
-  return providerId === "opencode" ? sessionId : `${providerId}:${sessionId}`;
 }
 
 export const useStreamingMessagesStore = create<StreamingMessagesStore>(
@@ -71,24 +60,20 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
     return {
       streamingMessages: new Map(),
       pendingDeltas: new Map(),
-      applyEvent: (sessionId, event, providerId = "opencode") =>
-        update(sessionKey(sessionId, providerId), (state) =>
-          applyChatEvent(state, event, sessionId),
-        ),
+      applyEvent: (sessionId, event) =>
+        update(sessionId, (state) => applyChatEvent(state, event, sessionId)),
       onMessageInfoUpdated: (sessionId, message) =>
-        update(sessionKey(sessionId), (state) =>
-          applyMessageInfo(state, message),
-        ),
+        update(sessionId, (state) => applyMessageInfo(state, message)),
       onMessagePartUpdated: (sessionId, messageId, part) =>
-        update(sessionKey(sessionId), (state) =>
+        update(sessionId, (state) =>
           applyMessagePart(state, sessionId, messageId, part),
         ),
       onMessagePartDeltaUpdated: (sessionId, messageId, partId, delta) =>
-        update(sessionKey(sessionId), (state) =>
+        update(sessionId, (state) =>
           applyMessagePartDelta(state, messageId, partId, delta),
         ),
-      takeSessionStreaming: (sessionId, providerId = "opencode") => {
-        const key = sessionKey(sessionId, providerId);
+      takeSessionStreaming: (sessionId) => {
+        const key = sessionId;
         let result: ChatMessage[] = [];
         set((state) => {
           const messages = state.streamingMessages.get(key);
@@ -104,14 +89,13 @@ export const useStreamingMessagesStore = create<StreamingMessagesStore>(
       },
       removeStreamingMessage: (sessionId, messageId) =>
         set((state) => {
-          const key = sessionKey(sessionId);
-          const messages = state.streamingMessages.get(key);
+          const messages = state.streamingMessages.get(sessionId);
           if (!messages?.has(messageId)) return state;
           const nextMessages = new Map(messages);
           nextMessages.delete(messageId);
           const streamingMessages = new Map(state.streamingMessages);
-          if (nextMessages.size) streamingMessages.set(key, nextMessages);
-          else streamingMessages.delete(key);
+          if (nextMessages.size) streamingMessages.set(sessionId, nextMessages);
+          else streamingMessages.delete(sessionId);
           return { streamingMessages };
         }),
     };

@@ -79,19 +79,21 @@ export function usePetActivity() {
   const { data: sessions, isLoading, error } = useRecentSessions({ limit: 8 });
   const { data: workspaces = [] } = useWorkspaces();
   const { data: providers = [] } = useModels();
+  const providerById = useMemo(
+    () => new Map(providers.map((provider) => [provider.id, provider])),
+    [providers],
+  );
 
   const candidates = useMemo(
     () =>
       (sessions ?? []).filter((session) => {
-        const capabilities = providers.find(
-          (provider) => provider.id === session.providerId,
-        )?.capabilities;
+        const capabilities = providerById.get(session.providerId)?.capabilities;
         return (
           (session.runStatus === "running" || session.status === "active") &&
           (capabilities?.approvals || capabilities?.questions)
         );
       }),
-    [providers, sessions],
+    [providerById, sessions],
   );
 
   const questionResults = useQueries({

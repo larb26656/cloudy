@@ -16,7 +16,9 @@ import { QuestionSheet } from "../question/QuestionSheet";
 import { ChatProvider, useChat } from "./ChatProvider";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import { AgentSelector } from "./AgentSelector";
-import { useModels } from "@/hooks/queries/useModels";
+import { useCapacity } from "@/hooks/queries/useModels";
+import { LoadingState } from "@repo/ui/components/loading-state";
+import { ErrorState } from "@repo/ui/components/error-state";
 
 interface ChatContainerProps {
   workspace?: Workspace | null;
@@ -43,35 +45,17 @@ export function ChatContainer({
 }: ChatContainerProps) {
   const effectiveProviderId = providerId ?? "opencode";
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
-  const { data: providers = [] } = useModels(effectiveProviderId);
-  const capabilities = providers.find(
-    (provider) => provider.id === effectiveProviderId,
-  )?.capabilities ?? {
-    streaming: false,
-    requiresDirectory: false,
-    approvals: false,
-    questions: false,
-    fileMentions: false,
-    commands: false,
-    attachments: false,
-    tools: false,
-    reasoning: false,
-    models: false,
-    agents: false,
-  };
-  const chatCapabilities = {
-    approvals: capabilities.approvals,
-    questions: capabilities.questions,
-    fileMentions: capabilities.fileMentions,
-    commands: capabilities.commands,
-  };
+  const { data: capacity, isLoading, error } = useCapacity(effectiveProviderId);
+  if (isLoading) return <LoadingState />;
+  if (error || !capacity)
+    return <ErrorState message={error?.message ?? "Provider not found"} />;
 
   return (
     <ChatProvider
       workspace={workspace}
       directory={directory}
       providerId={effectiveProviderId}
-      capabilities={chatCapabilities}
+      capacity={capacity}
       sessionId={sessionId}
       onSessionChange={onSessionChange}
       agent={agent}
@@ -79,28 +63,16 @@ export function ChatContainer({
       model={model}
       onModelChange={onModelChange}
     >
-      <ChatContainerContent
-        chatplaceholder={chatplaceholder}
-        capabilities={chatCapabilities}
-      />
+      <ChatContainerContent chatplaceholder={chatplaceholder} />
     </ChatProvider>
   );
 }
 
 type ChatContainerContentProps = {
   chatplaceholder: string;
-  capabilities: {
-    approvals: boolean;
-    questions: boolean;
-    fileMentions: boolean;
-    commands: boolean;
-  };
 };
 
-function ChatContainerContent({
-  chatplaceholder,
-  capabilities,
-}: ChatContainerContentProps) {
+function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
   const [questionOpen, setQuestionOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [minimapOpen, setMinimapOpen] = useState(false);
@@ -123,6 +95,7 @@ function ChatContainerContent({
     changeSession,
     sessionPickerOpen,
     setSessionPickerOpen,
+    capacity,
   } = useChat();
   const {
     sessionQuestions,
@@ -132,8 +105,8 @@ function ChatContainerContent({
   } = useSessionData({
     sessionId,
     capabilities: {
-      approvals: capabilities.approvals,
-      questions: capabilities.questions,
+      approvals: capacity.approvals,
+      questions: capacity.questions,
     },
   });
 
@@ -181,8 +154,8 @@ function ChatContainerContent({
 
           <ChatInput
             placeholder={chatplaceholder}
-            supportsFileMentions={capabilities.fileMentions}
-            supportsCommands={capabilities.commands}
+            supportsFileMentions={capacity.fileMentions}
+            supportsCommands={capacity.commands}
           />
         </MessageScrollerProvider>
 

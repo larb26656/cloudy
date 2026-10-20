@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import type { PropsWithChildren } from "react";
-import type { ModelInfo, ProviderCapabilities } from "@repo/contracts";
+import type { ModelInfo, ResolvedProviderCapabilities } from "@repo/contracts";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import {
   useAbortGeneration,
@@ -32,7 +32,8 @@ type ChatContextValue = {
   effectiveAgent: string | null;
   providerId: string;
   effectiveModel: ModelInfo | null;
-  capabilities: Pick<ProviderCapabilities, "fileMentions" | "commands">;
+  capacity: ResolvedProviderCapabilities;
+  capabilities: Pick<ResolvedProviderCapabilities, "fileMentions" | "commands">;
   setAgent: (agent: string | null) => void;
   setModel: (model: ModelInfo | null) => void;
   sendMessage: (
@@ -77,7 +78,7 @@ type ChatProviderProps = PropsWithChildren<{
    */
   model?: ModelInfo | null;
   onModelChange?: (model: ModelInfo | null) => void;
-  capabilities?: Pick<ProviderCapabilities, "fileMentions" | "commands">;
+  capacity: ResolvedProviderCapabilities;
 }>;
 
 export function ChatProvider({
@@ -91,7 +92,7 @@ export function ChatProvider({
   onAgentChange,
   model: modelProp,
   onModelChange,
-  capabilities,
+  capacity,
 }: ChatProviderProps) {
   const [sessionPickerOpen, setSessionPickerOpen] = useState(false);
   const [localAgent, setLocalAgent] = useState<string | null>(null);
@@ -108,10 +109,10 @@ export function ChatProvider({
   const model = isModelControlled ? (modelProp ?? null) : localModel;
   const chatCapabilities = useMemo(
     () => ({
-      fileMentions: capabilities?.fileMentions ?? true,
-      commands: capabilities?.commands ?? true,
+      fileMentions: capacity.fileMentions,
+      commands: capacity.commands,
     }),
-    [capabilities?.commands, capabilities?.fileMentions],
+    [capacity.commands, capacity.fileMentions],
   );
   const { mutateAsync: sendMessageAsync, isPending: isSending } =
     useSendMessage();
@@ -283,6 +284,7 @@ export function ChatProvider({
       sessionId,
       effectiveAgent: agent ?? defaultAgent,
       effectiveModel: model ?? defaultModel,
+      capacity,
       capabilities: chatCapabilities,
       setAgent,
       setModel,
@@ -317,6 +319,7 @@ export function ChatProvider({
       sessionPickerOpen,
       openSessionPicker,
       workspace,
+      capacity,
       chatCapabilities,
     ],
   );

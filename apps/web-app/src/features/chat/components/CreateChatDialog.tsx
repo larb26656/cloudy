@@ -21,7 +21,7 @@ import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { useCreateTempWorkspace, useSessions } from "@/hooks/queries";
 import { ArrowLeft, MessageCircleDashed } from "lucide-react";
 import { ProviderSelector } from "@/components/chat/ProviderSelector";
-import { useModels } from "@/hooks/queries/useModels";
+import { useCapacity } from "@/hooks/queries/useModels";
 
 interface CreateChatDialogProps {
   open: boolean;
@@ -53,12 +53,8 @@ export function CreateChatDialog({
   const [selected, setSelected] = useState<ChatTarget | null>(null);
   const [providerId, setProviderId] = useState(defaultProviderId);
   const createTempWorkspace = useCreateTempWorkspace();
-  const { data: providers = [] } = useModels();
-  const selectedProvider = providers.find(
-    (provider) => provider.id === providerId,
-  );
-  const requiresDirectory =
-    selectedProvider?.capabilities.requiresDirectory ?? true;
+  const { data: capacity } = useCapacity(providerId);
+  const requiresDirectory = capacity?.requiresDirectory ?? true;
 
   const { data: sessions = [], isLoading: sessionsLoading } = useSessions({
     directory: selected?.directory ?? "",
