@@ -17,7 +17,7 @@ export function migrateBotNodeType(
 ): unknown {
   const state = persistedState as PersistedFlowState | undefined;
   if (!state?.flows) return persistedState;
-  if (version >= 4) return persistedState;
+  if (version >= 5) return persistedState;
 
   let flows = state.flows;
 
@@ -76,6 +76,28 @@ export function migrateBotNodeType(
     );
   }
 
+  if (version < 5) {
+    flows = Object.fromEntries(
+      Object.entries(flows).map(([id, flow]) => [
+        id,
+        {
+          ...flow,
+          nodes: flow.nodes.map((node) =>
+            node.type === "chat"
+              ? {
+                  ...node,
+                  data: {
+                    ...node.data,
+                    providerId: node.data?.providerId ?? "opencode",
+                  },
+                }
+              : node,
+          ),
+        },
+      ]),
+    );
+  }
+
   return { ...state, flows };
 }
 
@@ -106,7 +128,7 @@ export const useFlowStore = create<FlowState>()(
     }),
     {
       name: "flow-storage",
-      version: 4,
+      version: 5,
       migrate: migrateBotNodeType,
     },
   ),

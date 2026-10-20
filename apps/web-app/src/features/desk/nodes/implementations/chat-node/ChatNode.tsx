@@ -16,7 +16,7 @@ type ChatNodeProps = Node<
     workspaceId: string | null;
     /** Present when the node was created from an ad-hoc path (no workspace). */
     directory?: string | null;
-    providerId?: string;
+    providerId: string;
     sessionId: string | null;
     sessionName?: string;
     agent?: string | null;
@@ -33,8 +33,8 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
 
   const { data: session } = useSession({ sessionId: data.sessionId });
   const title = session?.title ?? "Chat";
-  const directory = workspace?.directory ?? data.directory;
-  const providerId = data.providerId ?? "opencode";
+  const directory = workspace?.directory ?? data.directory ?? "";
+  const providerId = data.providerId;
 
   const handleSessionChange = useCallback(
     (sessionId: string | null) => {
@@ -107,15 +107,11 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
           icon: ExternalLink,
           label: "Open in tab",
           onClick: handleOpenInTab,
-          disabled: !data.sessionId || !directory,
+          disabled: !data.sessionId,
         },
       ]}
     >
-      {!directory ? (
-        <Center className="flex-1">
-          <ErrorState message="Workspace not found" />
-        </Center>
-      ) : workspace?.type === "bot" ? (
+      {workspace?.type === "bot" ? (
         <Center className="flex-1">
           <ErrorState message="Use a Bot Chat node for this workspace" />
         </Center>

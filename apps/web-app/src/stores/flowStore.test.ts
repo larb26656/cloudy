@@ -34,11 +34,15 @@ describe("flowStore migration", () => {
             {
               ...state.flows["desk-1"]!.nodes[0],
               type: "chat",
-              data: { workspaceId: "workspace-1", model: null },
+              data: {
+                workspaceId: "workspace-1",
+                model: null,
+                providerId: "opencode",
+              },
             },
             {
               ...state.flows["desk-1"]!.nodes[1],
-              data: { model: null },
+              data: { model: null, providerId: "opencode" },
             },
           ],
         },
@@ -49,7 +53,7 @@ describe("flowStore migration", () => {
   it("does not migrate current flow data", () => {
     const state = { flows: {} };
 
-    expect(migrateBotNodeType(state, 4)).toBe(state);
+    expect(migrateBotNodeType(state, 5)).toBe(state);
   });
 
   it("normalizes legacy chat-node model selections to ModelInfo", () => {
@@ -102,13 +106,14 @@ describe("flowStore migration", () => {
                   capabilities: { streaming: true, tools: true },
                   description: undefined,
                 },
+                providerId: "opencode",
               },
             },
             {
               id: "bot-1",
               type: "chat",
               position: { x: 100, y: 100 },
-              data: { model: null },
+              data: { model: null, providerId: "opencode" },
             },
           ],
           edges: [],

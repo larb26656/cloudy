@@ -38,7 +38,15 @@ function getMentions(editor: Editor) {
   return mentions;
 }
 
-export function ChatInputEditor({
+export function ChatInputEditor(props: ChatInputEditorProps) {
+  const supportsFileMentions = props.supportsFileMentions ?? true;
+  const supportsCommands = props.supportsCommands ?? true;
+  const editorKey = `${props.directory}:${supportsFileMentions}:${supportsCommands}`;
+
+  return <ChatInputEditorInstance key={editorKey} {...props} />;
+}
+
+function ChatInputEditorInstance({
   content,
   onChange,
   onKeyDown,
