@@ -11,7 +11,7 @@ export function pickFresher(
   if (!remote) return "streaming";
   if (isFinalized(remote)) return "remote";
   if (isFinalized(streaming)) return "streaming";
-  return contentScore(streaming) > contentScore(remote)
+  return contentScore(streaming) >= contentScore(remote)
     ? "streaming"
     : "remote";
 }
