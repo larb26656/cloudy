@@ -1,9 +1,14 @@
-import { app, BrowserWindow, shell } from "electron";
+import { app, BrowserWindow, globalShortcut, shell } from "electron";
 import { createServer } from "@repo/server";
 import net from "node:net";
 import { dirname, join, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createPetWindow, destroyPetWindow } from "./pet-window";
+import {
+  createQuickWindow,
+  destroyQuickWindow,
+  toggleQuickWindow,
+} from "./quick-window";
 
 const isDev = !app.isPackaged;
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -121,6 +126,20 @@ async function boot() {
     isAppOrigin,
     ensureMainWindow,
   });
+  await createQuickWindow({
+    isDev,
+    serverUrl: url,
+    devServerUrl: DEV_SERVER_URL,
+    preloadPath: join(__dirname, "preload.cjs"),
+    desktopInfoArg: desktopInfoArg(),
+    isAppOrigin,
+    ensureMainWindow,
+  });
+  const quickShortcut =
+    process.platform === "darwin" ? "Command+Shift+K" : "Control+Shift+K";
+  if (!globalShortcut.register(quickShortcut, toggleQuickWindow)) {
+    console.warn(`cloudy: failed to register ${quickShortcut}`);
+  }
 }
 
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
@@ -154,6 +173,8 @@ if (!gotSingleInstanceLock) {
     event.preventDefault();
     void (async () => {
       try {
+        globalShortcut.unregisterAll();
+        destroyQuickWindow();
         destroyPetWindow();
         mainWindow?.destroy();
         mainWindow = null;

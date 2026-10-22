@@ -29,3 +29,22 @@ export function openSessionTab(
     },
   };
 }
+
+export function createSessionTabPayload({
+  providerId,
+  sessionId,
+  directory,
+  sessionName,
+  workspaceId = null,
+}: {
+  providerId: string;
+  sessionId: string;
+  directory: string;
+  sessionName: string;
+  workspaceId?: string | null;
+}): SessionTabPayload {
+  return {
+    type: "chat",
+    data: { providerId, sessionId, directory, sessionName, workspaceId },
+  };
+}

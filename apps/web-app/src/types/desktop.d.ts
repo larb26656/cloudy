@@ -1,4 +1,5 @@
 import type { PetBridgeApi } from "@/lib/desktop/petBridge";
+import type { QuickBridgeApi } from "@/lib/desktop/quickBridge";
 
 export {};
 
@@ -8,8 +9,9 @@ declare global {
       apiUrl: string;
       isDev: boolean;
       platform: string;
-      windowKind?: "main" | "pet";
+      windowKind?: "main" | "pet" | "quick";
       petBridge?: PetBridgeApi;
+      quickBridge?: QuickBridgeApi;
     };
   }
 }

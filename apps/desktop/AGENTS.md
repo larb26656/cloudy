@@ -21,8 +21,10 @@ src/pet-window.ts desktop pet overlay window: transparent/frameless/always-on-to
                   pet:* IPC handlers (drag, set-size, focus-main, open-session relay,
                   context-menu hide / show / get-visibility),
                   position persistence in userData/pet-window.json
+src/quick-window.ts Quick Cloudy floating window factory and sender-scoped
+                     `quick:hide` / validated `quick:open-session` IPC
 src/preload.ts    parses --cloudy-desktop=<json> + --cloudy-window=<kind> from argv → exposes
-                  window.__CLOUDY_DESKTOP__ (incl. windowKind and petBridge)
+                  window.__CLOUDY_DESKTOP__ (incl. windowKind, petBridge, and quickBridge)
 scripts/rebuild-native.ts   electron-ABI rebuild of THIS app's better-sqlite3 instance (see below)
 tsup.config.ts    bundles src/main.ts → dist/main.js (ESM) + copies drizzle migrations
 tsup.preload.config.ts      bundles src/preload.ts → dist/preload.cjs (sandboxed preload must be CJS)
@@ -74,6 +76,12 @@ lifecycle only.
   localStorage: the embedded server normally binds fixed port 4222, but the
   dynamic-port fallback can still change the origin (and thus localStorage)
   on some launches, so the file remains the source of truth.
+- **Quick Cloudy window** (`src/quick-window.ts`, created hidden at boot): a frameless,
+  always-on-top `/quick` surface toggled by `CommandOrControl+Shift+K`. Its preload
+  exposes only `hide` and validated `openSession`; both IPC handlers require the sender
+  to be the Quick window. Opening a session raises the main window and relays the regular
+  chat-tab payload over the existing `pet:open-session` receiver. The Quick window is
+  destroyed before the embedded server is stopped.
 
 ## The better-sqlite3 ABI trap (read before touching dependencies)
 
