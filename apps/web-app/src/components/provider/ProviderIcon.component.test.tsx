@@ -17,6 +17,18 @@ describe("ProviderIcon", () => {
     expect(screen.getByRole("img", { name: "OpenCode" })).toBeInTheDocument();
   });
 
+  it("renders the pixel cloud for Cloudy", () => {
+    vi.mocked(useModels).mockReturnValue({
+      data: [],
+    } as ReturnType<typeof useModels>);
+    render(<ProviderIcon providerId="cloudy" />);
+
+    expect(screen.getByRole("img", { name: "Cloudy" })).toHaveAttribute(
+      "shape-rendering",
+      "crispEdges",
+    );
+  });
+
   it("renders a fallback icon for an unsupported provider", () => {
     vi.mocked(useModels).mockReturnValue({
       data: [],
