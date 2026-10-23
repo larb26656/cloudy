@@ -84,7 +84,30 @@ vi.mock("@/components/chat/ChatProvider", () => ({
     effectiveModel: null,
     effectiveAgent: null,
     isSending: false,
+    capacity: {
+      approvals: false,
+      questions: false,
+      fileMentions: false,
+      commands: false,
+    },
   }),
+}));
+vi.mock("@/hooks/session/useSessionHumanApprove", () => ({
+  useSessionData: () => ({
+    sessionQuestions: [],
+    currentQuestion: null,
+    sessionPermissions: [],
+    currentPermission: null,
+  }),
+}));
+vi.mock("@/components/chat/SessionStatusBar", () => ({
+  SessionStatusBar: () => <div data-testid="session-status-bar" />,
+}));
+vi.mock("@/components/session/SessionPickerDialog", () => ({
+  SessionPickerDialog: () => null,
+}));
+vi.mock("@/components/chat/dialogs/SessionViewDialog", () => ({
+  SessionViewDialog: () => null,
 }));
 vi.mock("@/components/chat/chat-input", () => ({
   ChatInput: () => (

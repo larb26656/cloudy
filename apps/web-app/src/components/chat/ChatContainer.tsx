@@ -6,6 +6,8 @@ import { SessionStatusBar } from "./SessionStatusBar";
 import { PermissionBanner } from "@/components/permission/PermissionBanner";
 import { PermissionDialog } from "@/components/permission/PermissionDialog";
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import { cn } from "@repo/ui/lib/utils";
 import { generatePlaceholder } from "@/lib/greeting-generator";
 import { useSessionData } from "@/hooks/session/useSessionHumanApprove";
 import { SessionPickerDialog } from "@/components/session/SessionPickerDialog";
@@ -62,16 +64,24 @@ export function ChatContainer({
       model={model}
       onModelChange={onModelChange}
     >
-      <ChatContainerContent chatplaceholder={chatplaceholder} />
+      <ChatSurface placeholder={chatplaceholder} />
     </ChatProvider>
   );
 }
 
-type ChatContainerContentProps = {
-  chatplaceholder: string;
-};
+export interface ChatSurfaceProps {
+  topContent?: ReactNode;
+  placeholder?: string;
+  allowTypingWhileSending?: boolean;
+  className?: string;
+}
 
-function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
+export function ChatSurface({
+  topContent,
+  placeholder,
+  allowTypingWhileSending,
+  className,
+}: ChatSurfaceProps) {
   const [questionOpen, setQuestionOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [minimapOpen, setMinimapOpen] = useState(false);
@@ -120,10 +130,14 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
   return (
     <SessionViewDialogContext.Provider value={sessionViewSeam}>
       <div
-        className="relative flex-1 flex flex-col bg-background overflow-hidden h-full"
+        className={cn(
+          "relative flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-background",
+          className,
+        )}
         tabIndex={-1}
         onKeyDown={handleContainerKeyDown}
       >
+        {topContent}
         <div className="absolute z-50 top-0 left-0 right-0 flex justify-end gap-2 p-2">
           {!!sessionQuestions.length && !questionOpen && (
             <QuestionBanner
@@ -150,9 +164,9 @@ function ChatContainerContent({ chatplaceholder }: ChatContainerContentProps) {
             minimapOpen={minimapOpen}
             onCloseMinimap={() => setMinimapOpen(false)}
           />
-
           <ChatInput
-            placeholder={chatplaceholder}
+            placeholder={placeholder}
+            allowTypingWhileSending={allowTypingWhileSending}
             supportsFileMentions={capacity.fileMentions}
             supportsCommands={capacity.commands}
           />
