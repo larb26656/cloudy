@@ -1,8 +1,6 @@
 import type {
-  ChatEvent,
   ChatSession,
   AgentProviderAdapter,
-  ProviderEventsInput,
   AgentProviderInfo,
   ProviderMessageRequest,
   ProviderSessionInput,
@@ -22,7 +20,6 @@ export function createCloudyAdapter({
   sessionsRepository: SessionsRepository;
   messagesRepository: CloudyMessagesRepository;
 }): AgentProviderAdapter {
-  const subscribers = new Set<(event: ChatEvent) => void>();
   const capabilities = {
     streaming: true,
     requiresDirectory: false,
@@ -48,13 +45,9 @@ export function createCloudyAdapter({
     };
   };
 
-  const publish = (event: ChatEvent) => {
-    for (const subscriber of subscribers) subscriber(event);
-  };
   const agent = createCloudyAgent({
     apiProviderRegistry,
     messagesRepository,
-    publish,
   });
 
   const adapter = {
@@ -129,48 +122,8 @@ export function createCloudyAdapter({
     async abortSession(input: { sessionId: string }) {
       await agent.abortSession(input.sessionId);
     },
-    subscribeEvents(input: ProviderEventsInput = {}): AsyncIterable<ChatEvent> {
-      return {
-        [Symbol.asyncIterator]() {
-          const queue: ChatEvent[] = [];
-          let wake: (() => void) | undefined;
-          let done = false;
-          const onEvent = (event: ChatEvent) => {
-            if (
-              input.sessionId &&
-              (!("sessionId" in event) || event.sessionId !== input.sessionId)
-            )
-              return;
-            queue.push(event);
-            wake?.();
-          };
-          const onAbort = () => {
-            done = true;
-            wake?.();
-          };
-          subscribers.add(onEvent);
-          input.signal?.addEventListener("abort", onAbort, { once: true });
-          if (input.signal?.aborted) onAbort();
-          return {
-            async next(): Promise<IteratorResult<ChatEvent>> {
-              while (!queue.length && !done)
-                await new Promise<void>((resolve) => {
-                  wake = resolve;
-                });
-              const value = queue.shift();
-              return value
-                ? { done: false, value }
-                : { done: true, value: undefined };
-            },
-            async return(): Promise<IteratorResult<ChatEvent>> {
-              done = true;
-              subscribers.delete(onEvent);
-              input.signal?.removeEventListener("abort", onAbort);
-              return { done: true, value: undefined };
-            },
-          };
-        },
-      };
+    subscribeEvents(input) {
+      return agent.subscribeEvents(input);
     },
   } satisfies AgentProviderAdapter;
 

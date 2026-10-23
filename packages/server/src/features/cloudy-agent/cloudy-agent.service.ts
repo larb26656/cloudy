@@ -3,6 +3,7 @@ import type {
   ChatEvent,
   ChatMessage,
   ChatSession,
+  ProviderEventsInput,
   ProviderMessageRequest,
   ProviderSessionInput,
 } from "@repo/ai-core";
@@ -13,13 +14,60 @@ import { namingSession } from "./naming-session";
 export function createCloudyAgent({
   apiProviderRegistry,
   messagesRepository,
-  publish,
 }: {
   apiProviderRegistry: LLM;
   messagesRepository: CloudyMessagesRepository;
-  publish: (event: ChatEvent) => void;
 }) {
   const runs = new Map<string, AbortController>();
+  const subscribers = new Set<(event: ChatEvent) => void>();
+
+  const publish = (event: ChatEvent) => {
+    for (const subscriber of subscribers) subscriber(event);
+  };
+
+  const subscribeEvents = (
+    input: ProviderEventsInput = {},
+  ): AsyncIterable<ChatEvent> => ({
+    [Symbol.asyncIterator]() {
+      const queue: ChatEvent[] = [];
+      let wake: (() => void) | undefined;
+      let done = false;
+      const onEvent = (event: ChatEvent) => {
+        if (
+          input.sessionId &&
+          (!("sessionId" in event) || event.sessionId !== input.sessionId)
+        )
+          return;
+        queue.push(event);
+        wake?.();
+      };
+      const onAbort = () => {
+        done = true;
+        wake?.();
+      };
+      subscribers.add(onEvent);
+      input.signal?.addEventListener("abort", onAbort, { once: true });
+      if (input.signal?.aborted) onAbort();
+      return {
+        async next(): Promise<IteratorResult<ChatEvent>> {
+          while (!queue.length && !done)
+            await new Promise<void>((resolve) => {
+              wake = resolve;
+            });
+          const value = queue.shift();
+          return value
+            ? { done: false, value }
+            : { done: true, value: undefined };
+        },
+        async return(): Promise<IteratorResult<ChatEvent>> {
+          done = true;
+          subscribers.delete(onEvent);
+          input.signal?.removeEventListener("abort", onAbort);
+          return { done: true, value: undefined };
+        },
+      };
+    },
+  });
 
   const createSession = async (
     input: ProviderSessionInput,
@@ -235,5 +283,5 @@ export function createCloudyAgent({
     }
   }
 
-  return { createSession, sendMessage, abortSession };
+  return { createSession, sendMessage, abortSession, subscribeEvents };
 }

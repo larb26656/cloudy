@@ -128,6 +128,45 @@ describe("createCloudyAdapter", () => {
     expect(secondResponse.isFirstMessage).toBe(false);
   });
 
+  it("forwards agent events through the provider subscription", async () => {
+    const apiProviderRegistry = createTestLLM();
+    apiProviderRegistry.registerClient({
+      id: "test-connection",
+      type: "test",
+      config: {},
+      models: [{ modelId: "test-model", name: "Test model" }],
+    });
+    const { adapter, sessionsRepository } = createAdapter(apiProviderRegistry);
+    const session = await adapter.createSession!({});
+    sessionsRepository.create({
+      id: session.id,
+      providerId: "cloudy",
+      providerSessionId: session.id,
+    });
+    const iterator = adapter.subscribeEvents!({ sessionId: session.id })[
+      Symbol.asyncIterator
+    ]();
+
+    await adapter.sendMessage!({
+      sessionId: session.id,
+      content: "Hello",
+      model: { providerId: "test-connection", modelId: "test-model" },
+    });
+
+    const firstEvent = await iterator.next();
+    const secondEvent = await iterator.next();
+    await iterator.return?.();
+
+    expect(firstEvent.value).toMatchObject({
+      type: "message.updated",
+      sessionId: session.id,
+    });
+    expect(secondEvent.value).toMatchObject({
+      type: "message.updated",
+      sessionId: session.id,
+    });
+  });
+
   it("returns older message pages in insertion order when timestamps collide", async () => {
     const { adapter, sessionsRepository, messagesRepository } = createAdapter();
     const session = await adapter.createSession!({});
