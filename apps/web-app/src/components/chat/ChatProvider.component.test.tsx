@@ -417,7 +417,7 @@ describe("ChatProvider", () => {
     );
   });
 
-  test("sends slash-prefixed text as a message when commands are unsupported", async () => {
+  test("executes internal commands when remote commands are unsupported", async () => {
     renderChat(
       { sessionId: "ses_1", capacity: { ...capacity, commands: false } },
       <ChatActions />,
@@ -427,12 +427,13 @@ describe("ChatProvider", () => {
       screen.getByRole("button", { name: "Send slash command" }).click();
     });
 
-    expect(mocks.executeCommand).not.toHaveBeenCalled();
-    expect(mocks.sendMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        content: expect.objectContaining({ text: "/test-command" }),
-      }),
+    expect(mocks.systemCommand).toHaveBeenCalledWith(
+      "test-command",
+      "",
+      expect.objectContaining({ sessionId: "ses_1" }),
     );
+    expect(mocks.executeCommand).not.toHaveBeenCalled();
+    expect(mocks.sendMessage).not.toHaveBeenCalled();
   });
 
   test("drops file mentions when the provider does not support them", async () => {

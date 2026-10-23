@@ -189,13 +189,12 @@ export function ChatProvider({
       if (!text && !hasAttachments) return;
 
       try {
-        if (isCommand(text) && chatCapabilities.commands) {
+        if (isCommand(text)) {
           const parsed = parseCommand(text);
           if (!parsed) return;
 
-          const commandSessionId = await ensureSessionId(agent, model);
-
           if (findSystemCommand(parsed.command)) {
+            const commandSessionId = await ensureSessionId(agent, model);
             await systemCommands.execute(parsed.command, parsed.arguments, {
               directory,
               sessionId: commandSessionId,
@@ -207,6 +206,26 @@ export function ChatProvider({
             return;
           }
 
+          if (!chatCapabilities.commands) {
+            const messageSessionId = await ensureSessionId(agent, model);
+            useChatInputHistoryStore
+              .getState()
+              .addEntry(messageSessionId, text);
+            await sendMessageAsync({
+              sessionId: messageSessionId,
+              content: {
+                ...content,
+                mentions: chatCapabilities.fileMentions ? content.mentions : [],
+              },
+              directory,
+              providerId,
+              model,
+              agent,
+            });
+            return;
+          }
+
+          const commandSessionId = await ensureSessionId(agent, model);
           await executeCommandAsync({
             sessionId: commandSessionId,
             command: parsed.command,

@@ -296,11 +296,7 @@ export const ChatInput = memo(function ChatInput({
                   }
                 }}
                 onKeyDown={handleKeyDown}
-                onImmediateExecute={
-                  (supportsCommands ?? capabilities.commands)
-                    ? handleImmediateExecute
-                    : undefined
-                }
+                onImmediateExecute={handleImmediateExecute}
                 onAddFiles={addFiles}
                 placeholder={placeholder}
                 disabled={isSending && !allowTypingWhileSending}

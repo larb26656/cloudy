@@ -88,6 +88,7 @@ export function createMentionSuggestion(directory: string) {
 }
 
 type CommandSuggestionOptions = {
+  supportsRemoteCommands?: boolean;
   onImmediateExecute?: (item: CommandItem) => void;
 };
 
@@ -97,16 +98,20 @@ export function createCommandSuggestion(
 ) {
   return {
     items: async ({ query }: { query: string }): Promise<CommandItem[]> => {
-      const response = await providerApi.commands(directory);
-      if (!response.ok) throw new Error(await response.text());
-      const openCodeCommands = (await response.json()) as Array<{
-        name: string;
-        description?: string;
-        source?: string;
-        template?: string;
-        hints?: string[];
-        immediate?: boolean;
-      }>;
+      const response = options?.supportsRemoteCommands
+        ? await providerApi.commands(directory)
+        : null;
+      if (response && !response.ok) throw new Error(await response.text());
+      const openCodeCommands = response
+        ? ((await response.json()) as Array<{
+            name: string;
+            description?: string;
+            source?: string;
+            template?: string;
+            hints?: string[];
+            immediate?: boolean;
+          }>)
+        : [];
 
       const systemCommandItems: Command[] = systemCommands.map((cmd) => ({
         name: cmd.name,
@@ -117,16 +122,19 @@ export function createCommandSuggestion(
         immediate: cmd.immediate,
       }));
 
+      const internalNames = new Set(systemCommandItems.map((cmd) => cmd.name));
       const commands: Command[] = [
         ...systemCommandItems,
-        ...openCodeCommands.map((cmd) => ({
-          name: cmd.name,
-          description: cmd.description,
-          source: (cmd.source ?? "command") as CommandSource,
-          template: cmd.template ?? "",
-          hints: cmd.hints ?? [],
-          immediate: cmd.immediate,
-        })),
+        ...openCodeCommands
+          .filter((cmd) => !internalNames.has(cmd.name))
+          .map((cmd) => ({
+            name: cmd.name,
+            description: cmd.description,
+            source: (cmd.source ?? "command") as CommandSource,
+            template: cmd.template ?? "",
+            hints: cmd.hints ?? [],
+            immediate: cmd.immediate,
+          })),
       ];
 
       return commands

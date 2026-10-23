@@ -91,19 +91,16 @@ function ChatInputEditorInstance({
                 },
               ]
             : []),
-          ...(supportsCommands
-            ? [
-                {
-                  char: "/",
-                  allow: shouldShowSlashCommand,
-                  ...createCommandSuggestion(directory, {
-                    onImmediateExecute: (cmd) => {
-                      onImmediateExecuteRef.current?.(cmd.name);
-                    },
-                  }),
-                },
-              ]
-            : []),
+          {
+            char: "/",
+            allow: shouldShowSlashCommand,
+            ...createCommandSuggestion(directory, {
+              supportsRemoteCommands: supportsCommands,
+              onImmediateExecute: (cmd) => {
+                onImmediateExecuteRef.current?.(cmd.name);
+              },
+            }),
+          },
         ],
       }),
       Placeholder.configure({ placeholder: placeholder }),
