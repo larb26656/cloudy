@@ -188,13 +188,19 @@ export function ChatProvider({
       const hasAttachments = content.attachments.length > 0;
       if (!text && !hasAttachments) return;
 
+      let sessionIdPromise: Promise<string> | undefined;
+      const getSessionId = () => {
+        sessionIdPromise ??= ensureSessionId(agent, model);
+        return sessionIdPromise;
+      };
+
       try {
         if (isCommand(text)) {
           const parsed = parseCommand(text);
           if (!parsed) return;
 
           if (findSystemCommand(parsed.command)) {
-            const commandSessionId = await ensureSessionId(agent, model);
+            const commandSessionId = await getSessionId();
             await systemCommands.execute(parsed.command, parsed.arguments, {
               directory,
               sessionId: commandSessionId,
@@ -207,7 +213,7 @@ export function ChatProvider({
           }
 
           if (!chatCapabilities.commands) {
-            const messageSessionId = await ensureSessionId(agent, model);
+            const messageSessionId = await getSessionId();
             useChatInputHistoryStore
               .getState()
               .addEntry(messageSessionId, text);
@@ -225,7 +231,7 @@ export function ChatProvider({
             return;
           }
 
-          const commandSessionId = await ensureSessionId(agent, model);
+          const commandSessionId = await getSessionId();
           await executeCommandAsync({
             sessionId: commandSessionId,
             command: parsed.command,
@@ -234,7 +240,7 @@ export function ChatProvider({
           return;
         }
 
-        const messageSessionId = await ensureSessionId(agent, model);
+        const messageSessionId = await getSessionId();
         useChatInputHistoryStore.getState().addEntry(messageSessionId, text);
         await sendMessageAsync({
           sessionId: messageSessionId,
