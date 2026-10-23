@@ -16,15 +16,22 @@ server** by calling `createServer()` from `@repo/server` — exactly like `apps/
   built web-app same-origin from `dist/public` → zero CORS. See "Packaging" below.
 
 ```
-src/main.ts       main process: singleton lock → embedded server → main BrowserWindow + lifecycle
-src/pet-window.ts desktop pet overlay window: transparent/frameless/always-on-top factory,
+src/main/index.ts entry point: singleton lock + Electron lifecycle events
+src/main/app.ts    lifecycle orchestration for server, windows, shortcuts, and shutdown
+src/main/server.ts embedded server startup and port fallback
+src/main/config.ts paths, URLs, and desktop environment configuration
+src/main/windows/  main, quick, pet, and shared window-security modules
+src/main/shortcuts/index.ts global shortcut registration
+src/main/windows/pet-window.ts desktop pet overlay window: transparent/frameless/always-on-top factory,
                   pet:* IPC handlers (drag, set-size, focus-main, open-session relay,
                   context-menu hide / show / get-visibility),
                   position persistence in userData/pet-window.json
+src/main/windows/quick-window.ts Quick Cloudy floating window factory and sender-scoped
+                     `quick:hide` / validated `quick:open-session` IPC
 src/preload.ts    parses --cloudy-desktop=<json> + --cloudy-window=<kind> from argv → exposes
-                  window.__CLOUDY_DESKTOP__ (incl. windowKind and petBridge)
+                  window.__CLOUDY_DESKTOP__ (incl. windowKind, petBridge, and quickBridge)
 scripts/rebuild-native.ts   electron-ABI rebuild of THIS app's better-sqlite3 instance (see below)
-tsup.config.ts    bundles src/main.ts → dist/main.js (ESM) + copies drizzle migrations
+tsup.config.ts    bundles src/main/index.ts → dist/main.js (ESM) + copies drizzle migrations
 tsup.preload.config.ts      bundles src/preload.ts → dist/preload.cjs (sandboxed preload must be CJS)
 electron-builder.yml        release packaging config (asar, asarUnpack, mac dmg/dir targets)
 ../../scripts/copy-desktop-assets.ts   assembles dist/drizzle + dist/public after tsup
@@ -46,7 +53,11 @@ lifecycle only.
   `webPreferences.additionalArguments` → preload → `window.__CLOUDY_DESKTOP__.apiUrl`
   (`env.ts` in the web-app picks it up with highest precedence).
 - **Single instance**: `app.requestSingleInstanceLock()`; a second launch focuses the
-  existing window and exits.
+  existing window and exits. Dev sets Electron's `userData` path to a separate
+  `Cloudy Desktop Dev` directory before requesting the lock, so a packaged Cloudy.app
+  can run alongside the dev shell while duplicate dev launches still share one lock.
+- On macOS, explicitly show Electron's Dock icon after `app.whenReady()`; this keeps the
+  app discoverable when launched through the root Turbo dev command.
 - **Config dir**: dev uses the gitignored `apps/desktop/config`; production uses the
   default `~/.config/cloudy` — **deliberately shared with the CLI** (same DB, same
   workspaces).
@@ -74,6 +85,12 @@ lifecycle only.
   localStorage: the embedded server normally binds fixed port 4222, but the
   dynamic-port fallback can still change the origin (and thus localStorage)
   on some launches, so the file remains the source of truth.
+- **Quick Cloudy window** (`src/quick-window.ts`, created hidden at boot): a frameless,
+  always-on-top `/quick` surface toggled by `CommandOrControl+Shift+K`. Its preload
+  exposes only `hide` and validated `openSession`; both IPC handlers require the sender
+  to be the Quick window. Opening a session raises the main window and relays the regular
+  chat-tab payload over the existing `pet:open-session` receiver. The Quick window is
+  destroyed before the embedded server is stopped.
 
 ## The better-sqlite3 ABI trap (read before touching dependencies)
 
@@ -126,7 +143,9 @@ pnpm --filter desktop rebuild:native
 ```
 
 Main-process changes are picked up by `tsup --watch` but **Electron must be restarted
-manually** to reload `dist/main.js`; renderer iteration is unaffected (Vite HMR).
+manually** to reload `dist/main.js`; renderer iteration is unaffected (Vite HMR). The
+dev watcher uses `tsup.dev.config.ts` with `clean: false` so it does not remove the
+initial build output while Electron is starting.
 
 Note: turbo's `dev` task runs every package with a `dev` script, so the root
 `pnpm run dev` also opens the Electron window. Use

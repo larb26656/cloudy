@@ -1,9 +1,13 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, desc, eq, isNull, like, or, sql } from "drizzle-orm";
 import type { DbClient } from "../../db";
 import { sessions, type NewSession, type SessionRecord } from "../../db/schema";
 
 export interface SessionsRepository {
-  list(input: { directory?: string; limit?: number }): SessionRecord[];
+  list(input: {
+    directory?: string;
+    limit?: number;
+    search?: string;
+  }): SessionRecord[];
   findById(id: string): SessionRecord | null;
   findByProviderSessionId(
     providerId: string,
@@ -28,14 +32,22 @@ export function createSessionsRepository(db: DbClient): SessionsRepository {
   const list = (input: {
     directory?: string;
     limit?: number;
+    search?: string;
   }): SessionRecord[] => {
-    const where = input.directory
-      ? and(active, eq(sessions.directory, input.directory))
-      : active;
+    const conditions = [active];
+    if (input.directory)
+      conditions.push(eq(sessions.directory, input.directory));
+    const term = input.search?.trim();
+    if (term) {
+      const pattern = `%${term.toLocaleLowerCase()}%`;
+      const titleMatch = like(sql`lower(${sessions.title})`, pattern);
+      const directoryMatch = like(sql`lower(${sessions.directory})`, pattern);
+      conditions.push(or(titleMatch, directoryMatch)!);
+    }
     let query = db
       .select()
       .from(sessions)
-      .where(where)
+      .where(and(...conditions))
       .orderBy(desc(sessions.updatedAt));
     if (input.limit) query = query.limit(input.limit) as typeof query;
     return query.all();

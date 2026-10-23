@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as QuickRouteImport } from './routes/quick'
 import { Route as PetRouteImport } from './routes/pet'
 import { Route as DiffDebugRouteImport } from './routes/diff-debug'
 import { Route as IndexRouteImport } from './routes/index'
@@ -24,6 +25,11 @@ import { Route as SettingsAgentModelRouteImport } from './routes/settings/agent-
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const QuickRoute = QuickRouteImport.update({
+  id: '/quick',
+  path: '/quick',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PetRoute = PetRouteImport.update({
@@ -81,6 +87,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/diff-debug': typeof DiffDebugRoute
   '/pet': typeof PetRoute
+  '/quick': typeof QuickRoute
   '/settings': typeof SettingsRouteWithChildren
   '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/agent-providers': typeof SettingsAgentProvidersRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/diff-debug': typeof DiffDebugRoute
   '/pet': typeof PetRoute
+  '/quick': typeof QuickRoute
   '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/agent-providers': typeof SettingsAgentProvidersRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
@@ -107,6 +115,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/diff-debug': typeof DiffDebugRoute
   '/pet': typeof PetRoute
+  '/quick': typeof QuickRoute
   '/settings': typeof SettingsRouteWithChildren
   '/settings/agent-model': typeof SettingsAgentModelRoute
   '/settings/agent-providers': typeof SettingsAgentProvidersRoute
@@ -122,6 +131,7 @@ export interface FileRouteTypes {
     | '/'
     | '/diff-debug'
     | '/pet'
+    | '/quick'
     | '/settings'
     | '/settings/agent-model'
     | '/settings/agent-providers'
@@ -135,6 +145,7 @@ export interface FileRouteTypes {
     | '/'
     | '/diff-debug'
     | '/pet'
+    | '/quick'
     | '/settings/agent-model'
     | '/settings/agent-providers'
     | '/settings/appearance'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/'
     | '/diff-debug'
     | '/pet'
+    | '/quick'
     | '/settings'
     | '/settings/agent-model'
     | '/settings/agent-providers'
@@ -161,6 +173,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DiffDebugRoute: typeof DiffDebugRoute
   PetRoute: typeof PetRoute
+  QuickRoute: typeof QuickRoute
   SettingsRoute: typeof SettingsRouteWithChildren
   WorkspaceWorkspaceIdRoute: typeof WorkspaceWorkspaceIdRoute
 }
@@ -172,6 +185,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/quick': {
+      id: '/quick'
+      path: '/quick'
+      fullPath: '/quick'
+      preLoaderRoute: typeof QuickRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pet': {
@@ -273,6 +293,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DiffDebugRoute: DiffDebugRoute,
   PetRoute: PetRoute,
+  QuickRoute: QuickRoute,
   SettingsRoute: SettingsRouteWithChildren,
   WorkspaceWorkspaceIdRoute: WorkspaceWorkspaceIdRoute,
 }

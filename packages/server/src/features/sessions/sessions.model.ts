@@ -5,6 +5,7 @@ const metadataSchema = z.record(z.string(), z.unknown()).optional();
 export const sessionQuerySchema = z.object({
   directory: z.string().optional(),
   limit: z.coerce.number().int().positive().max(100).optional(),
+  search: z.string().optional(),
 });
 
 export const sessionParamSchema = z.object({ sessionId: z.string().uuid() });

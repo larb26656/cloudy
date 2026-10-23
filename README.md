@@ -187,7 +187,8 @@ This keeps the package lean (~3.4 MB tarball) while better-sqlite3 handles SQLit
 | ---------------------------- | ----------------------------------------------------------------- |
 | `pnpm run dev`               | Dev all apps concurrently                                         |
 | `pnpm --dir apps/server dev` | Dev server only                                                   |
-| `pnpm run dev:web-app`       | Dev web-app only                                                  |
+| `pnpm run dev:web-app`       | Dev server + web-app                                              |
+| `pnpm dev:desktop`           | Dev web-app + Electron desktop                                    |
 | `pnpm build:full`            | Build all + bundle CLI + copy assets                              |
 | `pnpm publish:local`         | Pack tarball + install `cloudy` globally (simulates real publish) |
 | `pnpm unpublish:local`       | Remove globally installed `cloudy`                                |

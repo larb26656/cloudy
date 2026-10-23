@@ -73,6 +73,7 @@ export const ProvidersModel = {
   sessionsQuerySchema: z.object({
     directory: z.string().optional(),
     limit: z.coerce.number().int().positive().max(100).optional(),
+    search: z.string().optional(),
   }),
   sessionParamSchema: z.object({ sessionId: z.string().min(1) }),
   messagesQuerySchema: z.object({

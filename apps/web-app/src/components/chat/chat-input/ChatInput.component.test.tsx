@@ -118,6 +118,7 @@ const SESSION_ID = "ses_test";
 
 type RenderInputOptions = {
   initialValue?: string;
+  allowTypingWhileSending?: boolean;
   initialAgent?: string | null;
   initialModel?: import("@repo/contracts").ModelInfo | null;
   onAgentChange?: (agent: string | null) => void;
@@ -153,7 +154,10 @@ function renderInput(options: RenderInputOptions = {}) {
         onModelChange={options.onModelChange}
       >
         <MessageScrollerProvider autoScroll>
-          <ChatInput initialValue={options.initialValue} />
+          <ChatInput
+            initialValue={options.initialValue}
+            allowTypingWhileSending={options.allowTypingWhileSending}
+          />
         </MessageScrollerProvider>
       </ChatProvider>
     </QueryClientProvider>,
@@ -299,6 +303,11 @@ describe("ChatInput — abort/send button behavior", () => {
     test("disables the editor while the mutation is pending", () => {
       renderInput();
       expect(screen.getByLabelText("chat-editor")).toBeDisabled();
+    });
+
+    test("allows typing while sending when opted in", () => {
+      renderInput({ allowTypingWhileSending: true });
+      expect(screen.getByLabelText("chat-editor")).toBeEnabled();
     });
 
     test("blocks Send click when text was pre-filled but a send is in-flight", async () => {

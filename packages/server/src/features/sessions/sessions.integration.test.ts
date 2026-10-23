@@ -93,6 +93,30 @@ describe("sessions integration", () => {
     ]);
   });
 
+  it("searches session titles and directories case-insensitively before limiting", async () => {
+    for (const session of [
+      { title: "Cloudy Quick Search", directory: "/tmp/alpha" },
+      { title: "Unrelated chat", directory: "/tmp/CLOUDY-project" },
+      { title: "Unrelated chat", directory: "/tmp/beta" },
+    ]) {
+      await app.request("/api/sessions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ providerId: "test", ...session }),
+      });
+    }
+
+    const response = await app.request("/api/sessions?search=cloudy&limit=2");
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: "Cloudy Quick Search" }),
+        expect.objectContaining({ directory: "/tmp/CLOUDY-project" }),
+      ]),
+    );
+  });
+
   it("resolves central messages and status through its provider binding", async () => {
     const created = await app.request("/api/sessions", {
       method: "POST",

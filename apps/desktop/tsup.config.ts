@@ -1,8 +1,8 @@
 import { defineConfig } from "tsup";
 import { cp, mkdir } from "node:fs/promises";
 
-export default defineConfig({
-  entry: ["src/main.ts"],
+export const desktopTsupConfig = {
+  entry: { main: "src/main/index.ts" },
   format: ["esm"],
   splitting: false,
   sourcemap: true,
@@ -22,4 +22,6 @@ const require = createRequire(import.meta.url);`,
       force: true,
     });
   },
-});
+};
+
+export default defineConfig(desktopTsupConfig);

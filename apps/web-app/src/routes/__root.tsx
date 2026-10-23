@@ -27,10 +27,16 @@ function openSessionTabInWindow(payload: SessionTabPayload) {
 function RootComponent() {
   const isPetRoute =
     useRouterState({ select: (state) => state.location.pathname }) === "/pet";
+  const isQuickRoute =
+    useRouterState({ select: (state) => state.location.pathname }) === "/quick";
 
   useEffect(() => {
     if (!isModeElectron) return undefined;
-    if (window.__CLOUDY_DESKTOP__?.windowKind === "pet") return undefined;
+    if (
+      window.__CLOUDY_DESKTOP__?.windowKind === "pet" ||
+      window.__CLOUDY_DESKTOP__?.windowKind === "quick"
+    )
+      return undefined;
     return petBridge.onOpenSession(openSessionTabInWindow);
   }, []);
 
@@ -38,11 +44,12 @@ function RootComponent() {
     <div
       className={cn(
         "flex h-dvh w-full flex-col overflow-hidden pt-safe pb-safe",
-        !isPetRoute && "bg-background",
+        !isPetRoute && !isQuickRoute && "bg-background",
       )}
     >
       <Outlet />
       {!isPetRoute &&
+        !isQuickRoute &&
         (isModeElectron ? <DesktopPetRestore /> : <FloatingPet />)}
     </div>
   );

@@ -20,6 +20,7 @@ interface ChatInputProps {
   initialAttachments?: ImageAttachment[];
   supportsFileMentions?: boolean;
   supportsCommands?: boolean;
+  allowTypingWhileSending?: boolean;
 }
 
 const NO_HISTORY: string[] = [];
@@ -36,6 +37,7 @@ export const ChatInput = memo(function ChatInput({
   initialAttachments,
   supportsFileMentions,
   supportsCommands,
+  allowTypingWhileSending = false,
 }: ChatInputProps) {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const [chatInputContent, setChatInputContent] =
@@ -301,7 +303,7 @@ export const ChatInput = memo(function ChatInput({
                 }
                 onAddFiles={addFiles}
                 placeholder={placeholder}
-                disabled={isSending}
+                disabled={isSending && !allowTypingWhileSending}
                 directory={directory}
                 supportsFileMentions={
                   supportsFileMentions ?? capabilities.fileMentions

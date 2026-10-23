@@ -79,8 +79,11 @@ export function createSessionsService(
     return toSession(record);
   };
 
-  const list = (input: { directory?: string; limit?: number }): ChatSession[] =>
-    repository.list(input).map(toSession);
+  const list = (input: {
+    directory?: string;
+    limit?: number;
+    search?: string;
+  }): ChatSession[] => repository.list(input).map(toSession);
 
   const get = async (id: string): Promise<ChatSession> => {
     const record = getRecord(id);
