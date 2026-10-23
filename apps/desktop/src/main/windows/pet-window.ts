@@ -1,6 +1,7 @@
-import { app, BrowserWindow, ipcMain, Menu, screen, shell } from "electron";
+import { app, BrowserWindow, ipcMain, Menu, screen } from "electron";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { applyWindowSecurity } from "./window-security";
 
 const COLLAPSED_WIDTH = 144;
 const COLLAPSED_HEIGHT = 160;
@@ -30,7 +31,6 @@ export type PetWindowOptions = {
   devServerUrl: string;
   preloadPath: string;
   desktopInfoArg: string;
-  isAppOrigin: (target: string) => boolean;
   /** Creates (or returns) the main window; used by pet → main focus/relay IPC. */
   ensureMainWindow: () => Promise<BrowserWindow | null>;
 };
@@ -314,14 +314,7 @@ export async function createPetWindow(
   win.setAlwaysOnTop(true, "screen-saver");
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
 
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (!options.isAppOrigin(url)) void shell.openExternal(url);
-    return { action: "deny" };
-  });
-
-  win.webContents.on("will-navigate", (event, url) => {
-    if (!options.isAppOrigin(url)) event.preventDefault();
-  });
+  applyWindowSecurity(win, options.serverUrl);
 
   win.once("ready-to-show", () => {
     if (!win.isDestroyed()) win.showInactive();

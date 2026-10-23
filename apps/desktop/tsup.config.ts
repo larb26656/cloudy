@@ -2,7 +2,7 @@ import { defineConfig } from "tsup";
 import { cp, mkdir } from "node:fs/promises";
 
 export default defineConfig({
-  entry: ["src/main.ts"],
+  entry: { main: "src/main/index.ts" },
   format: ["esm"],
   splitting: false,
   sourcemap: true,

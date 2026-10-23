@@ -16,17 +16,22 @@ server** by calling `createServer()` from `@repo/server` — exactly like `apps/
   built web-app same-origin from `dist/public` → zero CORS. See "Packaging" below.
 
 ```
-src/main.ts       main process: singleton lock → embedded server → main BrowserWindow + lifecycle
-src/pet-window.ts desktop pet overlay window: transparent/frameless/always-on-top factory,
+src/main/index.ts entry point: singleton lock + Electron lifecycle events
+src/main/app.ts    lifecycle orchestration for server, windows, shortcuts, and shutdown
+src/main/server.ts embedded server startup and port fallback
+src/main/config.ts paths, URLs, and desktop environment configuration
+src/main/windows/  main, quick, pet, and shared window-security modules
+src/main/shortcuts/index.ts global shortcut registration
+src/main/windows/pet-window.ts desktop pet overlay window: transparent/frameless/always-on-top factory,
                   pet:* IPC handlers (drag, set-size, focus-main, open-session relay,
                   context-menu hide / show / get-visibility),
                   position persistence in userData/pet-window.json
-src/quick-window.ts Quick Cloudy floating window factory and sender-scoped
+src/main/windows/quick-window.ts Quick Cloudy floating window factory and sender-scoped
                      `quick:hide` / validated `quick:open-session` IPC
 src/preload.ts    parses --cloudy-desktop=<json> + --cloudy-window=<kind> from argv → exposes
                   window.__CLOUDY_DESKTOP__ (incl. windowKind, petBridge, and quickBridge)
 scripts/rebuild-native.ts   electron-ABI rebuild of THIS app's better-sqlite3 instance (see below)
-tsup.config.ts    bundles src/main.ts → dist/main.js (ESM) + copies drizzle migrations
+tsup.config.ts    bundles src/main/index.ts → dist/main.js (ESM) + copies drizzle migrations
 tsup.preload.config.ts      bundles src/preload.ts → dist/preload.cjs (sandboxed preload must be CJS)
 electron-builder.yml        release packaging config (asar, asarUnpack, mac dmg/dir targets)
 ../../scripts/copy-desktop-assets.ts   assembles dist/drizzle + dist/public after tsup

@@ -1,4 +1,5 @@
-import { BrowserWindow, ipcMain, screen, shell } from "electron";
+import { BrowserWindow, ipcMain, screen } from "electron";
+import { applyWindowSecurity } from "./window-security";
 
 const CHANNELS = ["quick:hide", "quick:open-session"] as const;
 const SESSION_CHANNEL = "pet:open-session";
@@ -21,7 +22,6 @@ export type QuickWindowOptions = {
   devServerUrl: string;
   preloadPath: string;
   desktopInfoArg: string;
-  isAppOrigin: (target: string) => boolean;
   ensureMainWindow: () => Promise<BrowserWindow | null>;
 };
 
@@ -84,13 +84,7 @@ export async function createQuickWindow(options: QuickWindowOptions) {
   quickWindow = win;
   win.setAlwaysOnTop(true, "floating");
   win.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (!options.isAppOrigin(url)) void shell.openExternal(url);
-    return { action: "deny" };
-  });
-  win.webContents.on("will-navigate", (event, url) => {
-    if (!options.isAppOrigin(url)) event.preventDefault();
-  });
+  applyWindowSecurity(win, options.serverUrl);
   win.on("closed", () => {
     if (quickWindow === win) quickWindow = null;
     removeHandlers();
