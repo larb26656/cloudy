@@ -43,8 +43,8 @@ function jsonInit(body: unknown): RequestInit {
 export const providerApi = {
   getSession: (id: string, directory?: string) =>
     request(`/sessions/${encodeURIComponent(id)}${query({ directory })}`),
-  listSessions: (directory?: string, limit?: number) =>
-    request(`/sessions${query({ directory, limit })}`),
+  listSessions: (directory?: string, limit?: number, search?: string) =>
+    request(`/sessions${query({ directory, limit, search })}`),
   children: (id: string, directory?: string) =>
     request(
       `/sessions/${encodeURIComponent(id)}/children${query({ directory })}`,
@@ -96,8 +96,8 @@ export const providerApi = {
 
 export const sessionApi = {
   get: (id: string) => sessionRequest(`/${encodeURIComponent(id)}`),
-  list: (directory?: string, limit?: number) =>
-    sessionRequest(query({ directory, limit })),
+  list: (directory?: string, limit?: number, search?: string) =>
+    sessionRequest(query({ directory, limit, search })),
   children: (id: string) =>
     sessionRequest(`/${encodeURIComponent(id)}/children`),
   status: (id: string) => sessionRequest(`/${encodeURIComponent(id)}/status`),

@@ -26,6 +26,7 @@ type PetBridgeApi = {
 type QuickBridgeApi = {
   hide(): void;
   openSession(payload: SessionTabPayload): void;
+  setHeight(height: number): void;
   onFocusInput(callback: () => void): () => void;
 };
 
@@ -98,6 +99,7 @@ function createQuickBridge(): QuickBridgeApi {
   return {
     hide: () => ipcRenderer.send("quick:hide"),
     openSession: (payload) => ipcRenderer.send("quick:open-session", payload),
+    setHeight: (height) => ipcRenderer.send("quick:set-height", height),
     onFocusInput: (callback) => {
       const listener = () => callback();
       ipcRenderer.on("quick:focus-input", listener);

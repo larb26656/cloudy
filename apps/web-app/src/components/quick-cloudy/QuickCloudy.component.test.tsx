@@ -1,91 +1,210 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { ReactNode } from "react";
 import { QuickCloudy } from "./QuickCloudy";
 
-const { createSession, sendMessage, hide, openSession } = vi.hoisted(() => ({
-  createSession: vi.fn(),
-  sendMessage: vi.fn(),
+const mocks = vi.hoisted(() => ({
   hide: vi.fn(),
   openSession: vi.fn(),
+  sendMessage: vi.fn(),
+  setHeight: vi.fn(),
+  useRecentSessions: vi.fn(),
+  sessionId: null as string | null,
 }));
 
+vi.mock("@/hooks/queries/useModels", () => ({
+  useCapacity: () => ({
+    data: {
+      approvals: false,
+      questions: false,
+      fileMentions: false,
+      commands: false,
+    },
+    isLoading: false,
+    error: null,
+  }),
+}));
 vi.mock("@/hooks/queries/useSessions", () => ({
-  useCreateSession: () => ({ mutateAsync: createSession, isPending: false }),
+  useRecentSessions: mocks.useRecentSessions.mockImplementation(
+    ({ search }: { search?: string } = {}) => ({
+      data: [
+        {
+          id: "recent-session",
+          providerId: "cloudy",
+          title: "Previous question",
+          directory: "/project",
+        },
+        {
+          id: "other-provider-session",
+          providerId: "other",
+          title: "Other provider chat",
+          directory: "/project",
+        },
+      ].filter(
+        (session) =>
+          !search || session.title.toLowerCase().includes(search.toLowerCase()),
+      ),
+    }),
+  ),
 }));
-vi.mock("@/hooks/queries/useMessages", () => ({
-  useSendMessage: () => ({ mutateAsync: sendMessage, isPending: false }),
+vi.mock("@/components/chat/ChatProvider", () => ({
+  ChatProvider: ({ children }: { children: ReactNode }) => children,
+  useChat: () => ({
+    sessionId: mocks.sessionId,
+    directory: "",
+    sendMessage: mocks.sendMessage,
+    effectiveModel: null,
+    effectiveAgent: null,
+    isSending: false,
+  }),
 }));
-vi.mock("@/stores/defaultProviderStore", () => ({
-  useDefaultProviderStore: (
-    selector: (state: { defaultProviderId: string }) => unknown,
-  ) => selector({ defaultProviderId: "cloudy" }),
+vi.mock("@/components/chat/chat-input", () => ({
+  ChatInput: () => <div data-testid="shared-chat-input" />,
 }));
-vi.mock("@/stores/defaultModelStore", () => ({
-  useDefaultModelStore: (
-    selector: (state: { defaultModels: Record<string, null> }) => unknown,
-  ) => selector({ defaultModels: {} }),
+vi.mock("@/components/chat/message/MessageList", () => ({
+  MessageList: () => <div data-testid="message-list" />,
 }));
-vi.mock("@/stores/streamingMessagesStore", () => ({
-  useStreamingMessagesStore: (
-    selector: (state: {
-      streamingMessages: Map<string, Map<string, never>>;
-    }) => unknown,
-  ) => selector({ streamingMessages: new Map() }),
+vi.mock("@repo/ui/components/command", () => ({
+  Command: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CommandGroup: ({
+    children,
+    heading,
+  }: {
+    children: ReactNode;
+    heading?: string;
+  }) => (
+    <div>
+      {heading && <div>{heading}</div>}
+      {children}
+    </div>
+  ),
+  CommandList: ({ children }: { children: ReactNode }) => <div>{children}</div>,
+  CommandShortcut: ({ children }: { children: ReactNode }) => (
+    <span>{children}</span>
+  ),
+  CommandInput: ({
+    value,
+    onValueChange,
+    ...props
+  }: {
+    value: string;
+    onValueChange: (value: string) => void;
+    placeholder: string;
+    "aria-label": string;
+  }) => (
+    <input
+      {...props}
+      role="combobox"
+      value={value}
+      onChange={(event) => onValueChange(event.target.value)}
+    />
+  ),
+  CommandItem: ({
+    children,
+    onSelect,
+  }: {
+    children: ReactNode;
+    onSelect: () => void;
+  }) => (
+    <button role="option" onClick={onSelect}>
+      {children}
+    </button>
+  ),
+}));
+vi.mock("@repo/ui/components/message-scroller", () => ({
+  MessageScrollerProvider: ({ children }: { children: ReactNode }) => children,
 }));
 vi.mock("@/lib/desktop/quickBridge", () => ({
-  quickBridge: { hide, openSession, onFocusInput: () => () => {} },
+  quickBridge: {
+    hide: mocks.hide,
+    openSession: mocks.openSession,
+    setHeight: mocks.setHeight,
+    onFocusInput: () => () => {},
+  },
 }));
 
 describe("QuickCloudy", () => {
-  afterEach(() => vi.clearAllMocks());
-
-  it("opens a chat tab, sends the first prompt and hides Quick Cloudy", async () => {
-    createSession.mockResolvedValue({
-      id: "session-1",
-      providerId: "cloudy",
-      directory: "",
-      title: "Hello",
-    });
-    sendMessage.mockResolvedValue({});
-    render(<QuickCloudy />);
-    const input = screen.getByRole("textbox", { name: "Ask Cloudy" });
-    expect(input).toHaveFocus();
-    fireEvent.change(input, { target: { value: "Hello" } });
-    fireEvent.keyDown(input, { key: "Enter" });
-    await waitFor(() => expect(sendMessage).toHaveBeenCalledTimes(1));
-    expect(createSession).toHaveBeenCalledTimes(1);
-    expect(sendMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        sessionId: "session-1",
-        content: expect.objectContaining({ text: "Hello" }),
+  afterEach(() => {
+    vi.clearAllMocks();
+    mocks.sessionId = null;
+    mocks.useRecentSessions.mockImplementation(
+      ({ search }: { search?: string } = {}) => ({
+        data: [
+          {
+            id: "recent-session",
+            providerId: "cloudy",
+            title: "Previous question",
+            directory: "/project",
+          },
+          {
+            id: "other-provider-session",
+            providerId: "other",
+            title: "Other provider chat",
+            directory: "/project",
+          },
+        ].filter(
+          (session) =>
+            !search ||
+            session.title.toLowerCase().includes(search.toLowerCase()),
+        ),
       }),
     );
-    expect(openSession).toHaveBeenCalledWith({
+  });
+
+  it("offers Ask Cloudy for typed text and starts that prompt", () => {
+    render(<QuickCloudy />);
+    expect(screen.queryByText("Quick Cloudy")).not.toBeInTheDocument();
+    expect(mocks.setHeight).toHaveBeenCalledWith(360);
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Ask Cloudy" }), {
+      target: { value: "Explain this code" },
+    });
+    expect(screen.getByText("Quick Cloudy")).toBeInTheDocument();
+    expect(mocks.setHeight).toHaveBeenCalledWith(360);
+    const askCloudyItem = screen.getByRole("option", {
+      name: /Ask Cloudy “Explain this code”/,
+    });
+    expect(askCloudyItem).toBeInTheDocument();
+    fireEvent.click(askCloudyItem);
+    expect(mocks.sendMessage).toHaveBeenCalledWith(
+      { text: "Explain this code", mentions: [], attachments: [] },
+      null,
+      null,
+    );
+  });
+
+  it("shows recent Cloudy chats and resumes the selected session", () => {
+    render(<QuickCloudy />);
+
+    expect(screen.getByText("Recent chats")).toBeInTheDocument();
+    expect(screen.getByText("Previous question")).toBeInTheDocument();
+    expect(screen.queryByText("Other provider chat")).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("option", { name: "Previous question" }));
+    expect(mocks.setHeight).toHaveBeenCalledWith(640);
+  });
+
+  it("reuses the shared chat input and opens the current session on demand", () => {
+    mocks.sessionId = "session-1";
+    render(<QuickCloudy />);
+
+    expect(screen.getByTestId("shared-chat-input")).toBeInTheDocument();
+    expect(screen.getByTestId("message-list")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open" }));
+    expect(mocks.openSession).toHaveBeenCalledWith({
       type: "chat",
       data: {
         providerId: "cloudy",
         sessionId: "session-1",
         workspaceId: null,
         directory: "",
-        sessionName: "Hello",
+        sessionName: "Quick Chat",
       },
     });
-    expect(hide).toHaveBeenCalledOnce();
   });
 
-  it("hides on Escape and displays submission errors", async () => {
-    createSession.mockRejectedValue(new Error("Provider unavailable"));
+  it("hides on Escape", () => {
     render(<QuickCloudy />);
     fireEvent.keyDown(window, { key: "Escape" });
-    expect(hide).toHaveBeenCalledOnce();
-    fireEvent.change(screen.getByRole("textbox", { name: "Ask Cloudy" }), {
-      target: { value: "Hello" },
-    });
-    fireEvent.keyDown(screen.getByRole("textbox", { name: "Ask Cloudy" }), {
-      key: "Enter",
-    });
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Provider unavailable",
-    );
+    expect(mocks.hide).toHaveBeenCalledOnce();
   });
 });

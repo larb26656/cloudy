@@ -62,9 +62,11 @@ function ChatInputEditorInstance({
   const [isEditorFocused, setIsEditorFocused] = useState(false);
 
   const onAddFilesRef = useRef(onAddFiles);
+  const onImmediateExecuteRef = useRef(onImmediateExecute);
   useEffect(() => {
     onAddFilesRef.current = onAddFiles;
-  }, [onAddFiles]);
+    onImmediateExecuteRef.current = onImmediateExecute;
+  }, [onAddFiles, onImmediateExecute]);
 
   const extensions = useMemo(() => {
     return [
@@ -96,7 +98,7 @@ function ChatInputEditorInstance({
                   allow: shouldShowSlashCommand,
                   ...createCommandSuggestion(directory, {
                     onImmediateExecute: (cmd) => {
-                      onImmediateExecute?.(cmd.name);
+                      onImmediateExecuteRef.current?.(cmd.name);
                     },
                   }),
                 },
@@ -106,13 +108,7 @@ function ChatInputEditorInstance({
       }),
       Placeholder.configure({ placeholder: placeholder }),
     ];
-  }, [
-    directory,
-    placeholder,
-    onImmediateExecute,
-    supportsCommands,
-    supportsFileMentions,
-  ]);
+  }, [directory, placeholder, supportsCommands, supportsFileMentions]);
 
   const editor = useEditor({
     extensions,

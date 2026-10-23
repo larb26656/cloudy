@@ -72,8 +72,17 @@ export function createAgentProvidersController(
       zValidator("query", ProvidersModel.sessionsQuerySchema),
       async (c) => {
         const { providerId } = c.req.valid("param");
+        const { search, ...input } = c.req.valid("query");
+        const sessions = await registry.listSessions(providerId, input);
+        const term = search?.trim().toLocaleLowerCase();
         return c.json(
-          await registry.listSessions(providerId, c.req.valid("query")),
+          term
+            ? sessions.filter((session) =>
+                `${session.title} ${session.directory ?? ""}`
+                  .toLocaleLowerCase()
+                  .includes(term),
+              )
+            : sessions,
         );
       },
     )

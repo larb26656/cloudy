@@ -1,7 +1,11 @@
 import { BrowserWindow, ipcMain, screen } from "electron";
 import { applyWindowSecurity } from "./window-security";
 
-const CHANNELS = ["quick:hide", "quick:open-session"] as const;
+const CHANNELS = [
+  "quick:hide",
+  "quick:open-session",
+  "quick:set-height",
+] as const;
 const SESSION_CHANNEL = "pet:open-session";
 const FOCUS_INPUT_CHANNEL = "quick:focus-input";
 
@@ -26,6 +30,15 @@ export type QuickWindowOptions = {
 };
 
 let quickWindow: BrowserWindow | null = null;
+
+function positionQuickWindow(win: BrowserWindow, workArea: Electron.Rectangle) {
+  const [windowWidth, windowHeight] = win.getSize();
+  const width = windowWidth ?? 680;
+  const height = windowHeight ?? 88;
+  const x = workArea.x + Math.round((workArea.width - width) / 2);
+  const y = workArea.y + Math.round((workArea.height - height) / 2);
+  win.setPosition(x, y);
+}
 
 function quickWindowFor(event: Electron.IpcMainEvent): BrowserWindow | null {
   return quickWindow &&
@@ -60,12 +73,12 @@ export async function createQuickWindow(options: QuickWindowOptions) {
   const point = screen.getCursorScreenPoint();
   const { workArea } = screen.getDisplayNearestPoint(point);
   const width = Math.min(680, workArea.width - 32);
-  const height = Math.min(150, workArea.height - 32);
+  const height = Math.min(88, workArea.height - 32);
   const win = new BrowserWindow({
     width,
     height,
     x: Math.round(workArea.x + (workArea.width - width) / 2),
-    y: Math.round(workArea.y + workArea.height * 0.22),
+    y: Math.round(workArea.y + (workArea.height - height) / 2),
     show: false,
     frame: false,
     resizable: false,
@@ -93,6 +106,14 @@ export async function createQuickWindow(options: QuickWindowOptions) {
   ipcMain.on("quick:hide", (event) => {
     if (quickWindowFor(event)) win.hide();
   });
+  ipcMain.on("quick:set-height", (event, height: unknown) => {
+    if (!quickWindowFor(event) || typeof height !== "number") return;
+    const { workArea } = screen.getDisplayMatching(win.getBounds());
+    const maxHeight = Math.max(88, workArea.height - 32);
+    const nextHeight = Math.min(Math.max(height, 88), maxHeight);
+    win.setSize(win.getSize()[0] ?? 680, nextHeight);
+    positionQuickWindow(win, workArea);
+  });
   ipcMain.on("quick:open-session", (event, payload: unknown) => {
     if (!quickWindowFor(event) || !validPayload(payload)) return;
     void (async () => {
@@ -119,11 +140,7 @@ export function toggleQuickWindow() {
   }
   const point = screen.getCursorScreenPoint();
   const { workArea } = screen.getDisplayNearestPoint(point);
-  const [width] = win.getSize();
-  win.setPosition(
-    Math.round(workArea.x + (workArea.width - (width ?? 680)) / 2),
-    Math.round(workArea.y + workArea.height * 0.22),
-  );
+  positionQuickWindow(win, workArea);
   win.show();
   win.focus();
   win.webContents.send(FOCUS_INPUT_CHANNEL);

@@ -63,12 +63,17 @@ export function useSessions({ directory }: { directory: string }) {
   });
 }
 
-export function useRecentSessions({ limit = 8 }: { limit?: number } = {}) {
+export function useRecentSessions({
+  limit = 8,
+  search,
+}: { limit?: number; search?: string } = {}) {
   return useQuery({
-    queryKey: sessionKeys.recent(limit),
+    queryKey: [...sessionKeys.recent(limit), search],
     queryFn: async (): Promise<RecentChatSession[]> =>
       (
-        await json<CoreChatSession[]>(await sessionApi.list(undefined, limit))
+        await json<CoreChatSession[]>(
+          await sessionApi.list(undefined, limit, search),
+        )
       ).map((session) => ({
         ...toChatSession(session),
         updatedAt: Date.parse(session.updatedAt),
