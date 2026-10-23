@@ -23,7 +23,7 @@ import { ErrorState } from "@repo/ui/components/error-state";
 interface ChatContainerProps {
   workspace?: Workspace | null;
   directory: string;
-  providerId?: string;
+  providerId: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
   agent?: string | null;
@@ -43,9 +43,8 @@ export function ChatContainer({
   model,
   onModelChange,
 }: ChatContainerProps) {
-  const effectiveProviderId = providerId ?? "opencode";
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
-  const { data: capacity, isLoading, error } = useCapacity(effectiveProviderId);
+  const { data: capacity, isLoading, error } = useCapacity(providerId);
   if (isLoading) return <LoadingState />;
   if (error || !capacity)
     return <ErrorState message={error?.message ?? "Provider not found"} />;
@@ -54,7 +53,7 @@ export function ChatContainer({
     <ChatProvider
       workspace={workspace}
       directory={directory}
-      providerId={effectiveProviderId}
+      providerId={providerId}
       capacity={capacity}
       sessionId={sessionId}
       onSessionChange={onSessionChange}

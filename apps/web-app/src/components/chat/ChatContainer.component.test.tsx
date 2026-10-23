@@ -239,6 +239,7 @@ function renderChat(
     <QueryClientProvider client={queryClient}>
       <ChatContainer
         directory={DIRECTORY}
+        providerId="opencode"
         sessionId={sessionId}
         onSessionChange={vi.fn()}
       />
