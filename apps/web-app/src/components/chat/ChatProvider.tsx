@@ -40,6 +40,7 @@ type ChatContextValue = {
     content: ChatInputContent,
     model?: ModelInfo | null,
     agent?: string | null,
+    options?: { newSession?: boolean; providerId?: string },
   ) => Promise<void>;
   abortGeneration: () => void;
   executeImmediateCommand: (commandName: string) => Promise<void>;
@@ -64,6 +65,7 @@ type ChatProviderProps = PropsWithChildren<{
   providerId: string;
   sessionId: string | null;
   onSessionChange?: (sessionId: string | null) => void;
+  onNewSessionCreated?: (sessionId: string, providerId: string) => void;
   /**
    * Agent chosen in this chat context. When `onAgentChange` is provided, the
    * provider runs in controlled mode and `agent` is the source of truth.
@@ -88,6 +90,7 @@ export function ChatProvider({
   providerId = "opencode",
   sessionId,
   onSessionChange,
+  onNewSessionCreated,
   agent: agentProp,
   onAgentChange,
   model: modelProp,
@@ -139,23 +142,33 @@ export function ChatProvider({
     async (
       agent?: string | null,
       model?: ModelInfo | null,
+      options?: { newSession?: boolean; providerId?: string },
     ): Promise<string> => {
-      if (sessionId) {
+      if (sessionId && !options?.newSession) {
         return sessionId;
       }
 
+      const sessionProviderId = options?.providerId ?? providerId;
       const newSession = await createSessionAsync({
         directory: directory || undefined,
-        providerId,
+        providerId: sessionProviderId,
         agent: agent ?? undefined,
         model: model ?? undefined,
       });
 
       changeSession(newSession.id);
+      onNewSessionCreated?.(newSession.id, sessionProviderId);
 
       return newSession.id;
     },
-    [changeSession, createSessionAsync, directory, providerId, sessionId],
+    [
+      changeSession,
+      createSessionAsync,
+      directory,
+      onNewSessionCreated,
+      providerId,
+      sessionId,
+    ],
   );
 
   const setAgent = useCallback(
@@ -183,6 +196,7 @@ export function ChatProvider({
       content: ChatInputContent,
       model?: ModelInfo | null,
       agent?: string | null,
+      options?: { newSession?: boolean; providerId?: string },
     ) => {
       const text = content.text.trim();
       const hasAttachments = content.attachments.length > 0;
@@ -190,9 +204,10 @@ export function ChatProvider({
 
       let sessionIdPromise: Promise<string> | undefined;
       const getSessionId = () => {
-        sessionIdPromise ??= ensureSessionId(agent, model);
+        sessionIdPromise ??= ensureSessionId(agent, model, options);
         return sessionIdPromise;
       };
+      const messageProviderId = options?.providerId ?? providerId;
 
       try {
         if (isCommand(text)) {
@@ -224,7 +239,7 @@ export function ChatProvider({
                 mentions: chatCapabilities.fileMentions ? content.mentions : [],
               },
               directory,
-              providerId,
+              providerId: messageProviderId,
               model,
               agent,
             });
@@ -249,7 +264,7 @@ export function ChatProvider({
             mentions: chatCapabilities.fileMentions ? content.mentions : [],
           },
           directory,
-          providerId,
+          providerId: messageProviderId,
           model,
           agent,
         });

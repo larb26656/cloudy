@@ -12,23 +12,23 @@ import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { ProviderIcon } from "@/components/provider/ProviderIcon";
 import type { RecentChatSession } from "@/types";
 
-type QuickCloudySessionPickerProps = {
+type QuickCloudySearchResultsProps = {
   initialPrompt: string;
   onPromptChange: (prompt: string) => void;
   recentSessions: RecentChatSession[];
   onSelectSession: (session: RecentChatSession) => void;
-  onSubmitPrompt: () => void;
+  onSubmitPrompt: (providerId: string) => void;
   disabled: boolean;
 };
 
-export function QuickCloudySessionPicker({
+export function QuickCloudySearchResults({
   initialPrompt,
   onPromptChange,
   recentSessions,
   onSelectSession,
   onSubmitPrompt,
   disabled,
-}: QuickCloudySessionPickerProps) {
+}: QuickCloudySearchResultsProps) {
   const trimmedPrompt = initialPrompt.trim();
   const searchPrompt = useDebouncedValue(trimmedPrompt);
 
@@ -55,7 +55,7 @@ export function QuickCloudySessionPicker({
           <CommandGroup>
             <CommandItem
               value={trimmedPrompt}
-              onSelect={onSubmitPrompt}
+              onSelect={() => onSubmitPrompt("cloudy")}
               className="quick-cloudy-item-enter min-w-0"
             >
               <MessageCircle />

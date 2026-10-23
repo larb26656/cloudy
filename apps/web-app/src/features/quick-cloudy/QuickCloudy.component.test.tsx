@@ -10,8 +10,10 @@ const mocks = vi.hoisted(() => ({
   setHeight: vi.fn(),
   useRecentSessions: vi.fn(),
   sessionId: null as string | null,
+  providerSessionId: null as string | null,
   chatProviderId: "",
   chatDirectory: "",
+  onSessionChange: null as ((sessionId: string | null) => void) | null,
 }));
 
 vi.mock("@/hooks/queries/useModels", () => ({
@@ -60,17 +62,23 @@ vi.mock("@/components/chat/ChatProvider", () => ({
     children,
     providerId,
     directory,
+    sessionId,
+    onSessionChange,
   }: {
     children: ReactNode;
     providerId: string;
     directory: string;
+    sessionId: string | null;
+    onSessionChange: (sessionId: string | null) => void;
   }) => {
     mocks.chatProviderId = providerId;
     mocks.chatDirectory = directory;
+    mocks.providerSessionId = sessionId;
+    mocks.onSessionChange = onSessionChange;
     return children;
   },
   useChat: () => ({
-    sessionId: mocks.sessionId,
+    sessionId: mocks.sessionId ?? mocks.providerSessionId,
     directory: mocks.chatDirectory,
     sendMessage: mocks.sendMessage,
     effectiveModel: null,
@@ -79,7 +87,11 @@ vi.mock("@/components/chat/ChatProvider", () => ({
   }),
 }));
 vi.mock("@/components/chat/chat-input", () => ({
-  ChatInput: () => <div data-testid="shared-chat-input" />,
+  ChatInput: () => (
+    <div data-testid="shared-chat-input">
+      <button onClick={() => mocks.onSessionChange?.(null)}>/new</button>
+    </div>
+  ),
 }));
 vi.mock("@/components/chat/message/MessageList", () => ({
   MessageList: () => <div data-testid="message-list" />,
@@ -147,6 +159,8 @@ describe("QuickCloudy", () => {
   afterEach(() => {
     vi.clearAllMocks();
     mocks.sessionId = null;
+    mocks.providerSessionId = null;
+    mocks.onSessionChange = null;
     mocks.chatProviderId = "";
     mocks.chatDirectory = "";
     mocks.useRecentSessions.mockImplementation(
@@ -192,6 +206,7 @@ describe("QuickCloudy", () => {
       { text: "Explain this code", mentions: [], attachments: [] },
       null,
       null,
+      { newSession: true, providerId: "cloudy" },
     );
   });
 
@@ -206,6 +221,7 @@ describe("QuickCloudy", () => {
     fireEvent.click(screen.getByRole("option", { name: "Previous question" }));
     expect(mocks.setHeight).toHaveBeenCalledWith(640);
     expect(mocks.chatDirectory).toBe("/project");
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
     fireEvent.click(
       screen.getByRole("option", { name: "Other provider chat" }),
     );
@@ -214,9 +230,9 @@ describe("QuickCloudy", () => {
   });
 
   it("reuses the shared chat input and opens the current session on demand", () => {
-    mocks.sessionId = "session-1";
     render(<QuickCloudy />);
 
+    fireEvent.click(screen.getByRole("option", { name: "Previous question" }));
     expect(screen.getByTestId("shared-chat-input")).toBeInTheDocument();
     expect(screen.getByTestId("message-list")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Open" }));
@@ -224,12 +240,25 @@ describe("QuickCloudy", () => {
       type: "chat",
       data: {
         providerId: "cloudy",
-        sessionId: "session-1",
+        sessionId: "recent-session",
         workspaceId: null,
-        directory: "",
+        directory: "/project",
         sessionName: "Quick Chat",
       },
     });
+  });
+
+  it("keeps the chat view open after /new clears the current session", () => {
+    render(<QuickCloudy />);
+    fireEvent.click(screen.getByRole("option", { name: "Previous question" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "/new" }));
+
+    expect(screen.getByTestId("shared-chat-input")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Back" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Open" }),
+    ).not.toBeInTheDocument();
   });
 
   it("hides on Escape", () => {
