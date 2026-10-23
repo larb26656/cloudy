@@ -53,7 +53,11 @@ lifecycle only.
   `webPreferences.additionalArguments` → preload → `window.__CLOUDY_DESKTOP__.apiUrl`
   (`env.ts` in the web-app picks it up with highest precedence).
 - **Single instance**: `app.requestSingleInstanceLock()`; a second launch focuses the
-  existing window and exits.
+  existing window and exits. Dev sets Electron's `userData` path to a separate
+  `Cloudy Desktop Dev` directory before requesting the lock, so a packaged Cloudy.app
+  can run alongside the dev shell while duplicate dev launches still share one lock.
+- On macOS, explicitly show Electron's Dock icon after `app.whenReady()`; this keeps the
+  app discoverable when launched through the root Turbo dev command.
 - **Config dir**: dev uses the gitignored `apps/desktop/config`; production uses the
   default `~/.config/cloudy` — **deliberately shared with the CLI** (same DB, same
   workspaces).
@@ -139,7 +143,9 @@ pnpm --filter desktop rebuild:native
 ```
 
 Main-process changes are picked up by `tsup --watch` but **Electron must be restarted
-manually** to reload `dist/main.js`; renderer iteration is unaffected (Vite HMR).
+manually** to reload `dist/main.js`; renderer iteration is unaffected (Vite HMR). The
+dev watcher uses `tsup.dev.config.ts` with `clean: false` so it does not remove the
+initial build output while Electron is starting.
 
 Note: turbo's `dev` task runs every package with a `dev` script, so the root
 `pnpm run dev` also opens the Electron window. Use
