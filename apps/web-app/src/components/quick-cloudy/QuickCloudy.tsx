@@ -1,14 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Clock3, MessageCircle } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
-import {
-  Command,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-  CommandShortcut,
-} from "@repo/ui/components/command";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
@@ -18,16 +9,19 @@ import type { RecentChatSession } from "@/types";
 import { ChatProvider, useChat } from "@/components/chat/ChatProvider";
 import { ChatInput } from "@/components/chat/chat-input";
 import { MessageList } from "@/components/chat/message/MessageList";
+import "./QuickCloudy.css";
 import { createSessionTabPayload } from "@/components/pet/openSessionTab";
 import { quickBridge } from "@/lib/desktop/quickBridge";
 import type { ChatInputContent } from "@/lib/opencode";
+import { QuickCloudySessionPicker } from "./QuickCloudySessionPicker";
 
 const PROVIDER_ID = "cloudy";
 
 export function QuickCloudy() {
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [providerId, setProviderId] = useState(PROVIDER_ID);
   const { data: recentSessions = [] } = useRecentSessions({ limit: 100 });
-  const { data: capacity, isLoading, error } = useCapacity(PROVIDER_ID);
+  const { data: capacity, isLoading, error } = useCapacity(providerId);
   const handleSessionChange = (nextSessionId: string | null) => {
     setSessionId(nextSessionId);
   };
@@ -61,22 +55,23 @@ export function QuickCloudy() {
     <ChatProvider
       workspace={null}
       directory=""
-      providerId={PROVIDER_ID}
+      providerId={providerId}
       sessionId={sessionId}
       onSessionChange={handleSessionChange}
       capacity={capacity}
     >
       <QuickCloudyContent
         sessionName="Quick Chat"
-        recentSessions={recentSessions
-          .filter((session) => session.providerId === PROVIDER_ID)
-          .slice(0, 5)}
-        onSelectSession={(id) => {
-          setSessionId(id);
+        providerId={providerId}
+        recentSessions={recentSessions.slice(0, 5)}
+        onSelectSession={(session) => {
+          setSessionId(session.id);
+          setProviderId(session.providerId);
           quickBridge.setHeight(640);
         }}
         onNewSession={() => {
           setSessionId(null);
+          setProviderId(PROVIDER_ID);
           quickBridge.setHeight(360);
         }}
       />
@@ -86,13 +81,15 @@ export function QuickCloudy() {
 
 function QuickCloudyContent({
   sessionName,
+  providerId,
   recentSessions,
   onSelectSession,
   onNewSession,
 }: {
   sessionName: string;
+  providerId: string;
   recentSessions: RecentChatSession[];
-  onSelectSession: (id: string) => void;
+  onSelectSession: (session: RecentChatSession) => void;
   onNewSession: () => void;
 }) {
   const {
@@ -105,10 +102,6 @@ function QuickCloudyContent({
   } = useChat();
   const [initialPrompt, setInitialPrompt] = useState("");
   const lastWindowHeight = useRef<number | null>(null);
-  const { data: matchingSessions = [] } = useRecentSessions({
-    limit: 100,
-    search: initialPrompt.trim() || undefined,
-  });
 
   const submitInitialPrompt = () => {
     const text = initialPrompt.trim();
@@ -127,7 +120,7 @@ function QuickCloudyContent({
     if (lastWindowHeight.current === nextHeight) return;
     lastWindowHeight.current = nextHeight;
     quickBridge.setHeight(nextHeight);
-  }, [initialPrompt, sessionId]);
+  }, [sessionId]);
 
   return (
     <main className="flex h-dvh min-h-[360px] flex-col overflow-hidden rounded-2xl bg-background/70 text-foreground backdrop-blur-2xl">
@@ -152,7 +145,7 @@ function QuickCloudyContent({
                   onClick={() => {
                     quickBridge.openSession(
                       createSessionTabPayload({
-                        providerId: PROVIDER_ID,
+                        providerId,
                         sessionId,
                         directory,
                         sessionName,
@@ -182,58 +175,14 @@ function QuickCloudyContent({
             </div>
           </>
         ) : (
-          <Command
-            shouldFilter={false}
-            className="h-auto flex-1 rounded-2xl border-0 bg-transparent p-2 shadow-none"
-          >
-            <CommandInput
-              value={initialPrompt}
-              onValueChange={setInitialPrompt}
-              placeholder="Ask Cloudy…"
-              aria-label="Ask Cloudy"
-              disabled={isSending}
-            />
-            <CommandList>
-              {initialPrompt.trim() && (
-                <CommandGroup>
-                  <CommandItem
-                    value={initialPrompt.trim()}
-                    onSelect={submitInitialPrompt}
-                    className="min-w-0"
-                  >
-                    <MessageCircle />
-                    <span className="min-w-0 flex-1 truncate">
-                      Ask Cloudy “{initialPrompt.trim()}”
-                    </span>
-                    <CommandShortcut>↵</CommandShortcut>
-                  </CommandItem>
-                </CommandGroup>
-              )}
-              {(initialPrompt.trim() ? matchingSessions : recentSessions)
-                .length > 0 && (
-                <CommandGroup heading="Recent chats">
-                  {(initialPrompt.trim() ? matchingSessions : recentSessions)
-                    .filter((session) => session.providerId === PROVIDER_ID)
-                    .slice(0, 5)
-                    .map((session) => (
-                      <CommandItem
-                        key={session.id}
-                        value={session.id}
-                        onSelect={() => onSelectSession(session.id)}
-                        className="min-w-0"
-                      >
-                        <Clock3 />
-                        <span className="min-w-0 flex-1 truncate">
-                          {session.title ||
-                            session.directory ||
-                            "Untitled chat"}
-                        </span>
-                      </CommandItem>
-                    ))}
-                </CommandGroup>
-              )}
-            </CommandList>
-          </Command>
+          <QuickCloudySessionPicker
+            initialPrompt={initialPrompt}
+            onPromptChange={setInitialPrompt}
+            recentSessions={recentSessions}
+            onSelectSession={onSelectSession}
+            onSubmitPrompt={submitInitialPrompt}
+            disabled={isSending}
+          />
         )}
       </MessageScrollerProvider>
     </main>

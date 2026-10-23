@@ -10,6 +10,7 @@ const mocks = vi.hoisted(() => ({
   setHeight: vi.fn(),
   useRecentSessions: vi.fn(),
   sessionId: null as string | null,
+  chatProviderId: "",
 }));
 
 vi.mock("@/hooks/queries/useModels", () => ({
@@ -48,7 +49,16 @@ vi.mock("@/hooks/queries/useSessions", () => ({
   ),
 }));
 vi.mock("@/components/chat/ChatProvider", () => ({
-  ChatProvider: ({ children }: { children: ReactNode }) => children,
+  ChatProvider: ({
+    children,
+    providerId,
+  }: {
+    children: ReactNode;
+    providerId: string;
+  }) => {
+    mocks.chatProviderId = providerId;
+    return children;
+  },
   useChat: () => ({
     sessionId: mocks.sessionId,
     directory: "",
@@ -127,6 +137,7 @@ describe("QuickCloudy", () => {
   afterEach(() => {
     vi.clearAllMocks();
     mocks.sessionId = null;
+    mocks.chatProviderId = "";
     mocks.useRecentSessions.mockImplementation(
       ({ search }: { search?: string } = {}) => ({
         data: [
@@ -173,14 +184,18 @@ describe("QuickCloudy", () => {
     );
   });
 
-  it("shows recent Cloudy chats and resumes the selected session", () => {
+  it("shows recent chats from all providers and resumes the selected session", () => {
     render(<QuickCloudy />);
 
     expect(screen.getByText("Recent chats")).toBeInTheDocument();
     expect(screen.getByText("Previous question")).toBeInTheDocument();
-    expect(screen.queryByText("Other provider chat")).not.toBeInTheDocument();
+    expect(screen.getByText("Other provider chat")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("option", { name: "Previous question" }));
     expect(mocks.setHeight).toHaveBeenCalledWith(640);
+    fireEvent.click(
+      screen.getByRole("option", { name: "Other provider chat" }),
+    );
+    expect(mocks.chatProviderId).toBe("other");
   });
 
   it("reuses the shared chat input and opens the current session on demand", () => {

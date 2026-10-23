@@ -78,6 +78,7 @@ export function useRecentSessions({
         ...toChatSession(session),
         updatedAt: Date.parse(session.updatedAt),
       })),
+    placeholderData: (previousData) => previousData,
   });
 }
 

@@ -1,0 +1,41 @@
+.quick-cloudy-item-enter {
+  animation: quick-cloudy-item-enter 240ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.quick-cloudy-item-enter:nth-child(2) {
+  animation-delay: 35ms;
+}
+
+.quick-cloudy-item-enter:nth-child(3) {
+  animation-delay: 70ms;
+}
+
+.quick-cloudy-item-enter:nth-child(4) {
+  animation-delay: 105ms;
+}
+
+.quick-cloudy-item-enter:nth-child(5) {
+  animation-delay: 140ms;
+}
+
+.quick-cloudy-item-enter:nth-child(6) {
+  animation-delay: 175ms;
+}
+
+@keyframes quick-cloudy-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quick-cloudy-item-enter {
+    animation: none;
+  }
+}
