@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/hooks/queries/useModels", () => ({
+  useModels: () => ({ data: [] }),
   useCapacity: () => ({
     data: {
       approvals: false,
@@ -24,6 +25,11 @@ vi.mock("@/hooks/queries/useModels", () => ({
     isLoading: false,
     error: null,
   }),
+}));
+vi.mock("@/components/provider/ProviderIcon", () => ({
+  ProviderIcon: ({ providerId }: { providerId: string }) => (
+    <span data-testid={`provider-icon-${providerId}`} />
+  ),
 }));
 vi.mock("@/hooks/queries/useSessions", () => ({
   useRecentSessions: mocks.useRecentSessions.mockImplementation(
@@ -190,6 +196,8 @@ describe("QuickCloudy", () => {
     expect(screen.getByText("Recent chats")).toBeInTheDocument();
     expect(screen.getByText("Previous question")).toBeInTheDocument();
     expect(screen.getByText("Other provider chat")).toBeInTheDocument();
+    expect(screen.getByTestId("provider-icon-cloudy")).toBeInTheDocument();
+    expect(screen.getByTestId("provider-icon-other")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("option", { name: "Previous question" }));
     expect(mocks.setHeight).toHaveBeenCalledWith(640);
     fireEvent.click(

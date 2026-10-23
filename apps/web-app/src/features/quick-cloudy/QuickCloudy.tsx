@@ -10,7 +10,7 @@ import { ChatProvider, useChat } from "@/components/chat/ChatProvider";
 import { ChatInput } from "@/components/chat/chat-input";
 import { MessageList } from "@/components/chat/message/MessageList";
 import "./QuickCloudy.css";
-import { createSessionTabPayload } from "@/components/pet/openSessionTab";
+import { createSessionTabPayload } from "@/features/pet/openSessionTab";
 import { quickBridge } from "@/lib/desktop/quickBridge";
 import type { ChatInputContent } from "@/lib/opencode";
 import { QuickCloudySessionPicker } from "./QuickCloudySessionPicker";

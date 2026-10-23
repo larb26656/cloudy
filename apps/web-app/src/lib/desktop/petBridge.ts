@@ -1,4 +1,4 @@
-import type { SessionTabPayload } from "@/components/pet/openSessionTab";
+import type { SessionTabPayload } from "@/features/pet/openSessionTab";
 
 /**
  * Bridge between the `/pet` overlay window and the Electron main process.

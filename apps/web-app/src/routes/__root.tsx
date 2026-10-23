@@ -8,9 +8,9 @@ import {
 import { ErrorState, NotFound } from "@/components/ui/route-state";
 import { Button } from "@repo/ui/components/button";
 import { Center } from "@/components/layout";
-import { FloatingPet } from "@/components/pet/FloatingPet";
-import { DesktopPetRestore } from "@/components/pet/DesktopPetRestore";
-import type { SessionTabPayload } from "@/components/pet/openSessionTab";
+import { FloatingPet } from "@/features/pet/FloatingPet";
+import { DesktopPetRestore } from "@/features/pet/DesktopPetRestore";
+import type { SessionTabPayload } from "@/features/pet/openSessionTab";
 import { isModeElectron } from "@/config/env";
 import { petBridge } from "@/lib/desktop/petBridge";
 import { useTabStore } from "@/stores/tabStore";

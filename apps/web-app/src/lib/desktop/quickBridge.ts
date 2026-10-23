@@ -1,4 +1,4 @@
-import type { SessionTabPayload } from "@/components/pet/openSessionTab";
+import type { SessionTabPayload } from "@/features/pet/openSessionTab";
 
 export interface QuickBridgeApi {
   hide(): void;

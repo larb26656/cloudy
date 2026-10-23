@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { QuickCloudy } from "@/components/quick-cloudy/QuickCloudy";
+import { QuickCloudy } from "@/features/quick-cloudy/QuickCloudy";
 
 function QuickRoute() {
   useEffect(() => {

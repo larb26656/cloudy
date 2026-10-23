@@ -17,7 +17,7 @@ import type {
   QuestionRequest,
   RecentChatSession,
 } from "@/types";
-import type { PetState } from "@/components/pet/PetSprite";
+import type { PetState } from "@/features/pet/PetSprite";
 
 export interface ActiveSessionRecord {
   session: RecentChatSession;

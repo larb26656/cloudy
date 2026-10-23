@@ -1,4 +1,4 @@
-import { Clock3, MessageCircle } from "lucide-react";
+import { MessageCircle } from "lucide-react";
 import {
   Command,
   CommandGroup,
@@ -9,6 +9,7 @@ import {
 } from "@repo/ui/components/command";
 import { useRecentSessions } from "@/hooks/queries/useSessions";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { ProviderIcon } from "@/components/provider/ProviderIcon";
 import type { RecentChatSession } from "@/types";
 
 type QuickCloudySessionPickerProps = {
@@ -74,7 +75,7 @@ export function QuickCloudySessionPicker({
                 onSelect={() => onSelectSession(session)}
                 className="quick-cloudy-item-enter min-w-0"
               >
-                <Clock3 />
+                <ProviderIcon providerId={session.providerId} />
                 <span className="min-w-0 flex-1 truncate">
                   {session.title || session.directory || "Untitled chat"}
                 </span>
