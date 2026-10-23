@@ -19,7 +19,9 @@ function CloudyIcon({ className }: ProviderIconSvgProps) {
       height="128"
       viewBox="2 2.5 28 28"
       fill="none"
-      shape-rendering="crispEdges"
+      role="img"
+      aria-label="Cloudy"
+      shapeRendering="crispEdges"
       className={className}
     >
       <path
