@@ -2,6 +2,7 @@ appId: com.cloudy.desktop
 productName: Cloudy
 directories:
   output: release
+  buildResources: resources
 npmRebuild: false
 files:
   - dist/**
@@ -11,6 +12,7 @@ asarUnpack:
   - "**/dist/public/**"
   - "**/node_modules/better-sqlite3/**"
 mac:
+  icon: resources/icon.icns
   category: public.app-category.developer-tools
   target:
     - dmg

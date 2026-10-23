@@ -1,4 +1,4 @@
-import { app } from "electron";
+import { app, nativeImage } from "electron";
 import { join } from "node:path";
 import { createDesktopApp } from "./app";
 import { desktopConfig } from "./config";
@@ -8,7 +8,16 @@ if (desktopConfig.isDev) {
 }
 
 function showDockIcon(): void {
-  if (process.platform === "darwin") app.dock?.show();
+  if (process.platform === "darwin") {
+    if (desktopConfig.isDev) {
+      app.dock?.setIcon(
+        nativeImage.createFromPath(
+          join(desktopConfig.mainDir, "../resources/icon.png"),
+        ),
+      );
+    }
+    app.dock?.show();
+  }
 }
 
 const desktop = createDesktopApp();
