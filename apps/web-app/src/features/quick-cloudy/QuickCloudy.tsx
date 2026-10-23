@@ -20,6 +20,7 @@ const PROVIDER_ID = "cloudy";
 export function QuickCloudy() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [providerId, setProviderId] = useState(PROVIDER_ID);
+  const [directory, setDirectory] = useState("");
   const { data: recentSessions = [] } = useRecentSessions({ limit: 100 });
   const { data: capacity, isLoading, error } = useCapacity(providerId);
   const handleSessionChange = (nextSessionId: string | null) => {
@@ -54,7 +55,7 @@ export function QuickCloudy() {
   return (
     <ChatProvider
       workspace={null}
-      directory=""
+      directory={directory}
       providerId={providerId}
       sessionId={sessionId}
       onSessionChange={handleSessionChange}
@@ -67,11 +68,13 @@ export function QuickCloudy() {
         onSelectSession={(session) => {
           setSessionId(session.id);
           setProviderId(session.providerId);
+          setDirectory(session.directory);
           quickBridge.setHeight(640);
         }}
         onNewSession={() => {
           setSessionId(null);
           setProviderId(PROVIDER_ID);
+          setDirectory("");
           quickBridge.setHeight(360);
         }}
       />

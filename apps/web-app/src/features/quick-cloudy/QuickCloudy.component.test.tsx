@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   useRecentSessions: vi.fn(),
   sessionId: null as string | null,
   chatProviderId: "",
+  chatDirectory: "",
 }));
 
 vi.mock("@/hooks/queries/useModels", () => ({
@@ -58,16 +59,19 @@ vi.mock("@/components/chat/ChatProvider", () => ({
   ChatProvider: ({
     children,
     providerId,
+    directory,
   }: {
     children: ReactNode;
     providerId: string;
+    directory: string;
   }) => {
     mocks.chatProviderId = providerId;
+    mocks.chatDirectory = directory;
     return children;
   },
   useChat: () => ({
     sessionId: mocks.sessionId,
-    directory: "",
+    directory: mocks.chatDirectory,
     sendMessage: mocks.sendMessage,
     effectiveModel: null,
     effectiveAgent: null,
@@ -144,6 +148,7 @@ describe("QuickCloudy", () => {
     vi.clearAllMocks();
     mocks.sessionId = null;
     mocks.chatProviderId = "";
+    mocks.chatDirectory = "";
     mocks.useRecentSessions.mockImplementation(
       ({ search }: { search?: string } = {}) => ({
         data: [
@@ -200,10 +205,12 @@ describe("QuickCloudy", () => {
     expect(screen.getByTestId("provider-icon-other")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("option", { name: "Previous question" }));
     expect(mocks.setHeight).toHaveBeenCalledWith(640);
+    expect(mocks.chatDirectory).toBe("/project");
     fireEvent.click(
       screen.getByRole("option", { name: "Other provider chat" }),
     );
     expect(mocks.chatProviderId).toBe("other");
+    expect(mocks.chatDirectory).toBe("/project");
   });
 
   it("reuses the shared chat input and opens the current session on demand", () => {
