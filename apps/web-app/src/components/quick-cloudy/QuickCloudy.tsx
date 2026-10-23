@@ -130,9 +130,9 @@ function QuickCloudyContent({
   }, [initialPrompt, sessionId]);
 
   return (
-    <main className="flex h-dvh min-h-[360px] flex-col overflow-hidden bg-background text-foreground">
+    <main className="flex h-dvh min-h-[360px] flex-col overflow-hidden rounded-2xl bg-background/70 text-foreground backdrop-blur-2xl">
       {(sessionId || initialPrompt.trim()) && (
-        <header className="flex items-center justify-between border-b px-5 py-2.5">
+        <header className="flex items-center justify-between px-5 py-2.5">
           <span className="text-sm font-semibold">Quick Cloudy</span>
           <div className="flex items-center gap-2">
             {sessionId && (
@@ -184,7 +184,7 @@ function QuickCloudyContent({
         ) : (
           <Command
             shouldFilter={false}
-            className="h-auto flex-1 rounded-xl bg-background p-2"
+            className="h-auto flex-1 rounded-2xl border-0 bg-transparent p-2 shadow-none"
           >
             <CommandInput
               value={initialPrompt}

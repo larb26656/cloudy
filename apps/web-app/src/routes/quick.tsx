@@ -1,4 +1,14 @@
+import { useEffect } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { QuickCloudy } from "@/components/quick-cloudy/QuickCloudy";
 
-export const Route = createFileRoute("/quick")({ component: QuickCloudy });
+function QuickRoute() {
+  useEffect(() => {
+    document.documentElement.setAttribute("data-quick-window", "true");
+    return () => document.documentElement.removeAttribute("data-quick-window");
+  }, []);
+
+  return <QuickCloudy />;
+}
+
+export const Route = createFileRoute("/quick")({ component: QuickRoute });
