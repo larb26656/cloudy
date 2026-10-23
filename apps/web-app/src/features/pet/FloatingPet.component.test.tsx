@@ -3,6 +3,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FloatingPet } from "./FloatingPet";
 import { useTabStore } from "@/stores/tabStore";
+import { usePetVisibilityStore } from "@/stores/petVisibilityStore";
 import type { RecentChatSession } from "@/types";
 
 const mocks = vi.hoisted(() => ({
@@ -102,6 +103,7 @@ describe("FloatingPet", () => {
     mocks.sessionQuestions.mockImplementation(async () => jsonResponse([]));
     mocks.sessionPermissions.mockImplementation(async () => jsonResponse([]));
     useTabStore.setState({ tabs: [], activeTabId: "home" });
+    usePetVisibilityStore.setState({ visible: true });
   });
 
   it("prioritizes a pending question over running state and lists only active sessions", async () => {
@@ -413,7 +415,7 @@ describe("FloatingPet", () => {
     ).toBeInTheDocument();
   });
 
-  it("hides the widget on dismiss and brings it back via the restore control", async () => {
+  it("hides the widget on dismiss until it is enabled in settings", async () => {
     renderPet();
     await openSummary();
 
@@ -422,10 +424,9 @@ describe("FloatingPet", () => {
     expect(
       screen.queryByRole("button", { name: /^Agent activity/ }),
     ).not.toBeInTheDocument();
-    const restore = screen.getByRole("button", { name: "Show pet" });
-    expect(restore).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Show pet" })).toBeNull();
 
-    fireEvent.click(restore);
+    act(() => usePetVisibilityStore.getState().setVisible(true));
 
     expect(
       screen.getByRole("button", { name: "Agent activity" }),

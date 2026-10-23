@@ -1,9 +1,10 @@
 import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
-import { Cat, EyeOff, X } from "lucide-react";
+import { EyeOff, X } from "lucide-react";
 import { isModeElectron } from "@/config/env";
 import { petTriggerLabel, usePetActivity } from "@/hooks/usePetActivity";
 import { useTabStore } from "@/stores/tabStore";
+import { usePetVisibilityStore } from "@/stores/petVisibilityStore";
 import type { RecentChatSession } from "@/types";
 import {
   Popover,
@@ -22,7 +23,8 @@ type PetPosition = { left: number; top: number };
  * overlay window owns the pet instead, so this renders nothing.
  */
 export function FloatingPet() {
-  const [dismissed, setDismissed] = useState(false);
+  const visible = usePetVisibilityStore((state) => state.visible);
+  const setVisible = usePetVisibilityStore((state) => state.setVisible);
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<PetPosition | null>(null);
   const drag = useRef<
@@ -55,7 +57,7 @@ export function FloatingPet() {
 
   const handleDismiss = () => {
     setOpen(false);
-    setDismissed(true);
+    setVisible(false);
   };
 
   const handlePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
@@ -96,18 +98,7 @@ export function FloatingPet() {
     }
   };
 
-  if (dismissed) {
-    return (
-      <button
-        type="button"
-        aria-label="Show pet"
-        onClick={() => setDismissed(false)}
-        className="fixed right-4 bottom-4 z-30 flex size-9 items-center justify-center rounded-full border bg-background text-muted-foreground shadow-sm transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <Cat data-icon className="size-4" />
-      </button>
-    );
-  }
+  if (!visible) return null;
 
   const triggerLabel = petTriggerLabel(waitingCount, workingCount);
 

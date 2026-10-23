@@ -18,6 +18,7 @@ const PET_IPC_CHANNELS = [
   "pet:open-session",
   "pet:context-menu",
   "pet:show",
+  "pet:hide",
 ] as const;
 
 const PET_VISIBILITY_CHANNEL = "pet:visibility";
@@ -260,6 +261,13 @@ function registerPetIpc(options: PetWindowOptions): void {
     void (async () => {
       if (!(await mainWindowFor(options, event))) return;
       showPetWindow(options);
+    })();
+  });
+
+  ipcMain.on("pet:hide", (event) => {
+    void (async () => {
+      if (!(await mainWindowFor(options, event))) return;
+      hidePetWindow(options);
     })();
   });
 

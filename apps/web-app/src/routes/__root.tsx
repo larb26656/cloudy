@@ -9,7 +9,6 @@ import { ErrorState, NotFound } from "@/components/ui/route-state";
 import { Button } from "@repo/ui/components/button";
 import { Center } from "@/components/layout";
 import { FloatingPet } from "@/features/pet/FloatingPet";
-import { DesktopPetRestore } from "@/features/pet/DesktopPetRestore";
 import type { SessionTabPayload } from "@/features/pet/openSessionTab";
 import { isModeElectron } from "@/config/env";
 import { petBridge } from "@/lib/desktop/petBridge";
@@ -48,9 +47,7 @@ function RootComponent() {
       )}
     >
       <Outlet />
-      {!isPetRoute &&
-        !isQuickRoute &&
-        (isModeElectron ? <DesktopPetRestore /> : <FloatingPet />)}
+      {!isPetRoute && !isQuickRoute && !isModeElectron && <FloatingPet />}
     </div>
   );
 }

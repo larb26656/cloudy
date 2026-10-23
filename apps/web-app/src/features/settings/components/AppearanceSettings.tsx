@@ -4,6 +4,7 @@ import { useTheme } from "next-themes";
 import { Switch } from "@repo/ui/components/switch";
 import { Sun, Moon, Brain } from "lucide-react";
 import { useChatSettingsStore } from "@/stores/chatSettingsStore";
+import { PetSettings } from "./PetSettings";
 
 export function AppearanceSettings() {
   const { theme, setTheme } = useTheme();
@@ -60,6 +61,8 @@ export function AppearanceSettings() {
           onCheckedChange={setAutoExpandThinking}
         />
       </div>
+
+      <PetSettings />
     </div>
   );
 }

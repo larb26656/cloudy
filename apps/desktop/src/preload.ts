@@ -19,6 +19,7 @@ type PetBridgeApi = {
   onOpenSession(callback: (payload: SessionTabPayload) => void): () => void;
   showContextMenu(): void;
   show(): void;
+  hide(): void;
   getVisibility(): Promise<boolean>;
   onVisibility(callback: (visible: boolean) => void): () => void;
 };
@@ -90,6 +91,7 @@ function createPetBridge(): PetBridgeApi {
     onOpenSession,
     showContextMenu: () => ipcRenderer.send("pet:context-menu"),
     show: () => ipcRenderer.send("pet:show"),
+    hide: () => ipcRenderer.send("pet:hide"),
     getVisibility: () => ipcRenderer.invoke("pet:get-visibility"),
     onVisibility,
   };

@@ -35,6 +35,8 @@ export interface PetBridgeApi {
   showContextMenu(): void;
   /** Show the hidden pet overlay window again. */
   show(): void;
+  /** Hide the pet overlay window from the main window. */
+  hide(): void;
   /** Resolve whether the pet overlay window is currently visible. */
   getVisibility(): Promise<boolean>;
   /**
@@ -64,6 +66,7 @@ export const petBridge: PetBridgeApi = {
   showContextMenu: () =>
     window.__CLOUDY_DESKTOP__?.petBridge?.showContextMenu(),
   show: () => window.__CLOUDY_DESKTOP__?.petBridge?.show(),
+  hide: () => window.__CLOUDY_DESKTOP__?.petBridge?.hide(),
   getVisibility: () =>
     window.__CLOUDY_DESKTOP__?.petBridge?.getVisibility() ??
     Promise.resolve(true),
