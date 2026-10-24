@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { useDeleteWorkspace } from "@/hooks/queries";
-import { useTabStore } from "@/stores/tabStore";
+import { useNewChat } from "@/hooks/useNewChat";
 import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { Button } from "@repo/ui/components/button";
 import { DeleteConfirmDialog } from "@repo/ui/components/delete-confirm-dialog";
@@ -30,16 +30,15 @@ interface WorkspaceDetailProps {
 
 export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
   const deleteWorkspace = useDeleteWorkspace();
-  const addTab = useTabStore((s) => s.addTab);
+  const { create } = useNewChat();
   const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const handleNewChat = () => {
-    addTab("chat", {
+    create({
       providerId: "opencode",
-      ...(workspace.type === "agent" && { providerId: defaultProviderId }),
-      sessionId: null,
+      ...(workspace.type === "agent" ? { providerId: defaultProviderId } : {}),
       workspaceId: workspace.id,
       directory: workspace.directory,
       sessionName: "New Chat",

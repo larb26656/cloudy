@@ -8,8 +8,9 @@ import { LoadingState } from "@repo/ui/components/loading-state";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { useTabStore } from "@/stores/tabStore";
+import { useNewChat } from "@/hooks/useNewChat";
 import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
-import { useSessions, useCreateSession } from "@/hooks/queries";
+import { useSessions } from "@/hooks/queries";
 import { Plus } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import type { WorkspaceType } from "@/lib/cloudy/workspaces";
@@ -29,9 +30,8 @@ function SessionList({
   header,
 }: SessionListProps) {
   const { data: sessions = [], isLoading, error } = useSessions({ directory });
-  const createSession = useCreateSession();
-  const addTab = useTabStore((s) => s.addTab);
   const openTab = useTabStore((s) => s.openTab);
+  const { create } = useNewChat();
   const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -46,9 +46,8 @@ function SessionList({
   };
 
   const handleNewChat = () => {
-    addTab("chat", {
+    create({
       providerId: defaultProviderId,
-      sessionId: null,
       workspaceId,
       directory,
       sessionName: "New Chat",
@@ -75,7 +74,6 @@ function SessionList({
           variant="ghost"
           size="sm"
           onClick={handleNewChat}
-          disabled={createSession.isPending}
           className="self-start gap-2"
         >
           <Plus data-icon="inline-start" />

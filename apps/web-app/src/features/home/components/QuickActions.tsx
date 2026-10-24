@@ -1,21 +1,15 @@
 import { ChevronRight, MessageCircle, Terminal } from "lucide-react";
-import { useTabStore } from "@/stores/tabStore";
+import { useNewChat } from "@/hooks/useNewChat";
 
 interface QuickActionsProps {
   onOpenProjectChat: () => void;
 }
 
 export function QuickActions({ onOpenProjectChat }: QuickActionsProps) {
-  const addTab = useTabStore((s) => s.addTab);
+  const { create } = useNewChat();
 
   const handleAskAnything = () => {
-    addTab("chat", {
-      providerId: "cloudy",
-      sessionId: null,
-      workspaceId: null,
-      directory: "",
-      sessionName: "Cloudy Chat",
-    });
+    create({ providerId: "cloudy", directory: "", sessionName: "Cloudy Chat" });
   };
 
   return (

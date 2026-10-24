@@ -18,7 +18,8 @@ import type { Workspace } from "@/lib/cloudy/workspaces";
 import { basename } from "@/lib/path";
 import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
 import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
-import { useCreateTempWorkspace, useSessions } from "@/hooks/queries";
+import { useSessions } from "@/hooks/queries";
+import { useNewChat } from "@/hooks/useNewChat";
 import { ArrowLeft, MessageCircleDashed } from "lucide-react";
 import { ProviderSelector } from "@/components/chat/ProviderSelector";
 import { useCapacity } from "@/hooks/queries/useModels";
@@ -60,7 +61,7 @@ export function CreateChatDialog({
       setAgentId(null);
     }
   }, [open, defaultProviderId]);
-  const createTempWorkspace = useCreateTempWorkspace();
+  const { createTemp, isCreatingTemp } = useNewChat();
   const { data: capacity } = useCapacity(providerId);
   const requiresDirectory = capacity?.requiresDirectory ?? true;
 
@@ -69,14 +70,15 @@ export function CreateChatDialog({
   });
 
   const handleCreateTempChat = () => {
-    createTempWorkspace.mutate(undefined, {
-      onSuccess: ({ name, directory }) => {
-        pushRecentDirectory(directory);
+    createTemp({
+      providerId,
+      agent: agentId,
+      onCreated: ({ directory, sessionName }) => {
         onSubmit({
           workspaceId: null,
           directory,
           sessionId: null,
-          sessionName: name,
+          sessionName,
           providerId,
           agent: agentId,
         });
@@ -186,7 +188,7 @@ export function CreateChatDialog({
                         size="sm"
                         className="shrink-0"
                         onClick={handleCreateTempChat}
-                        disabled={createTempWorkspace.isPending}
+                        disabled={isCreatingTemp}
                       >
                         <MessageCircleDashed /> Temp chat
                       </Button>

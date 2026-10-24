@@ -1,41 +1,23 @@
 import { usePinnedAgentsStore } from "@/stores/pinnedAgentsStore";
 import { useCloudyAgents } from "@/hooks/queries/useCloudyAgents";
-import { useCreateTempWorkspace, useModels } from "@/hooks/queries";
-import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
-import { useTabStore } from "@/stores/tabStore";
+import { useModels } from "@/hooks/queries";
+import { useNewChat } from "@/hooks/useNewChat";
 import { PinnedAgentButton } from "./PinnedAgentButton";
 
 export function PinnedAgentsSection() {
   const pins = usePinnedAgentsStore((state) => state.pins);
   const { data: cloudyAgents } = useCloudyAgents();
   const { data: providers = [] } = useModels();
-  const addTab = useTabStore((state) => state.addTab);
-  const pushRecentDirectory = useRecentDirectoryStore((state) => state.push);
-  const createTempWorkspace = useCreateTempWorkspace();
+  const { create, createTemp, isCreatingTemp } = useNewChat();
 
   const openPinnedAgent = (providerId: string, agentId: string) => {
     const provider = providers.find((item) => item.id === providerId);
-    const createTab = (directory: string, sessionName: string) =>
-      addTab("chat", {
-        providerId,
-        agent: agentId,
-        sessionId: null,
-        workspaceId: null,
-        directory,
-        sessionName,
-      });
-
     if (provider?.capabilities.requiresDirectory === false) {
-      createTab("", "New Chat");
+      create({ providerId, agent: agentId, directory: "" });
       return;
     }
 
-    createTempWorkspace.mutate(undefined, {
-      onSuccess: ({ name, directory }) => {
-        pushRecentDirectory(directory);
-        createTab(directory, name);
-      },
-    });
+    createTemp({ providerId, agent: agentId });
   };
 
   if (!pins.length) return null;
@@ -52,7 +34,7 @@ export function PinnedAgentsSection() {
               cloudyAgents?.agents.find((agent) => agent.id === pin.agentId)
                 ?.avatar
             }
-            disabled={createTempWorkspace.isPending}
+            disabled={isCreatingTemp}
             onClick={() => openPinnedAgent(pin.providerId, pin.agentId)}
           />
         ))}
