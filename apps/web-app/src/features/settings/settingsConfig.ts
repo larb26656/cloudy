@@ -15,6 +15,7 @@ export interface SettingsSection {
   description: string;
   to: string;
   icon: LucideIcon;
+  desktopOnly?: boolean;
 }
 
 export const settingsSections: SettingsSection[] = [
@@ -73,5 +74,6 @@ export const settingsSections: SettingsSection[] = [
     description: "Connect to Cloudy from other devices.",
     to: "/settings/network",
     icon: Wifi,
+    desktopOnly: true,
   },
 ];

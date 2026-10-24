@@ -88,6 +88,20 @@ describe("ChatGPT plan service", () => {
     });
   });
 
+  it("treats missing credentials as a disconnected account", async () => {
+    await rm(path.join(configDir, "chatgpt-plan-credentials.json"));
+
+    await service.registerConfiguredConnection();
+
+    await expect(service.status()).resolves.toMatchObject({
+      connected: false,
+      connecting: false,
+      email: null,
+      error: null,
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("rejects duplicate sign-in attempts and clears pending state on cancel", async () => {
     await service.connect();
 

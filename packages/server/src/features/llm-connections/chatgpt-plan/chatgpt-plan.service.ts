@@ -1,5 +1,5 @@
 import path from "node:path";
-import { unlink } from "node:fs/promises";
+import { access, unlink } from "node:fs/promises";
 import type { Server } from "node:http";
 import {
   readChatGPTAccessToken,
@@ -84,6 +84,24 @@ export function createChatGPTPlanService(configDir: string, llm: LLM) {
       }
     },
     async registerConfiguredConnection() {
+      try {
+        await access(credentialsPath);
+      } catch (error) {
+        if (
+          error instanceof Error &&
+          "code" in error &&
+          error.code === "ENOENT"
+        ) {
+          llm.deleteClient("chatgpt-plan");
+          lastError = undefined;
+          return;
+        }
+        lastError =
+          error instanceof Error
+            ? error.message
+            : "ChatGPT connection could not be restored";
+        return;
+      }
       try {
         await activate();
       } catch (error) {

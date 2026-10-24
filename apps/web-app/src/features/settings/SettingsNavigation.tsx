@@ -2,6 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { cn } from "@repo/ui/lib/utils";
+import { isModeElectron } from "@/config/env";
 import { settingsSections } from "./settingsConfig";
 
 export function SettingsNavigation() {
@@ -19,30 +20,32 @@ export function SettingsNavigation() {
       </div>
 
       <div className="space-y-1">
-        {settingsSections.map((section) => {
-          const isActive = location.pathname === section.to;
-          const Icon = section.icon;
+        {settingsSections
+          .filter((section) => isModeElectron || !section.desktopOnly)
+          .map((section) => {
+            const isActive = location.pathname === section.to;
+            const Icon = section.icon;
 
-          return (
-            <Link
-              key={section.id}
-              to={section.to}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-3 hover:bg-muted",
-                isActive && "bg-muted",
-              )}
-            >
-              <Icon className="size-5 shrink-0 text-muted-foreground" />
-              <div className="min-w-0 flex-1">
-                <div className="font-medium">{section.label}</div>
-                <div className="truncate text-sm text-muted-foreground">
-                  {section.description}
+            return (
+              <Link
+                key={section.id}
+                to={section.to}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-3 hover:bg-muted",
+                  isActive && "bg-muted",
+                )}
+              >
+                <Icon className="size-5 shrink-0 text-muted-foreground" />
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium">{section.label}</div>
+                  <div className="truncate text-sm text-muted-foreground">
+                    {section.description}
+                  </div>
                 </div>
-              </div>
-              <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground md:hidden" />
-            </Link>
-          );
-        })}
+                <ChevronRight className="ml-auto size-4 shrink-0 text-muted-foreground md:hidden" />
+              </Link>
+            );
+          })}
       </div>
     </nav>
   );
