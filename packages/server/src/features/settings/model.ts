@@ -13,7 +13,8 @@ const createAgentProviderSchema = agentProviderSettingsSchema.omit({
 const agentSchema = z.object({
   id: z.string().min(1),
   name: z.string().trim().min(1),
-  systemPrompt: z.string(),
+  systemPrompt: z.string().optional(),
+  builtIn: z.boolean(),
 });
 
 export const SettingsModel = {
@@ -32,8 +33,8 @@ export const SettingsModel = {
   }),
   createAgentProviderSchema,
   updateAgentProviderSchema: createAgentProviderSchema.partial(),
-  createAgentSchema: agentSchema.omit({ id: true }),
-  updateAgentSchema: agentSchema.omit({ id: true }).partial(),
+  createAgentSchema: agentSchema.omit({ id: true, builtIn: true }),
+  updateAgentSchema: agentSchema.omit({ id: true, builtIn: true }).partial(),
 };
 
 export type AgentProviderSettings = z.infer<typeof agentProviderSettingsSchema>;

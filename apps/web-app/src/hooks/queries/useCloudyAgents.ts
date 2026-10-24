@@ -8,7 +8,7 @@ type AgentsResponse = InferResponseType<
   200
 >;
 export type CloudyAgent = AgentsResponse["agents"][number];
-export type CloudyAgentInput = Omit<CloudyAgent, "id">;
+export type CloudyAgentInput = Omit<CloudyAgent, "id" | "builtIn">;
 
 export function useCloudyAgents() {
   return useQuery({

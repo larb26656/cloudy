@@ -20,7 +20,7 @@ export function createCloudyAdapter({
   apiProviderRegistry: LLM;
   sessionsRepository: SessionsRepository;
   messagesRepository: CloudyMessagesRepository;
-  agents: () => { id: string; name: string; systemPrompt: string }[];
+  agents: () => { id: string; name: string; systemPrompt?: string }[];
 }): AgentProviderAdapter {
   const capabilities = {
     streaming: true,

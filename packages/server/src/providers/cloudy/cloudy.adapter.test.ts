@@ -9,7 +9,7 @@ import { createCloudyAdapter } from "./cloudy.adapter";
 
 function createAdapter(
   apiProviderRegistry = createTestLLM(),
-  agents: { id: string; name: string; systemPrompt: string }[] = [],
+  agents: { id: string; name: string; systemPrompt?: string }[] = [],
 ) {
   const { db } = createTestDb();
   const sessionsRepository = createSessionsRepository(db);

@@ -18,7 +18,7 @@ export function createCloudyAgent({
 }: {
   apiProviderRegistry: LLM;
   messagesRepository: CloudyMessagesRepository;
-  agents: () => { id: string; name: string; systemPrompt: string }[];
+  agents: () => { id: string; name: string; systemPrompt?: string }[];
 }) {
   const runs = new Map<string, AbortController>();
   const subscribers = new Set<(event: ChatEvent) => void>();

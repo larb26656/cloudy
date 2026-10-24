@@ -105,28 +105,30 @@ export function CloudyAgentSettings() {
                   {agent.systemPrompt || "No system prompt"}
                 </p>
               </div>
-              <div className="flex shrink-0 gap-1">
-                <Button
-                  size="icon-sm"
-                  variant="ghost"
-                  aria-label={`Edit ${agent.name}`}
-                  onClick={() => openDialog(agent)}
-                >
-                  <Pencil />
-                </Button>
-                <Button
-                  size="icon-sm"
-                  variant="ghost"
-                  aria-label={`Delete ${agent.name}`}
-                  onClick={() =>
-                    remove.mutate(agent.id, {
-                      onError: (error) => toast.error(error.message),
-                    })
-                  }
-                >
-                  <Trash2 />
-                </Button>
-              </div>
+              {!agent.builtIn && (
+                <div className="flex shrink-0 gap-1">
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    aria-label={`Edit ${agent.name}`}
+                    onClick={() => openDialog(agent)}
+                  >
+                    <Pencil />
+                  </Button>
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    aria-label={`Delete ${agent.name}`}
+                    onClick={() =>
+                      remove.mutate(agent.id, {
+                        onError: (error) => toast.error(error.message),
+                      })
+                    }
+                  >
+                    <Trash2 />
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
         </div>

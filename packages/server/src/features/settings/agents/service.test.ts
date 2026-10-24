@@ -37,6 +37,33 @@ afterEach(() => {
 });
 
 describe("agents service", () => {
+  it("always includes the built-in ask agent without a system prompt", () => {
+    const service = createAgentsService({ ...config, agents: [] });
+
+    expect(service.getAgents().agents[0]).toEqual({
+      id: "ask",
+      name: "Ask",
+      builtIn: true,
+    });
+    expect(() =>
+      service.createAgent({ name: "ASK", systemPrompt: "Custom prompt" }),
+    ).toThrow("Agent already exists: ASK");
+  });
+
+  it("does not allow modifying or deleting the built-in ask agent", () => {
+    const service = createAgentsService({ ...config, agents: [] });
+
+    expect(() =>
+      service.updateAgent("ask", { systemPrompt: "Custom prompt" }),
+    ).toThrow("Cannot modify built-in agent: ask");
+    expect(() => service.deleteAgent("ask")).toThrow(
+      "Cannot delete built-in agent: ask",
+    );
+    expect(service.getAgents().agents).toEqual([
+      { id: "ask", name: "Ask", builtIn: true },
+    ]);
+  });
+
   it("creates, updates, and deletes agents in config.json", () => {
     const configDir = mkdtempSync(path.join(tmpdir(), "cloudy-agents-"));
     tempDirs.push(configDir);
@@ -51,10 +78,12 @@ describe("agents service", () => {
     });
 
     service.updateAgent(agent.id, { systemPrompt: "Write concisely" });
-    expect(service.getAgents().agents[0]?.systemPrompt).toBe("Write concisely");
+    expect(service.getAgents().agents[1]?.systemPrompt).toBe("Write concisely");
 
     service.deleteAgent(agent.id);
-    expect(service.getAgents().agents).toEqual([]);
+    expect(service.getAgents().agents).toEqual([
+      { id: "ask", name: "Ask", builtIn: true },
+    ]);
   });
 
   it("returns the configured agents and preserves unrelated config values", () => {
@@ -69,7 +98,15 @@ describe("agents service", () => {
     );
 
     expect(service.getAgents()).toEqual({
-      agents: [{ id: "existing", name: "Editor", systemPrompt: "Edit" }],
+      agents: [
+        { id: "ask", name: "Ask", builtIn: true },
+        {
+          id: "existing",
+          name: "Editor",
+          systemPrompt: "Edit",
+          builtIn: false,
+        },
+      ],
     });
     service.createAgent({ name: "Writer", systemPrompt: "Write" });
 

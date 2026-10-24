@@ -4,17 +4,34 @@ import type { AppConfig } from "../../../config";
 import { updateFileConfig } from "../../../config/file-loader";
 import type { AgentConfig } from "../model";
 
+const builtInAskAgent: AgentConfig = {
+  id: "ask",
+  name: "Ask",
+  builtIn: true,
+};
+
 export function createAgentsService(config: AppConfig, configDir?: string) {
   const settingsDir = configDir ?? path.dirname(config.dbPath);
   const agents = config.agents;
+  const getAllAgents = () => [
+    builtInAskAgent,
+    ...agents
+      .filter((agent) => agent.id !== builtInAskAgent.id)
+      .map((agent) => ({ ...agent, builtIn: false })),
+  ];
+  const findAgentById = (id: string) => {
+    const agent = getAllAgents().find((candidate) => candidate.id === id);
+    if (!agent) throw new Error(`Agent not found: ${id}`);
+    return agent;
+  };
 
   return {
     getAgents() {
-      return { agents };
+      return { agents: getAllAgents() };
     },
-    createAgent(input: Omit<AgentConfig, "id">) {
+    createAgent(input: Omit<AgentConfig, "id" | "builtIn">) {
       if (
-        agents.some(
+        getAllAgents().some(
           (agent) => agent.name.toLowerCase() === input.name.toLowerCase(),
         )
       )
@@ -26,14 +43,19 @@ export function createAgentsService(config: AppConfig, configDir?: string) {
         agents: next,
       }));
       agents.push(agent);
-      return agent;
+      return { ...agent, builtIn: false };
     },
-    updateAgent(id: string, patch: Partial<Omit<AgentConfig, "id">>) {
+    updateAgent(
+      id: string,
+      patch: Partial<Omit<AgentConfig, "id" | "builtIn">>,
+    ) {
+      const current = findAgentById(id);
+      if (current.builtIn)
+        throw new Error(`Cannot modify built-in agent: ${id}`);
       const index = agents.findIndex((agent) => agent.id === id);
-      if (index < 0) throw new Error(`Agent not found: ${id}`);
       const updated = { ...agents[index]!, ...patch, id };
       if (
-        agents.some(
+        getAllAgents().some(
           (agent) =>
             agent.id !== id &&
             agent.name.toLowerCase() === updated.name.toLowerCase(),
@@ -46,12 +68,13 @@ export function createAgentsService(config: AppConfig, configDir?: string) {
         agents: next,
       }));
       agents[index] = updated;
-      return updated;
+      return { ...updated, builtIn: false };
     },
     deleteAgent(id: string) {
+      const current = findAgentById(id);
+      if (current.builtIn)
+        throw new Error(`Cannot delete built-in agent: ${id}`);
       const next = agents.filter((agent) => agent.id !== id);
-      if (next.length === agents.length)
-        throw new Error(`Agent not found: ${id}`);
       updateFileConfig(settingsDir, (current) => ({
         ...current,
         agents: next,

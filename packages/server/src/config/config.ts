@@ -58,7 +58,7 @@ const LLMConnectionSchema = z
 const AgentConfigSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(1),
-  systemPrompt: z.string(),
+  systemPrompt: z.string().optional(),
 });
 
 export const ConfigurableSchema = z.object({
