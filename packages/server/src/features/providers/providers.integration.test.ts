@@ -59,18 +59,21 @@ describe("providers integration", () => {
     const response = await app.request("/api/agent-providers");
 
     expect(response.status).toBe(200);
-    expect(await response.json()).toEqual([
-      expect.objectContaining({
-        id: "opencode",
-        models: [
-          expect.objectContaining({
-            providerId: "opencode",
-            modelId: "model-1",
-          }),
-        ],
-        agents: [expect.objectContaining({ id: "default" })],
-      }),
-    ]);
+    expect(await response.json()).toEqual({
+      providers: [
+        expect.objectContaining({
+          id: "opencode",
+          models: [
+            expect.objectContaining({
+              providerId: "opencode",
+              modelId: "model-1",
+            }),
+          ],
+          agents: [expect.objectContaining({ id: "default" })],
+        }),
+      ],
+      errors: [],
+    });
   });
 
   it("streams normalized events from the Cloudy-wide endpoint", async () => {

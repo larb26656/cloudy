@@ -95,17 +95,42 @@ export function createAgentProviderRegistry({
       if (!providerMap.delete(providerId)) return;
       listeners.forEach((listener) => listener());
     },
-    async catalog(): Promise<ResolvedAgentProviderInfo[]> {
-      const providers = await Promise.all(
-        [...providerMap.values()].map((provider) => provider.getInfo()),
+    async catalog(): Promise<{
+      providers: ResolvedAgentProviderInfo[];
+      errors: { providerId: string; message: string }[];
+    }> {
+      const registeredProviders = [...providerMap.values()];
+      const results = await Promise.allSettled(
+        registeredProviders.map(async (provider) => ({
+          providerId: provider.id,
+          info: await provider.getInfo(),
+        })),
       );
-      return providers.map((provider) => ({
-        ...provider,
-        capabilities: {
-          ...defaultCapabilities,
-          ...provider.capabilities,
-        },
-      }));
+      const catalog: ResolvedAgentProviderInfo[] = [];
+      const errors: { providerId: string; message: string }[] = [];
+
+      results.forEach((result, index) => {
+        const provider = registeredProviders[index];
+        if (result.status === "fulfilled") {
+          catalog.push({
+            ...result.value.info,
+            capabilities: {
+              ...defaultCapabilities,
+              ...result.value.info.capabilities,
+            },
+          });
+        } else if (provider) {
+          errors.push({
+            providerId: provider.id,
+            message:
+              result.reason instanceof Error
+                ? result.reason.message
+                : String(result.reason),
+          });
+        }
+      });
+
+      return { providers: catalog, errors };
     },
     listSessions(
       providerId: string,

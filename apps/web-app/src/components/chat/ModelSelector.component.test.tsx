@@ -1,6 +1,7 @@
 import { afterAll, beforeEach, describe, expect, test, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
+import { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ModelSelector } from "./ModelSelector";
 import { useFavoriteModelsStore } from "@/stores/favoriteModelsStore";
@@ -345,6 +346,35 @@ describe("ModelSelector — favorites", () => {
       expect.objectContaining({ modelId: "claude-opus" }),
     );
     expect(onOpenChange).toHaveBeenCalledWith(false);
+  });
+
+  test("opens the mobile drawer on pointer down", () => {
+    Object.defineProperty(window, "innerWidth", {
+      configurable: true,
+      value: 375,
+    });
+
+    function ControlledModelSelector() {
+      const [open, setOpen] = useState(false);
+      return <ModelSelector open={open} onOpenChange={setOpen} />;
+    }
+
+    render(
+      <QueryClientProvider
+        client={
+          new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        }
+      >
+        <ControlledModelSelector />
+      </QueryClientProvider>,
+    );
+
+    const trigger = screen.getByRole("button", { name: /default/i });
+    fireEvent.pointerDown(trigger, { pointerType: "touch" });
+
+    expect(
+      screen.getByRole("heading", { name: "Select model" }),
+    ).toBeInTheDocument();
   });
 
   test("keeps variant selection compact inside the mobile drawer", async () => {

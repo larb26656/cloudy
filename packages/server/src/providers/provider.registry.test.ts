@@ -35,24 +35,27 @@ describe("provider registry", () => {
     const registry = createAgentProviderRegistry({ providers: [provider()] });
 
     expect(registry.get("test").id).toBe("test");
-    expect(await registry.catalog()).toEqual([
-      expect.objectContaining({
-        id: "test",
-        capabilities: {
-          streaming: true,
-          requiresDirectory: false,
-          approvals: false,
-          questions: false,
-          fileMentions: false,
-          commands: false,
-          attachments: false,
-          tools: false,
-          reasoning: false,
-          models: false,
-          agents: false,
-        },
-      }),
-    ]);
+    expect(await registry.catalog()).toEqual({
+      providers: [
+        expect.objectContaining({
+          id: "test",
+          capabilities: {
+            streaming: true,
+            requiresDirectory: false,
+            approvals: false,
+            questions: false,
+            fileMentions: false,
+            commands: false,
+            attachments: false,
+            tools: false,
+            reasoning: false,
+            models: false,
+            agents: false,
+          },
+        }),
+      ],
+      errors: [],
+    });
   });
 
   it("preserves explicitly configured capabilities", async () => {
@@ -68,10 +71,30 @@ describe("provider registry", () => {
       ],
     });
 
-    const [catalogProvider] = await registry.catalog();
+    const { providers } = await registry.catalog();
+    const [catalogProvider] = providers;
 
     expect(catalogProvider?.capabilities.approvals).toBe(true);
     expect(catalogProvider?.capabilities.questions).toBe(false);
+  });
+
+  it("returns successful providers when another provider fails", async () => {
+    const registry = createAgentProviderRegistry({
+      providers: [
+        provider(),
+        provider({
+          id: "broken",
+          getInfo: async () => {
+            throw new Error("Provider unavailable");
+          },
+        }),
+      ],
+    });
+
+    await expect(registry.catalog()).resolves.toEqual({
+      providers: [expect.objectContaining({ id: "test" })],
+      errors: [{ providerId: "broken", message: "Provider unavailable" }],
+    });
   });
 
   it("rejects unknown providers", () => {

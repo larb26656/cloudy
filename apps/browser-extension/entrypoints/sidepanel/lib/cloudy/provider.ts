@@ -148,8 +148,11 @@ export async function listProviderModels(): Promise<ModelInfo[]> {
     credentials: "include",
     headers: { Accept: "application/json" },
   });
-  const providers = await json<AgentProviderInfo[]>(response);
-  return providers.flatMap((provider) => provider.models ?? []);
+  const catalog = await json<{
+    providers: AgentProviderInfo[];
+    errors: { providerId: string; message: string }[];
+  }>(response);
+  return catalog.providers.flatMap((provider) => provider.models ?? []);
 }
 
 export async function subscribeToProviderEvents(

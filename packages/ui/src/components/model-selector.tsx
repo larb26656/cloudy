@@ -236,7 +236,10 @@ export function ModelSelector<T extends ModelSelectorModel>({
       <>
         <button
           type="button"
-          onPointerDown={(event) => event.preventDefault()}
+          onPointerDown={(event) => {
+            event.preventDefault();
+            setIsOpen(true);
+          }}
           onClick={() => setIsOpen(true)}
           className={cn(
             "inline-flex items-center justify-center gap-1",

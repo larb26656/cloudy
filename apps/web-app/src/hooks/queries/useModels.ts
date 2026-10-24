@@ -13,7 +13,8 @@ export async function fetchAgentProviderCatalog(): Promise<
   if (!res.ok) {
     throw new Error(`Failed to load model catalog (${res.status})`);
   }
-  return res.json();
+  const catalog = await res.json();
+  return catalog.providers;
 }
 
 export function useModels(providerId?: string) {
