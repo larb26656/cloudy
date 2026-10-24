@@ -185,7 +185,7 @@ export function AgentSelector({
           ? "inline-flex max-w-32 items-center justify-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 text-foreground transition-colors hover:bg-muted"
           : cn(
               "inline-flex items-center justify-center gap-1",
-              triggerClassName,
+              isMobile && triggerClassName,
             )
       }
     >

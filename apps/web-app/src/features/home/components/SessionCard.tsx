@@ -3,9 +3,8 @@ import { useState } from "react";
 import { formatRelativeFromTimestamp } from "@/lib/format";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { basename } from "@/lib/path";
-import { ProviderIcon } from "@/components/provider/ProviderIcon";
-import { AgentAvatar } from "@/components/agent-avatar/AgentAvatar";
 import type { AgentAvatarRecipe } from "@/components/agent-avatar/AgentAvatar";
+import { KindIcon } from "./KindIcon";
 
 export type ConversationKind = "ask" | "agent" | "bot";
 
@@ -19,24 +18,6 @@ interface SessionCardProps {
 
 function formatProvider(providerId: string): string {
   return providerId.charAt(0).toUpperCase() + providerId.slice(1);
-}
-
-function KindIcon({
-  avatar,
-  session,
-}: {
-  avatar?: AgentAvatarRecipe;
-  session: RecentChatSession;
-}) {
-  return (
-    <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-card text-muted-foreground">
-      {avatar ? (
-        <AgentAvatar {...avatar} className="size-10" />
-      ) : (
-        <ProviderIcon providerId={session.providerId} />
-      )}
-    </div>
-  );
 }
 
 export function SessionCard({
@@ -61,7 +42,9 @@ export function SessionCard({
       onClick={onClick}
       className="flex w-full items-center gap-4 rounded-xl p-3 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <KindIcon avatar={avatar} session={session} />
+      <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-card text-muted-foreground">
+        <KindIcon avatar={avatar} providerId={session.providerId} />
+      </div>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         {isEditing ? (
           <SessionTitleInput

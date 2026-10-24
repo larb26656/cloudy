@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import type { ChatSession } from "@/types";
 
@@ -32,6 +32,7 @@ interface CreateChatDialogProps {
     sessionId: string | null;
     sessionName: string;
     providerId: string;
+    agent?: string | null;
   }) => void;
 }
 
@@ -52,6 +53,13 @@ export function CreateChatDialog({
   const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [selected, setSelected] = useState<ChatTarget | null>(null);
   const [providerId, setProviderId] = useState(defaultProviderId);
+  const [agentId, setAgentId] = useState<string | null>(null);
+  useEffect(() => {
+    if (open) {
+      setProviderId(defaultProviderId);
+      setAgentId(null);
+    }
+  }, [open, defaultProviderId]);
   const createTempWorkspace = useCreateTempWorkspace();
   const { data: capacity } = useCapacity(providerId);
   const requiresDirectory = capacity?.requiresDirectory ?? true;
@@ -70,6 +78,7 @@ export function CreateChatDialog({
           sessionId: null,
           sessionName: name,
           providerId,
+          agent: agentId,
         });
         handleClose();
       },
@@ -105,6 +114,7 @@ export function CreateChatDialog({
       sessionId,
       sessionName,
       providerId,
+      agent: agentId,
     });
     handleClose();
   };
@@ -118,6 +128,7 @@ export function CreateChatDialog({
       sessionId: null,
       sessionName: "New Chat",
       providerId,
+      agent: agentId,
     });
     handleClose();
   };

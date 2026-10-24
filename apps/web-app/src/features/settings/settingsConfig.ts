@@ -4,6 +4,7 @@ import {
   PlugZap,
   BrainCircuit,
   Bot,
+  Pin,
   type LucideIcon,
 } from "lucide-react";
 
@@ -43,6 +44,13 @@ export const settingsSections: SettingsSection[] = [
     description: "Choose the defaults for new chat sessions.",
     to: "/settings/agent-model",
     icon: Bot,
+  },
+  {
+    id: "pinned-agents",
+    label: "Pinned Agents",
+    description: "Choose which agents appear on the home page.",
+    to: "/settings/pinned-agents",
+    icon: Pin,
   },
   {
     id: "appearance",

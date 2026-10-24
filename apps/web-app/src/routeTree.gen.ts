@@ -17,6 +17,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as WorkspaceWorkspaceIdRouteImport } from './routes/workspace/$workspaceId'
 import { Route as SettingsQuickPhrasesRouteImport } from './routes/settings/quick-phrases'
+import { Route as SettingsPinnedAgentsRouteImport } from './routes/settings/pinned-agents'
 import { Route as SettingsLlmConnectionsRouteImport } from './routes/settings/llm-connections'
 import { Route as SettingsAppearanceRouteImport } from './routes/settings/appearance'
 import { Route as SettingsAgentsRouteImport } from './routes/settings/agents'
@@ -63,6 +64,11 @@ const SettingsQuickPhrasesRoute = SettingsQuickPhrasesRouteImport.update({
   path: '/quick-phrases',
   getParentRoute: () => SettingsRoute,
 } as any)
+const SettingsPinnedAgentsRoute = SettingsPinnedAgentsRouteImport.update({
+  id: '/pinned-agents',
+  path: '/pinned-agents',
+  getParentRoute: () => SettingsRoute,
+} as any)
 const SettingsLlmConnectionsRoute = SettingsLlmConnectionsRouteImport.update({
   id: '/llm-connections',
   path: '/llm-connections',
@@ -100,6 +106,7 @@ export interface FileRoutesByFullPath {
   '/settings/agents': typeof SettingsAgentsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/llm-connections': typeof SettingsLlmConnectionsRoute
+  '/settings/pinned-agents': typeof SettingsPinnedAgentsRoute
   '/settings/quick-phrases': typeof SettingsQuickPhrasesRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
   '/settings/': typeof SettingsIndexRoute
@@ -114,6 +121,7 @@ export interface FileRoutesByTo {
   '/settings/agents': typeof SettingsAgentsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/llm-connections': typeof SettingsLlmConnectionsRoute
+  '/settings/pinned-agents': typeof SettingsPinnedAgentsRoute
   '/settings/quick-phrases': typeof SettingsQuickPhrasesRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
   '/settings': typeof SettingsIndexRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   '/settings/agents': typeof SettingsAgentsRoute
   '/settings/appearance': typeof SettingsAppearanceRoute
   '/settings/llm-connections': typeof SettingsLlmConnectionsRoute
+  '/settings/pinned-agents': typeof SettingsPinnedAgentsRoute
   '/settings/quick-phrases': typeof SettingsQuickPhrasesRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRoute
   '/settings/': typeof SettingsIndexRoute
@@ -147,6 +156,7 @@ export interface FileRouteTypes {
     | '/settings/agents'
     | '/settings/appearance'
     | '/settings/llm-connections'
+    | '/settings/pinned-agents'
     | '/settings/quick-phrases'
     | '/workspace/$workspaceId'
     | '/settings/'
@@ -161,6 +171,7 @@ export interface FileRouteTypes {
     | '/settings/agents'
     | '/settings/appearance'
     | '/settings/llm-connections'
+    | '/settings/pinned-agents'
     | '/settings/quick-phrases'
     | '/workspace/$workspaceId'
     | '/settings'
@@ -176,6 +187,7 @@ export interface FileRouteTypes {
     | '/settings/agents'
     | '/settings/appearance'
     | '/settings/llm-connections'
+    | '/settings/pinned-agents'
     | '/settings/quick-phrases'
     | '/workspace/$workspaceId'
     | '/settings/'
@@ -248,6 +260,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsQuickPhrasesRouteImport
       parentRoute: typeof SettingsRoute
     }
+    '/settings/pinned-agents': {
+      id: '/settings/pinned-agents'
+      path: '/pinned-agents'
+      fullPath: '/settings/pinned-agents'
+      preLoaderRoute: typeof SettingsPinnedAgentsRouteImport
+      parentRoute: typeof SettingsRoute
+    }
     '/settings/llm-connections': {
       id: '/settings/llm-connections'
       path: '/llm-connections'
@@ -292,6 +311,7 @@ interface SettingsRouteChildren {
   SettingsAgentsRoute: typeof SettingsAgentsRoute
   SettingsAppearanceRoute: typeof SettingsAppearanceRoute
   SettingsLlmConnectionsRoute: typeof SettingsLlmConnectionsRoute
+  SettingsPinnedAgentsRoute: typeof SettingsPinnedAgentsRoute
   SettingsQuickPhrasesRoute: typeof SettingsQuickPhrasesRoute
   SettingsIndexRoute: typeof SettingsIndexRoute
 }
@@ -302,6 +322,7 @@ const SettingsRouteChildren: SettingsRouteChildren = {
   SettingsAgentsRoute: SettingsAgentsRoute,
   SettingsAppearanceRoute: SettingsAppearanceRoute,
   SettingsLlmConnectionsRoute: SettingsLlmConnectionsRoute,
+  SettingsPinnedAgentsRoute: SettingsPinnedAgentsRoute,
   SettingsQuickPhrasesRoute: SettingsQuickPhrasesRoute,
   SettingsIndexRoute: SettingsIndexRoute,
 }

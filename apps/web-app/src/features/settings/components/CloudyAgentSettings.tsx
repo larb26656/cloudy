@@ -1,6 +1,7 @@
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "@repo/ui/components/sonner";
 import { Button } from "@repo/ui/components/button";
+import { ConfirmDialog } from "@repo/ui/components/confirm-dialog";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
@@ -25,6 +26,7 @@ export function CloudyAgentSettings() {
   const remove = useDeleteCloudyAgent();
   const [editing, setEditing] = useState<CloudyAgent | null>(null);
   const [open, setOpen] = useState(false);
+  const [deleting, setDeleting] = useState<CloudyAgent | null>(null);
 
   const openDialog = (agent?: CloudyAgent) => {
     setEditing(agent ?? null);
@@ -109,11 +111,7 @@ export function CloudyAgentSettings() {
                     size="icon-sm"
                     variant="ghost"
                     aria-label={`Delete ${agent.name}`}
-                    onClick={() =>
-                      remove.mutate(agent.id, {
-                        onError: (error) => toast.error(error.message),
-                      })
-                    }
+                    onClick={() => setDeleting(agent)}
                   >
                     <Trash2 />
                   </Button>
@@ -139,6 +137,26 @@ export function CloudyAgentSettings() {
         }}
         isSaving={create.isPending || update.isPending}
         onSubmit={submit}
+      />
+      <ConfirmDialog
+        open={deleting !== null}
+        onOpenChange={(nextOpen) => {
+          if (!nextOpen) setDeleting(null);
+        }}
+        title="Delete Cloudy agent?"
+        description={
+          deleting
+            ? `“${deleting.name}” will be permanently deleted. This action cannot be undone.`
+            : "This action cannot be undone."
+        }
+        confirmLabel="Delete agent"
+        destructive
+        onConfirm={() => {
+          if (!deleting) return;
+          remove.mutate(deleting.id, {
+            onError: (error) => toast.error(error.message),
+          });
+        }}
       />
     </div>
   );

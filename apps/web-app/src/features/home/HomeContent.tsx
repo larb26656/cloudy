@@ -7,6 +7,7 @@ import { RecentSessionsSection } from "./components/RecentSessionsSection";
 import { WorkspacesSection } from "./components/WorkspacesSection";
 import { WorkspaceDetail } from "./components/WorkspaceDetail";
 import { ProviderSection } from "./components/ProviderSection";
+import { PinnedAgentsSection } from "./components/PinnedAgentsSection";
 
 export function HomeContent({
   onOpenProjectChat,
@@ -49,6 +50,7 @@ export function HomeContent({
         <HomeGreeting />
         <QuickActions onOpenProjectChat={onOpenProjectChat} />
         <ProviderSection />
+        <PinnedAgentsSection />
         <RecentSessionsSection />
         <WorkspacesSection onSelectWorkspace={setSelectedWorkspace} />
       </>

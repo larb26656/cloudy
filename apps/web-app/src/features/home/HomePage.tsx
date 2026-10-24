@@ -25,7 +25,11 @@ export default function HomePage() {
       <TabHeaderBar />
       <div className="flex-1 overflow-hidden">
         <div className={activeTabId === "home" ? "h-full" : "hidden"}>
-          <HomeContent onOpenProjectChat={() => setProjectChatOpen(true)} />
+          <HomeContent
+            onOpenProjectChat={() => {
+              setProjectChatOpen(true);
+            }}
+          />
         </div>
         {tabs.map((tab) => {
           const isActive = activeTabId === tab.id;
