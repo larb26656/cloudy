@@ -186,7 +186,8 @@ export function createCloudyAgent({
     let text = "";
     try {
       const selectedAgent = agents().find(
-        (agent) => agent.name === request.agentId,
+        (agent) =>
+          agent.id === request.agentId || agent.name === request.agentId,
       );
       for await (const chunk of provider.chatAsync({
         model,

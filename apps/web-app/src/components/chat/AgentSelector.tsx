@@ -32,6 +32,7 @@ const agentModeLabels: Record<string, string> = {
 
 const FALLBACK_AGENTS: Agent[] = [
   {
+    id: "build",
     name: "build",
     description: "Default build agent (offline)",
     mode: "primary",
@@ -92,12 +93,12 @@ export function AgentSelector({
 
   const getDisplayName = () => {
     if (!effectiveAgent) return "Default Agent";
-    const agent = agents.find((a) => a.name === effectiveAgent);
+    const agent = agents.find((a) => a.id === effectiveAgent);
     return agent?.name || effectiveAgent;
   };
 
-  const handleSelectAgent = (agentName: string | null) => {
-    setAgent?.(agentName);
+  const handleSelectAgent = (agentId: string | null) => {
+    setAgent?.(agentId);
     setOpenState(false);
     setSearchQuery("");
   };
@@ -113,9 +114,9 @@ export function AgentSelector({
       ) : isMobile ? (
         filteredAgents.map((agent) => (
           <button
-            key={agent.name}
+            key={agent.id}
             type="button"
-            onClick={() => handleSelectAgent(agent.name)}
+            onClick={() => handleSelectAgent(agent.id)}
             className="flex w-full items-center justify-between gap-2 px-4 py-2 text-left text-sm hover:bg-muted"
           >
             <div className="min-w-0 flex-1">
@@ -137,8 +138,8 @@ export function AgentSelector({
         <DropdownMenuGroup>
           {filteredAgents.map((agent) => (
             <DropdownMenuItem
-              key={agent.name}
-              onClick={() => handleSelectAgent(agent.name)}
+              key={agent.id}
+              onClick={() => handleSelectAgent(agent.id)}
               className="flex items-center justify-between gap-2"
             >
               <div className="min-w-0 flex-1">

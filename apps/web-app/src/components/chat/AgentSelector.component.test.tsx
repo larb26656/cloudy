@@ -6,12 +6,14 @@ import { AgentSelector } from "./AgentSelector";
 
 const agents: Agent[] = [
   {
+    id: "build",
     name: "build",
     description: "Build the application",
     mode: "primary",
     native: true,
   },
   {
+    id: "review-id",
     name: "review",
     description: "Review the current change",
     mode: "subagent",
@@ -82,6 +84,13 @@ describe("AgentSelector", () => {
 
     await user.click(screen.getByRole("button", { name: /review/i }));
 
-    expect(mocks.setAgent).toHaveBeenCalledWith("review");
+    expect(mocks.setAgent).toHaveBeenCalledWith("review-id");
+  });
+
+  test("displays the agent name for the selected agent ID", () => {
+    mocks.effectiveAgent = "review-id";
+    render(<AgentSelector />);
+
+    expect(screen.getByRole("button", { name: "review" })).toBeInTheDocument();
   });
 });

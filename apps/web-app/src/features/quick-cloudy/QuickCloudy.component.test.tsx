@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 import { QuickCloudy } from "./QuickCloudy";
 
@@ -8,7 +8,7 @@ const mocks = vi.hoisted(() => ({
   openSession: vi.fn(),
   sendMessage: vi.fn(),
   setHeight: vi.fn(),
-  useRecentSessions: vi.fn(),
+  useQuickCloudySuggestions: vi.fn(),
   sessionId: null as string | null,
   providerSessionId: null as string | null,
   chatProviderId: "",
@@ -34,28 +34,8 @@ vi.mock("@/components/provider/ProviderIcon", () => ({
     <span data-testid={`provider-icon-${providerId}`} />
   ),
 }));
-vi.mock("@/hooks/queries/useSessions", () => ({
-  useRecentSessions: mocks.useRecentSessions.mockImplementation(
-    ({ search }: { search?: string } = {}) => ({
-      data: [
-        {
-          id: "recent-session",
-          providerId: "cloudy",
-          title: "Previous question",
-          directory: "/project",
-        },
-        {
-          id: "other-provider-session",
-          providerId: "other",
-          title: "Other provider chat",
-          directory: "/project",
-        },
-      ].filter(
-        (session) =>
-          !search || session.title.toLowerCase().includes(search.toLowerCase()),
-      ),
-    }),
-  ),
+vi.mock("@/hooks/queries/useQuickCloudy", () => ({
+  useQuickCloudySuggestions: mocks.useQuickCloudySuggestions,
 }));
 vi.mock("@/components/chat/ChatProvider", () => ({
   ChatProvider: ({
@@ -179,35 +159,51 @@ vi.mock("@/lib/desktop/quickBridge", () => ({
 }));
 
 describe("QuickCloudy", () => {
-  afterEach(() => {
+  beforeEach(() => {
     vi.clearAllMocks();
     mocks.sessionId = null;
     mocks.providerSessionId = null;
     mocks.onSessionChange = null;
     mocks.chatProviderId = "";
     mocks.chatDirectory = "";
-    mocks.useRecentSessions.mockImplementation(
+    mocks.useQuickCloudySuggestions.mockImplementation(
       ({ search }: { search?: string } = {}) => ({
-        data: [
-          {
-            id: "recent-session",
-            providerId: "cloudy",
-            title: "Previous question",
-            directory: "/project",
-          },
-          {
-            id: "other-provider-session",
-            providerId: "other",
-            title: "Other provider chat",
-            directory: "/project",
-          },
-        ].filter(
-          (session) =>
-            !search ||
-            session.title.toLowerCase().includes(search.toLowerCase()),
-        ),
+        data: {
+          agents: [
+            { id: "ask", name: "Ask", builtIn: true },
+            { id: "writer", name: "Writer", builtIn: false },
+          ],
+          recentSessions: [
+            {
+              id: "recent-session",
+              providerId: "cloudy",
+              title: "Previous question",
+              directory: "/project",
+              status: "idle",
+              runStatus: "idle",
+              updatedAt: Date.now(),
+            },
+            {
+              id: "other-provider-session",
+              providerId: "other",
+              title: "Other provider chat",
+              directory: "/project",
+              status: "idle",
+              runStatus: "idle",
+              updatedAt: Date.now(),
+            },
+          ].filter(
+            (session) =>
+              !search ||
+              session.title.toLowerCase().includes(search.toLowerCase()),
+          ),
+        },
       }),
     );
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it("offers Ask Cloudy for typed text and starts that prompt", () => {
@@ -228,7 +224,29 @@ describe("QuickCloudy", () => {
     expect(mocks.sendMessage).toHaveBeenCalledWith(
       { text: "Explain this code", mentions: [], attachments: [] },
       null,
+      "ask",
+      { newSession: true, providerId: "cloudy" },
+    );
+  });
+
+  it("lists configured Cloudy agents and starts the prompt with the selected agent", () => {
+    render(<QuickCloudy />);
+    fireEvent.change(screen.getByRole("combobox", { name: "Ask Cloudy" }), {
+      target: { value: "Draft a note" },
+    });
+
+    expect(
+      screen.getByRole("option", { name: /Ask Writer/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("option", { name: /Ask Ask/ }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole("option", { name: /Ask Writer/ }));
+
+    expect(mocks.sendMessage).toHaveBeenCalledWith(
+      { text: "Draft a note", mentions: [], attachments: [] },
       null,
+      "writer",
       { newSession: true, providerId: "cloudy" },
     );
   });

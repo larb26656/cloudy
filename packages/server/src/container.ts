@@ -17,6 +17,7 @@ import {
   createSessionsService,
 } from "./features/sessions";
 import { createCloudyMessagesRepository } from "./features/sessions/cloudy-messages.repository";
+import { createQuickCloudyService } from "./features/quick-cloudy";
 import { createDb, runMigrations, type DbClient } from "./db";
 import {
   createEchoAdapter,
@@ -105,6 +106,10 @@ export function createContainer(
     sessionsRepository,
     agentProviderRegistry,
   );
+  const quickCloudyService = createQuickCloudyService(
+    agentsService,
+    sessionsService,
+  );
   const providerEventHub = createProviderEventHub(agentProviderRegistry, {
     onEvent: (event) => sessionsService.applyEvent(event),
   });
@@ -121,6 +126,7 @@ export function createContainer(
     chatgptPlanService,
     agentProviderRegistry,
     sessionsService,
+    quickCloudyService,
     providerEventHub,
   };
 }

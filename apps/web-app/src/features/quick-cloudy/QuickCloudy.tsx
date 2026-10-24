@@ -3,14 +3,13 @@ import { Button } from "@repo/ui/components/button";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { useCapacity } from "@/hooks/queries/useModels";
-import { useRecentSessions } from "@/hooks/queries/useSessions";
-import type { RecentChatSession } from "@/types";
 import { ChatProvider, useChat } from "@/components/chat/ChatProvider";
 import { ChatSurface } from "@/components/chat/ChatContainer";
 import "./QuickCloudy.css";
 import { createSessionTabPayload } from "@/features/pet/openSessionTab";
 import { quickBridge } from "@/lib/desktop/quickBridge";
 import type { ChatInputContent } from "@/lib/opencode";
+import type { RecentChatSession } from "@/types";
 import { QuickCloudySearchResults } from "./QuickCloudySearchResults";
 
 export function QuickCloudy() {
@@ -18,7 +17,6 @@ export function QuickCloudy() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [providerId, setProviderId] = useState("cloudy");
   const [directory, setDirectory] = useState("");
-  const { data: recentSessions = [] } = useRecentSessions({ limit: 100 });
   const { data: capacity, isLoading, error } = useCapacity(providerId);
   const handleSessionChange = (nextSessionId: string | null) => {
     setSessionId(nextSessionId);
@@ -64,7 +62,6 @@ export function QuickCloudy() {
       <QuickCloudyContent
         sessionName="Quick Chat"
         providerId={providerId}
-        recentSessions={recentSessions.slice(0, 5)}
         onSelectSession={(session) => {
           setSessionId(session.id);
           setProviderId(session.providerId);
@@ -88,30 +85,22 @@ export function QuickCloudy() {
 function QuickCloudyContent({
   sessionName,
   providerId,
-  recentSessions,
   onSelectSession,
   onBackToPicker,
   view,
 }: {
   sessionName: string;
   providerId: string;
-  recentSessions: RecentChatSession[];
   onSelectSession: (session: RecentChatSession) => void;
   onBackToPicker: () => void;
   view: "search" | "chat";
 }) {
-  const {
-    sessionId,
-    directory,
-    sendMessage,
-    effectiveModel,
-    effectiveAgent,
-    isSending,
-  } = useChat();
+  const { sessionId, directory, sendMessage, effectiveModel, isSending } =
+    useChat();
   const [initialPrompt, setInitialPrompt] = useState("");
   const lastWindowHeight = useRef<number | null>(null);
 
-  const submitInitialPrompt = (nextProviderId: string) => {
+  const submitInitialPrompt = (nextProviderId: string, nextAgent: string) => {
     const text = initialPrompt.trim();
     if (!text || isSending) return;
     const content: ChatInputContent = {
@@ -120,7 +109,7 @@ function QuickCloudyContent({
       attachments: [],
     };
     setInitialPrompt("");
-    void sendMessage(content, effectiveModel, effectiveAgent, {
+    void sendMessage(content, effectiveModel, nextAgent, {
       newSession: true,
       providerId: nextProviderId,
     });
@@ -202,7 +191,6 @@ function QuickCloudyContent({
         <QuickCloudySearchResults
           initialPrompt={initialPrompt}
           onPromptChange={setInitialPrompt}
-          recentSessions={recentSessions}
           onSelectSession={onSelectSession}
           onSubmitPrompt={submitInitialPrompt}
           disabled={isSending}

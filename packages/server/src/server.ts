@@ -16,6 +16,7 @@ import {
   createAgentsController,
 } from "./features/settings";
 import { createLLMConnectionsController } from "./features/llm-connections";
+import { createQuickCloudyController } from "./features/quick-cloudy";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
 
@@ -68,6 +69,10 @@ export function createApp({
       ),
     )
     .route("/api/sessions", createSessionsController(container.sessionsService))
+    .route(
+      "/api/quick-cloudy",
+      createQuickCloudyController(container.quickCloudyService),
+    )
     .route("/api/settings", createAgentsController(container.agentsService))
     .route(
       "/api/settings",

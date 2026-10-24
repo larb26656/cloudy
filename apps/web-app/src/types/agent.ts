@@ -1,4 +1,5 @@
 export interface Agent {
+  id: string;
   providerId?: string;
   name: string;
   description?: string;

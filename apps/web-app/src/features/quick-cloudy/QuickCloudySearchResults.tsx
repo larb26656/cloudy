@@ -7,24 +7,22 @@ import {
   CommandList,
   CommandShortcut,
 } from "@repo/ui/components/command";
-import { useRecentSessions } from "@/hooks/queries/useSessions";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { ProviderIcon } from "@/components/provider/ProviderIcon";
+import { useQuickCloudySuggestions } from "@/hooks/queries/useQuickCloudy";
 import type { RecentChatSession } from "@/types";
 
 type QuickCloudySearchResultsProps = {
   initialPrompt: string;
   onPromptChange: (prompt: string) => void;
-  recentSessions: RecentChatSession[];
   onSelectSession: (session: RecentChatSession) => void;
-  onSubmitPrompt: (providerId: string) => void;
+  onSubmitPrompt: (providerId: string, agent: string) => void;
   disabled: boolean;
 };
 
 export function QuickCloudySearchResults({
   initialPrompt,
   onPromptChange,
-  recentSessions,
   onSelectSession,
   onSubmitPrompt,
   disabled,
@@ -32,11 +30,11 @@ export function QuickCloudySearchResults({
   const trimmedPrompt = initialPrompt.trim();
   const searchPrompt = useDebouncedValue(trimmedPrompt);
 
-  const { data: matchingSessions = [] } = useRecentSessions({
-    limit: 100,
+  const { data } = useQuickCloudySuggestions({
     search: searchPrompt || undefined,
   });
-  const sessions = searchPrompt ? matchingSessions : recentSessions;
+  const agents = data?.agents ?? [];
+  const sessions = data?.recentSessions ?? [];
 
   return (
     <Command
@@ -52,10 +50,10 @@ export function QuickCloudySearchResults({
       />
       <CommandList>
         {trimmedPrompt && (
-          <CommandGroup>
+          <CommandGroup heading="Ask">
             <CommandItem
-              value={trimmedPrompt}
-              onSelect={() => onSubmitPrompt("cloudy")}
+              value={`cloudy ${trimmedPrompt}`}
+              onSelect={() => onSubmitPrompt("cloudy", "ask")}
               className="quick-cloudy-item-enter min-w-0"
             >
               <MessageCircle />
@@ -64,6 +62,22 @@ export function QuickCloudySearchResults({
               </span>
               <CommandShortcut>↵</CommandShortcut>
             </CommandItem>
+            {agents
+              .filter((agent) => !agent.builtIn)
+              .map((agent) => (
+                <CommandItem
+                  key={agent.id}
+                  value={`${agent.name} ${trimmedPrompt}`}
+                  onSelect={() => onSubmitPrompt("cloudy", agent.id)}
+                  className="quick-cloudy-item-enter min-w-0"
+                >
+                  <MessageCircle />
+                  <span className="min-w-0 flex-1 truncate">
+                    Ask {agent.name} “{trimmedPrompt}”
+                  </span>
+                  <CommandShortcut>↵</CommandShortcut>
+                </CommandItem>
+              ))}
           </CommandGroup>
         )}
         {sessions.length > 0 && (

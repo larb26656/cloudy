@@ -29,6 +29,7 @@ export function useAgents({
                 !agent.hidden && agent.mode === "primary",
             )
             .map((agent) => ({
+              id: agent.id,
               providerId: provider.id,
               name: agent.name ?? agent.id,
               description: agent.description,

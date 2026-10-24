@@ -5,7 +5,9 @@ import { pickFresher } from "@/lib/streaming/message-reconciliation";
 import { useStreamingMessageDisplayItems } from "@/lib/streaming/display-items";
 import type { Message } from "@/types";
 import { useMessages } from "@/hooks/queries/useMessages";
+import { useAgents } from "@/hooks/queries/useAgents";
 import { useSessionStatus } from "@/hooks/queries/useSessions";
+import { useChatContext } from "../ChatProvider";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import { useSessionErrorStore } from "@/stores/sessionErrorStore";
 import type { SessionErrorInfo } from "@repo/ui/components/message";
@@ -35,6 +37,15 @@ export function useMessageListData({
   selectedSessionId: string | null;
   directory?: string;
 }): MessageListData {
+  const chat = useChatContext();
+  const { data: agents } = useAgents({
+    directory,
+    providerId: chat?.providerId,
+  });
+  const agentNames = useMemo(
+    () => new Map((agents ?? []).map((agent) => [agent.id, agent.name])),
+    [agents],
+  );
   const removeStreamingMessage = useStreamingMessagesStore(
     (s) => s.removeStreamingMessage,
   );
@@ -66,8 +77,16 @@ export function useMessageListData({
   });
 
   const remoteMessages = useMemo(
-    () => data?.pages.flatMap((page) => page.messages) ?? [],
-    [data?.pages],
+    () =>
+      (data?.pages.flatMap((page) => page.messages) ?? []).map((message) => ({
+        ...message,
+        parts: message.parts.map((part) =>
+          part.type === "step-finish" && part.agent
+            ? { ...part, agent: agentNames.get(part.agent) ?? part.agent }
+            : part,
+        ),
+      })),
+    [data?.pages, agentNames],
   );
   const coreMessages = remoteMessages;
   const { displayItems: coreDisplayItems, streamingIds } =
