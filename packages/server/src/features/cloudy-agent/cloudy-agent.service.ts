@@ -10,6 +10,7 @@ import type {
 import type { CloudyMessagesRepository } from "../sessions/sessions.cloudy-messages.repository";
 import type { LLM, LLMClient } from "../../lib/llm-provider";
 import { namingSession } from "./cloudy-agent.naming-session";
+import { NotFoundError, ValidationError } from "../../shared/domain-error";
 
 export function createCloudyAgent({
   apiProviderRegistry,
@@ -127,9 +128,10 @@ export function createCloudyAgent({
     const connectionId = request.model?.providerId;
     const modelId = request.model?.modelId;
     if (!connectionId || !modelId)
-      throw new Error("A model must be selected for Cloudy AI");
+      throw new ValidationError("A model must be selected for Cloudy AI");
     const provider = apiProviderRegistry.getClient(connectionId);
-    if (!provider) throw new Error(`API provider not found: ${connectionId}`);
+    if (!provider)
+      throw new NotFoundError(`API provider not found: ${connectionId}`);
 
     const history = messagesRepository
       .list(request.sessionId)

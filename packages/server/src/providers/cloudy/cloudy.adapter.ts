@@ -10,6 +10,7 @@ import type { LLM } from "../../lib/llm-provider";
 import type { SessionsRepository } from "../../features/sessions/sessions.repository";
 import type { CloudyMessagesRepository } from "../../features/sessions/sessions.cloudy-messages.repository";
 import { createCloudyAgent } from "../../features/cloudy-agent/cloudy-agent.service";
+import { NotFoundError } from "../../shared/domain-error";
 
 export function createCloudyAdapter({
   apiProviderRegistry,
@@ -33,7 +34,7 @@ export function createCloudyAdapter({
 
   const toSession = (id: string): ChatSession => {
     const record = sessionsRepository.findByProviderSessionId("cloudy", id);
-    if (!record) throw new Error(`Cloudy session not found: ${id}`);
+    if (!record) throw new NotFoundError(`Cloudy session not found: ${id}`);
     return {
       id,
       title: record.title ?? "Cloudy chat",

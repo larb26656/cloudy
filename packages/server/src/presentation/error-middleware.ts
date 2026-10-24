@@ -4,10 +4,7 @@ import { HTTPException } from "hono/http-exception";
 import { DomainError } from "../shared/domain-error";
 
 /**
- * Translate `DomainError` subclasses (thrown from the service layer) into HTTP
- * responses. Anything else — including Hono's own `HTTPException` — is allowed
- * to propagate so the framework can render it. Keeping this translation at the
- * HTTP edge is what lets services stay framework-free.
+ * Translate service errors at the HTTP boundary while keeping services framework-free.
  *
  * Exposed as a plain function rather than a `MiddlewareHandler` because Hono
  * dispatches errors through `app.onError`, not by rejecting the middleware
@@ -20,10 +17,16 @@ export function onError(err: unknown, c: Context): Response {
       { status: err.status as ContentfulStatusCode },
     );
   }
-  if (err instanceof HTTPException) return err.getResponse();
-  const message = err instanceof Error ? err.message : "Internal error";
-  return c.json(
-    { error: "Internal error", message },
-    { status: 500 },
-  );
+  if (err instanceof HTTPException) {
+    const response = err.getResponse();
+    const headers = new Headers(c.res.headers);
+    response.headers.forEach((value, key) => headers.set(key, value));
+    return new Response(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers,
+    });
+  }
+  console.error("Unhandled server error", err);
+  return c.json({ error: "Internal Server Error" }, { status: 500 });
 }

@@ -6,6 +6,7 @@ import {
   readCredentials,
 } from "../../../lib/siwc/credentials";
 import type { LLM } from "../../../lib/llm-provider";
+import { ConflictError } from "../../../shared/domain-error";
 import { startOAuthLogin } from "./chatgpt-plan.oauth-login";
 
 const RESOURCE = "https://api.openai.com/v1";
@@ -93,7 +94,8 @@ export function createChatGPTPlanService(configDir: string, llm: LLM) {
       }
     },
     async connect() {
-      if (pending) throw new Error("ChatGPT sign-in is already in progress");
+      if (pending)
+        throw new ConflictError("ChatGPT sign-in is already in progress");
       pending = true;
       lastError = undefined;
       console.info("[ChatGPT plan] Starting sign-in", {

@@ -7,6 +7,7 @@ import {
   createLLM,
 } from "../../../lib/llm-provider";
 import type { ChatGPTCredentials } from "../../../lib/siwc/credentials";
+import { ConflictError } from "../../../shared/domain-error";
 import { createChatGPTPlanService } from "./chatgpt-plan.service";
 
 vi.mock("./chatgpt-plan.oauth-login", () => ({
@@ -90,9 +91,7 @@ describe("ChatGPT plan service", () => {
   it("rejects duplicate sign-in attempts and clears pending state on cancel", async () => {
     await service.connect();
 
-    await expect(service.connect()).rejects.toThrow(
-      "ChatGPT sign-in is already in progress",
-    );
+    await expect(service.connect()).rejects.toThrow(ConflictError);
     await expect(service.status()).resolves.toMatchObject({ connecting: true });
     await expect(service.cancel()).resolves.toEqual({ connecting: false });
     await expect(service.status()).resolves.toMatchObject({

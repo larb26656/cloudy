@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { AppConfig } from "../../../config";
 import { updateFileConfig } from "../../../config/file-loader";
+import { ConflictError, NotFoundError } from "../../../shared/domain-error";
 import type { AgentConfig } from "../settings.model";
 
 const builtInAskAgent: AgentConfig = {
@@ -21,7 +22,7 @@ export function createAgentsService(config: AppConfig, configDir?: string) {
   ];
   const findAgentById = (id: string) => {
     const agent = getAllAgents().find((candidate) => candidate.id === id);
-    if (!agent) throw new Error(`Agent not found: ${id}`);
+    if (!agent) throw new NotFoundError(`Agent not found: ${id}`);
     return agent;
   };
 
@@ -35,7 +36,7 @@ export function createAgentsService(config: AppConfig, configDir?: string) {
           (agent) => agent.name.toLowerCase() === input.name.toLowerCase(),
         )
       )
-        throw new Error(`Agent already exists: ${input.name}`);
+        throw new ConflictError(`Agent already exists: ${input.name}`);
       const agent = { ...input, id: randomUUID() };
       const next = [...agents, agent];
       updateFileConfig(settingsDir, (current) => ({
@@ -51,7 +52,7 @@ export function createAgentsService(config: AppConfig, configDir?: string) {
     ) {
       const current = findAgentById(id);
       if (current.builtIn)
-        throw new Error(`Cannot modify built-in agent: ${id}`);
+        throw new ConflictError(`Cannot modify built-in agent: ${id}`);
       const index = agents.findIndex((agent) => agent.id === id);
       const updated = { ...agents[index]!, ...patch, id };
       if (
@@ -61,7 +62,7 @@ export function createAgentsService(config: AppConfig, configDir?: string) {
             agent.name.toLowerCase() === updated.name.toLowerCase(),
         )
       )
-        throw new Error(`Agent already exists: ${updated.name}`);
+        throw new ConflictError(`Agent already exists: ${updated.name}`);
       const next = agents.map((agent) => (agent.id === id ? updated : agent));
       updateFileConfig(settingsDir, (current) => ({
         ...current,
@@ -73,7 +74,7 @@ export function createAgentsService(config: AppConfig, configDir?: string) {
     deleteAgent(id: string) {
       const current = findAgentById(id);
       if (current.builtIn)
-        throw new Error(`Cannot delete built-in agent: ${id}`);
+        throw new ConflictError(`Cannot delete built-in agent: ${id}`);
       const next = agents.filter((agent) => agent.id !== id);
       updateFileConfig(settingsDir, (current) => ({
         ...current,

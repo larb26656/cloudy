@@ -5,6 +5,7 @@ import {
   UnsupportedProviderOperationError,
 } from "./provider.errors";
 import { createAgentProviderRegistry } from "./provider.registry";
+import { ConflictError, ValidationError } from "../shared/domain-error";
 
 function provider(
   overrides: Partial<AgentProviderAdapter> = {},
@@ -82,7 +83,13 @@ describe("provider registry", () => {
   it("rejects duplicate provider IDs", () => {
     expect(() =>
       createAgentProviderRegistry({ providers: [provider(), provider()] }),
-    ).toThrow("Provider IDs must be unique");
+    ).toThrow(ValidationError);
+  });
+
+  it("rejects registering an existing provider as a conflict", () => {
+    const registry = createAgentProviderRegistry({ providers: [provider()] });
+
+    expect(() => registry.register(provider())).toThrow(ConflictError);
   });
 
   it("reports unsupported operations", () => {

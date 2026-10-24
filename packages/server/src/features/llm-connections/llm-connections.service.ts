@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { AppConfig } from "../../config";
 import { updateFileConfig } from "../../config/file-loader";
+import { NotFoundError } from "../../shared/domain-error";
 import type { LLM } from "../../lib/llm-provider";
 import type {
   LLMConnectionDto,
@@ -117,7 +118,7 @@ export function createLLMConnectionService(
       patch: Partial<Omit<LLMConnectionInput, "type">>,
     ) {
       const index = connections.findIndex((item) => item.id === id);
-      if (index < 0) throw new Error(`LLM connection not found: ${id}`);
+      if (index < 0) throw new NotFoundError(`LLM connection not found: ${id}`);
       const previous = connections[index]!;
       const updated: StoredConnection = {
         ...previous,
@@ -136,7 +137,7 @@ export function createLLMConnectionService(
     deleteConnection(id: string) {
       const next = connections.filter((item) => item.id !== id);
       if (next.length === connections.length)
-        throw new Error(`LLM connection not found: ${id}`);
+        throw new NotFoundError(`LLM connection not found: ${id}`);
       persist(next);
       connections = next;
       llm.deleteClient(id);

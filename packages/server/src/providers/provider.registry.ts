@@ -19,6 +19,7 @@ import {
   ProviderNotFoundError,
   UnsupportedProviderOperationError,
 } from "./provider.errors";
+import { ConflictError, ValidationError } from "../shared/domain-error";
 
 const defaultCapabilities = {
   streaming: false,
@@ -47,7 +48,7 @@ export function createAgentProviderRegistry({
   const listeners = new Set<() => void>();
 
   if (providerMap.size !== providers.length) {
-    throw new Error("Provider IDs must be unique");
+    throw new ValidationError("Provider IDs must be unique");
   }
 
   const get = (providerId: string): AgentProviderAdapter => {
@@ -80,7 +81,7 @@ export function createAgentProviderRegistry({
     },
     register(provider: AgentProviderAdapter) {
       if (providerMap.has(provider.id))
-        throw new Error(`Provider already exists: ${provider.id}`);
+        throw new ConflictError(`Provider already exists: ${provider.id}`);
       providerMap.set(provider.id, provider);
       listeners.forEach((listener) => listener());
     },

@@ -9,6 +9,7 @@ import type {
   ProviderMessageRequest,
   ProviderSessionInput,
 } from "@repo/ai-core";
+import { NotFoundError } from "../../shared/domain-error";
 
 interface EchoSession {
   session: ChatSession;
@@ -22,7 +23,7 @@ export function createEchoAdapter(): AgentProviderAdapter {
 
   const get = (sessionId: string) => {
     const value = sessions.get(sessionId);
-    if (!value) throw new Error(`Echo session not found: ${sessionId}`);
+    if (!value) throw new NotFoundError(`Echo session not found: ${sessionId}`);
     return value;
   };
 

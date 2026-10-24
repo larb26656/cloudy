@@ -5,6 +5,7 @@ import { updateFileConfig } from "../../../config/file-loader";
 import type { AgentProviderSettings } from "../settings.model";
 import type { AgentProviderRegistry } from "../../../providers/provider.registry";
 import { createProviderTemplateRegistry } from "../../../providers/provider-template.registry";
+import { NotFoundError } from "../../../shared/domain-error";
 
 export function createAgentProviderSettingsService(
   config: AppConfig,
@@ -48,7 +49,8 @@ export function createAgentProviderSettingsService(
       patch: Partial<Omit<AgentProviderSettings, "id">>,
     ) {
       const index = instances.findIndex((item) => item.id === id);
-      if (index < 0) throw new Error(`Provider instance not found: ${id}`);
+      if (index < 0)
+        throw new NotFoundError(`Provider instance not found: ${id}`);
       const previous = instances[index]!;
       const updated = { ...previous, ...patch, id };
       instances[index] = updated;
@@ -63,7 +65,8 @@ export function createAgentProviderSettingsService(
     },
     deleteAgentProvider(id: string) {
       const index = instances.findIndex((item) => item.id === id);
-      if (index < 0) throw new Error(`Provider instance not found: ${id}`);
+      if (index < 0)
+        throw new NotFoundError(`Provider instance not found: ${id}`);
       const [removed] = instances.splice(index, 1);
       try {
         persist();

@@ -37,34 +37,34 @@ source: planning session 2026-10-25
 
 ## Tasks
 
-- [ ] 1. **Define the error taxonomy and layer responsibilities in `packages/server/AGENTS.md`, including the rule that unknown 500 responses never expose internal messages.**
+- [x] 1. **Define the error taxonomy and layer responsibilities in `packages/server/AGENTS.md`, including the rule that unknown 500 responses never expose internal messages.**
   - verify: `rg -n 'DomainError|HTTPException|onError|Internal Server Error|Repository' packages/server/AGENTS.md`
   - files: `packages/server/AGENTS.md`
-- [ ] 2. **Align `DomainError` base classes and status/kind typing with the agreed taxonomy, adding only categories required by actual service cases.**
+- [x] 2. **Align `DomainError` base classes and status/kind typing with the agreed taxonomy, adding only categories required by actual service cases.** Existing base classes cover the identified service outcomes.
   - verify: `pnpm --filter @repo/server check-types`
   - files: `packages/server/src/shared/domain-error.ts`
-- [ ] 3. **Standardize the global Hono `onError` handler: preserve `HTTPException` responses, map domain errors to the agreed JSON shape, log unexpected errors, and return a generic sanitized 500.**
+- [x] 3. **Standardize the global Hono `onError` handler: preserve `HTTPException` responses, map domain errors to the agreed JSON shape, log unexpected errors, and return a generic sanitized 500.**
   - verify: `pnpm --filter @repo/server exec vitest run src/presentation/error-middleware.test.ts`
   - files: `packages/server/src/presentation/error-middleware.ts`, `packages/server/src/presentation/error-middleware.test.ts`, `packages/server/src/server.ts`
-- [ ] 4. **Add/adjust focused handler tests for DomainError status mapping, Hono HTTPException behavior, unexpected Error sanitization, and non-Error thrown values.**
+- [x] 4. **Add/adjust focused handler tests for DomainError status mapping, Hono HTTPException behavior, unexpected Error sanitization, and non-Error thrown values.**
   - verify: `pnpm --filter @repo/server exec vitest run src/presentation/error-middleware.test.ts`
   - files: `packages/server/src/presentation/error-middleware.test.ts`
-- [ ] 5. **Classify plain errors in services and convert only expected business outcomes (missing entities, conflicts, invalid actions/input) to typed domain errors.**
+- [x] 5. **Classify plain errors in services and convert only expected business outcomes (missing entities, conflicts, invalid actions/input) to typed domain errors.** Also converted missing sessions in Cloudy/Echo adapters, provider registry conflicts/invalid IDs, and duplicate ChatGPT sign-in attempts.
   - verify: `pnpm --filter @repo/server exec vitest --project unit run`
   - files: `packages/server/src/features/**`, `packages/server/src/lib/**`
-- [ ] 6. **Review controllers, providers, adapters, config, and OAuth/streaming code; keep intentional infrastructure/protocol errors as internal errors and preserve causes when wrapping errors.**
+- [x] 6. **Review controllers, providers, adapters, config, and OAuth/streaming code; keep intentional infrastructure/protocol errors as internal errors and preserve causes when wrapping errors.** Remaining plain errors are configuration bootstrap, OAuth callback HTML responses, upstream/network/protocol failures, and test assertions; they do not represent expected API business outcomes. No wrapping changes were needed.
   - verify: `rg -n 'throw new Error|throw new HTTPException|catch \(' packages/server/src`
   - files: `packages/server/src/features/**`, `packages/server/src/providers/**`, `packages/server/src/lib/**`, `packages/server/src/config/**`
-- [ ] 7. **Update affected service/controller/integration tests to assert the standardized domain error types and API response contract, then run the server checks.**
+- [x] 7. **Update affected service/controller/integration tests to assert the standardized domain error types and API response contract, then run the server checks.**
   - verify: `pnpm --filter @repo/server test && pnpm run lint && pnpm run check-types`
   - files: `packages/server/src/**/*.test.ts`
 
 ## Done when
 
-- [ ] Service code uses framework-independent typed domain errors for expected business failures; plain `Error` remains for unexpected/internal failures.
-- [ ] One global `onError` policy handles HTTPException, DomainError, and unknown errors consistently; unknown 500 responses contain no internal exception message and are logged.
-- [ ] `packages/server/AGENTS.md` describes the same policy implemented by the code, with no instruction to duplicate global translation in every controller.
-- [ ] `pnpm --filter @repo/server test`, `pnpm run lint`, and `pnpm run check-types` pass.
+- [x] Service code uses framework-independent typed domain errors for expected business failures; plain `Error` remains for unexpected/internal failures.
+- [x] One global `onError` policy handles HTTPException, DomainError, and unknown errors consistently; unknown 500 responses contain no internal exception message and are logged.
+- [x] `packages/server/AGENTS.md` describes the same policy implemented by the code, with no instruction to duplicate global translation in every controller.
+- [x] `pnpm --filter @repo/server test`, `pnpm run lint`, and `pnpm run check-types` pass.
 
 ## Notes for implementer
 

@@ -54,10 +54,10 @@ Lives in `src/config/`. Layered load with later layers winning (see `loadConfig`
 
 ## Error Handling
 
-- **Services** throw domain error subclasses (`WorkspaceNotFoundError`, `WorkspaceConflictError`). Do NOT throw `HTTPException`
-- **Repositories** throw plain `Error` for internal failures; return `null`/empty for "not found"
-- **Routes/controllers** catch domain errors and re-throw as `HTTPException(status, { message })`
-- **Tests:** `await expect(svc.get('x')).rejects.toMatchObject({ status: 404 })`
+- **Services** throw framework-independent `DomainError` subclasses for expected business failures (not found, validation, conflict, unauthorized). Do NOT throw `HTTPException`.
+- **Repositories** throw plain `Error` for unexpected persistence/infrastructure failures; return `null`/empty for normal absence. Preserve causes when wrapping errors.
+- **HTTP boundary** `createApp` registers the global `onError` handler in `presentation/error-middleware.ts`. It maps domain errors to their status and `{ error: message }`, preserves Hono `HTTPException` responses, logs unknown failures, and returns a generic 500 without exposing internal exception messages. Controllers should not duplicate this translation unless locally recovering or emitting a protocol-specific response.
+- **Tests:** assert domain error type/status in service tests and the HTTP response contract in integration/handler tests; unknown 500 responses must not include the thrown message.
 
 ## Validation & Types
 
