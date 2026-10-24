@@ -2,6 +2,7 @@ import { Command } from "commander";
 import pc from "picocolors";
 import dotenv from "dotenv";
 import { dirname, join, resolve } from "node:path";
+import { networkInterfaces } from "node:os";
 import { fileURLToPath } from "node:url";
 
 dotenv.config();
@@ -24,6 +25,23 @@ function makeText(): string {
   );
 }
 
+function getLanAddress(): string | null {
+  let fallback: string | null = null;
+  for (const addresses of Object.values(networkInterfaces())) {
+    for (const address of addresses ?? []) {
+      if (address.family !== "IPv4" || address.internal) continue;
+      if (
+        address.address.startsWith("192.168.") ||
+        address.address.startsWith("10.") ||
+        /^172\.(1[6-9]|2\d|3[01])\./.test(address.address)
+      )
+        return address.address;
+      fallback ??= address.address;
+    }
+  }
+  return fallback;
+}
+
 async function serveCommand(options: {
   ui?: boolean;
   uiDir?: string;
@@ -32,6 +50,7 @@ async function serveCommand(options: {
   cors?: string;
   config?: string;
   dataDir?: string;
+  pairing?: boolean;
 }) {
   const cliDir = dirname(fileURLToPath(import.meta.url));
 
@@ -47,14 +66,31 @@ async function serveCommand(options: {
     port: options.port,
     cors: options.cors,
     publicDir,
+    secureLanAccess: options.pairing !== false,
   });
 
   console.log(makeText());
   console.log("");
 
   try {
-    const { url } = await server.start();
-    console.log(`Starting server on ${url}...`);
+    const { url, hostname } = await server.start();
+    const lanAddress = hostname === "0.0.0.0" ? getLanAddress() : null;
+    const startUrl = lanAddress
+      ? `http://${lanAddress}:${new URL(url).port}`
+      : url;
+    console.log(`Starting server on ${startUrl}...`);
+    if (options.pairing === false) {
+      console.warn(
+        pc.yellow(
+          "Device pairing is disabled; LAN clients can access the API without a token.",
+        ),
+      );
+    } else {
+      const localUrl = new URL(url);
+      console.log(
+        `Generate a 60-second pairing code: curl -X POST http://127.0.0.1:${localUrl.port}/api/lan/pin`,
+      );
+    }
 
     let stopping = false;
     const stop = async () => {
@@ -87,6 +123,10 @@ program
   .option("-p, --port <number>", "Port number")
   .option("--cors <origins>", "Allowed CORS origins (comma-separated)")
   .option("--config <path>", "Config directory (default: ~/.config/cloudy)")
+  .option(
+    "--no-pairing",
+    "Allow network clients to access the API without pairing",
+  )
   .option(
     "--dataDir <path>",
     "Config data directory (default: ~/.config/cloudy/data)",

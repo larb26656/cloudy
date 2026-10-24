@@ -78,7 +78,7 @@ export function GlobalEventProvider({ children }: { children: ReactNode }) {
     const controller = new AbortController();
     let cancelled = false;
     void fetch(joinUrl(env.getApiUrl(), "/api/agent-providers/events"), {
-      headers: { Accept: "text/event-stream" },
+      headers: { Accept: "text/event-stream", ...env.getAuthHeaders() },
       signal: controller.signal,
     })
       .then((response) =>

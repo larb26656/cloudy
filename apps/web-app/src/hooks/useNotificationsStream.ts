@@ -93,7 +93,9 @@ export function isNewNotificationFrame(
 function buildNotificationsWsUrl(): string {
   const base = env.getApiUrl().replace(/\/$/, "");
   const wsBase = base.replace(/^http:/i, "ws:").replace(/^https:/i, "wss:");
-  return `${wsBase}/api/notifications/ws`;
+  const token = window.localStorage.getItem("cloudy-lan-token");
+  const query = token ? `?access_token=${encodeURIComponent(token)}` : "";
+  return `${wsBase}/api/notifications/ws${query}`;
 }
 
 const MAX_BACKOFF_MS = 30_000;

@@ -17,21 +17,28 @@ import {
 } from "./features/settings";
 import { createLLMConnectionsController } from "./features/llm-connections";
 import { createQuickCloudyController } from "./features/quick-cloudy";
+import { createLanAccessController } from "./features/lan-access";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
+import { createLanAccessMiddleware } from "./server/lan-access";
 
 export function createApp({
   corsOrigins = [] as string[] | "*",
   enableUI = false,
   publicDir,
   container,
+  secureLanAccess = false,
 }: {
   corsOrigins?: string[] | "*";
   enableUI?: boolean;
   publicDir?: string;
   container: Container;
+  secureLanAccess?: boolean;
 }) {
   const allowedOrigins = corsOrigins === "*" ? [] : corsOrigins;
+  const lanMiddleware = secureLanAccess
+    ? createLanAccessMiddleware(container.lanAccessService)
+    : undefined;
   const corsMiddleware = cors({
     // Browsers reject `Access-Control-Allow-Origin: *` when the request
     // sends credentials. Echo the request origin if it is in the allow
@@ -59,6 +66,14 @@ export function createApp({
         : corsMiddleware(c, next),
     )
     .onError(domainErrorHandler)
+    .use("/api/*", async (c, next) => {
+      if (!lanMiddleware || c.req.path === "/api/lan/pair") return next();
+      return lanMiddleware(c, next);
+    })
+    .route(
+      "/api/lan",
+      createLanAccessController(container.lanAccessService, secureLanAccess),
+    )
     .get("/api/health", (c) => c.json({ status: "ok" }))
     .route(
       "/api/agent-providers",

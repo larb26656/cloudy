@@ -1,14 +1,14 @@
 import Database from "better-sqlite3";
 import { drizzle } from "drizzle-orm/better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const bundledMigrationsDir = join(
-  dirname(fileURLToPath(import.meta.url)),
-  "drizzle",
-);
+const moduleDir = dirname(fileURLToPath(import.meta.url));
+const bundledMigrationsDir = existsSync(join(moduleDir, "drizzle"))
+  ? join(moduleDir, "drizzle")
+  : join(moduleDir, "../../drizzle");
 
 /**
  * Run pending Drizzle SQL migrations against a SQLite database. Sync — opens

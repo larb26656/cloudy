@@ -32,6 +32,7 @@ export async function startDesktopServer(): Promise<{
     ...options,
     host: desktopConfig.host,
     port: desktopConfig.fixedPort,
+    secureLanAccess: true,
   });
 
   try {
@@ -44,7 +45,12 @@ export async function startDesktopServer(): Promise<{
     console.warn(
       `port ${desktopConfig.fixedPort} is busy, falling back to a dynamic port`,
     );
-    server = createServer({ ...options, host: desktopConfig.host, port: 0 });
+    server = createServer({
+      ...options,
+      host: desktopConfig.host,
+      port: 0,
+      secureLanAccess: true,
+    });
     try {
       const { url } = await server.start();
       console.log(`cloudy server listening on ${url}`);

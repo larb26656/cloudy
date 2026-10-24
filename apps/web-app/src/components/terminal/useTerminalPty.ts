@@ -49,7 +49,9 @@ export function useTerminalPty({
   onPtyChange,
 }: UseTerminalPtyOptions): UseTerminalPtyResult {
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const [status, setStatus] = useState<TerminalStatus>(ptyId ? "connecting" : "idle");
+  const [status, setStatus] = useState<TerminalStatus>(
+    ptyId ? "connecting" : "idle",
+  );
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
@@ -113,8 +115,7 @@ export function useTerminalPty({
 
     const term = new Terminal({
       cursorBlink: true,
-      fontFamily:
-        "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
+      fontFamily: "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace",
       fontSize: 13,
       theme: { background: "#000000", foreground: "#e6e6e6" },
       allowProposedApi: true,
@@ -145,9 +146,7 @@ export function useTerminalPty({
       if (cols < 1 || rows < 1) return;
       lastSentCols = cols;
       lastSentRows = rows;
-      void resizePty
-        .mutateAsync({ id: ptyId, cols, rows })
-        .catch(() => {});
+      void resizePty.mutateAsync({ id: ptyId, cols, rows }).catch(() => {});
     };
 
     const ro = new ResizeObserver(() => syncSize());
@@ -215,5 +214,7 @@ export function useTerminalPty({
 function buildPtyWsUrl(ptyId: string): string {
   const base = env.getApiUrl().replace(/\/$/, "");
   const wsBase = base.replace(/^http:/i, "ws:").replace(/^https:/i, "wss:");
-  return `${wsBase}/api/pty/sessions/${encodeURIComponent(ptyId)}/stream`;
+  const token = window.localStorage.getItem("cloudy-lan-token");
+  const query = token ? `?access_token=${encodeURIComponent(token)}` : "";
+  return `${wsBase}/api/pty/sessions/${encodeURIComponent(ptyId)}/stream${query}`;
 }

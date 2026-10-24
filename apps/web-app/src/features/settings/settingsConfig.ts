@@ -5,6 +5,7 @@ import {
   BrainCircuit,
   Bot,
   Pin,
+  Wifi,
   type LucideIcon,
 } from "lucide-react";
 
@@ -65,5 +66,12 @@ export const settingsSections: SettingsSection[] = [
     description: "Set up to 10 quick phrases above the chat input.",
     to: "/settings/quick-phrases",
     icon: MessageSquareText,
+  },
+  {
+    id: "network",
+    label: "Network",
+    description: "Connect to Cloudy from other devices.",
+    to: "/settings/network",
+    icon: Wifi,
   },
 ];

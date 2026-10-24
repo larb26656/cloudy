@@ -31,6 +31,17 @@ type QuickBridgeApi = {
   onFocusInput(callback: () => void): () => void;
 };
 
+type NetworkBridgeApi = {
+  getState(): Promise<{
+    enabled: boolean;
+    devices: { id: string; name: string; createdAt: string }[];
+    pairingUrls: { type: "Tailscale" | "LAN" | "Network"; url: string }[];
+  } | null>;
+  setEnabled(enabled: boolean): Promise<boolean>;
+  createPin(): Promise<{ code: string; expiresAt: number } | null>;
+  revokeDevice(id: string): Promise<boolean>;
+};
+
 type DesktopInfo = {
   apiUrl: string;
   isDev: boolean;
@@ -38,6 +49,7 @@ type DesktopInfo = {
   windowKind?: WindowKind;
   petBridge?: PetBridgeApi;
   quickBridge?: QuickBridgeApi;
+  networkBridge?: NetworkBridgeApi;
 };
 
 let info: DesktopInfo | null = null;
@@ -110,9 +122,19 @@ function createQuickBridge(): QuickBridgeApi {
   };
 }
 
+function createNetworkBridge(): NetworkBridgeApi {
+  return {
+    getState: () => ipcRenderer.invoke("network:get-state"),
+    setEnabled: (enabled) => ipcRenderer.invoke("network:set-enabled", enabled),
+    createPin: () => ipcRenderer.invoke("network:create-pin"),
+    revokeDevice: (id) => ipcRenderer.invoke("network:revoke-device", id),
+  };
+}
+
 if (info) {
   info.windowKind = windowKind;
   info.petBridge = createPetBridge();
+  if (windowKind === "main") info.networkBridge = createNetworkBridge();
   if (windowKind === "quick") info.quickBridge = createQuickBridge();
   contextBridge.exposeInMainWorld("__CLOUDY_DESKTOP__", info);
 }

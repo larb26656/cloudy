@@ -9,6 +9,7 @@ function getClient(): ReturnType<typeof hc<AppType>> {
   cachedClient = hc<AppType>(env.getApiUrl(), {
     init: {
       credentials: "include",
+      headers: env.getAuthHeaders(),
     },
   });
   return cachedClient;

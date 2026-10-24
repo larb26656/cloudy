@@ -5,7 +5,10 @@ import { createContainer } from "../container";
 import { AppOption, loadConfig, resolveConfigDir } from "../config/config";
 import type { Container } from "../container";
 
-export function createServer(option: AppOption) {
+export function createServer({
+  secureLanAccess = false,
+  ...option
+}: AppOption & { secureLanAccess?: boolean }) {
   let server: ServerType | null = null;
   let container: Container | null = null;
 
@@ -19,6 +22,7 @@ export function createServer(option: AppOption) {
       enableUI: config.ui,
       publicDir: config.publicDir,
       container,
+      secureLanAccess,
     });
 
     const webSocketServer = new WebSocketServer({ noServer: true });
@@ -42,7 +46,8 @@ export function createServer(option: AppOption) {
       typeof address === "object" && address !== null
         ? address.port
         : config.port;
-    return { url: `http://${config.host}:${port}` };
+    const displayHost = config.host === "0.0.0.0" ? "127.0.0.1" : config.host;
+    return { url: `http://${displayHost}:${port}`, hostname: config.host };
   };
 
   const stop = async () => {

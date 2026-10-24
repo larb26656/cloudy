@@ -12,6 +12,16 @@ declare global {
       windowKind?: "main" | "pet" | "quick";
       petBridge?: PetBridgeApi;
       quickBridge?: QuickBridgeApi;
+      networkBridge?: {
+        getState(): Promise<{
+          enabled: boolean;
+          devices: { id: string; name: string; createdAt: string }[];
+          pairingUrls: { type: "Tailscale" | "LAN" | "Network"; url: string }[];
+        } | null>;
+        setEnabled(enabled: boolean): Promise<boolean>;
+        createPin(): Promise<{ code: string; expiresAt: number } | null>;
+        revokeDevice(id: string): Promise<boolean>;
+      };
     };
   }
 }

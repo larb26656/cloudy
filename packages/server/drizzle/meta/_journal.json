@@ -57,6 +57,13 @@
       "when": 1792337474814,
       "tag": "0007_true_mandarin",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792858365452,
+      "tag": "0008_wakeful_the_santerians",
+      "breakpoints": true
     }
   ]
 }

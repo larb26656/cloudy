@@ -5,7 +5,7 @@ conventions (TS strict, ESM-only, Zod-first DTOs, lint/typecheck workflow).
 
 ## What this app is
 
-`apps/server` is the **distributable CLI binary** for Cloudy. It contains *no business logic*
+`apps/server` is the **distributable CLI binary** for Cloudy. It contains _no business logic_
 of its own — it is a thin commander.js wrapper that parses CLI flags and hands them to
 `@repo/server`'s `createServer(...)`. Its job is packaging: take the Hono app library plus
 its migrations and (optionally) the built web UI, and bundle them into a single
@@ -26,7 +26,7 @@ almost never grow.
 user runs `cloudy serve --ui`
         │
         ▼
-src/cli.ts  ──► createServer({ configDir, ui, host, port, cors, publicDir })  ← from @repo/server
+src/cli.ts  ──► createServer({ configDir, ui, host, port, cors, publicDir, secureLanAccess })  ← from @repo/server
         │
         ▼
 createServer ──► loadConfig(option)  ← merges defaults + config.json + CLOUDY_* env + overrides
@@ -47,25 +47,26 @@ Hono app starts on http://<host>:<port>
 
 Defined in `src/cli.ts`. Currently a single subcommand:
 
-| Command | Purpose |
-| --- | --- |
+| Command        | Purpose                                              |
+| -------------- | ---------------------------------------------------- |
 | `cloudy serve` | Start the Hono server. All flags below belong to it. |
 
 `serve` flags (forwarded 1:1 into `createServer({ ... })`, which calls `loadConfig` internally with them as the highest-priority `overrides` layer — keep them in sync):
 
-| Flag | Maps to | Notes |
-| --- | --- | --- |
-| `--ui` | `ui` | Serve static UI from `publicDir` |
-| `--ui-dir <path>` | `publicDir` | Defaults to `./public` next to `cli.js`; computed in cli.ts, then passed via overrides |
-| `-h, --host <address>` | `host` | Default `localhost` |
-| `-p, --port <num>` | `port` | Default `4122` |
-| `--cors <origins>` | `cors` | Comma-separated; split + trimmed in `@repo/server`'s Zod schema |
-| `--config <path>` | `configDir` | Default `~/.config/cloudy` |
-| `--dataDir <path>` | _no-op_ | Currently unforwarded; reserved. |
+| Flag                   | Maps to           | Notes                                                                                        |
+| ---------------------- | ----------------- | -------------------------------------------------------------------------------------------- |
+| `--ui`                 | `ui`              | Serve static UI from `publicDir`                                                             |
+| `--ui-dir <path>`      | `publicDir`       | Defaults to `./public` next to `cli.js`; computed in cli.ts, then passed via overrides       |
+| `-h, --host <address>` | `host`            | Default `localhost`                                                                          |
+| `-p, --port <num>`     | `port`            | Default `4122`                                                                               |
+| `--cors <origins>`     | `cors`            | Comma-separated; split + trimmed in `@repo/server`'s Zod schema                              |
+| `--no-pairing`         | `secureLanAccess` | Disable LAN token checks for trusted/headless networks; secure pairing is enabled by default |
+| `--config <path>`      | `configDir`       | Default `~/.config/cloudy`                                                                   |
+| `--dataDir <path>`     | _no-op_           | Currently unforwarded; reserved.                                                             |
 
 When adding a flag: (1) add `.option(...)` to the commander chain, (2) add it to the
 `serveCommand` options type, (3) forward it into the `createServer({...})` call as an
-override key that matches the `AppConfig` field name, (4) update this table and
+override key that matches the `AppConfig` field name or a server option, (4) update this table and
 `README.md`. Do **not** parse the flag's value beyond what `cli.ts` already does
 (string splitting for `--cors`, `Number.parseInt` for `--port`) — all deeper
 validation lives in `@repo/server`'s Zod schema.
@@ -78,11 +79,11 @@ can run alongside a published `cloudy` binary without clashing. The web-app's
 (which boots `apps/web-app` on 3001 and `@repo/server` directly on 4122) instead of
 this app's `dev` script.
 
-| Script | What it runs | Port | UI? |
-| --- | --- | --- | --- |
-| `pnpm dev` | `tsx watch src/cli.ts serve` | 5122 | no |
+| Script        | What it runs                                   | Port | UI?                              |
+| ------------- | ---------------------------------------------- | ---- | -------------------------------- |
+| `pnpm dev`    | `tsx watch src/cli.ts serve`                   | 5122 | no                               |
 | `pnpm dev:ui` | same + `--ui --ui-dir ../../apps/web-app/dist` | 5122 | yes (must `build` web-app first) |
-| `pnpm start` | `node dist/cli.js` | 4122 | whatever flags you pass |
+| `pnpm start`  | `node dist/cli.js`                             | 4122 | whatever flags you pass          |
 
 ## Build & bundling
 
@@ -134,14 +135,14 @@ by tsup, not tsc, so a clean `check-types` does not guarantee a clean bundle. Al
 
 ## Things that belong elsewhere
 
-| You want to... | Go to |
-| --- | --- |
-| Add an HTTP route | `packages/server/src/features/<feature>/index.ts` |
-| Add a DB table / migration | `packages/server/src/db/schema/*.ts` + `db:generate` |
-| Change how config is loaded | `packages/server/src/config/config.ts` (`loadConfig` / `ConfigurableSchema`) |
-| Change the OpenAPI docs wiring | `packages/server/src/server.ts` |
-| Change the web UI | `apps/web-app/` |
-| Change the binary's flags / banner / bundle | you're in the right place |
+| You want to...                              | Go to                                                                        |
+| ------------------------------------------- | ---------------------------------------------------------------------------- |
+| Add an HTTP route                           | `packages/server/src/features/<feature>/index.ts`                            |
+| Add a DB table / migration                  | `packages/server/src/db/schema/*.ts` + `db:generate`                         |
+| Change how config is loaded                 | `packages/server/src/config/config.ts` (`loadConfig` / `ConfigurableSchema`) |
+| Change the OpenAPI docs wiring              | `packages/server/src/server.ts`                                              |
+| Change the web UI                           | `apps/web-app/`                                                              |
+| Change the binary's flags / banner / bundle | you're in the right place                                                    |
 
 ## Checklist before finishing
 

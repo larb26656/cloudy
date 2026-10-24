@@ -9,7 +9,11 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
   return fetch(`${basePath}${path}`, {
     ...init,
     credentials: "include",
-    headers: { Accept: "application/json", ...init?.headers },
+    headers: {
+      Accept: "application/json",
+      ...env.getAuthHeaders(),
+      ...init?.headers,
+    },
   });
 }
 
@@ -20,7 +24,11 @@ async function sessionRequest(
   return fetch(`${sessionsPath}${path}`, {
     ...init,
     credentials: "include",
-    headers: { Accept: "application/json", ...init?.headers },
+    headers: {
+      Accept: "application/json",
+      ...env.getAuthHeaders(),
+      ...init?.headers,
+    },
   });
 }
 
@@ -82,7 +90,7 @@ export const providerApi = {
   catalog: () =>
     fetch(providersPath, {
       credentials: "include",
-      headers: { Accept: "application/json" },
+      headers: { Accept: "application/json", ...env.getAuthHeaders() },
     }),
   files: (directory: string, path: string) =>
     request(`/files${query({ directory, path })}`),

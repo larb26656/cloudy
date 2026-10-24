@@ -11,6 +11,7 @@ import { ThemeProvider } from "./providers/ThemeProvider";
 import { GlobalEventProvider } from "./providers";
 import { useChatPanelStore } from "./stores/chatPanelStore";
 import { useTabStore } from "./stores/tabStore";
+import { env } from "./config/env";
 
 const router = createRouter({ routeTree });
 
@@ -20,11 +21,29 @@ declare module "@tanstack/react-router" {
   }
 }
 
-const rootElement = document.getElementById("root")!;
 localStorage.removeItem("workspaces");
 const liveTabIds = new Set(useTabStore.getState().tabs.map((t) => t.id));
 useChatPanelStore.getState().pruneExcept(liveTabIds);
-if (!rootElement.innerHTML) {
+
+async function renderApp(): Promise<void> {
+  try {
+    const response = await fetch(new URL("/api/health", env.getApiUrl()), {
+      headers: env.getAuthHeaders(),
+    });
+    if (response.status === 401 && window.location.pathname !== "/pair") {
+      window.location.replace("/pair");
+      return;
+    }
+  } catch {
+    return renderWithoutApi();
+  }
+
+  renderWithoutApi();
+}
+
+function renderWithoutApi(): void {
+  const rootElement = document.getElementById("root")!;
+  if (rootElement.innerHTML) return;
   ReactDOM.createRoot(rootElement).render(
     <StrictMode>
       <ThemeProvider>
@@ -40,3 +59,5 @@ if (!rootElement.innerHTML) {
     </StrictMode>,
   );
 }
+
+void renderApp();

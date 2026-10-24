@@ -18,6 +18,10 @@ import {
 } from "./features/sessions";
 import { createCloudyMessagesRepository } from "./features/sessions/cloudy-messages.repository";
 import { createQuickCloudyService } from "./features/quick-cloudy";
+import {
+  createLanAccessRepository,
+  createLanAccessService,
+} from "./features/lan-access";
 import { createDb, runMigrations, type DbClient } from "./db";
 import {
   createEchoAdapter,
@@ -59,6 +63,8 @@ export function createContainer(
   const notificationsService = createNotificationsService(
     notificationsRepository,
   );
+  const lanAccessRepository = createLanAccessRepository(db);
+  const lanAccessService = createLanAccessService(lanAccessRepository);
 
   const ptyRepository = createInMemoryPtyRepository();
   const ptyService = createPtyService(ptyRepository);
@@ -119,6 +125,7 @@ export function createContainer(
     browserWorkspaceService,
     notificationsRepository,
     notificationsService,
+    lanAccessService,
     ptyService,
     agentsService,
     agentProviderSettingsService,

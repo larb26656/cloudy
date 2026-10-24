@@ -1,3 +1,4 @@
+import { app, ipcMain } from "electron";
 import { createPetWindow, destroyPetWindow } from "./windows/pet-window";
 import { createQuickWindow, destroyQuickWindow } from "./windows/quick-window";
 import { desktopConfig, desktopInfoArg } from "./config";
@@ -16,6 +17,56 @@ export function createDesktopApp() {
   let starting: Promise<void> | null = null;
   let shuttingDown: Promise<void> | null = null;
   let quitting = false;
+
+  ipcMain.handle("network:get-state", async (event) => {
+    if (!mainWindow || event.sender !== mainWindow.webContents || !server)
+      return null;
+    const addressUrl = desktopConfig.isDev
+      ? new URL(desktopConfig.devServerUrl)
+      : new URL(server.url);
+    const response = await fetch(`${server.url}/api/lan/devices`);
+    const { devices } = (await response.json()) as {
+      devices: { id: string; name: string; createdAt: string }[];
+    };
+    return {
+      enabled: desktopConfig.lanEnabled,
+      devices,
+      pairingUrls: desktopConfig.networkAddresses.map(({ type, address }) => ({
+        type,
+        url: `${addressUrl.protocol}//${address}:${addressUrl.port}/pair`,
+      })),
+    };
+  });
+
+  ipcMain.handle("network:set-enabled", (event, enabled: unknown) => {
+    if (!mainWindow || event.sender !== mainWindow.webContents) return false;
+    if (typeof enabled !== "boolean") return false;
+    desktopConfig.setLanEnabled(enabled);
+    app.relaunch();
+    app.quit();
+    return true;
+  });
+
+  ipcMain.handle("network:create-pin", async (event) => {
+    if (!mainWindow || event.sender !== mainWindow.webContents || !server)
+      return null;
+    const response = await fetch(`${server.url}/api/lan/pin`, {
+      method: "POST",
+    });
+    if (!response.ok) return null;
+    return (await response.json()) as { code: string; expiresAt: number };
+  });
+
+  ipcMain.handle("network:revoke-device", async (event, id: unknown) => {
+    if (!mainWindow || event.sender !== mainWindow.webContents || !server)
+      return false;
+    if (typeof id !== "string") return false;
+    const response = await fetch(
+      `${server.url}/api/lan/devices/${encodeURIComponent(id)}`,
+      { method: "DELETE" },
+    );
+    return response.ok;
+  });
 
   async function disposeResources(): Promise<void> {
     unregisterShortcuts();

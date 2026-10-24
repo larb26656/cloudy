@@ -150,9 +150,14 @@ Options:
   -h, --host <addr> Host to bind (default: localhost)
   -p, --port <num>  Port number (default: 4122)
   --cors <origins>  Allowed CORS origins, comma-separated
+  --no-pairing      Allow network clients without device pairing (use only on trusted networks)
   --config <path>   Config directory (default: ~/.config/cloudy)
   --dataDir <path>  Data directory (default: ~/.config/cloudy/data)
 ```
+
+Pairing is enabled by default. To allow LAN access, bind to `0.0.0.0`; generate a
+one-time PIN using the localhost `/api/lan/pin` endpoint. The PIN expires after
+60 seconds or when used once. For trusted/headless networks, pass `--no-pairing`.
 
 ## Project Structure
 
