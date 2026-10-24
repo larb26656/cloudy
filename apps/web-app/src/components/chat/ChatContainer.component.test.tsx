@@ -220,13 +220,16 @@ function renderChat(
 ) {
   server.use(
     http.get(/\/api\/agent-providers$/, () =>
-      HttpResponse.json([
-        {
-          id: "opencode",
-          name: "OpenCode",
-          capabilities: { streaming: true, ...capabilities },
-        },
-      ]),
+      HttpResponse.json({
+        providers: [
+          {
+            id: "opencode",
+            name: "OpenCode",
+            capabilities: { streaming: true, ...capabilities },
+          },
+        ],
+        errors: [],
+      }),
     ),
   );
   const queryClient = new QueryClient({

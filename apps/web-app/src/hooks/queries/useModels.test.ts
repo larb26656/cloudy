@@ -38,7 +38,7 @@ describe("fetchAgentProviderCatalog", () => {
     mocks.$get.mockResolvedValue({
       ok: true,
       status: 200,
-      json: async () => catalog,
+      json: async () => ({ providers: catalog, errors: [] }),
     });
 
     await expect(fetchAgentProviderCatalog()).resolves.toEqual(catalog);
