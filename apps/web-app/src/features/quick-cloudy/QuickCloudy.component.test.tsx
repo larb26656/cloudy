@@ -7,6 +7,7 @@ const mocks = vi.hoisted(() => ({
   hide: vi.fn(),
   openSession: vi.fn(),
   sendMessage: vi.fn(),
+  setAgent: vi.fn(),
   setHeight: vi.fn(),
   useQuickCloudySuggestions: vi.fn(),
   sessionId: null as string | null,
@@ -61,6 +62,7 @@ vi.mock("@/components/chat/ChatProvider", () => ({
     sessionId: mocks.sessionId ?? mocks.providerSessionId,
     directory: mocks.chatDirectory,
     sendMessage: mocks.sendMessage,
+    setAgent: mocks.setAgent,
     effectiveModel: null,
     effectiveAgent: null,
     isSending: false,
@@ -227,6 +229,7 @@ describe("QuickCloudy", () => {
       "ask",
       { newSession: true, providerId: "cloudy" },
     );
+    expect(mocks.setAgent).toHaveBeenCalledWith("ask");
   });
 
   it("lists configured Cloudy agents and starts the prompt with the selected agent", () => {
@@ -249,6 +252,7 @@ describe("QuickCloudy", () => {
       "writer",
       { newSession: true, providerId: "cloudy" },
     );
+    expect(mocks.setAgent).toHaveBeenCalledWith("writer");
   });
 
   it("shows recent chats from all providers and resumes the selected session", () => {

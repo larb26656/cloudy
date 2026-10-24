@@ -95,8 +95,14 @@ function QuickCloudyContent({
   onBackToPicker: () => void;
   view: "search" | "chat";
 }) {
-  const { sessionId, directory, sendMessage, effectiveModel, isSending } =
-    useChat();
+  const {
+    sessionId,
+    directory,
+    sendMessage,
+    setAgent,
+    effectiveModel,
+    isSending,
+  } = useChat();
   const [initialPrompt, setInitialPrompt] = useState("");
   const lastWindowHeight = useRef<number | null>(null);
 
@@ -109,6 +115,7 @@ function QuickCloudyContent({
       attachments: [],
     };
     setInitialPrompt("");
+    setAgent(nextAgent);
     void sendMessage(content, effectiveModel, nextAgent, {
       newSession: true,
       providerId: nextProviderId,
