@@ -1,6 +1,7 @@
 import { useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import type { ChatMessage, ModelInfo } from "@repo/contracts";
-import { sessionApi } from "@/lib/cloudy/provider";
+import { cloudyClient } from "@/lib/api";
+import { emptyResponse, jsonResponse } from "@/lib/api-response";
 import {
   messageKeys,
   type ChatInputContent,
@@ -16,11 +17,6 @@ export function getNextMessageCursor(page: MessagePage): string | undefined {
   return page.nextCursor;
 }
 
-async function json<T>(response: Response): Promise<T> {
-  if (!response.ok) throw new Error(await response.text());
-  return response.json() as Promise<T>;
-}
-
 export function useMessages({
   sessionId,
 }: {
@@ -30,10 +26,15 @@ export function useMessages({
   return useInfiniteQuery({
     queryKey: messageKeys.infinite(sessionId),
     queryFn: async ({ pageParam }): Promise<MessagePage> => {
-      const result = await json<{
+      const result = await jsonResponse<{
         messages: ChatMessage[];
         nextCursor?: string;
-      }>(await sessionApi.messages(sessionId, MESSAGES_LIMIT, pageParam));
+      }>(
+        await cloudyClient.api.sessions[":sessionId"].messages.$get({
+          param: { sessionId },
+          query: { limit: String(MESSAGES_LIMIT), before: pageParam },
+        }),
+      );
       return { messages: result.messages, nextCursor: result.nextCursor };
     },
     initialPageParam: undefined as string | undefined,
@@ -51,8 +52,6 @@ export function useSendMessage() {
     mutationFn: async ({
       sessionId,
       content,
-      directory,
-      providerId,
       model,
       agent,
     }: {
@@ -63,24 +62,25 @@ export function useSendMessage() {
       model?: ModelInfo | null;
       agent?: string | null;
     }) =>
-      json(
-        await sessionApi.sendMessage(sessionId, {
-          directory,
-          providerId,
-          content: content.text,
-          attachments: content.attachments.map((attachment) => ({
-            name: attachment.filename,
-            mimeType: attachment.mime,
-            data: attachment.dataUrl,
-          })),
-          model: model
-            ? {
-                providerId: model.providerId,
-                modelId: model.modelId,
-                variantId: model.variantId,
-              }
-            : undefined,
-          agentId: agent ?? undefined,
+      jsonResponse(
+        await cloudyClient.api.sessions[":sessionId"].messages.$post({
+          param: { sessionId },
+          json: {
+            content: content.text,
+            attachments: content.attachments.map((attachment) => ({
+              name: attachment.filename,
+              mimeType: attachment.mime,
+              data: attachment.dataUrl,
+            })),
+            model: model
+              ? {
+                  providerId: model.providerId,
+                  modelId: model.modelId,
+                  variantId: model.variantId,
+                }
+              : undefined,
+            agentId: agent ?? undefined,
+          },
         }),
       ),
   });
@@ -94,8 +94,11 @@ export function useAbortGeneration() {
       sessionId: string;
       directory: string;
     }) => {
-      const response = await sessionApi.abort(sessionId);
-      if (!response.ok) throw new Error(await response.text());
+      await emptyResponse(
+        await cloudyClient.api.sessions[":sessionId"].abort.$post({
+          param: { sessionId },
+        }),
+      );
     },
   });
 }

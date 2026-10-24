@@ -23,12 +23,23 @@ vi.mock("@/hooks/queries", () => ({
   useWorkspaces: mocks.useWorkspaces,
 }));
 
-vi.mock("@/lib/cloudy/provider", () => ({
-  sessionApi: {
-    questions: mocks.sessionQuestions,
-    permissions: mocks.sessionPermissions,
+vi.mock("@/lib/api", () => ({
+  cloudyClient: {
+    api: {
+      sessions: {
+        ":sessionId": {
+          questions: {
+            $get: ({ param }: { param: { sessionId: string } }) =>
+              mocks.sessionQuestions(param.sessionId),
+          },
+          permissions: {
+            $get: ({ param }: { param: { sessionId: string } }) =>
+              mocks.sessionPermissions(param.sessionId),
+          },
+        },
+      },
+    },
   },
-  providerApi: {},
 }));
 
 function jsonResponse(data: unknown): Response {

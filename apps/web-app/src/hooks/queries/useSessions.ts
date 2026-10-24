@@ -3,7 +3,8 @@ import type {
   ChatSession as CoreChatSession,
   ModelInfo,
 } from "@repo/contracts";
-import { sessionApi } from "@/lib/cloudy/provider";
+import { cloudyClient } from "@/lib/api";
+import { emptyResponse, jsonResponse } from "@/lib/api-response";
 import { CHAT_POLL_INTERVAL, messageKeys, sessionKeys } from "@/lib/opencode";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
 import type { ChatSession, RecentChatSession, SessionRunStatus } from "@/types";
@@ -24,15 +25,6 @@ function toChatSession(session: CoreChatSession): ChatSession {
   };
 }
 
-async function json<T>(response: Response): Promise<T> {
-  if (!response.ok) throw new Error(await response.text());
-  return response.json() as Promise<T>;
-}
-
-async function empty(response: Response): Promise<void> {
-  if (!response.ok) throw new Error(await response.text());
-}
-
 export function useSession({
   sessionId,
 }: {
@@ -44,7 +36,11 @@ export function useSession({
     queryFn: async (): Promise<ChatSession | null> => {
       if (!sessionId) return null;
       return toChatSession(
-        await json<CoreChatSession>(await sessionApi.get(sessionId)),
+        await jsonResponse<CoreChatSession>(
+          await cloudyClient.api.sessions[":sessionId"].$get({
+            param: { sessionId },
+          }),
+        ),
       );
     },
     enabled: !!sessionId,
@@ -57,9 +53,11 @@ export function useSessions({ directory }: { directory: string }) {
   return useQuery({
     queryKey: sessionKeys.infinite(directory),
     queryFn: async (): Promise<ChatSession[]> =>
-      (await json<CoreChatSession[]>(await sessionApi.list(directory))).map(
-        toChatSession,
-      ),
+      (
+        await jsonResponse<CoreChatSession[]>(
+          await cloudyClient.api.sessions.$get({ query: { directory } }),
+        )
+      ).map(toChatSession),
     enabled: !!directory,
   });
 }
@@ -72,8 +70,10 @@ export function useRecentSessions({
     queryKey: [...sessionKeys.recent(limit), search],
     queryFn: async (): Promise<RecentChatSession[]> =>
       (
-        await json<CoreChatSession[]>(
-          await sessionApi.list(undefined, limit, search),
+        await jsonResponse<CoreChatSession[]>(
+          await cloudyClient.api.sessions.$get({
+            query: { limit: String(limit), search },
+          }),
         )
       ).map((session) => ({
         ...toChatSession(session),
@@ -94,7 +94,11 @@ export function useSessionChildren({
     queryFn: async (): Promise<ChatSession[]> => {
       if (!sessionId) return [];
       return (
-        await json<CoreChatSession[]>(await sessionApi.children(sessionId))
+        await jsonResponse<CoreChatSession[]>(
+          await cloudyClient.api.sessions[":sessionId"].children.$get({
+            param: { sessionId },
+          }),
+        )
       ).map(toChatSession);
     },
     enabled: !!sessionId,
@@ -113,8 +117,10 @@ export function useSessionStatus({
     queryKey: sessionKeys.status(sessionId ?? ""),
     queryFn: async () => {
       if (!sessionId) return undefined;
-      const status = await json<"running" | "queued" | "idle">(
-        await sessionApi.status(sessionId),
+      const status = await jsonResponse<"running" | "queued" | "idle">(
+        await cloudyClient.api.sessions[":sessionId"].status.$get({
+          param: { sessionId },
+        }),
       );
       if (status === "running") return { type: "busy" };
       if (status === "queued")
@@ -154,17 +160,19 @@ export function useCreateSession() {
       };
     }): Promise<ChatSession> =>
       toChatSession(
-        await json<CoreChatSession>(
-          await sessionApi.create({
-            directory,
-            providerId,
-            parentId: parentID,
-            title,
-            agentId: agent,
-            model: model
-              ? { modelId: model.modelId, providerId: model.providerId }
-              : undefined,
-            context: transferContext,
+        await jsonResponse<CoreChatSession>(
+          await cloudyClient.api.sessions.$post({
+            json: {
+              directory,
+              providerId,
+              parentId: parentID,
+              title,
+              agentId: agent,
+              model: model
+                ? { modelId: model.modelId, providerId: model.providerId }
+                : undefined,
+              metadata: transferContext,
+            },
           }),
         ),
       ),
@@ -191,10 +199,13 @@ export function useUpdateSession() {
       metadata?: Record<string, unknown>;
     }): Promise<ChatSession> =>
       toChatSession(
-        await json<CoreChatSession>(
-          await sessionApi.update(sessionID, {
-            title,
-            metadata,
+        await jsonResponse<CoreChatSession>(
+          await cloudyClient.api.sessions[":sessionId"].$patch({
+            param: { sessionId: sessionID },
+            json: {
+              title,
+              metadata,
+            },
           }),
         ),
       ),
@@ -219,7 +230,11 @@ export function useDeleteSession() {
       sessionID: string;
       directory?: string;
     }): Promise<void> => {
-      await empty(await sessionApi.delete(sessionID));
+      await emptyResponse(
+        await cloudyClient.api.sessions[":sessionId"].$delete({
+          param: { sessionId: sessionID },
+        }),
+      );
     },
     onSuccess: (_, variables) => {
       void queryClient.invalidateQueries({ queryKey: sessionKeys.root() });
@@ -243,9 +258,12 @@ export function useForkSession() {
       messageID?: string;
     }): Promise<ChatSession> =>
       toChatSession(
-        await json<CoreChatSession>(
-          await sessionApi.fork(sessionID, {
-            messageId: messageID,
+        await jsonResponse<CoreChatSession>(
+          await cloudyClient.api.sessions[":sessionId"].fork.$post({
+            param: { sessionId: sessionID },
+            json: {
+              messageId: messageID,
+            },
           }),
         ),
       ),

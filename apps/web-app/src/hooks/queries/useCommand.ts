@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { sessionApi } from "@/lib/cloudy/provider";
+import { cloudyClient } from "@/lib/api";
+import { emptyResponse } from "@/lib/api-response";
 
 export function useExecuteCommand() {
   return useMutation({
@@ -12,13 +13,12 @@ export function useExecuteCommand() {
       command: string;
       args?: string;
     }) => {
-      const response = await sessionApi.executeCommand(sessionId, {
-        command,
-        arguments: args,
-      });
-      if (!response.ok) throw new Error(await response.text());
-      if (response.status === 204) return;
-      return response.json();
+      await emptyResponse(
+        await cloudyClient.api.sessions[":sessionId"].command.$post({
+          param: { sessionId },
+          json: { command, arguments: args },
+        }),
+      );
     },
   });
 }

@@ -11,7 +11,7 @@ import type {
 import type { MentionNodeAttrs } from "@tiptap/extension-mention";
 import { systemCommands } from "@/lib/commands";
 import { type Command, type CommandSource } from "@/lib/command";
-import { providerApi } from "@/lib/cloudy/provider";
+import { cloudyClient } from "@/lib/api";
 
 type MentionItem = string;
 
@@ -45,9 +45,14 @@ const updatePosition = (editor: Editor, element: HTMLElement) => {
 export function createMentionSuggestion(directory: string) {
   return {
     items: async ({ query }: { query: string }): Promise<string[]> => {
-      const response = await providerApi.searchFiles(directory, query, 20);
+      const response = await cloudyClient.api["agent-providers"][":providerId"][
+        "file-search"
+      ].$get({
+        param: { providerId: "opencode" },
+        query: { directory, query, limit: "20" },
+      });
       if (!response.ok) throw new Error(await response.text());
-      return (await response.json()) as string[];
+      return response.json();
     },
 
     render: () => {
@@ -99,19 +104,15 @@ export function createCommandSuggestion(
   return {
     items: async ({ query }: { query: string }): Promise<CommandItem[]> => {
       const response = options?.supportsRemoteCommands
-        ? await providerApi.commands(directory)
+        ? await cloudyClient.api["agent-providers"][
+            ":providerId"
+          ].commands.$get({
+            param: { providerId: "opencode" },
+            query: { directory },
+          })
         : null;
       if (response && !response.ok) throw new Error(await response.text());
-      const openCodeCommands = response
-        ? ((await response.json()) as Array<{
-            name: string;
-            description?: string;
-            source?: string;
-            template?: string;
-            hints?: string[];
-            immediate?: boolean;
-          }>)
-        : [];
+      const openCodeCommands = response ? await response.json() : [];
 
       const systemCommandItems: Command[] = systemCommands.map((cmd) => ({
         name: cmd.name,

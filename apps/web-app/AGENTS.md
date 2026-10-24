@@ -200,8 +200,8 @@ so future schema changes have a hook point.
 ```
 ┌─────────────────────────── browser ───────────────────────────┐
 │                                                               │
-│  cloudyClient (Hono RPC) + providerApi                       │
-│  src/lib/api.ts and src/lib/cloudy/provider.ts               │
+│  cloudyClient (Hono RPC)                                     │
+│  src/lib/api.ts                                               │
 │      │                                                        │
 │      ▼                                                        │
 │  env.getApiUrl()                                              │
@@ -222,10 +222,9 @@ so future schema changes have a hook point.
 - Use this for cloudy-native resources (workspaces, app config, anything new you add to
   `packages/server`).
 
-### `providerApi` — normalized provider API
+### Provider routes
 
-- `src/lib/cloudy/provider.ts` calls Cloudy's provider-neutral routes for sessions, messages,
-  files, commands, interactions, catalogs, and normalized events.
+- Use `cloudyClient` for provider-backed HTTP operations as well as Cloudy-native resources.
 - Provider SDK types and URL details are confined to the server adapter.
 
 ### React Query

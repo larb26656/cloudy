@@ -1,19 +1,21 @@
 import { useQuery } from "@tanstack/react-query";
 import type { FileContent, FileNode, VcsFileDiff } from "@/types";
 import { fileKeys, vcsKeys } from "@/lib/opencode";
-import { providerApi } from "@/lib/cloudy/provider";
-
-async function json<T>(response: Response): Promise<T> {
-  if (!response.ok) throw new Error(await response.text());
-  return response.json() as Promise<T>;
-}
+import { cloudyClient } from "@/lib/api";
 
 export function useVcsDiff({ directory }: { directory?: string }) {
   return useQuery({
     queryKey: vcsKeys.diff(directory ?? ""),
     queryFn: async (): Promise<VcsFileDiff[]> => {
       if (!directory) return [];
-      return json<VcsFileDiff[]>(await providerApi.diff(directory));
+      const response = await cloudyClient.api["agent-providers"][
+        ":providerId"
+      ].diff.$get({
+        param: { providerId: "opencode" },
+        query: { directory },
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
     },
     enabled: !!directory,
   });
@@ -30,7 +32,14 @@ export function useFileList({
     queryKey: fileKeys.list(directory ?? "", path ?? ""),
     queryFn: async (): Promise<FileNode[]> => {
       if (!directory || !path) return [];
-      return json<FileNode[]>(await providerApi.files(directory, path));
+      const response = await cloudyClient.api["agent-providers"][
+        ":providerId"
+      ].files.$get({
+        param: { providerId: "opencode" },
+        query: { directory, path },
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
     },
     enabled: !!directory && !!path,
   });
@@ -49,7 +58,14 @@ export function useFileRead({
       if (!directory || !path) {
         throw new Error("Directory and path are required");
       }
-      return json<FileContent>(await providerApi.readFile(directory, path));
+      const response = await cloudyClient.api["agent-providers"][
+        ":providerId"
+      ].file.$get({
+        param: { providerId: "opencode" },
+        query: { directory, path },
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
     },
     enabled: !!directory && !!path,
   });
@@ -66,7 +82,14 @@ export function useFileSearch({
     queryKey: fileKeys.search(directory ?? "", query),
     queryFn: async (): Promise<string[]> => {
       if (!directory || !query.trim()) return [];
-      return json<string[]>(await providerApi.searchFiles(directory, query));
+      const response = await cloudyClient.api["agent-providers"][":providerId"][
+        "file-search"
+      ].$get({
+        param: { providerId: "opencode" },
+        query: { directory, query },
+      });
+      if (!response.ok) throw new Error(await response.text());
+      return response.json();
     },
     enabled: !!directory && query.trim().length >= 2,
   });

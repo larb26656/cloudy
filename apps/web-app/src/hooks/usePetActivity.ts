@@ -11,7 +11,8 @@ import {
   permissionKeys,
   questionKeys,
 } from "@/lib/opencode";
-import { sessionApi } from "@/lib/cloudy/provider";
+import { cloudyClient } from "@/lib/api";
+import { jsonResponse } from "@/lib/api-response";
 import type {
   PermissionRequest,
   QuestionRequest,
@@ -23,11 +24,6 @@ export interface ActiveSessionRecord {
   session: RecentChatSession;
   state: Exclude<PetState, "idle">;
   reason?: "question" | "permission";
-}
-
-async function json<T>(response: Response): Promise<T> {
-  if (!response.ok) throw new Error(await response.text());
-  return response.json() as Promise<T>;
 }
 
 function toQuestion(request: ProviderQuestionRequest): QuestionRequest {
@@ -56,7 +52,11 @@ async function fetchSessionQuestions(
   sessionId: string,
 ): Promise<QuestionRequest[]> {
   return (
-    await json<ProviderQuestionRequest[]>(await sessionApi.questions(sessionId))
+    await jsonResponse<ProviderQuestionRequest[]>(
+      await cloudyClient.api.sessions[":sessionId"].questions.$get({
+        param: { sessionId },
+      }),
+    )
   ).map(toQuestion);
 }
 
@@ -64,7 +64,11 @@ async function fetchSessionPermissions(
   sessionId: string,
 ): Promise<PermissionRequest[]> {
   return (
-    await json<CorePermissionRequest[]>(await sessionApi.permissions(sessionId))
+    await jsonResponse<CorePermissionRequest[]>(
+      await cloudyClient.api.sessions[":sessionId"].permissions.$get({
+        param: { sessionId },
+      }),
+    )
   ).map(toPermission);
 }
 

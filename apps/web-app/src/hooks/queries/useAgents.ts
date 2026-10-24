@@ -1,13 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { agentKeys } from "@/lib/opencode";
-import { providerApi } from "@/lib/cloudy/provider";
-import type { AgentInfo, AgentProviderInfo } from "@repo/contracts";
+import { fetchAgentProviderCatalog } from "./useModels";
+import type { AgentInfo } from "@repo/contracts";
 import type { Agent } from "@/types/agent";
-
-async function json<T>(response: Response): Promise<T> {
-  if (!response.ok) throw new Error(await response.text());
-  return response.json() as Promise<T>;
-}
 
 export function useAgents({
   directory,
@@ -17,9 +12,7 @@ export function useAgents({
     queryKey: [...agentKeys.list(directory), providerId ?? "all"],
     queryFn: async (): Promise<Agent[]> => {
       void directory;
-      const providers = await json<AgentProviderInfo[]>(
-        await providerApi.catalog(),
-      );
+      const providers = await fetchAgentProviderCatalog();
       return providers
         .filter((provider) => !providerId || provider.id === providerId)
         .flatMap((provider) =>

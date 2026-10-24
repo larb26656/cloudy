@@ -1,13 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ProviderQuestionRequest } from "@repo/contracts";
-import { sessionApi } from "@/lib/cloudy/provider";
+import { cloudyClient } from "@/lib/api";
+import { jsonResponse } from "@/lib/api-response";
 import { CHAT_POLL_INTERVAL, questionKeys } from "@/lib/opencode";
 import type { QuestionAnswer, QuestionRequest } from "@/types";
-
-async function json<T>(response: Response): Promise<T> {
-  if (!response.ok) throw new Error(await response.text());
-  return response.json() as Promise<T>;
-}
 
 function toQuestion(request: ProviderQuestionRequest): QuestionRequest {
   return {
@@ -31,8 +27,10 @@ export function useSessionQuestions({
     queryKey: questionKeys.list(sessionId),
     queryFn: async (): Promise<QuestionRequest[]> =>
       (
-        await json<ProviderQuestionRequest[]>(
-          await sessionApi.questions(sessionId),
+        await jsonResponse<ProviderQuestionRequest[]>(
+          await cloudyClient.api.sessions[":sessionId"].questions.$get({
+            param: { sessionId },
+          }),
         )
       ).map(toQuestion),
     enabled: !!sessionId && enabled,
@@ -53,12 +51,14 @@ export function useReplyQuestion() {
       sessionId: string;
       answers: Array<QuestionAnswer>;
     }): Promise<void> => {
-      const response = await sessionApi.replyQuestion(
-        sessionId,
-        requestID,
-        answers,
+      await jsonResponse(
+        await cloudyClient.api.sessions[":sessionId"].questions[
+          ":questionId"
+        ].$post({
+          param: { sessionId, questionId: requestID },
+          json: { value: answers },
+        }),
       );
-      if (!response.ok) throw new Error(await response.text());
     },
     onSuccess: (_, variables) =>
       void queryClient.invalidateQueries({
@@ -77,10 +77,14 @@ export function useRejectQuestion() {
       requestID: string;
       sessionId: string;
     }): Promise<void> => {
-      const response = await sessionApi.replyQuestion(sessionId, requestID, {
-        reject: true,
-      });
-      if (!response.ok) throw new Error(await response.text());
+      await jsonResponse(
+        await cloudyClient.api.sessions[":sessionId"].questions[
+          ":questionId"
+        ].$post({
+          param: { sessionId, questionId: requestID },
+          json: { value: { reject: true } },
+        }),
+      );
     },
     onSuccess: (_, variables) =>
       void queryClient.invalidateQueries({

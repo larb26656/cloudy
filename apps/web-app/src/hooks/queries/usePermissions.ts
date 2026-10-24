@@ -1,13 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PermissionRequest as CorePermissionRequest } from "@repo/contracts";
-import { sessionApi } from "@/lib/cloudy/provider";
+import { cloudyClient } from "@/lib/api";
+import { jsonResponse } from "@/lib/api-response";
 import { CHAT_POLL_INTERVAL, permissionKeys } from "@/lib/opencode";
 import type { PermissionRequest } from "@/types";
-
-async function json<T>(response: Response): Promise<T> {
-  if (!response.ok) throw new Error(await response.text());
-  return response.json() as Promise<T>;
-}
 
 function toPermission(request: CorePermissionRequest): PermissionRequest {
   return {
@@ -31,8 +27,10 @@ export function useSessionPermissions({
     queryKey: permissionKeys.list(sessionId),
     queryFn: async (): Promise<PermissionRequest[]> =>
       (
-        await json<CorePermissionRequest[]>(
-          await sessionApi.permissions(sessionId),
+        await jsonResponse<CorePermissionRequest[]>(
+          await cloudyClient.api.sessions[":sessionId"].permissions.$get({
+            param: { sessionId },
+          }),
         )
       ).map(toPermission),
     enabled: !!sessionId && enabled,
@@ -53,12 +51,14 @@ export function useReplyPermission() {
       sessionId: string;
       reply: "once" | "always" | "reject";
     }): Promise<void> => {
-      const response = await sessionApi.replyPermission(
-        sessionId,
-        requestID,
-        reply,
+      await jsonResponse(
+        await cloudyClient.api.sessions[":sessionId"].permissions[
+          ":permissionId"
+        ].$post({
+          param: { sessionId, permissionId: requestID },
+          json: { reply },
+        }),
       );
-      if (!response.ok) throw new Error(await response.text());
     },
     onSuccess: () =>
       void queryClient.invalidateQueries({
