@@ -22,19 +22,21 @@ export function useAgents({
       );
       return providers
         .filter((provider) => !providerId || provider.id === providerId)
-        .flatMap((provider) => provider.agents ?? [])
-        .filter(
-          (agent): agent is AgentInfo =>
-            !agent.hidden && agent.mode === "primary",
-        )
-        .map((agent) => ({
-          providerId: providerId,
-          name: agent.name ?? agent.id,
-          description: agent.description,
-          mode: agent.mode ?? "primary",
-          native: agent.native,
-          hidden: agent.hidden,
-        }));
+        .flatMap((provider) =>
+          (provider.agents ?? [])
+            .filter(
+              (agent): agent is AgentInfo =>
+                !agent.hidden && agent.mode === "primary",
+            )
+            .map((agent) => ({
+              providerId: provider.id,
+              name: agent.name ?? agent.id,
+              description: agent.description,
+              mode: agent.mode ?? "primary",
+              native: agent.native,
+              hidden: agent.hidden,
+            })),
+        );
     },
   });
 }

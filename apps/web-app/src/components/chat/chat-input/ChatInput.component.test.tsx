@@ -24,6 +24,7 @@ const mocks = vi.hoisted(() => ({
   sessionStatuses: {} as Record<string, SessionStatus>,
   isSending: false,
   agents: ["build", "plan", "explore"] as string[],
+  agentProviderId: undefined as string | undefined,
 }));
 
 vi.mock("@/hooks/queries/useMessages", () => ({
@@ -37,7 +38,10 @@ vi.mock("@/hooks/queries/useMessages", () => ({
 }));
 
 vi.mock("@/hooks/queries/useAgents", () => ({
-  useAgents: () => ({ data: mocks.agents.map((name) => ({ name })) }),
+  useAgents: ({ providerId }: { providerId?: string }) => {
+    mocks.agentProviderId = providerId;
+    return { data: mocks.agents.map((name) => ({ name })) };
+  },
 }));
 
 vi.mock("@/hooks/queries/useCommand", () => ({
@@ -365,11 +369,18 @@ describe("ChatInput — abort/send button behavior", () => {
 describe("ChatInput — Tab cycles agents", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.agentProviderId = undefined;
     mocks.isSending = false;
     mocks.agents = ["build", "plan", "explore"];
     mocks.sessionStatuses = { [SESSION_ID]: { type: "idle" } };
     mocks.sendMessage.mockResolvedValue(undefined);
     useDefaultAgentStore.setState({ defaultAgents: {} });
+  });
+
+  test("loads agents for the chat's provider", () => {
+    renderInput();
+
+    expect(mocks.agentProviderId).toBe("opencode");
   });
 
   test("Tab from default (null) selects first agent", () => {

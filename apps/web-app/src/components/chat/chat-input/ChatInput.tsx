@@ -46,6 +46,7 @@ export const ChatInput = memo(function ChatInput({
   const {
     effectiveModel,
     effectiveAgent,
+    providerId,
     capabilities,
     directory,
     sessionId,
@@ -57,7 +58,7 @@ export const ChatInput = memo(function ChatInput({
     isStreaming,
   } = useChat();
 
-  const { data: agents } = useAgents({ directory });
+  const { data: agents } = useAgents({ directory, providerId });
 
   const history = useChatInputHistoryStore((s) =>
     sessionId ? (s.sessions[sessionId] ?? NO_HISTORY) : NO_HISTORY,
