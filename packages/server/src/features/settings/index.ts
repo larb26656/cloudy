@@ -1,3 +1,6 @@
-export { createSettingsController } from "./controller";
-export { createSettingsService } from "./service";
-export type { SettingsService } from "./service";
+export { createAgentsController } from "./agents";
+export { createAgentsService } from "./agents";
+export type { AgentsService } from "./agents";
+export { createAgentProviderSettingsController } from "./agent-providers";
+export { createAgentProviderSettingsService } from "./agent-providers";
+export type { AgentProviderSettingsService } from "./agent-providers";

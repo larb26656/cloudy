@@ -11,7 +11,10 @@ import { createWorkspacesController } from "./features/workspaces";
 import { createBrowserWorkspaceController } from "./features/browser-workspace";
 import { createAgentProvidersController } from "./features/providers";
 import { createSessionsController } from "./features/sessions";
-import { createSettingsController } from "./features/settings";
+import {
+  createAgentProviderSettingsController,
+  createAgentsController,
+} from "./features/settings";
 import { createLLMConnectionsController } from "./features/llm-connections";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
@@ -65,7 +68,13 @@ export function createApp({
       ),
     )
     .route("/api/sessions", createSessionsController(container.sessionsService))
-    .route("/api/settings", createSettingsController(container.settingsService))
+    .route("/api/settings", createAgentsController(container.agentsService))
+    .route(
+      "/api/settings",
+      createAgentProviderSettingsController(
+        container.agentProviderSettingsService,
+      ),
+    )
     .route(
       "/api/llm-connections",
       createLLMConnectionsController(

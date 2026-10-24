@@ -1,9 +1,9 @@
 import {
-  Bot,
   Palette,
   MessageSquareText,
   PlugZap,
   BrainCircuit,
+  Bot,
   type LucideIcon,
 } from "lucide-react";
 
@@ -22,6 +22,13 @@ export const settingsSections: SettingsSection[] = [
     description: "Configure API connections used by Cloudy AI.",
     to: "/settings/llm-connections",
     icon: BrainCircuit,
+  },
+  {
+    id: "agents",
+    label: "Cloudy Agents",
+    description: "Create agents and customize their system prompts.",
+    to: "/settings/agents",
+    icon: Bot,
   },
   {
     id: "agent-providers",

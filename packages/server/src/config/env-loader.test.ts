@@ -74,7 +74,7 @@ describe("loadEnvConfig", () => {
     expect(config.port).toBeUndefined();
   });
 
-  it("exposes every key of the configurable schema", () => {
+  it("exposes environment-configurable keys", () => {
     const config = loadEnvConfig();
     expect(Object.keys(config).sort()).toEqual(
       [

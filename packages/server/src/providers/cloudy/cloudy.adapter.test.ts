@@ -7,7 +7,10 @@ import { createSessionsRepository } from "../../features/sessions/sessions.repos
 import { createCloudyMessagesRepository } from "../../features/sessions/cloudy-messages.repository";
 import { createCloudyAdapter } from "./cloudy.adapter";
 
-function createAdapter(apiProviderRegistry = createTestLLM()) {
+function createAdapter(
+  apiProviderRegistry = createTestLLM(),
+  agents: { id: string; name: string; systemPrompt: string }[] = [],
+) {
   const { db } = createTestDb();
   const sessionsRepository = createSessionsRepository(db);
   const messagesRepository = createCloudyMessagesRepository(db);
@@ -15,6 +18,7 @@ function createAdapter(apiProviderRegistry = createTestLLM()) {
     apiProviderRegistry,
     sessionsRepository,
     messagesRepository,
+    agents: () => agents,
   });
   return { adapter, sessionsRepository, messagesRepository };
 }
@@ -126,6 +130,41 @@ describe("createCloudyAdapter", () => {
     expect(receivedModel).toBe("selected-model");
     expect(firstResponse.isFirstMessage).toBe(true);
     expect(secondResponse.isFirstMessage).toBe(false);
+  });
+
+  it("includes the selected Cloudy agent system prompt", async () => {
+    let messages: { role: string; content: string }[] | undefined;
+    const apiProviderRegistry = createTestLLM();
+    apiProviderRegistry.registerClient({
+      id: "test-connection",
+      type: "test",
+      config: {},
+      models: [{ modelId: "test-model", name: "Test model" }],
+    });
+    const { adapter, sessionsRepository } = createAdapter(apiProviderRegistry, [
+      { id: "writer-id", name: "Writer", systemPrompt: "Write clearly" },
+    ]);
+    const client = apiProviderRegistry.getClient("test-connection");
+    if (!client) throw new Error("Expected selected provider client");
+    client.chatAsync = async function* (input) {
+      messages = input.messages;
+      yield { text: "response" };
+    };
+    const session = await adapter.createSession!({});
+    sessionsRepository.create({
+      id: session.id,
+      providerId: "cloudy",
+      providerSessionId: session.id,
+    });
+
+    await adapter.sendMessage!({
+      sessionId: session.id,
+      content: "Hello",
+      agentId: "Writer",
+      model: { providerId: "test-connection", modelId: "test-model" },
+    });
+
+    expect(messages?.[0]).toEqual({ role: "system", content: "Write clearly" });
   });
 
   it("forwards agent events through the provider subscription", async () => {

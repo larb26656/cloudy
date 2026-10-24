@@ -55,6 +55,12 @@ const LLMConnectionSchema = z
     }),
   );
 
+const AgentConfigSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  systemPrompt: z.string(),
+});
+
 export const ConfigurableSchema = z.object({
   dbPath: z.string(),
   ui: z
@@ -101,6 +107,7 @@ export const ConfigurableSchema = z.object({
       connections: z.array(LLMConnectionSchema).default([]),
     })
     .default({ connections: [] }),
+  agents: z.array(AgentConfigSchema).default([]),
   publicDir: z.string().optional(),
   tempWorkspaceDir: z.string(),
   extensionWorkspaceDir: z.string(),

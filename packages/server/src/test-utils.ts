@@ -36,6 +36,7 @@ export const testConfig: AppConfig = {
     },
   },
   llm: { connections: [] },
+  agents: [],
   tempWorkspaceDir: "/tmp/workspaces",
   extensionWorkspaceDir: "/tmp/extensions",
 };

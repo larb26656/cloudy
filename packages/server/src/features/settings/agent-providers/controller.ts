@@ -1,9 +1,11 @@
-import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import type { SettingsService } from "./service";
-import { SettingsModel } from "./model";
+import { Hono } from "hono";
+import { SettingsModel } from "../model";
+import type { AgentProviderSettingsService } from "./service";
 
-export function createSettingsController(service: SettingsService) {
+export function createAgentProviderSettingsController(
+  service: AgentProviderSettingsService,
+) {
   return new Hono()
     .get("/agent-providers", (c) => c.json(service.getAgentProviders()))
     .get("/agent-provider-templates", (c) =>

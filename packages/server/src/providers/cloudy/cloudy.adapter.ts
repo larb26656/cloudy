@@ -15,10 +15,12 @@ export function createCloudyAdapter({
   apiProviderRegistry,
   sessionsRepository,
   messagesRepository,
+  agents,
 }: {
   apiProviderRegistry: LLM;
   sessionsRepository: SessionsRepository;
   messagesRepository: CloudyMessagesRepository;
+  agents: () => { id: string; name: string; systemPrompt: string }[];
 }): AgentProviderAdapter {
   const capabilities = {
     streaming: true,
@@ -26,6 +28,7 @@ export function createCloudyAdapter({
     approvals: false,
     questions: false,
     models: true,
+    agents: true,
   };
 
   const toSession = (id: string): ChatSession => {
@@ -48,6 +51,7 @@ export function createCloudyAdapter({
   const agent = createCloudyAgent({
     apiProviderRegistry,
     messagesRepository,
+    agents,
   });
 
   const adapter = {
@@ -60,6 +64,7 @@ export function createCloudyAdapter({
         name: "Cloudy",
         capabilities,
         models: apiProviderRegistry.listModels(),
+        agents: agents().map(({ id, name }) => ({ id, name, mode: "primary" })),
       };
     },
     async createSession(input: ProviderSessionInput): Promise<ChatSession> {

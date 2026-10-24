@@ -9,9 +9,11 @@ export function getConfigEnvKey(key: string) {
 
 export function loadEnvConfig(): Partial<AppConfig> {
   return Object.fromEntries(
-    Object.entries(ConfigurableSchema.shape).map(([key]) => {
-      const envKey = getConfigEnvKey(key);
-      return [key, process.env[envKey]];
-    }),
+    Object.entries(ConfigurableSchema.shape)
+      .filter(([key]) => key !== "agents")
+      .map(([key]) => {
+        const envKey = getConfigEnvKey(key);
+        return [key, process.env[envKey]];
+      }),
   ) as Partial<AppConfig>;
 }

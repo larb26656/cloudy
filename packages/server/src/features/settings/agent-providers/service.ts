@@ -1,12 +1,12 @@
-import path from "node:path";
-import type { AppConfig } from "../../config";
-import { updateFileConfig } from "../../config/file-loader";
-import type { AgentProviderSettings } from "./model";
 import { randomUUID } from "node:crypto";
-import type { AgentProviderRegistry } from "../../providers/provider.registry";
-import { createProviderTemplateRegistry } from "../../providers/provider-template.registry";
+import path from "node:path";
+import type { AppConfig } from "../../../config";
+import { updateFileConfig } from "../../../config/file-loader";
+import type { AgentProviderSettings } from "../model";
+import type { AgentProviderRegistry } from "../../../providers/provider.registry";
+import { createProviderTemplateRegistry } from "../../../providers/provider-template.registry";
 
-export function createSettingsService(
+export function createAgentProviderSettingsService(
   config: AppConfig,
   configDir?: string,
   registry?: AgentProviderRegistry,
@@ -77,4 +77,6 @@ export function createSettingsService(
   };
 }
 
-export type SettingsService = ReturnType<typeof createSettingsService>;
+export type AgentProviderSettingsService = ReturnType<
+  typeof createAgentProviderSettingsService
+>;

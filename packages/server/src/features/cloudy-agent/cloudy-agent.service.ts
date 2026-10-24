@@ -14,9 +14,11 @@ import { namingSession } from "./naming-session";
 export function createCloudyAgent({
   apiProviderRegistry,
   messagesRepository,
+  agents,
 }: {
   apiProviderRegistry: LLM;
   messagesRepository: CloudyMessagesRepository;
+  agents: () => { id: string; name: string; systemPrompt: string }[];
 }) {
   const runs = new Map<string, AbortController>();
   const subscribers = new Set<(event: ChatEvent) => void>();
@@ -183,10 +185,18 @@ export function createCloudyAgent({
     if (!part || part.type !== "text") return;
     let text = "";
     try {
+      const selectedAgent = agents().find(
+        (agent) => agent.name === request.agentId,
+      );
       for await (const chunk of provider.chatAsync({
         model,
         message: request.content,
-        messages: history,
+        messages: [
+          ...(selectedAgent?.systemPrompt
+            ? [{ role: "system" as const, content: selectedAgent.systemPrompt }]
+            : []),
+          ...history,
+        ],
         signal: controller.signal,
       })) {
         if (controller.signal.aborted) break;

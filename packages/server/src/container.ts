@@ -1,5 +1,8 @@
 import type { AppConfig } from "./config";
-import { createSettingsService } from "./features/settings";
+import {
+  createAgentsService,
+  createAgentProviderSettingsService,
+} from "./features/settings";
 import { createLLMConnectionService } from "./features/llm-connections";
 import { createChatGPTPlanService } from "./features/llm-connections/chatgpt-plan";
 import { createInMemoryPtyRepository } from "./features/pty/in-memory-pty.repository";
@@ -60,6 +63,7 @@ export function createContainer(
   const ptyService = createPtyService(ptyRepository);
   const sessionsRepository = createSessionsRepository(db);
   const cloudyMessagesRepository = createCloudyMessagesRepository(db);
+  const agentsService = createAgentsService(config, configDir);
   const templates = createProviderTemplateRegistry();
   const apiProviderRegistry = createLLM();
   apiProviderRegistry.registerProvider("openai", openaiProviderDefinition);
@@ -85,13 +89,14 @@ export function createContainer(
         apiProviderRegistry,
         sessionsRepository,
         messagesRepository: cloudyMessagesRepository,
+        agents: () => agentsService.getAgents().agents,
       }),
       ...config.providers.instances
         .filter((instance) => instance.enabled)
         .map((instance) => templates.create(instance)),
     ],
   });
-  const settingsService = createSettingsService(
+  const agentProviderSettingsService = createAgentProviderSettingsService(
     config,
     configDir,
     agentProviderRegistry,
@@ -110,7 +115,8 @@ export function createContainer(
     notificationsRepository,
     notificationsService,
     ptyService,
-    settingsService,
+    agentsService,
+    agentProviderSettingsService,
     llmConnectionsService,
     chatgptPlanService,
     agentProviderRegistry,

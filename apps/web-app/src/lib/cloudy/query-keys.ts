@@ -39,4 +39,5 @@ export const llmConnectionKeys = {
 export const settingsKeys = {
   root: () => ["settings"] as const,
   agentProviders: () => [...settingsKeys.root(), "agent-providers"] as const,
+  agents: () => [...settingsKeys.root(), "agents"] as const,
 };
