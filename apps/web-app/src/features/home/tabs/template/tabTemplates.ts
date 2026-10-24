@@ -7,6 +7,7 @@ export interface TabBarProps {
   isActive: boolean;
   onClick: () => void;
   onClose: () => void;
+  onDuplicate?: () => void;
 }
 
 export interface TabContentProps {

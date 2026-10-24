@@ -34,6 +34,7 @@ export function DesktopTabBar({ onOpenAllTabs, onAddTab }: DesktopTabBarProps) {
   const tabs = useTabStore((s) => s.tabs);
   const activeTabId = useTabStore((s) => s.activeTabId);
   const setActiveTab = useTabStore((s) => s.setActiveTab);
+  const addTab = useTabStore((s) => s.addTab);
   const removeTab = useTabStore((s) => s.removeTab);
   const reorderTabs = useTabStore((s) => s.reorderTabs);
 
@@ -81,6 +82,11 @@ export function DesktopTabBar({ onOpenAllTabs, onAddTab }: DesktopTabBarProps) {
         isActive={activeTabId === tab.id}
         onClick={interactive ? () => setActiveTab(tab.id) : () => {}}
         onClose={interactive ? () => removeTab(tab.id) : () => {}}
+        onDuplicate={
+          interactive && tab.type === "chat"
+            ? () => addTab("chat", { ...tab.data })
+            : undefined
+        }
       />
     );
   };

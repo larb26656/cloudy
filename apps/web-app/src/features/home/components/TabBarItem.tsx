@@ -2,7 +2,13 @@ import { TabTitle, tabTypeMap, type TabBarProps } from "../tabs/template";
 import { ProviderIcon } from "@/components/provider/ProviderIcon";
 import { TabItemShell } from "./TabItemShell";
 
-export function TabBarItem({ tab, isActive, onClick, onClose }: TabBarProps) {
+export function TabBarItem({
+  tab,
+  isActive,
+  onClick,
+  onClose,
+  onDuplicate,
+}: TabBarProps) {
   const template = tabTypeMap[tab.type];
   if (!template) return null;
   const Icon = template.icon;
@@ -20,6 +26,7 @@ export function TabBarItem({ tab, isActive, onClick, onClose }: TabBarProps) {
       isActive={isActive}
       onClick={onClick}
       onClose={onClose}
+      onDuplicate={onDuplicate}
     />
   );
 }

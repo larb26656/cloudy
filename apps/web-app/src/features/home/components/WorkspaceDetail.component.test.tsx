@@ -1,7 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { WorkspaceDetail } from "./WorkspaceDetail";
-import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { useTabStore } from "@/stores/tabStore";
 
 vi.mock("@/hooks/queries", () => ({
@@ -18,15 +17,26 @@ vi.mock("@/features/workspace/WorkspaceDialog", () => ({
   WorkspaceDialog: () => null,
 }));
 
+vi.mock("@/components/chat/AgentProviderPicker", () => ({
+  AgentProviderPicker: ({
+    onSelect,
+    label,
+  }: {
+    onSelect: (providerId: string, agentId: string) => void;
+    label: string;
+  }) => (
+    <button type="button" onClick={() => onSelect("codex", "build")}>
+      {label}
+    </button>
+  ),
+}));
+
 describe("WorkspaceDetail", () => {
   beforeEach(() => {
-    useDefaultProviderStore.setState({ defaultProviderId: "opencode" });
     useTabStore.setState({ tabs: [], activeTabId: "home" });
   });
 
-  it("uses the configured provider for a new agent chat", () => {
-    useDefaultProviderStore.setState({ defaultProviderId: "codex" });
-
+  it("creates a chat with the selected provider and agent", () => {
     render(
       <WorkspaceDetail
         workspace={{
@@ -47,7 +57,7 @@ describe("WorkspaceDetail", () => {
     expect(useTabStore.getState().tabs).toContainEqual(
       expect.objectContaining({
         type: "chat",
-        data: expect.objectContaining({ providerId: "codex" }),
+        data: expect.objectContaining({ providerId: "codex", agent: "build" }),
       }),
     );
   });

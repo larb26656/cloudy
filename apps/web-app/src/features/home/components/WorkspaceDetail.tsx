@@ -1,15 +1,8 @@
 import { useState } from "react";
-import {
-  ArrowLeft,
-  Plus,
-  Settings2,
-  Trash2,
-  MoreHorizontal,
-} from "lucide-react";
+import { ArrowLeft, Settings2, Trash2, MoreHorizontal } from "lucide-react";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { useDeleteWorkspace } from "@/hooks/queries";
 import { useNewChat } from "@/hooks/useNewChat";
-import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { Button } from "@repo/ui/components/button";
 import { DeleteConfirmDialog } from "@repo/ui/components/delete-confirm-dialog";
 import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
@@ -22,6 +15,7 @@ import {
 } from "@repo/ui/components/dropdown-menu";
 import { SessionList } from "./SessionList";
 import { BotEyeIcon } from "./BotEyeIcon";
+import { AgentProviderPicker } from "@/components/chat/AgentProviderPicker";
 
 interface WorkspaceDetailProps {
   workspace: Workspace;
@@ -31,14 +25,13 @@ interface WorkspaceDetailProps {
 export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
   const deleteWorkspace = useDeleteWorkspace();
   const { create } = useNewChat();
-  const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  const handleNewChat = () => {
+  const handleNewChat = (providerId: string, agent: string) => {
     create({
-      providerId: "opencode",
-      ...(workspace.type === "agent" ? { providerId: defaultProviderId } : {}),
+      providerId,
+      agent,
       workspaceId: workspace.id,
       directory: workspace.directory,
       sessionName: "New Chat",
@@ -108,15 +101,10 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
         workspaceId={workspace.id}
         workspaceType={workspace.type}
         header={
-          <Button
-            variant="default"
-            size="sm"
-            className="self-start gap-1.5"
-            onClick={handleNewChat}
-          >
-            <Plus data-icon="inline-start" />
-            {workspace.type === "bot" ? "New bot chat" : "New chat"}
-          </Button>
+          <AgentProviderPicker
+            label={workspace.type === "bot" ? "New bot chat" : "New chat"}
+            onSelect={handleNewChat}
+          />
         }
       />
 

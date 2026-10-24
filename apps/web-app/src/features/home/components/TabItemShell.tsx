@@ -1,6 +1,12 @@
-import type { ReactNode } from "react";
-import { X } from "lucide-react";
+import { useState, type ReactNode } from "react";
+import { Copy, X } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu";
 
 interface TabItemShellProps {
   icon: ReactNode;
@@ -8,6 +14,7 @@ interface TabItemShellProps {
   isActive: boolean;
   onClick: () => void;
   onClose?: () => void;
+  onDuplicate?: () => void;
 }
 
 export function TabItemShell({
@@ -16,8 +23,10 @@ export function TabItemShell({
   isActive,
   onClick,
   onClose,
+  onDuplicate,
 }: TabItemShellProps) {
-  return (
+  const [menuOpen, setMenuOpen] = useState(false);
+  const tabButton = (
     <button
       onClick={onClick}
       className={cn(
@@ -43,5 +52,25 @@ export function TabItemShell({
         </span>
       )}
     </button>
+  );
+
+  if (!onDuplicate) return tabButton;
+
+  return (
+    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+      <DropdownMenuTrigger
+        render={tabButton}
+        onContextMenu={(event) => {
+          event.preventDefault();
+          setMenuOpen(true);
+        }}
+      />
+      <DropdownMenuContent align="start" className="w-44">
+        <DropdownMenuItem onClick={onDuplicate}>
+          <Copy />
+          Duplicate tab
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
