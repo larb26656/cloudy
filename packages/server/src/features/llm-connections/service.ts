@@ -89,7 +89,9 @@ export function createLLMConnectionService(
   return {
     getSettings() {
       return {
-        providerTypes: llm.listProviderTypes(),
+        providerTypes: llm
+          .listProviderTypes()
+          .filter((provider) => provider.id !== "chatgpt-plan"),
         connections: connections.map(safeConnection),
       };
     },

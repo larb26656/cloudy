@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { InferRequestType, InferResponseType } from "hono/client";
 import { cloudyClient } from "@/lib/api";
-import { llmConnectionKeys } from "@/lib/cloudy/query-keys";
+import { agentProviderKeys, llmConnectionKeys } from "@/lib/cloudy/query-keys";
 
 type Endpoint = (typeof cloudyClient.api)["llm-connections"];
 type ConnectionEndpoint = Endpoint["connections"];
@@ -20,6 +20,80 @@ export function useLLMConnectionSettings() {
       if (!response.ok)
         throw new Error(`Failed to load LLM connections (${response.status})`);
       return response.json();
+    },
+  });
+}
+
+export function useChatGPTPlanStatus() {
+  const client = useQueryClient();
+  return useQuery({
+    queryKey: [...llmConnectionKeys.settings(), "chatgpt-plan"],
+    queryFn: async () => {
+      const response =
+        await cloudyClient.api["llm-connections"]["chatgpt-plan"].$get();
+      if (!response.ok)
+        throw new Error("Failed to load ChatGPT connection status");
+      const status = await response.json();
+      if (status.connected)
+        void client.invalidateQueries({
+          queryKey: agentProviderKeys.catalog(),
+        });
+      return status;
+    },
+    refetchInterval: (query) => (query.state.data?.connecting ? 1500 : false),
+  });
+}
+
+export function useConnectChatGPTPlan() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const response =
+        await cloudyClient.api["llm-connections"][
+          "chatgpt-plan"
+        ].connect.$post();
+      if (!response.ok) throw new Error("Could not start ChatGPT sign-in");
+      return response.json();
+    },
+    onSuccess: () =>
+      client.invalidateQueries({
+        queryKey: [...llmConnectionKeys.settings(), "chatgpt-plan"],
+      }),
+  });
+}
+
+export function useCancelChatGPTPlan() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const response =
+        await cloudyClient.api["llm-connections"][
+          "chatgpt-plan"
+        ].cancel.$post();
+      if (!response.ok) throw new Error("Could not cancel ChatGPT sign-in");
+      return response.json();
+    },
+    onSuccess: () =>
+      client.invalidateQueries({
+        queryKey: [...llmConnectionKeys.settings(), "chatgpt-plan"],
+      }),
+  });
+}
+
+export function useDisconnectChatGPTPlan() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      const response =
+        await cloudyClient.api["llm-connections"]["chatgpt-plan"].$delete();
+      if (!response.ok) throw new Error("Could not disconnect ChatGPT");
+      return response.json();
+    },
+    onSuccess: () => {
+      void client.invalidateQueries({
+        queryKey: [...llmConnectionKeys.settings(), "chatgpt-plan"],
+      });
+      void client.invalidateQueries({ queryKey: agentProviderKeys.catalog() });
     },
   });
 }

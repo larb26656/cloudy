@@ -1,6 +1,7 @@
 import type { AppConfig } from "./config";
 import { createSettingsService } from "./features/settings";
 import { createLLMConnectionService } from "./features/llm-connections";
+import { createChatGPTPlanService } from "./features/llm-connections/chatgpt-plan";
 import { createInMemoryPtyRepository } from "./features/pty/in-memory-pty.repository";
 import { createPtyService } from "./features/pty/pty.service";
 import { createNotificationsRepository } from "./features/notifications/notifications.repository";
@@ -21,7 +22,12 @@ import {
   createProviderTemplateRegistry,
 } from "./providers";
 import { createCloudyAdapter } from "./providers/cloudy/cloudy.adapter";
-import { createLLM, openaiProviderDefinition } from "./lib/llm-provider";
+import {
+  createLLM,
+  chatgptPlanProviderDefinition,
+  openaiProviderDefinition,
+} from "./lib/llm-provider";
+import path from "node:path";
 
 export function createContainer(
   config: AppConfig,
@@ -57,12 +63,21 @@ export function createContainer(
   const templates = createProviderTemplateRegistry();
   const apiProviderRegistry = createLLM();
   apiProviderRegistry.registerProvider("openai", openaiProviderDefinition);
+  apiProviderRegistry.registerProvider(
+    "chatgpt-plan",
+    chatgptPlanProviderDefinition,
+  );
   const llmConnectionsService = createLLMConnectionService(
     config,
     configDir,
     apiProviderRegistry,
   );
   llmConnectionsService.registerConfiguredConnections();
+  const chatgptPlanService = createChatGPTPlanService(
+    configDir ?? path.dirname(config.dbPath),
+    apiProviderRegistry,
+  );
+  void chatgptPlanService.registerConfiguredConnection();
   const agentProviderRegistry = createAgentProviderRegistry({
     providers: [
       createEchoAdapter(),
@@ -97,6 +112,7 @@ export function createContainer(
     ptyService,
     settingsService,
     llmConnectionsService,
+    chatgptPlanService,
     agentProviderRegistry,
     sessionsService,
     providerEventHub,

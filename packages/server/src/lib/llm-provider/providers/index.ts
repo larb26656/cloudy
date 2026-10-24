@@ -1,1 +1,4 @@
-export { openaiProviderDefinition } from "./openai";
+export {
+  openaiProviderDefinition,
+  chatgptPlanProviderDefinition,
+} from "./openai";

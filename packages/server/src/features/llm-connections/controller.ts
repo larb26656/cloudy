@@ -2,10 +2,16 @@ import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
 import type { LLMConnectionService } from "./service";
 import { LLMConnectionModel } from "./model";
+import { createChatGPTPlanController } from "./chatgpt-plan";
+import type { ChatGPTPlanService } from "./chatgpt-plan";
 
-export function createLLMConnectionsController(service: LLMConnectionService) {
+export function createLLMConnectionsController(
+  service: LLMConnectionService,
+  chatgptPlan: ChatGPTPlanService,
+) {
   return new Hono()
     .get("/", (c) => c.json(service.getSettings()))
+    .route("/chatgpt-plan", createChatGPTPlanController(chatgptPlan))
     .post(
       "/connections",
       zValidator("json", LLMConnectionModel.createConnectionSchema),

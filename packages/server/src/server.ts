@@ -68,7 +68,10 @@ export function createApp({
     .route("/api/settings", createSettingsController(container.settingsService))
     .route(
       "/api/llm-connections",
-      createLLMConnectionsController(container.llmConnectionsService),
+      createLLMConnectionsController(
+        container.llmConnectionsService,
+        container.chatgptPlanService,
+      ),
     )
     .route("/api/pty", createPtyController(container.ptyService))
     .route(

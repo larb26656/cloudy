@@ -12,6 +12,7 @@ import {
   useUpdateLLMConnection,
 } from "@/hooks/queries/useLLMConnectionSettings";
 import type { LLMConnection } from "@/hooks/queries/useLLMConnectionSettings";
+import { ChatGPTPlanConnection } from "./ChatGPTPlanConnection";
 import { LLMConnectionCard } from "./LLMConnectionCard";
 import { LLMConnectionDialog } from "./LLMConnectionDialog";
 
@@ -111,6 +112,8 @@ export function LLMConnectionSettings() {
           <Plus data-icon="inline-start" />
         </Button>
       </div>
+
+      <ChatGPTPlanConnection />
 
       {data.connections.length ? (
         <div className="grid gap-3 lg:grid-cols-2">

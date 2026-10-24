@@ -7,6 +7,8 @@ const mocks = vi.hoisted(() => ({
   create: vi.fn(),
   update: vi.fn(),
   remove: vi.fn(),
+  connectChatGPT: vi.fn(),
+  disconnectChatGPT: vi.fn(),
 }));
 
 vi.mock("@/hooks/queries/useLLMConnectionSettings", () => ({
@@ -14,6 +16,17 @@ vi.mock("@/hooks/queries/useLLMConnectionSettings", () => ({
   useCreateLLMConnection: () => ({ mutate: mocks.create, isPending: false }),
   useUpdateLLMConnection: () => ({ mutate: mocks.update }),
   useDeleteLLMConnection: () => ({ mutate: mocks.remove }),
+  useChatGPTPlanStatus: () => ({
+    data: { connected: false, connecting: false, email: null, error: null },
+  }),
+  useConnectChatGPTPlan: () => ({
+    mutate: mocks.connectChatGPT,
+    isPending: false,
+  }),
+  useDisconnectChatGPTPlan: () => ({
+    mutate: mocks.disconnectChatGPT,
+    isPending: false,
+  }),
 }));
 
 describe("LLMConnectionSettings", () => {
