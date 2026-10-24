@@ -8,6 +8,7 @@ const mocks = vi.hoisted(() => ({
   update: vi.fn(),
   remove: vi.fn(),
   connectChatGPT: vi.fn(),
+  cancelChatGPT: vi.fn(),
   disconnectChatGPT: vi.fn(),
 }));
 
@@ -21,6 +22,10 @@ vi.mock("@/hooks/queries/useLLMConnectionSettings", () => ({
   }),
   useConnectChatGPTPlan: () => ({
     mutate: mocks.connectChatGPT,
+    isPending: false,
+  }),
+  useCancelChatGPTPlan: () => ({
+    mutate: mocks.cancelChatGPT,
     isPending: false,
   }),
   useDisconnectChatGPTPlan: () => ({
