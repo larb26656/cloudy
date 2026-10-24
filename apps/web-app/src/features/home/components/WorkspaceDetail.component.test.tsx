@@ -10,6 +10,10 @@ vi.mock("@/hooks/queries", () => ({
   useCreateSession: () => ({ isPending: false }),
 }));
 
+vi.mock("@/hooks/queries/useWorkspaces", () => ({
+  useCreateTempWorkspace: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
 vi.mock("@/features/workspace/WorkspaceDialog", () => ({
   WorkspaceDialog: () => null,
 }));

@@ -30,6 +30,10 @@ vi.mock("@/hooks/queries", () => ({
   }),
 }));
 
+vi.mock("@/hooks/queries/useWorkspaces", () => ({
+  useCreateTempWorkspace: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
 vi.mock("@/hooks/queries/useModels", () => ({
   useModels: () => ({ data: mocks.providers }),
   useCapacity: (providerId: string) => ({
@@ -92,6 +96,7 @@ describe("CreateChatDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
 
     expect(onSubmit).toHaveBeenCalledWith({
+      agent: null,
       workspaceId: null,
       directory: "/work/my-app",
       sessionId: null,
@@ -111,6 +116,7 @@ describe("CreateChatDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
 
     expect(onSubmit).toHaveBeenCalledWith({
+      agent: null,
       workspaceId: null,
       directory: "/work/my-app",
       sessionId: null,
@@ -173,6 +179,7 @@ describe("CreateChatDialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
     expect(onSubmit).toHaveBeenCalledWith({
+      agent: null,
       workspaceId: "workspace-1",
       directory: "/work/cloudy",
       sessionId: null,
@@ -203,6 +210,7 @@ describe("CreateChatDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
 
     expect(onSubmit).toHaveBeenCalledWith({
+      agent: null,
       workspaceId: null,
       directory: "",
       sessionId: null,

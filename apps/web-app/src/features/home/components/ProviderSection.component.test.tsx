@@ -15,6 +15,9 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/hooks/queries", () => ({
   useModels: () => ({ data: mocks.providers, isLoading: false }),
+}));
+
+vi.mock("@/hooks/queries/useWorkspaces", () => ({
   useCreateTempWorkspace: () => ({ mutate: mocks.mutate, isPending: false }),
 }));
 
