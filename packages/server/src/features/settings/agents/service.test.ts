@@ -72,13 +72,33 @@ describe("agents service", () => {
     const agent = service.createAgent({
       name: "Writer",
       systemPrompt: "Write clearly",
+      avatar: {
+        shape: "orb",
+        color: "sky",
+        eyes: "awake",
+        headwear: "none",
+        facewear: "none",
+        faceDecoration: "none",
+        ambient: "none",
+      },
     });
     expect(loadFileConfig(configDir)).toMatchObject({
-      agents: [{ id: agent.id, name: "Writer", systemPrompt: "Write clearly" }],
+      agents: [
+        {
+          id: agent.id,
+          name: "Writer",
+          systemPrompt: "Write clearly",
+          avatar: { color: "sky" },
+        },
+      ],
     });
 
-    service.updateAgent(agent.id, { systemPrompt: "Write concisely" });
+    service.updateAgent(agent.id, {
+      systemPrompt: "Write concisely",
+      avatar: { ...agent.avatar!, color: "violet" },
+    });
     expect(service.getAgents().agents[1]?.systemPrompt).toBe("Write concisely");
+    expect(service.getAgents().agents[1]?.avatar?.color).toBe("violet");
 
     service.deleteAgent(agent.id);
     expect(service.getAgents().agents).toEqual([

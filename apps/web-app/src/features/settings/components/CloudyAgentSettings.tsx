@@ -1,27 +1,18 @@
-import { useState } from "react";
-import type { FormEvent } from "react";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "@repo/ui/components/sonner";
 import { Button } from "@repo/ui/components/button";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@repo/ui/components/dialog";
-import { Input } from "@repo/ui/components/input";
-import { Textarea } from "@repo/ui/components/textarea";
+import { useState } from "react";
 import {
   useCloudyAgents,
   useCreateCloudyAgent,
   useDeleteCloudyAgent,
   useUpdateCloudyAgent,
 } from "@/hooks/queries/useCloudyAgents";
+import { AgentAvatar } from "@/components/agent-avatar/AgentAvatar";
+import { CloudyAgentDialog } from "./CloudyAgentDialog";
 import type {
   CloudyAgent,
   CloudyAgentInput,
@@ -34,19 +25,13 @@ export function CloudyAgentSettings() {
   const remove = useDeleteCloudyAgent();
   const [editing, setEditing] = useState<CloudyAgent | null>(null);
   const [open, setOpen] = useState(false);
-  const [name, setName] = useState("");
-  const [systemPrompt, setSystemPrompt] = useState("");
 
   const openDialog = (agent?: CloudyAgent) => {
     setEditing(agent ?? null);
-    setName(agent?.name ?? "");
-    setSystemPrompt(agent?.systemPrompt ?? "");
     setOpen(true);
   };
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const input: CloudyAgentInput = { name: name.trim(), systemPrompt };
+  const submit = (input: CloudyAgentInput) => {
     if (editing) {
       update.mutate(
         { id: editing.id, ...input },
@@ -99,11 +84,16 @@ export function CloudyAgentSettings() {
               key={agent.id}
               className="flex items-start justify-between gap-4 rounded-lg border p-4"
             >
-              <div className="min-w-0">
-                <h3 className="font-medium">{agent.name}</h3>
-                <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">
-                  {agent.systemPrompt || "No system prompt"}
-                </p>
+              <div className="flex min-w-0 items-center gap-3">
+                {agent.avatar && (
+                  <AgentAvatar {...agent.avatar} className="size-10 shrink-0" />
+                )}
+                <div className="min-w-0">
+                  <h3 className="font-medium">{agent.name}</h3>
+                  <p className="mt-1 line-clamp-3 whitespace-pre-wrap text-sm text-muted-foreground">
+                    {agent.systemPrompt || "No system prompt"}
+                  </p>
+                </div>
               </div>
               {!agent.builtIn && (
                 <div className="flex shrink-0 gap-1">
@@ -140,50 +130,16 @@ export function CloudyAgentSettings() {
         />
       )}
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>{editing ? "Edit agent" : "Create agent"}</DialogTitle>
-            <DialogDescription>
-              Set the name and system prompt for this Cloudy agent.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={submit} className="space-y-4">
-            <label className="flex flex-col gap-1.5 text-sm font-medium">
-              Name
-              <Input
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                required
-                maxLength={100}
-              />
-            </label>
-            <label className="flex flex-col gap-1.5 text-sm font-medium">
-              System prompt
-              <Textarea
-                value={systemPrompt}
-                onChange={(event) => setSystemPrompt(event.target.value)}
-                rows={8}
-              />
-            </label>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={create.isPending || update.isPending}
-              >
-                {editing ? "Save changes" : "Create agent"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <CloudyAgentDialog
+        agent={editing ?? undefined}
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (!nextOpen) setEditing(null);
+        }}
+        isSaving={create.isPending || update.isPending}
+        onSubmit={submit}
+      />
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { formatRelativeFromTimestamp } from "@/lib/format";
 import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { basename } from "@/lib/path";
 import { ProviderIcon } from "@/components/provider/ProviderIcon";
+import { AgentAvatar } from "@/components/agent-avatar/AgentAvatar";
+import type { AgentAvatarRecipe } from "@/components/agent-avatar/AgentAvatar";
 
 export type ConversationKind = "ask" | "agent" | "bot";
 
@@ -11,6 +13,7 @@ interface SessionCardProps {
   session: RecentChatSession;
   directory: string;
   kind: ConversationKind;
+  avatar?: AgentAvatarRecipe;
   onClick: () => void;
 }
 
@@ -18,10 +21,20 @@ function formatProvider(providerId: string): string {
   return providerId.charAt(0).toUpperCase() + providerId.slice(1);
 }
 
-function KindIcon({ session }: { session: RecentChatSession }) {
+function KindIcon({
+  avatar,
+  session,
+}: {
+  avatar?: AgentAvatarRecipe;
+  session: RecentChatSession;
+}) {
   return (
     <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border bg-card text-muted-foreground">
-      <ProviderIcon providerId={session.providerId} />
+      {avatar ? (
+        <AgentAvatar {...avatar} className="size-10" />
+      ) : (
+        <ProviderIcon providerId={session.providerId} />
+      )}
     </div>
   );
 }
@@ -30,6 +43,7 @@ export function SessionCard({
   session,
   directory,
   kind,
+  avatar,
   onClick,
 }: SessionCardProps) {
   const [isEditing, setIsEditing] = useState(false);
@@ -47,7 +61,7 @@ export function SessionCard({
       onClick={onClick}
       className="flex w-full items-center gap-4 rounded-xl p-3 text-left transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <KindIcon session={session} />
+      <KindIcon avatar={avatar} session={session} />
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         {isEditing ? (
           <SessionTitleInput

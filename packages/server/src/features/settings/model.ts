@@ -14,6 +14,41 @@ const agentSchema = z.object({
   id: z.string().min(1),
   name: z.string().trim().min(1),
   systemPrompt: z.string().optional(),
+  avatar: z
+    .object({
+      shape: z.enum([
+        "orb",
+        "rounded-square",
+        "triangle",
+        "clover",
+        "diamond",
+        "star",
+      ]),
+      color: z.enum([
+        "sky",
+        "mint",
+        "tangerine",
+        "violet",
+        "rose",
+        "gold",
+        "slate",
+      ]),
+      eyes: z.enum([
+        "awake",
+        "happy",
+        "focused",
+        "angry",
+        "sleepy",
+        "squint",
+        "target",
+        "hearts",
+      ]),
+      headwear: z.enum(["none", "sprout", "halo"]),
+      facewear: z.enum(["none", "round-glasses", "sunglasses"]),
+      faceDecoration: z.enum(["none", "blush", "freckles"]),
+      ambient: z.enum(["none", "sparkles"]),
+    })
+    .optional(),
   builtIn: z.boolean(),
 });
 

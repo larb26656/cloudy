@@ -17,6 +17,7 @@ import { SessionConflictError, SessionNotFoundError } from "./sessions.errors";
 import type { SessionsRepository } from "./sessions.repository";
 
 function toSession(record: SessionRecord): ChatSession {
+  const agentId = record.metadata?.agentId;
   return {
     id: record.id,
     title: record.title ?? undefined,
@@ -27,6 +28,7 @@ function toSession(record: SessionRecord): ChatSession {
     parentId: record.parentId ?? undefined,
     createdAt: record.createdAt.toISOString(),
     updatedAt: record.updatedAt.toISOString(),
+    ...(typeof agentId === "string" && { agent: { id: agentId } }),
     metadata: record.metadata ?? undefined,
   };
 }
@@ -74,7 +76,9 @@ export function createSessionsService(
       title: providerSession.title ?? input.title,
       directory: providerSession.directory ?? input.directory,
       parentId: input.parentId,
-      metadata: input.metadata,
+      metadata: input.agentId
+        ? { ...input.metadata, agentId: input.agentId }
+        : input.metadata,
     });
     return toSession(record);
   };

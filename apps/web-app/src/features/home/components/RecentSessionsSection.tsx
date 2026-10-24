@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { RecentChatSession } from "@/types";
 import { useRecentSessions } from "@/hooks/queries/useSessions";
+import { useCloudyAgents } from "@/hooks/queries/useCloudyAgents";
 import { useWorkspaces } from "@/hooks/queries";
 import { useTabStore } from "@/stores/tabStore";
 import type { Workspace } from "@/lib/cloudy/workspaces";
@@ -12,6 +13,7 @@ import type { ConversationKind } from "./SessionCard";
 
 export function RecentSessionsSection() {
   const { data: sessions, isLoading, error } = useRecentSessions({ limit: 8 });
+  const { data: agents } = useCloudyAgents();
   const { data: workspaces = [] } = useWorkspaces();
   const openTab = useTabStore((s) => s.openTab);
 
@@ -59,6 +61,12 @@ export function RecentSessionsSection() {
               session={session}
               directory={dir}
               kind={kindOf(session)}
+              avatar={
+                session.agentId
+                  ? agents?.agents.find((agent) => agent.id === session.agentId)
+                      ?.avatar
+                  : undefined
+              }
               onClick={() => handleOpen(session)}
             />
           );

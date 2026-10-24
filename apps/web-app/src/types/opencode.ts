@@ -14,6 +14,7 @@ export type SessionRunStatusValue =
   | "cancelled";
 
 export interface ChatSession {
+  agentId?: string;
   id: string;
   providerId: string;
   title?: string;

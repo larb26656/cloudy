@@ -27,6 +27,7 @@ export function useQuickCloudySuggestions({
       return {
         agents: result.agents,
         recentSessions: result.recentSessions.map((session) => ({
+          agentId: session.agent?.id,
           id: session.id,
           providerId: session.providerId,
           title: session.title,

@@ -8,6 +8,7 @@ import {
   CommandShortcut,
 } from "@repo/ui/components/command";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { AgentAvatar } from "@/components/agent-avatar/AgentAvatar";
 import { ProviderIcon } from "@/components/provider/ProviderIcon";
 import { useQuickCloudySuggestions } from "@/hooks/queries/useQuickCloudy";
 import type { RecentChatSession } from "@/types";
@@ -35,6 +36,9 @@ export function QuickCloudySearchResults({
   });
   const agents = data?.agents ?? [];
   const sessions = data?.recentSessions ?? [];
+  const avatarByAgentId = new Map(
+    agents.flatMap((agent) => (agent.avatar ? [[agent.id, agent.avatar]] : [])),
+  );
 
   return (
     <Command
@@ -71,7 +75,14 @@ export function QuickCloudySearchResults({
                   onSelect={() => onSubmitPrompt("cloudy", agent.id)}
                   className="quick-cloudy-item-enter min-w-0"
                 >
-                  <MessageCircle />
+                  {agent.avatar ? (
+                    <AgentAvatar
+                      {...agent.avatar}
+                      className="size-4 shrink-0"
+                    />
+                  ) : (
+                    <MessageCircle />
+                  )}
                   <span className="min-w-0 flex-1 truncate">
                     Ask {agent.name} “{trimmedPrompt}”
                   </span>
@@ -89,7 +100,14 @@ export function QuickCloudySearchResults({
                 onSelect={() => onSelectSession(session)}
                 className="quick-cloudy-item-enter min-w-0"
               >
-                <ProviderIcon providerId={session.providerId} />
+                {session.agentId && avatarByAgentId.get(session.agentId) ? (
+                  <AgentAvatar
+                    {...avatarByAgentId.get(session.agentId)}
+                    className="size-4 shrink-0"
+                  />
+                ) : (
+                  <ProviderIcon providerId={session.providerId} />
+                )}
                 <span className="min-w-0 flex-1 truncate">
                   {session.title || session.directory || "Untitled chat"}
                 </span>

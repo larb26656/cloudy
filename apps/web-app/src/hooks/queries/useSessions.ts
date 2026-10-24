@@ -10,6 +10,7 @@ import type { ChatSession, RecentChatSession, SessionRunStatus } from "@/types";
 
 function toChatSession(session: CoreChatSession): ChatSession {
   return {
+    agentId: session.agent?.id,
     id: session.id,
     providerId: session.providerId,
     title: session.title,

@@ -86,14 +86,19 @@ describe("sessions service", () => {
     const repo = repository();
     const service = createSessionsService(repo, registry());
 
-    const session = await service.create({ providerId: "test" });
+    const session = await service.create({
+      providerId: "test",
+      agentId: "writer",
+    });
 
     expect(session.id).toMatch(/^[0-9a-f-]{36}$/);
     expect(session.providerId).toBe("test");
     expect(repo.rows[0]).toMatchObject({
       id: session.id,
       providerSessionId: "native-1",
+      metadata: { agentId: "writer" },
     });
+    expect(session.agent).toEqual({ id: "writer" });
   });
 
   it("resolves provider events to the Cloudy session UUID", async () => {
