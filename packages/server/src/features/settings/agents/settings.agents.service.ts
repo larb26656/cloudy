@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { AppConfig } from "../../../config";
 import { updateFileConfig } from "../../../config/file-loader";
-import type { AgentConfig } from "../model";
+import type { AgentConfig } from "../settings.model";
 
 const builtInAskAgent: AgentConfig = {
   id: "ask",

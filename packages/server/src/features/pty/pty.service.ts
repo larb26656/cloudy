@@ -12,7 +12,7 @@ import type {
   PtyRepository,
   PtySession,
 } from "./pty.repository";
-import { listShells } from "./shell-resolver";
+import { listShells } from "./pty.shell-resolver";
 import { SessionNotFoundError } from "./pty.errors";
 
 /**

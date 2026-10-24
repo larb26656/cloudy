@@ -5,7 +5,7 @@ import {
 } from "./features/settings";
 import { createLLMConnectionService } from "./features/llm-connections";
 import { createChatGPTPlanService } from "./features/llm-connections/chatgpt-plan";
-import { createInMemoryPtyRepository } from "./features/pty/in-memory-pty.repository";
+import { createInMemoryPtyRepository } from "./features/pty/pty.in-memory.repository";
 import { createPtyService } from "./features/pty/pty.service";
 import { createNotificationsRepository } from "./features/notifications/notifications.repository";
 import { createNotificationsService } from "./features/notifications/notifications.service";
@@ -16,7 +16,7 @@ import {
   createSessionsRepository,
   createSessionsService,
 } from "./features/sessions";
-import { createCloudyMessagesRepository } from "./features/sessions/cloudy-messages.repository";
+import { createCloudyMessagesRepository } from "./features/sessions/sessions.cloudy-messages.repository";
 import { createQuickCloudyService } from "./features/quick-cloudy";
 import {
   createLanAccessRepository,

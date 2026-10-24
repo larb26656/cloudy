@@ -1,3 +1,3 @@
-export { createAgentsController } from "./controller";
-export { createAgentsService } from "./service";
-export type { AgentsService } from "./service";
+export { createAgentsController } from "./settings.agents.controller";
+export { createAgentsService } from "./settings.agents.service";
+export type { AgentsService } from "./settings.agents.service";

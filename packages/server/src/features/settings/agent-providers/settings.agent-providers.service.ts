@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import path from "node:path";
 import type { AppConfig } from "../../../config";
 import { updateFileConfig } from "../../../config/file-loader";
-import type { AgentProviderSettings } from "../model";
+import type { AgentProviderSettings } from "../settings.model";
 import type { AgentProviderRegistry } from "../../../providers/provider.registry";
 import { createProviderTemplateRegistry } from "../../../providers/provider-template.registry";
 

@@ -4,7 +4,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { loadFileConfig } from "../../../config/file-loader";
 import type { AppConfig } from "../../../config";
-import { createAgentsService } from "./service";
+import { createAgentsService } from "./settings.agents.service";
 
 const config: AppConfig = {
   dbPath: "/tmp/cloudy-test.db",

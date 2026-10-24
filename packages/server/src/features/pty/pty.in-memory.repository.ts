@@ -8,7 +8,7 @@ import type {
   PtySession,
   PtySpawnInput,
 } from "./pty.repository";
-import { buildEnv, resolveShell } from "./shell-resolver";
+import { buildEnv, resolveShell } from "./pty.shell-resolver";
 
 /**
  * Spawn a real `node-pty` process for the given input. Lives behind a seam

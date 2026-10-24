@@ -1,3 +1,3 @@
-export { createChatGPTPlanController } from "./controller";
-export { createChatGPTPlanService } from "./service";
-export type { ChatGPTPlanService } from "./service";
+export { createChatGPTPlanController } from "./chatgpt-plan.controller";
+export { createChatGPTPlanService } from "./chatgpt-plan.service";
+export type { ChatGPTPlanService } from "./chatgpt-plan.service";

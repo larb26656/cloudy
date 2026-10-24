@@ -8,7 +8,7 @@ import type {
 
 import type { LLM } from "../../lib/llm-provider";
 import type { SessionsRepository } from "../../features/sessions/sessions.repository";
-import type { CloudyMessagesRepository } from "../../features/sessions/cloudy-messages.repository";
+import type { CloudyMessagesRepository } from "../../features/sessions/sessions.cloudy-messages.repository";
 import { createCloudyAgent } from "../../features/cloudy-agent/cloudy-agent.service";
 
 export function createCloudyAdapter({

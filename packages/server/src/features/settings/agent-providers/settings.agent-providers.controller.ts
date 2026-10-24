@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import { SettingsModel } from "../model";
-import type { AgentProviderSettingsService } from "./service";
+import { SettingsModel } from "../settings.model";
+import type { AgentProviderSettingsService } from "./settings.agent-providers.service";
 
 export function createAgentProviderSettingsController(
   service: AgentProviderSettingsService,

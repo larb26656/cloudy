@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { zValidator } from "@hono/zod-validator";
-import type { LLMConnectionService } from "./service";
-import { LLMConnectionModel } from "./model";
+import type { LLMConnectionService } from "./llm-connections.service";
+import { LLMConnectionModel } from "./llm-connections.model";
 import { createChatGPTPlanController } from "./chatgpt-plan";
 import type { ChatGPTPlanService } from "./chatgpt-plan";
 

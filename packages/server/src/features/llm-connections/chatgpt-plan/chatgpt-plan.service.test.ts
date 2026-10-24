@@ -7,9 +7,9 @@ import {
   createLLM,
 } from "../../../lib/llm-provider";
 import type { ChatGPTCredentials } from "../../../lib/siwc/credentials";
-import { createChatGPTPlanService } from "./service";
+import { createChatGPTPlanService } from "./chatgpt-plan.service";
 
-vi.mock("./oauth-login", () => ({
+vi.mock("./chatgpt-plan.oauth-login", () => ({
   startOAuthLogin: vi.fn(async () => ({ started: true })),
 }));
 

@@ -7,9 +7,9 @@ import type {
   ProviderMessageRequest,
   ProviderSessionInput,
 } from "@repo/ai-core";
-import type { CloudyMessagesRepository } from "../sessions/cloudy-messages.repository";
+import type { CloudyMessagesRepository } from "../sessions/sessions.cloudy-messages.repository";
 import type { LLM, LLMClient } from "../../lib/llm-provider";
-import { namingSession } from "./naming-session";
+import { namingSession } from "./cloudy-agent.naming-session";
 
 export function createCloudyAgent({
   apiProviderRegistry,

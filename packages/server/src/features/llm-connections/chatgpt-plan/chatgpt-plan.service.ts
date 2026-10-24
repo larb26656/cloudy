@@ -6,7 +6,7 @@ import {
   readCredentials,
 } from "../../../lib/siwc/credentials";
 import type { LLM } from "../../../lib/llm-provider";
-import { startOAuthLogin } from "./oauth-login";
+import { startOAuthLogin } from "./chatgpt-plan.oauth-login";
 
 const RESOURCE = "https://api.openai.com/v1";
 

@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { loadFileConfig } from "../../../config/file-loader";
 import type { AppConfig } from "../../../config";
 import type { AgentProviderRegistry } from "../../../providers/provider.registry";
-import { createAgentProviderSettingsService } from "./service";
+import { createAgentProviderSettingsService } from "./settings.agent-providers.service";
 
 const config: AppConfig = {
   dbPath: "/tmp/cloudy-test.db",

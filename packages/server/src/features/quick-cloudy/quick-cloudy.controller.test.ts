@@ -1,8 +1,8 @@
 import { Hono } from "hono";
 import { describe, expect, it, vi } from "vitest";
-import { createQuickCloudyController } from "./controller";
-import type { QuickCloudyQuery } from "./model";
-import type { QuickCloudyService } from "./service";
+import { createQuickCloudyController } from "./quick-cloudy.controller";
+import type { QuickCloudyQuery } from "./quick-cloudy.model";
+import type { QuickCloudyService } from "./quick-cloudy.service";
 
 describe("quick-cloudy controller", () => {
   it("returns agent and recent session sections using query options", async () => {

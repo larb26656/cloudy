@@ -1,6 +1,6 @@
-import type { AgentsService } from "../settings/agents/service";
+import type { AgentsService } from "../settings/agents/settings.agents.service";
 import type { SessionsService } from "../sessions/sessions.service";
-import type { QuickCloudyQuery } from "./model";
+import type { QuickCloudyQuery } from "./quick-cloudy.model";
 
 export function createQuickCloudyService(
   agentsService: AgentsService,

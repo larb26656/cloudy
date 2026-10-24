@@ -1,7 +1,7 @@
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
-import { QuickCloudyModel } from "./model";
-import type { QuickCloudyService } from "./service";
+import { QuickCloudyModel } from "./quick-cloudy.model";
+import type { QuickCloudyService } from "./quick-cloudy.service";
 
 export function createQuickCloudyController(service: QuickCloudyService) {
   return new Hono().get(

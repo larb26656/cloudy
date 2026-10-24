@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { describe, expect, it, vi } from "vitest";
-import { createOAuthCallbackHandler } from "./oauth-callback";
+import { createOAuthCallbackHandler } from "./chatgpt-plan.oauth-callback";
 
 vi.mock("../../../lib/siwc/credentials", () => ({
   validateIdentityToken: vi.fn().mockResolvedValue({

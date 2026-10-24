@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { LLMClient } from "../../lib/llm-provider";
-import { namingSession } from "./naming-session";
+import { namingSession } from "./cloudy-agent.naming-session";
 
 function createProvider(chat: LLMClient["chat"]) {
   return { chat } as LLMClient;

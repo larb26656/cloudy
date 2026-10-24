@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { loadFileConfig } from "../../config/file-loader";
 import { createLLM, openaiProviderDefinition } from "../../lib/llm-provider";
 import { testConfig } from "../../test-utils";
-import { createLLMConnectionService } from "./service";
+import { createLLMConnectionService } from "./llm-connections.service";
 
 const tempDirs: string[] = [];
 afterEach(() => {

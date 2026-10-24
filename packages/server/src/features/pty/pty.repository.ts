@@ -26,7 +26,7 @@ export type ExitListener = (code: number, signal?: number) => void;
 /**
  * Persistence/process boundary for PTY sessions. The service layer depends on
  * this interface; the in-memory implementation lives in
- * `in-memory-pty.repository.ts`. A future Drizzle-backed implementation would
+ * `pty.in-memory.repository.ts`. A future Drizzle-backed implementation would
  * satisfy the same shape.
  */
 export interface PtyRepository {

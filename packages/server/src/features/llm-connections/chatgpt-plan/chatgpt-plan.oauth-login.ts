@@ -4,7 +4,7 @@ import { randomBytes, randomUUID } from "node:crypto";
 import path from "node:path";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { createPkce, readCredentials } from "../../../lib/siwc/credentials";
-import { createOAuthCallbackHandler } from "./oauth-callback";
+import { createOAuthCallbackHandler } from "./chatgpt-plan.oauth-callback";
 import type { Server } from "node:http";
 
 const RESOURCE = "https://api.openai.com/v1";

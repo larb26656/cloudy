@@ -4,7 +4,7 @@ import type { ChatMessage } from "@repo/ai-core";
 import { createLLM } from "../../lib/llm-provider";
 import { createTestDb } from "../../db/test-utils";
 import { createSessionsRepository } from "../../features/sessions/sessions.repository";
-import { createCloudyMessagesRepository } from "../../features/sessions/cloudy-messages.repository";
+import { createCloudyMessagesRepository } from "../../features/sessions/sessions.cloudy-messages.repository";
 import { createCloudyAdapter } from "./cloudy.adapter";
 
 function createAdapter(

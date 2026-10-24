@@ -3,7 +3,10 @@ import path from "node:path";
 import type { AppConfig } from "../../config";
 import { updateFileConfig } from "../../config/file-loader";
 import type { LLM } from "../../lib/llm-provider";
-import type { LLMConnectionDto, LLMConnectionInput } from "./model";
+import type {
+  LLMConnectionDto,
+  LLMConnectionInput,
+} from "./llm-connections.model";
 
 type StoredConnection = AppConfig["llm"]["connections"][number];
 

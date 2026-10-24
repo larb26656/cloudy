@@ -13,7 +13,8 @@ export interface ShellCandidate {
  */
 export function resolveShell(command?: string): string {
   if (command) return command;
-  if (process.env.SHELL && existsSync(process.env.SHELL)) return process.env.SHELL;
+  if (process.env.SHELL && existsSync(process.env.SHELL))
+    return process.env.SHELL;
   const candidates = [
     "/bin/zsh",
     "/bin/bash",
@@ -30,7 +31,9 @@ export function resolveShell(command?: string): string {
  * server process env (filtered to defined values) merged with caller-
  * supplied overrides.
  */
-export function buildEnv(overrides?: Record<string, string>): Record<string, string> {
+export function buildEnv(
+  overrides?: Record<string, string>,
+): Record<string, string> {
   const inherited: Record<string, string> = {};
   for (const [k, v] of Object.entries(process.env)) {
     if (v !== undefined) inherited[k] = v;

@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import type { ChatGPTPlanService } from "./service";
+import type { ChatGPTPlanService } from "./chatgpt-plan.service";
 
 export function createChatGPTPlanController(service: ChatGPTPlanService) {
   return new Hono()

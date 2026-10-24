@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import type { Server } from "node:http";
 import { describe, expect, it, vi } from "vitest";
-import { startOAuthLogin } from "./oauth-login";
+import { startOAuthLogin } from "./chatgpt-plan.oauth-login";
 
 vi.mock("node:child_process", () => ({
   execFile: vi.fn(

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "@repo/ai-core";
 import { createTestDb } from "../../db/test-utils";
-import { createCloudyMessagesRepository } from "./cloudy-messages.repository";
+import { createCloudyMessagesRepository } from "./sessions.cloudy-messages.repository";
 
 describe("CloudyMessagesRepository", () => {
   it("persists and returns message errors", () => {

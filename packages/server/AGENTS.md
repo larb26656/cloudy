@@ -4,16 +4,20 @@ Backend Hono app library. All backend-specific conventions live here.
 
 ## Feature Structure
 
-Each feature lives in `packages/server/src/features/<feature>/`:
+Each feature lives in `packages/server/src/features/<feature>/`. Name source and test files
+`<domain>.<role>.ts` and `<domain>.<role>.test.ts`; use the owning feature or subfeature
+as the domain (for example `llm-connections.service.ts`, `settings.agents.service.ts`,
+and `sessions.cloudy-messages.repository.ts`). Keep `index.ts` for feature/subfeature
+barrels so imports through those entry points remain stable.
 
-| File | Responsibility |
-| --- | --- |
-| `model.ts` | `XxxModel = { dtoSchema, querySchema, createSchema, updateSchema }` (Zod) + exported types |
-| `repository.ts` | `class XxxRepository` — Drizzle queries only. Throws plain `Error` on internal failures |
-| `service.ts` | Business logic via factory function. Throws domain errors |
-| `index.ts` | `export function createXxxApp({ xxxService })` — returns a `new Hono()` sub-app |
-| `*.test.ts` | Unit test for the service (mock the repository) |
-| `*.integration.test.ts` | Integration test hitting the Hono app backed by in-memory SQLite |
+| File                                  | Responsibility                                                                             |
+| ------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `<domain>.model.ts`                   | `XxxModel = { dtoSchema, querySchema, createSchema, updateSchema }` (Zod) + exported types |
+| `<domain>.repository.ts`              | `class XxxRepository` — Drizzle queries only. Throws plain `Error` on internal failures    |
+| `<domain>.service.ts`                 | Business logic via factory function. Throws domain errors                                  |
+| `index.ts`                            | Feature/subfeature barrel; exports the route/controller and public feature symbols         |
+| `<domain>.<role>.test.ts`             | Unit test for the corresponding role (mock the repository)                                 |
+| `<domain>.<role>.integration.test.ts` | Integration test hitting the Hono app backed by in-memory SQLite                           |
 
 ## Wiring
 
@@ -26,12 +30,12 @@ Each feature lives in `packages/server/src/features/<feature>/`:
 
 Lives in `src/config/`. Layered load with later layers winning (see `loadConfig` in `config.ts`):
 
-| Layer | Source | Handled by |
-| --- | --- | --- |
-| 1. defaults | Zod schema `.default(...)` | `config.ts` |
-| 2. file | `<configDir>/config.json` (auto-created if missing) | `file-loader.ts` |
-| 3. env | `CLOUDY_<UPPER_SNAKE>` for each schema key | `env-loader.ts` |
-| 4. overrides | `AppOption` passed by caller (CLI flags) | `config.ts` |
+| Layer        | Source                                              | Handled by       |
+| ------------ | --------------------------------------------------- | ---------------- |
+| 1. defaults  | Zod schema `.default(...)`                          | `config.ts`      |
+| 2. file      | `<configDir>/config.json` (auto-created if missing) | `file-loader.ts` |
+| 3. env       | `CLOUDY_<UPPER_SNAKE>` for each schema key          | `env-loader.ts`  |
+| 4. overrides | `AppOption` passed by caller (CLI flags)            | `config.ts`      |
 
 - `ConfigurableSchema` (Zod) → `AppConfig` (resolved) + `AppOption` (input incl. `configDir`)
 - `BASE_CONFIG_DIR = "~/.config/cloudy"` (expanded via `expanduser` in `file-loader.ts`)
