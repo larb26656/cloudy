@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { ProviderQuestionRequest } from "@repo/contracts";
 import { cloudyClient } from "@/lib/api";
-import { jsonResponse } from "@/lib/api-response";
+import { emptyResponse, jsonResponse } from "@/lib/api-response";
 import { CHAT_POLL_INTERVAL, questionKeys } from "@/lib/opencode";
 import type { QuestionAnswer, QuestionRequest } from "@/types";
 
@@ -51,7 +51,7 @@ export function useReplyQuestion() {
       sessionId: string;
       answers: Array<QuestionAnswer>;
     }): Promise<void> => {
-      await jsonResponse(
+      await emptyResponse(
         await cloudyClient.api.sessions[":sessionId"].questions[
           ":questionId"
         ].$post({
@@ -77,7 +77,7 @@ export function useRejectQuestion() {
       requestID: string;
       sessionId: string;
     }): Promise<void> => {
-      await jsonResponse(
+      await emptyResponse(
         await cloudyClient.api.sessions[":sessionId"].questions[
           ":questionId"
         ].$post({

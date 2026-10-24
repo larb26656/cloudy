@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { PermissionRequest as CorePermissionRequest } from "@repo/contracts";
 import { cloudyClient } from "@/lib/api";
-import { jsonResponse } from "@/lib/api-response";
+import { emptyResponse, jsonResponse } from "@/lib/api-response";
 import { CHAT_POLL_INTERVAL, permissionKeys } from "@/lib/opencode";
 import type { PermissionRequest } from "@/types";
 
@@ -51,7 +51,7 @@ export function useReplyPermission() {
       sessionId: string;
       reply: "once" | "always" | "reject";
     }): Promise<void> => {
-      await jsonResponse(
+      await emptyResponse(
         await cloudyClient.api.sessions[":sessionId"].permissions[
           ":permissionId"
         ].$post({
