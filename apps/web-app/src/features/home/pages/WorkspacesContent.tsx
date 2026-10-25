@@ -9,6 +9,7 @@ import { ErrorState } from "@repo/ui/components/error-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { WorkspaceCard } from "../components/WorkspaceCard";
 import { WorkspaceDetail } from "../components/WorkspaceDetail";
+import { BoxContainer } from "@/components/layout/BoxContainer";
 
 export function WorkspacesContent() {
   const { data: workspaces = [], isLoading, error } = useWorkspaces();
@@ -20,13 +21,13 @@ export function WorkspacesContent() {
   if (selectedWorkspace) {
     return (
       <main className="h-full overflow-y-auto">
-        <div className="mx-auto w-full max-w-4xl px-6 py-10 md:px-10">
+        <BoxContainer variant="page">
           <WorkspaceDetail
             workspace={selectedWorkspace}
             onBack={() => setSelectedWorkspace(null)}
             backLabel="Back to Workspaces"
           />
-        </div>
+        </BoxContainer>
       </main>
     );
   }
@@ -63,7 +64,7 @@ export function WorkspacesContent() {
 
   return (
     <main className="h-full overflow-y-auto">
-      <div className="mx-auto w-full max-w-4xl px-6 py-10 md:px-10">
+      <BoxContainer variant="page">
         <div className="mb-7 flex items-start justify-between gap-4">
           <div>
             <h1 className="text-2xl font-semibold tracking-tight">
@@ -85,7 +86,7 @@ export function WorkspacesContent() {
           </p>
         )}
         {content}
-      </div>
+      </BoxContainer>
       <WorkspaceDialog open={createOpen} onOpenChange={setCreateOpen} />
     </main>
   );

@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import { Bot, FolderKanban, PlugZap } from "lucide-react";
+import { BoxContainer } from "@/components/layout/BoxContainer";
 
 export const appPages = {
   workspaces: {
@@ -29,7 +30,7 @@ export function AppPageContent({ page }: { page: AppPage }) {
 
   return (
     <main className="h-full overflow-y-auto">
-      <div className="mx-auto w-full max-w-4xl px-6 py-10 md:px-10">
+      <BoxContainer variant="page">
         <div className="flex items-start gap-4">
           <div className="flex size-11 shrink-0 items-center justify-center rounded-lg border bg-muted text-muted-foreground">
             <Icon data-icon className="size-5" />
@@ -39,7 +40,7 @@ export function AppPageContent({ page }: { page: AppPage }) {
             <p className="mt-1 text-sm text-muted-foreground">{description}</p>
           </div>
         </div>
-      </div>
+      </BoxContainer>
     </main>
   );
 }

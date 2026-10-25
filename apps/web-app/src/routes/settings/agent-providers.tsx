@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AgentProviderSettings } from "@/features/settings/components/AgentProviderSettings";
 import { SettingsDetailHeader } from "@/features/settings/SettingsDetailHeader";
+import { BoxContainer } from "@/components/layout/BoxContainer";
 
 function AgentProviderSettingsPage() {
   return (
     <div className="min-h-full">
       <SettingsDetailHeader title="Agent Providers" />
-      <div className="mx-auto max-w-3xl p-4 md:p-8">
+      <BoxContainer variant="settings">
         <AgentProviderSettings />
-      </div>
+      </BoxContainer>
     </div>
   );
 }

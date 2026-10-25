@@ -8,6 +8,7 @@ import { WorkspacesSection } from "./components/WorkspacesSection";
 import { WorkspaceDetail } from "./components/WorkspaceDetail";
 import { PinnedAgentsSection } from "./components/PinnedAgentsSection";
 import { useDeviceType } from "@/hooks/useDeviceType";
+import { BoxContainer } from "@/components/layout/BoxContainer";
 
 export function HomeContent({
   onOpenProjectChat,
@@ -79,9 +80,7 @@ export function HomeContent({
 
   return (
     <div className="h-full overflow-y-auto" ref={scrollRef}>
-      <div className="mx-auto w-full max-w-4xl px-6 py-10 lg:max-w-6xl lg:px-10">
-        {content}
-      </div>
+      <BoxContainer>{content}</BoxContainer>
     </div>
   );
 }

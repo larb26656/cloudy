@@ -17,6 +17,7 @@ import { CopyButton } from "@repo/ui/components/CopyButton";
 import { useCopyMessage } from "@repo/ui/hooks/use-copy-message";
 import { useSession } from "@/hooks/queries/useSessions";
 import { cn } from "@repo/ui/lib/utils";
+import { BoxContainer } from "@/components/layout/BoxContainer";
 import { formatCompact, formatNumber, formatPercentage } from "@/lib/format";
 
 interface SessionStatusBarProps {
@@ -160,7 +161,7 @@ export const SessionStatusBar = memo(function SessionStatusBar({
 
   return (
     <div className="@container px-4 pb-1">
-      <div className="max-w-4xl mx-auto text-xs text-muted-foreground">
+      <BoxContainer variant="chat" className="text-xs text-muted-foreground">
         {/* Wide (>=40rem container): directory left, cost+tokens right */}
         <div className="hidden @[40rem]:flex items-center gap-2">
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
@@ -275,7 +276,7 @@ export const SessionStatusBar = memo(function SessionStatusBar({
 
           {MinimapToggle}
         </div>
-      </div>
+      </BoxContainer>
 
       <Dialog open={directoryOpen} onOpenChange={setDirectoryOpen}>
         <DialogContent className="sm:max-w-md">

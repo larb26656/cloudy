@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PinnedAgentsSettings } from "@/features/settings/components/PinnedAgentsSettings";
 import { SettingsDetailHeader } from "@/features/settings/SettingsDetailHeader";
+import { BoxContainer } from "@/components/layout/BoxContainer";
 
 function PinnedAgentsSettingsPage() {
   return (
     <div className="min-h-full">
       <SettingsDetailHeader title="Pinned Agents" />
-      <div className="mx-auto max-w-3xl p-4 md:p-8">
+      <BoxContainer variant="settings">
         <PinnedAgentsSettings />
-      </div>
+      </BoxContainer>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useWorkspace } from "@/hooks/queries";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { WorkspaceDetail } from "@/features/home/components/WorkspaceDetail";
+import { BoxContainer } from "@/components/layout/BoxContainer";
 
 function WorkspacePage() {
   const { workspaceId } = Route.useParams();
@@ -24,12 +25,12 @@ function WorkspacePage() {
     );
   } else {
     content = (
-      <div className="mx-auto w-full max-w-3xl px-6 py-10">
+      <BoxContainer variant="narrow">
         <WorkspaceDetail
           workspace={workspace}
           onBack={() => navigate({ to: "/" })}
         />
-      </div>
+      </BoxContainer>
     );
   }
 

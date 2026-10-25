@@ -1,14 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { QuickPhrasesSettings } from "@/features/settings/components/QuickPhrasesSettings";
 import { SettingsDetailHeader } from "@/features/settings/SettingsDetailHeader";
+import { BoxContainer } from "@/components/layout/BoxContainer";
 
 function QuickPhrasesSettingsPage() {
   return (
     <div className="min-h-full">
       <SettingsDetailHeader title="Quick Phrases" />
-      <div className="mx-auto max-w-3xl space-y-8 p-4 md:p-8">
+      <BoxContainer variant="settings" className="space-y-8">
         <QuickPhrasesSettings />
-      </div>
+      </BoxContainer>
     </div>
   );
 }

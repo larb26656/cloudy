@@ -4,6 +4,7 @@ import { Button } from "@repo/ui/components/button";
 import { toast } from "@repo/ui/components/sonner";
 import { type ChatInputContent, type ImageAttachment } from "@/lib/opencode";
 import { cn } from "@repo/ui/lib/utils";
+import { BoxContainer } from "@/components/layout/BoxContainer";
 import { getNextName } from "@/lib/cycleName";
 import { useAgents } from "@/hooks/queries/useAgents";
 import { ChatInputEditor } from "./ChatInputEditor";
@@ -258,7 +259,7 @@ export const ChatInput = memo(function ChatInput({
         if (files.length > 0) addFiles(files);
       }}
     >
-      <div className="max-w-4xl mx-auto">
+      <BoxContainer variant="chat">
         <div className="flex flex-col gap-2">
           <div
             className={cn(
@@ -383,7 +384,7 @@ export const ChatInput = memo(function ChatInput({
             </div>
           </div>
         </div>
-      </div>
+      </BoxContainer>
     </div>
   );
 });
