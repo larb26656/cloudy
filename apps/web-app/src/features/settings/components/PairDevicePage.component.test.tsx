@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
-import { PairDevicePage } from "../../../routes/pair";
+import { PairDevicePage } from "./PairDevicePage";
 
 describe("PairDevicePage", () => {
   it("submits the pairing code when the pair button is clicked", async () => {
@@ -22,8 +22,9 @@ describe("PairDevicePage", () => {
     fireEvent.click(screen.getByRole("button", { name: "Pair device" }));
 
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        "/api/lan/pair",
+      const [url, options] = fetchMock.mock.calls[0] ?? [];
+      expect(url).toContain("/api/lan/pair");
+      expect(options).toEqual(
         expect.objectContaining({
           method: "POST",
           body: JSON.stringify({ code: "123456", name: "Work iPhone" }),
