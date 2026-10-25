@@ -156,9 +156,11 @@ Note: turbo's `dev` task runs every package with a `dev` script, so the root
 `build` chains two tsup passes (tsup has no per-entry format):
 
 1. `tsup.config.ts` → `dist/main.js` — ESM, `platform: node`, `target: node20`,
-   externals `electron`, `better-sqlite3`, `@lydell/node-pty` (native/binary deps must
-   stay as runtime imports; declared as this app's own `dependencies`, mirroring
-   `apps/server`). The `createRequire` banner lets the ESM bundle require CJS
+   externals `electron`, `better-sqlite3`, `@lydell/node-pty`, and `node-cron` (runtime
+   dependencies that must stay as imports; declared as this app's own `dependencies`,
+   mirroring `apps/server`). `node-cron` must remain external because v3 is CommonJS
+   and references `__dirname`, which is unavailable when inlined into the ESM bundle.
+   The `createRequire` banner lets the ESM bundle require CJS
    externals. `onSuccess` copies `packages/server/drizzle` → `dist/drizzle` —
    **required**: `runMigrations` resolves `<dirname of bundle>/drizzle` via
    `import.meta.url`, so once `@repo/server` is inlined into `dist/main.js` the SQL
@@ -190,12 +192,12 @@ Runtime layout inside `Cloudy.app/Contents/Resources/`:
 app.asar                      dist/main.js, dist/preload.cjs, package.json
 app.asar.unpacked/dist/drizzle/         migration SQL (real files)
 app.asar.unpacked/dist/public/          built web UI (real files)
-app.asar.unpacked/node_modules/         better-sqlite3, @lydell/node-pty, ws (real files)
+app.asar.unpacked/node_modules/         better-sqlite3, node-cron, @lydell/node-pty, ws (real files)
 ```
 
 Load-bearing details:
 
-- **`asarUnpack`** keeps drizzle + public + better-sqlite3 as real files. The native
+- **`asarUnpack`** keeps drizzle + public + better-sqlite3 + node-cron as real files. The native
   module must be a real `.node` binary, and `src/main.ts` points `publicDir` at
   `app.asar.unpacked/dist/public` (real path, not the asar virtual path).
 - **The serveStatic CWD gotcha**: `@repo/server` resolves `publicDir` against

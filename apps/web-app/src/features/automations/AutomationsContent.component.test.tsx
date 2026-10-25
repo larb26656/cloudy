@@ -239,4 +239,23 @@ describe("AutomationsContent", () => {
       runId: "run-four",
     });
   });
+
+  it("confirms automation deletion from the item actions menu", async () => {
+    const user = userEvent.setup();
+    render(<AutomationsContent />);
+
+    await user.click(
+      screen.getByRole("button", { name: "Automation item actions" }),
+    );
+    await user.click(await screen.findByRole("menuitem", { name: "Delete" }));
+
+    expect(mocks.remove).not.toHaveBeenCalled();
+    expect(screen.getByRole("dialog")).toHaveTextContent(
+      'Delete "Daily review" permanently?',
+    );
+
+    await user.click(screen.getByRole("button", { name: "Delete automation" }));
+
+    expect(mocks.remove).toHaveBeenCalledWith("auto-one", expect.any(Object));
+  });
 });

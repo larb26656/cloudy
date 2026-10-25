@@ -20,6 +20,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
+import { ConfirmDialog } from "@repo/ui/components/confirm-dialog";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { Input } from "@repo/ui/components/input";
@@ -59,6 +60,8 @@ const emptyAutomation: AutomationInput = {
 export function AutomationsContent() {
   const { data: automations, isLoading, error } = useAutomations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [automationToDelete, setAutomationToDelete] =
+    useState<Automation | null>(null);
   const [search, setSearch] = useState("");
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [editing, setEditing] = useState<{
@@ -214,13 +217,7 @@ export function AutomationsContent() {
               </DropdownMenuItem>
               <DropdownMenuItem
                 variant="destructive"
-                onClick={() =>
-                  remove.mutate(automation.id, {
-                    onSuccess: () => {
-                      if (selectedId === automation.id) setSelectedId(null);
-                    },
-                  })
-                }
+                onClick={() => setAutomationToDelete(automation)}
               >
                 <Trash2 data-icon="inline-start" />
                 Delete
@@ -320,11 +317,7 @@ export function AutomationsContent() {
                   });
                 }}
                 onRun={() => startRun.mutate(selected.id)}
-                onDelete={() =>
-                  remove.mutate(selected.id, {
-                    onSuccess: () => setSelectedId(null),
-                  })
-                }
+                onDelete={() => setAutomationToDelete(selected)}
                 onStop={(run) =>
                   stopRun.mutate({ id: selected.id, runId: run.id })
                 }
@@ -368,6 +361,25 @@ export function AutomationsContent() {
           }
         }}
         onSubmit={save}
+      />
+      <ConfirmDialog
+        open={automationToDelete !== null}
+        onOpenChange={(open) => {
+          if (!open) setAutomationToDelete(null);
+        }}
+        title="Delete automation?"
+        description={`Delete "${automationToDelete?.name ?? ""}" permanently? This action cannot be undone.`}
+        confirmLabel="Delete automation"
+        destructive
+        onConfirm={() => {
+          if (!automationToDelete) return;
+          remove.mutate(automationToDelete.id, {
+            onSuccess: () => {
+              if (selectedId === automationToDelete.id) setSelectedId(null);
+              setAutomationToDelete(null);
+            },
+          });
+        }}
       />
     </main>
   );
@@ -426,13 +438,9 @@ function AutomationDetails({
               }
             />
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onEdit}>
-                <Pencil data-icon="inline-start" />
-                Edit automation
-              </DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={onDelete}>
                 <Trash2 data-icon="inline-start" />
-                Delete automation
+                Delete
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -445,10 +453,6 @@ function AutomationDetails({
           <Button onClick={onRun}>
             <Play data-icon="inline-start" />
             Run now
-          </Button>
-          <Button variant="destructive" onClick={onDelete}>
-            <Trash2 data-icon="inline-start" />
-            Delete
           </Button>
         </div>
       </header>

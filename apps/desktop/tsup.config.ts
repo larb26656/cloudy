@@ -13,7 +13,7 @@ export const desktopTsupConfig = {
     js: `import { createRequire } from "module";
 const require = createRequire(import.meta.url);`,
   },
-  external: ["electron", "better-sqlite3", "@lydell/node-pty"],
+  external: ["electron", "better-sqlite3", "@lydell/node-pty", "node-cron"],
   async onSuccess() {
     await mkdir("./dist/drizzle", { recursive: true });
 

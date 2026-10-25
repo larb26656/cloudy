@@ -6,11 +6,13 @@ directories:
 npmRebuild: false
 files:
   - dist/**
+  - node_modules/node-cron/**
 asar: true
 asarUnpack:
   - "**/dist/drizzle/**"
   - "**/dist/public/**"
   - "**/node_modules/better-sqlite3/**"
+  - "**/node_modules/node-cron/**"
 mac:
   icon: resources/icon.icns
   category: public.app-category.developer-tools
