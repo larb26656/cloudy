@@ -1,12 +1,21 @@
 import { definePreview } from "@storybook/tanstack-react";
 import addonDocs from "@storybook/addon-docs";
 import { initialize, mswLoader } from "msw-storybook-addon";
+import { Toaster } from "@repo/ui/components/sonner";
 import "../src/index.css";
 
 initialize();
 
 const preview = definePreview({
   addons: [addonDocs()],
+  decorators: [
+    (Story) => (
+      <>
+        <Story />
+        <Toaster />
+      </>
+    ),
+  ],
   parameters: {
     controls: {
       matchers: {

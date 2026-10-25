@@ -1,14 +1,19 @@
 import { Streamdown } from "streamdown";
 import type { AnimateOptions } from "streamdown";
 import { code } from "@streamdown/code";
-import { mermaid } from "@streamdown/mermaid";
 import { math } from "@streamdown/math";
 import { cjk } from "@streamdown/cjk";
+import { PeleMermaidRenderer } from "./PeleMermaidRenderer";
 
-const PLUGINS = { code, mermaid, math, cjk } as const;
+const PLUGINS = {
+  code,
+  math,
+  cjk,
+  renderers: [{ language: "mermaid", component: PeleMermaidRenderer }],
+};
 
 export const streamingTextAnimation: AnimateOptions = {
-  animation: "slideUp",
+  animation: "blurIn",
   duration: 180,
   easing: "ease-out",
   sep: "word",

@@ -6,6 +6,10 @@
 @source "../";
 @custom-variant dark (&:is(.dark *));
 
+[data-streamdown="code-block-actions"] {
+  pointer-events: auto;
+}
+
 @keyframes thinking-shimmer {
   0% {
     background-position: 150% 0;

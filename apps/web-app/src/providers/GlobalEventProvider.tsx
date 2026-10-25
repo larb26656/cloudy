@@ -68,15 +68,15 @@ export function GlobalEventProvider({ children }: { children: ReactNode }) {
   const prevFocused = useRef(focused);
 
   useEffect(() => {
-    if (!prevFocused.current && focused && status === "DISCONNECTED")
-      reconnect();
+    if (!prevFocused.current && focused) reconnect();
     prevFocused.current = focused;
-  }, [focused, reconnect, status]);
+  }, [focused, reconnect]);
 
   useEffect(() => {
     const id = ++nextId;
     const controller = new AbortController();
     let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
     void fetch(joinUrl(env.getApiUrl(), "/api/agent-providers/events"), {
       headers: { Accept: "text/event-stream", ...env.getAuthHeaders() },
       signal: controller.signal,
@@ -111,11 +111,17 @@ export function GlobalEventProvider({ children }: { children: ReactNode }) {
         if (!cancelled) setStatus("DISCONNECTED");
       })
       .finally(() => {
-        if (!cancelled) setStatus("DISCONNECTED");
+        if (!cancelled) {
+          setStatus("DISCONNECTED");
+          retryTimer = setTimeout(() => {
+            setReconnectTick((tick) => tick + 1);
+          }, 2000);
+        }
       });
     return () => {
       cancelled = true;
       controller.abort();
+      if (retryTimer) clearTimeout(retryTimer);
       void id;
     };
   }, [queryClient, reconnectTick]);
