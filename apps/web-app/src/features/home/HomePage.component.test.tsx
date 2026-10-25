@@ -165,6 +165,9 @@ describe("HomePage work-on-a-project flow", () => {
     await user.click(
       screen.getByRole("button", { name: /work on a project/i }),
     );
+    await user.click(
+      screen.getByRole("button", { name: /use existing workspace/i }),
+    );
     await user.click(await screen.findByRole("button", { name: "Cloudy" }));
     await user.click(
       await screen.findByRole("button", { name: "Session One" }),
