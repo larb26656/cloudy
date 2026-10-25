@@ -1,12 +1,11 @@
-import { Plus } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { useWorkspaces } from "@/hooks/queries";
-import { WorkspaceDialog } from "@/features/workspace/WorkspaceDialog";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { Button } from "@repo/ui/components/button";
 import type { Workspace } from "@/lib/cloudy/workspaces";
+import { useHomeSectionStore } from "@/stores/homeSectionStore";
 import { WorkspaceCard } from "./WorkspaceCard";
 
 interface WorkspacesSectionProps {
@@ -17,21 +16,24 @@ export function WorkspacesSection({
   onSelectWorkspace,
 }: WorkspacesSectionProps) {
   const { data: workspaces = [], isLoading, error } = useWorkspaces();
-  const [createOpen, setCreateOpen] = useState(false);
+  const setActiveSection = useHomeSectionStore((s) => s.setActiveSection);
+  const displayedWorkspaces = workspaces.slice(0, 6);
 
   return (
     <section className="mb-9">
       <div className="mb-3.5 flex items-center justify-between">
-        <h2 className="text-sm font-bold">Workspaces</h2>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-7 gap-1 px-2 text-xs text-muted-foreground"
-          onClick={() => setCreateOpen(true)}
-        >
-          <Plus data-icon="inline-start" />
-          New
-        </Button>
+        <h2 className="text-sm font-bold">Recent workspaces</h2>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1 px-2 text-xs text-muted-foreground"
+            onClick={() => setActiveSection("workspaces")}
+          >
+            View more
+            <ArrowRight data-icon="inline-end" />
+          </Button>
+        </div>
       </div>
 
       {isLoading ? (
@@ -42,7 +44,7 @@ export function WorkspacesSection({
         <EmptyState size="inline" title="No workspaces yet" />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {workspaces.map((w) => (
+          {displayedWorkspaces.map((w) => (
             <WorkspaceCard
               key={w.id}
               workspace={w}
@@ -51,8 +53,6 @@ export function WorkspacesSection({
           ))}
         </div>
       )}
-
-      <WorkspaceDialog open={createOpen} onOpenChange={setCreateOpen} />
     </section>
   );
 }

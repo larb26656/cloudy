@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Settings2, Trash2, MoreHorizontal } from "lucide-react";
 import type { Workspace } from "@/lib/cloudy/workspaces";
-import { useDeleteWorkspace } from "@/hooks/queries";
+import { useDeleteWorkspace, useMarkWorkspaceActive } from "@/hooks/queries";
 import { useNewChat } from "@/hooks/useNewChat";
 import { Button } from "@repo/ui/components/button";
 import { DeleteConfirmDialog } from "@repo/ui/components/delete-confirm-dialog";
@@ -14,19 +14,28 @@ import {
   DropdownMenuSeparator,
 } from "@repo/ui/components/dropdown-menu";
 import { SessionList } from "./SessionList";
-import { BotEyeIcon } from "./BotEyeIcon";
 import { AgentProviderPicker } from "@/components/chat/AgentProviderPicker";
 
 interface WorkspaceDetailProps {
   workspace: Workspace;
   onBack: () => void;
+  backLabel?: string;
 }
 
-export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
+export function WorkspaceDetail({
+  workspace,
+  onBack,
+  backLabel = "Back to Home",
+}: WorkspaceDetailProps) {
   const deleteWorkspace = useDeleteWorkspace();
+  const { mutate: markActive } = useMarkWorkspaceActive();
   const { create } = useNewChat();
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    markActive(workspace.id);
+  }, [markActive, workspace.id]);
 
   const handleNewChat = (providerId: string, agent: string) => {
     create({
@@ -46,7 +55,7 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
         className="mb-5 flex items-center gap-2 self-start text-[13.5px] text-muted-foreground transition-colors hover:text-foreground"
       >
         <ArrowLeft className="size-4" />
-        Back to Home
+        {backLabel}
       </button>
 
       <div className="mb-6 flex items-center justify-between">
@@ -55,11 +64,7 @@ export function WorkspaceDetail({ workspace, onBack }: WorkspaceDetailProps) {
             className="flex size-11 items-center justify-center rounded-xl text-base font-bold text-white shrink-0"
             style={{ backgroundColor: workspace.color }}
           >
-            {workspace.type === "bot" ? (
-              <BotEyeIcon className="size-5" />
-            ) : (
-              workspace.name.charAt(0).toUpperCase()
-            )}
+            {workspace.name.charAt(0).toUpperCase()}
           </span>
           <div>
             <h1 className="text-[22px] font-bold leading-tight">

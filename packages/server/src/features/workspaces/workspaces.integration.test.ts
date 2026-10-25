@@ -148,6 +148,33 @@ describe("workspaces integration", () => {
     expect(res.status).toBe(404);
   });
 
+  it("POST /:id/active records workspace activity", async () => {
+    await env.app.request("/api/workspaces", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: "ws-active",
+        name: "Active",
+        color: "#3B82F6",
+        directory: "/tmp/active",
+      }),
+    });
+
+    const res = await env.app.request("/api/workspaces/ws-active/active", {
+      method: "POST",
+    });
+
+    expect(res.status).toBe(200);
+    expect((await res.json()).lastActiveAt).toBeTypeOf("string");
+  });
+
+  it("POST /:id/active returns 404 when workspace is missing", async () => {
+    const res = await env.app.request("/api/workspaces/missing/active", {
+      method: "POST",
+    });
+    expect(res.status).toBe(404);
+  });
+
   it("PATCH updates fields", async () => {
     await env.app.request("/api/workspaces", {
       method: "POST",

@@ -25,6 +25,7 @@ export const workspaces = sqliteTable("workspaces", {
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .default(sql`(unixepoch())`)
     .notNull(),
+  lastActiveAt: integer("last_active_at", { mode: "timestamp" }),
 });
 
 export type WorkspaceRecord = typeof workspaces.$inferSelect;

@@ -24,6 +24,7 @@ function makeWorkspace(overrides: Partial<WorkspaceDto> = {}): WorkspaceDto {
     directory: "/tmp/browser",
     createdAt: now,
     updatedAt: now,
+    lastActiveAt: null,
     ...overrides,
   };
 }
@@ -43,6 +44,7 @@ function makeRepo(seed: WorkspaceDto[] = []): WorkspacesRepository {
       return workspace;
     },
     update: () => null,
+    markActive: (id) => store.get(id) ?? null,
     delete: () => false,
   };
 }

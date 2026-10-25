@@ -20,6 +20,7 @@ function makeWorkspace(overrides: Partial<WorkspaceDto> = {}): WorkspaceDto {
     directory: "/tmp/test",
     createdAt: now,
     updatedAt: now,
+    lastActiveAt: null,
     ...overrides,
   };
 }
@@ -51,6 +52,13 @@ function makeRepo(
         ...input,
         updatedAt: new Date(),
       };
+      store.set(id, next);
+      return next;
+    },
+    markActive: (id) => {
+      const current = store.get(id);
+      if (!current) return null;
+      const next = { ...current, lastActiveAt: new Date() };
       store.set(id, next);
       return next;
     },

@@ -1,4 +1,4 @@
-import { Bot, FolderKanban, Home, PlugZap } from "lucide-react";
+import { FolderKanban, Home } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useHomeSectionStore } from "@/stores/homeSectionStore";
 import { useTabStore } from "@/stores/tabStore";
@@ -7,8 +7,6 @@ import type { AppPage } from "@/features/home/pages";
 const navItems = [
   { section: "home", label: "Home", icon: Home },
   { section: "workspaces", label: "Workspaces", icon: FolderKanban },
-  { section: "agents", label: "Agents", icon: Bot },
-  { section: "providers", label: "Providers", icon: PlugZap },
 ] as const;
 
 export function AppNav({

@@ -72,6 +72,22 @@ export function createWorkspacesController(service: WorkspacesService) {
         return c.json(service.get(id));
       },
     )
+    .post(
+      "/:id/active",
+      describeRoute({
+        description: "Record workspace activity",
+        tags: ["Workspaces"],
+        responses: {
+          200: { description: "Workspace activity recorded" },
+          404: { description: "Workspace not found" },
+        },
+      }),
+      zValidator("param", idParamSchema),
+      (c) => {
+        const { id } = c.req.valid("param");
+        return c.json(service.markActive(id));
+      },
+    )
     .patch(
       "/:id",
       describeRoute({

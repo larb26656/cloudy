@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import type { DbClient } from "../../db/client";
 import { workspaces, type NewWorkspace } from "../../db/schema";
 import type {
@@ -18,6 +18,7 @@ export interface WorkspacesRepository {
   findByDirectory(directory: string): WorkspaceDto | null;
   create(input: CreateWorkspaceInput): WorkspaceDto;
   update(id: string, input: UpdateWorkspaceInput): WorkspaceDto | null;
+  markActive(id: string): WorkspaceDto | null;
   delete(id: string): boolean;
 }
 
@@ -30,12 +31,22 @@ function toDto(row: typeof workspaces.$inferSelect): WorkspaceDto {
     directory: row.directory,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    lastActiveAt: row.lastActiveAt,
   };
 }
 
 export function createWorkspacesRepository(db: DbClient): WorkspacesRepository {
   const list = (): WorkspaceDto[] =>
-    db.select().from(workspaces).all().map(toDto);
+    db
+      .select()
+      .from(workspaces)
+      .orderBy(
+        desc(
+          sql`coalesce(${workspaces.lastActiveAt}, ${workspaces.updatedAt})`,
+        ),
+      )
+      .all()
+      .map(toDto);
 
   const findById = (id: string): WorkspaceDto | null => {
     const row = db.select().from(workspaces).where(eq(workspaces.id, id)).get();
@@ -81,5 +92,23 @@ export function createWorkspacesRepository(db: DbClient): WorkspacesRepository {
     return result.changes > 0;
   };
 
-  return { list, findById, findByDirectory, create, update, delete: remove };
+  const markActive = (id: string): WorkspaceDto | null => {
+    const result = db
+      .update(workspaces)
+      .set({ lastActiveAt: new Date() })
+      .where(eq(workspaces.id, id))
+      .returning()
+      .get();
+    return result ? toDto(result) : null;
+  };
+
+  return {
+    list,
+    findById,
+    findByDirectory,
+    create,
+    update,
+    markActive,
+    delete: remove,
+  };
 }

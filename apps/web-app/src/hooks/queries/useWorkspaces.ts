@@ -37,6 +37,25 @@ export function useWorkspace(id: string | null) {
   });
 }
 
+export function useMarkWorkspaceActive() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string): Promise<Workspace> => {
+      const res = await cloudyClient.api.workspaces[":id"].active.$post({
+        param: { id },
+      });
+      if (!res.ok) {
+        throw new Error(`Failed to record workspace activity (${res.status})`);
+      }
+      return workspaceDtoSchema.parse(await res.json());
+    },
+    onSuccess: (data) => {
+      void queryClient.setQueryData(workspaceKeys.detail(data.id), data);
+      void queryClient.invalidateQueries({ queryKey: workspaceKeys.list() });
+    },
+  });
+}
+
 export function useCreateTempWorkspace() {
   return useMutation({
     mutationFn: async () => {

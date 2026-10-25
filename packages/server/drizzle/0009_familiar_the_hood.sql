@@ -1,0 +1,1 @@
+ALTER TABLE `workspaces` ADD `last_active_at` integer;

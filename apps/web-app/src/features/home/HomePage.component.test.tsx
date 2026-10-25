@@ -16,6 +16,7 @@ const workspaces = [
     directory: "/project",
     createdAt: "2026-01-01T00:00:00.000Z",
     updatedAt: "2026-01-01T00:00:00.000Z",
+    lastActiveAt: null,
   },
 ];
 
@@ -38,6 +39,7 @@ vi.mock("@/hooks/queries/useSessions", async (importOriginal) => {
   const actual = await importOriginal<Record<string, unknown>>();
   return {
     ...actual,
+    useMarkWorkspaceActive: () => ({ mutate: vi.fn() }),
     useSessions: () => ({ data: sessions, isLoading: false }),
     useRecentSessions: () => ({
       data: [] as RecentChatSession[],

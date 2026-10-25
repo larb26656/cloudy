@@ -5,6 +5,7 @@ import { useTabStore } from "@/stores/tabStore";
 
 vi.mock("@/hooks/queries", () => ({
   useDeleteWorkspace: () => ({ mutate: vi.fn() }),
+  useMarkWorkspaceActive: () => ({ mutate: vi.fn() }),
   useSessions: () => ({ data: [], isLoading: false, error: null }),
   useCreateSession: () => ({ isPending: false }),
 }));
@@ -47,6 +48,7 @@ describe("WorkspaceDetail", () => {
           directory: "/work/cloudy",
           createdAt: new Date(),
           updatedAt: new Date(),
+          lastActiveAt: null,
         }}
         onBack={vi.fn()}
       />,

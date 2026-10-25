@@ -4,7 +4,7 @@ import { Button } from "@repo/ui/components/button";
 import { WorkspaceItem } from "@/components/ui/WorkspaceItem";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { LoadingState } from "@repo/ui/components/loading-state";
-import { useWorkspaces } from "@/hooks/queries";
+import { useMarkWorkspaceActive, useWorkspaces } from "@/hooks/queries";
 import type { Workspace, WorkspaceType } from "@/lib/cloudy/workspaces";
 
 interface WorkspaceSelectStepProps {
@@ -19,6 +19,7 @@ export function WorkspaceSelectStep({
   workspaceType,
 }: WorkspaceSelectStepProps) {
   const { data: workspaces = [], isLoading } = useWorkspaces();
+  const { mutate: markActive } = useMarkWorkspaceActive();
   const matchingWorkspaces = workspaceType
     ? workspaces.filter((workspace) => workspace.type === workspaceType)
     : workspaces;
@@ -52,7 +53,10 @@ export function WorkspaceSelectStep({
         <WorkspaceItem
           key={workspace.id}
           workspace={workspace}
-          onSelect={onSelect}
+          onSelect={(workspace) => {
+            markActive(workspace.id);
+            onSelect(workspace);
+          }}
         />
       ))}
     </div>

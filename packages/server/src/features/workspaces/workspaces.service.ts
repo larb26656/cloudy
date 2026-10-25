@@ -30,6 +30,12 @@ export function createWorkspacesService(
     return ws;
   };
 
+  const markActive = (id: string): WorkspaceDto => {
+    const workspace = repo.markActive(id);
+    if (!workspace) throw new WorkspaceNotFoundError(id);
+    return workspace;
+  };
+
   const create = (input: CreateWorkspaceInput): WorkspaceDto => {
     if (repo.findByDirectory(input.directory)) {
       throw new WorkspaceConflictError(input.directory);
@@ -69,7 +75,7 @@ export function createWorkspacesService(
     repo.delete(id);
   };
 
-  return { list, get, create, createTemp, update, delete: remove };
+  return { list, get, create, createTemp, markActive, update, delete: remove };
 }
 
 export type WorkspacesService = ReturnType<typeof createWorkspacesService>;

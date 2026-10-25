@@ -26,6 +26,7 @@ export const workspaceDtoSchema = z.object({
   directory: z.string(),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date(),
+  lastActiveAt: z.coerce.date().nullable(),
 });
 export type WorkspaceDto = z.infer<typeof workspaceDtoSchema>;
 
