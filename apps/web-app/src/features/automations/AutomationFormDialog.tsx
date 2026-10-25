@@ -1,14 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import type { Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@repo/ui/components/button";
+import { ConfirmDialog } from "@repo/ui/components/confirm-dialog";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@repo/ui/components/dialog";
@@ -33,6 +33,7 @@ import {
 } from "@repo/ui/components/select";
 import { ProviderSelector } from "@/components/chat/ProviderSelector";
 import { AgentSelector } from "@/components/chat/AgentSelector";
+import { ModelSelector } from "@/components/chat/ModelSelector";
 import { useModels } from "@/hooks/queries/useModels";
 import type { AutomationInput } from "@/hooks/queries/useAutomations";
 import { CronExpressionInput, isValidCron } from "./CronExpressionInput";
@@ -78,6 +79,7 @@ export function AutomationFormDialog({
   values,
   isEditing,
   saving,
+  inline = false,
   onOpenChange,
   onSubmit,
 }: {
@@ -85,10 +87,12 @@ export function AutomationFormDialog({
   values: AutomationInput;
   isEditing: boolean;
   saving: boolean;
+  inline?: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (values: AutomationInput) => void;
 }) {
   const { data: providers = [] } = useModels();
+  const [confirmScheduleRemoval, setConfirmScheduleRemoval] = useState(false);
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema) as Resolver<FormValues>,
     defaultValues: values,
@@ -121,10 +125,24 @@ export function AutomationFormDialog({
     );
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[90dvh] flex-col gap-4 overflow-hidden sm:max-w-2xl">
-        <DialogHeader>
+  const formContent = (
+    <div
+      className={
+        inline
+          ? "flex flex-col gap-4"
+          : "flex min-h-0 flex-col gap-4 overflow-hidden"
+      }
+    >
+      {inline ? (
+        <div>
+          <h2 className="text-lg font-semibold">Edit automation</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Configure the prompt, agent, working directory, and optional
+            schedule.
+          </p>
+        </div>
+      ) : (
+        <DialogHeader className="shrink-0">
           <DialogTitle>
             {isEditing ? "Edit automation" : "New automation"}
           </DialogTitle>
@@ -133,286 +151,303 @@ export function AutomationFormDialog({
             schedule.
           </DialogDescription>
         </DialogHeader>
-        <form
-          id="automation-form"
-          onSubmit={form.handleSubmit((data) =>
-            onSubmit(data as AutomationInput),
-          )}
-          className="min-h-0 overflow-y-auto"
-        >
-          <FieldGroup className="gap-4 pr-1">
-            <Controller
-              name="name"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="automation-name">Name</FieldLabel>
-                  <Input
-                    {...field}
-                    id="automation-name"
-                    aria-invalid={fieldState.invalid}
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
+      )}
+      <form
+        id="automation-form"
+        onSubmit={form.handleSubmit((data) =>
+          onSubmit(data as AutomationInput),
+        )}
+        className={inline ? "" : "min-h-0 overflow-y-auto"}
+      >
+        <FieldGroup className="gap-4 pr-1">
+          <Controller
+            name="name"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="automation-name">Name</FieldLabel>
+                <Input
+                  {...field}
+                  id="automation-name"
+                  aria-invalid={fieldState.invalid}
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+          <Controller
+            name="prompt"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field data-invalid={fieldState.invalid}>
+                <FieldLabel htmlFor="automation-prompt">Prompt</FieldLabel>
+                <Textarea
+                  {...field}
+                  id="automation-prompt"
+                  aria-invalid={fieldState.invalid}
+                  className="min-h-32 max-h-64 resize-y overflow-y-auto"
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+          <Field>
+            <FieldLabel htmlFor="automation-provider">
+              Provider instance
+            </FieldLabel>
+            {/* Keep providers with approval/question support selectable for automations. */}
+            <ProviderSelector
+              providerId={value.providerInstanceId}
+              variant="form"
+              triggerAriaLabel="Provider instance"
+              onChange={(providerInstanceId) => {
+                form.setValue("providerInstanceId", providerInstanceId, {
+                  shouldValidate: true,
+                });
+                form.setValue("agentId", undefined);
+                form.setValue("model", undefined);
+              }}
             />
-            <Controller
-              name="prompt"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor="automation-prompt">Prompt</FieldLabel>
-                  <Textarea
-                    {...field}
-                    id="automation-prompt"
-                    aria-invalid={fieldState.invalid}
-                    className="min-h-32"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
+          </Field>
+          {provider?.capabilities.agents && (
             <Field>
-              <FieldLabel htmlFor="automation-provider">
-                Provider instance
-              </FieldLabel>
-              <ProviderSelector
+              <FieldLabel>Agent</FieldLabel>
+              <AgentSelector
+                variant="form"
                 providerId={value.providerInstanceId}
-                triggerAriaLabel="Provider instance"
-                onChange={(providerInstanceId) => {
-                  form.setValue("providerInstanceId", providerInstanceId, {
-                    shouldValidate: true,
-                  });
-                  form.setValue("agentId", undefined);
-                  form.setValue("model", undefined);
-                }}
-                filterProviders={(item) =>
-                  !item.capabilities.approvals && !item.capabilities.questions
+                value={value.agentId ?? null}
+                onChange={(agentId) =>
+                  form.setValue("agentId", agentId ?? undefined)
                 }
-                triggerClassName="h-9 w-full justify-between rounded-md border px-3 text-sm"
               />
             </Field>
-            {provider?.capabilities.agents && (
-              <Field>
-                <FieldLabel>Agent</FieldLabel>
-                <AgentSelector
-                  providerId={value.providerInstanceId}
-                  value={value.agentId ?? null}
-                  onChange={(agentId) =>
-                    form.setValue("agentId", agentId ?? undefined)
-                  }
-                  triggerClassName="h-9 w-full justify-between rounded-md border px-3 text-sm"
-                />
-              </Field>
-            )}
-            {provider?.capabilities.models && (
+          )}
+          {provider?.capabilities.models && (
+            <Controller
+              name="model"
+              control={form.control}
+              render={({ field }) => (
+                <Field>
+                  <FieldLabel>Model</FieldLabel>
+                  <ModelSelector
+                    variant="form"
+                    providerId={value.providerInstanceId}
+                    triggerAriaLabel="Model"
+                    value={
+                      models.find(
+                        (model) =>
+                          model.providerId === field.value?.providerId &&
+                          model.modelId === field.value?.modelId,
+                      ) ?? null
+                    }
+                    onChange={(model) =>
+                      field.onChange(
+                        model
+                          ? {
+                              providerId: model.providerId,
+                              modelId: model.modelId,
+                            }
+                          : undefined,
+                      )
+                    }
+                  />
+                </Field>
+              )}
+            />
+          )}
+          {provider?.capabilities.requiresDirectory && (
+            <FieldSet className="gap-3">
+              <FieldLegend variant="label">Working directory</FieldLegend>
               <Controller
-                name="model"
+                name="directoryMode"
                 control={form.control}
                 render={({ field }) => (
-                  <Field>
-                    <FieldLabel htmlFor="automation-model">Model</FieldLabel>
-                    <Select
-                      value={
-                        field.value
-                          ? `${field.value.providerId}/${field.value.modelId}`
-                          : "default"
+                  <RadioGroup
+                    value={field.value}
+                    onValueChange={(next) => {
+                      if (next === "temp" || next === "specified") {
+                        field.onChange(next);
+                        if (next === "temp")
+                          form.setValue("directoryPath", undefined);
                       }
-                      onValueChange={(next) => {
-                        const model = models.find(
-                          (item) =>
-                            `${item.providerId}/${item.modelId}` === next,
-                        );
-                        field.onChange(
-                          model
-                            ? {
-                                providerId: model.providerId,
-                                modelId: model.modelId,
-                              }
-                            : undefined,
-                        );
-                      }}
-                    >
-                      <SelectTrigger id="automation-model" className="w-full">
-                        <SelectValue placeholder="Provider default" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="default">
-                          Provider default
-                        </SelectItem>
-                        {models.map((model) => (
-                          <SelectItem
-                            key={`${model.providerId}/${model.modelId}`}
-                            value={`${model.providerId}/${model.modelId}`}
-                          >
-                            {model.name ?? model.modelId}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
+                    }}
+                  >
+                    <Field orientation="horizontal">
+                      <RadioGroupItem value="temp" id="directory-temp" />
+                      <FieldLabel htmlFor="directory-temp">
+                        Fresh temporary directory per run
+                      </FieldLabel>
+                    </Field>
+                    <Field orientation="horizontal">
+                      <RadioGroupItem
+                        value="specified"
+                        id="directory-specified"
+                      />
+                      <FieldLabel htmlFor="directory-specified">
+                        Specified path
+                      </FieldLabel>
+                    </Field>
+                  </RadioGroup>
                 )}
               />
-            )}
-            {provider?.capabilities.requiresDirectory && (
-              <FieldSet className="gap-3">
-                <FieldLegend variant="label">Working directory</FieldLegend>
+              {value.directoryMode === "specified" && (
                 <Controller
-                  name="directoryMode"
+                  name="directoryPath"
                   control={form.control}
-                  render={({ field }) => (
-                    <RadioGroup
-                      value={field.value}
-                      onValueChange={(next) => {
-                        if (next === "temp" || next === "specified") {
-                          field.onChange(next);
-                          if (next === "temp")
-                            form.setValue("directoryPath", undefined);
-                        }
-                      }}
-                    >
-                      <Field orientation="horizontal">
-                        <RadioGroupItem value="temp" id="directory-temp" />
-                        <FieldLabel htmlFor="directory-temp">
-                          Fresh temporary directory per run
-                        </FieldLabel>
-                      </Field>
-                      <Field orientation="horizontal">
-                        <RadioGroupItem
-                          value="specified"
-                          id="directory-specified"
-                        />
-                        <FieldLabel htmlFor="directory-specified">
-                          Specified path
-                        </FieldLabel>
-                      </Field>
-                    </RadioGroup>
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="automation-directory">
+                        Directory path
+                      </FieldLabel>
+                      <Input
+                        {...field}
+                        id="automation-directory"
+                        value={field.value ?? ""}
+                        placeholder="/path/to/project"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
                   )}
                 />
-                {value.directoryMode === "specified" && (
-                  <Controller
-                    name="directoryPath"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor="automation-directory">
-                          Directory path
-                        </FieldLabel>
-                        <Input
-                          {...field}
-                          id="automation-directory"
-                          value={field.value ?? ""}
-                          placeholder="/path/to/project"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && (
-                          <FieldError errors={[fieldState.error]} />
-                        )}
-                      </Field>
-                    )}
-                  />
-                )}
-              </FieldSet>
-            )}
-            <FieldSet className="gap-3">
-              <FieldLegend variant="label">Schedule (optional)</FieldLegend>
-              <Field>
-                <FieldLabel htmlFor="automation-schedule">Schedule</FieldLabel>
-                <select
-                  id="automation-schedule"
-                  aria-label="Schedule"
-                  className="h-9 rounded-md border bg-background px-3"
-                  value={value.schedule ? "scheduled" : "none"}
-                  onChange={(event) =>
-                    setSchedule(
-                      event.target.value === "scheduled"
-                        ? (value.schedule?.cron ?? "0 9 * * *")
-                        : "",
-                    )
-                  }
-                >
-                  <option value="none">No schedule</option>
-                  <option value="scheduled">Set a schedule</option>
-                </select>
-              </Field>
-              {value.schedule && (
-                <>
-                  <Field
-                    data-invalid={Boolean(form.formState.errors.schedule?.cron)}
-                  >
-                    <CronExpressionInput
-                      value={value.schedule.cron}
-                      onChange={setSchedule}
-                    />
-                    {form.formState.errors.schedule?.cron && (
-                      <FieldError>
-                        {form.formState.errors.schedule.cron.message}
-                      </FieldError>
-                    )}
-                  </Field>
-                  <Controller
-                    name="schedule.timezone"
-                    control={form.control}
-                    render={({ field, fieldState }) => (
-                      <Field data-invalid={fieldState.invalid}>
-                        <FieldLabel htmlFor="automation-timezone">
-                          Timezone (IANA)
-                        </FieldLabel>
-                        <Input
-                          {...field}
-                          id="automation-timezone"
-                          aria-invalid={fieldState.invalid}
-                        />
-                        {fieldState.invalid && (
-                          <FieldError errors={[fieldState.error]} />
-                        )}
-                      </Field>
-                    )}
-                  />
-                  <Controller
-                    name="schedule.enabled"
-                    control={form.control}
-                    render={({ field }) => (
-                      <Field orientation="horizontal">
-                        <Checkbox
-                          id="automation-enabled"
-                          checked={field.value}
-                          onCheckedChange={field.onChange}
-                        />
-                        <FieldLabel htmlFor="automation-enabled">
-                          Schedule enabled
-                        </FieldLabel>
-                      </Field>
-                    )}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Save to calculate the next three occurrences.
-                  </p>
-                </>
               )}
             </FieldSet>
-          </FieldGroup>
-        </form>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            form="automation-form"
-            disabled={saving || !form.formState.isValid}
-          >
-            {saving ? "Saving…" : "Save automation"}
-          </Button>
-        </DialogFooter>
+          )}
+          <FieldSet className="gap-3">
+            <FieldLegend variant="label">Schedule (optional)</FieldLegend>
+            <Field>
+              <FieldLabel htmlFor="automation-schedule">Schedule</FieldLabel>
+              <Select
+                items={[
+                  { label: "No schedule", value: "none" },
+                  { label: "Set a schedule", value: "scheduled" },
+                ]}
+                value={value.schedule ? "scheduled" : "none"}
+                onValueChange={(next) => {
+                  if (next === "none" && value.schedule) {
+                    setConfirmScheduleRemoval(true);
+                    return;
+                  }
+                  setSchedule(
+                    next === "scheduled"
+                      ? (value.schedule?.cron ?? "0 9 * * *")
+                      : "",
+                  );
+                }}
+              >
+                <SelectTrigger id="automation-schedule" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No schedule</SelectItem>
+                  <SelectItem value="scheduled">Set a schedule</SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+            {value.schedule && (
+              <>
+                <Field
+                  data-invalid={Boolean(form.formState.errors.schedule?.cron)}
+                >
+                  <CronExpressionInput
+                    value={value.schedule.cron}
+                    onChange={setSchedule}
+                  />
+                  {form.formState.errors.schedule?.cron && (
+                    <FieldError>
+                      {form.formState.errors.schedule.cron.message}
+                    </FieldError>
+                  )}
+                </Field>
+                <Controller
+                  name="schedule.timezone"
+                  control={form.control}
+                  render={({ field, fieldState }) => (
+                    <Field data-invalid={fieldState.invalid}>
+                      <FieldLabel htmlFor="automation-timezone">
+                        Timezone (IANA)
+                      </FieldLabel>
+                      <Input
+                        {...field}
+                        id="automation-timezone"
+                        aria-invalid={fieldState.invalid}
+                      />
+                      {fieldState.invalid && (
+                        <FieldError errors={[fieldState.error]} />
+                      )}
+                    </Field>
+                  )}
+                />
+                <Controller
+                  name="schedule.enabled"
+                  control={form.control}
+                  render={({ field }) => (
+                    <Field orientation="horizontal">
+                      <Checkbox
+                        id="automation-enabled"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <FieldLabel htmlFor="automation-enabled">
+                        Schedule enabled
+                      </FieldLabel>
+                    </Field>
+                  )}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Save to calculate the next three occurrences.
+                </p>
+              </>
+            )}
+          </FieldSet>
+        </FieldGroup>
+      </form>
+      <div
+        className={
+          inline
+            ? "flex flex-wrap justify-end gap-2 border-t pt-4"
+            : "flex flex-wrap justify-end gap-2"
+        }
+      >
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => onOpenChange(false)}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          form="automation-form"
+          disabled={saving || !form.formState.isValid}
+        >
+          {saving ? "Saving…" : "Save automation"}
+        </Button>
+      </div>
+      <ConfirmDialog
+        open={confirmScheduleRemoval}
+        onOpenChange={setConfirmScheduleRemoval}
+        title="Remove this schedule?"
+        description="This automation will no longer run automatically. You can still run it manually at any time."
+        confirmLabel="Remove schedule"
+        cancelLabel="Keep schedule"
+        onConfirm={() => setSchedule("")}
+      />
+    </div>
+  );
+
+  if (inline) return formContent;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[90dvh] flex-col gap-4 overflow-hidden sm:max-w-2xl">
+        {formContent}
       </DialogContent>
     </Dialog>
   );

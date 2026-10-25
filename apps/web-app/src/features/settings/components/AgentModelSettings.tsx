@@ -48,8 +48,8 @@ export function AgentModelSettings() {
         </div>
         <ProviderSelector
           providerId={providerId}
+          variant="form"
           onChange={setDefaultProvider}
-          triggerClassName="w-full justify-between rounded-md border px-3 text-sm"
         />
         <p className="text-xs text-muted-foreground">
           {providers.length ? "Connected" : "Not configured or unavailable"}
@@ -67,10 +67,10 @@ export function AgentModelSettings() {
           </div>
         </div>
         <AgentSelector
+          variant="form"
           providerId={providerId}
           value={defaultAgent}
           onChange={(agent) => setDefaultAgent(providerId, agent)}
-          triggerClassName="w-full justify-between rounded-md border px-3 py-2 text-sm"
         />
       </div>
 
@@ -85,10 +85,10 @@ export function AgentModelSettings() {
           </div>
         </div>
         <ModelSelector
+          variant="form"
           providerId={providerId}
           value={defaultModel}
           onChange={(model) => setDefaultModel(providerId, model)}
-          triggerClassName="w-full justify-between rounded-md border px-3 py-2 text-sm"
         />
       </div>
     </div>

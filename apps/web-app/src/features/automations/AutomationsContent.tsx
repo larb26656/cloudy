@@ -1,8 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  Activity,
+  CalendarDays,
+  ChartNoAxesColumnIncreasing,
+  Clock3,
+  FileText,
+  Globe2,
+  Mail,
+  Megaphone,
+  MoreVertical,
+  Pencil,
+  Play,
+  Plus,
+  Radar,
+  RefreshCw,
+  Search,
+  Shield,
+  Trash2,
+  TrendingUp,
+} from "lucide-react";
 import { Button } from "@repo/ui/components/button";
 import { EmptyState } from "@repo/ui/components/empty-state";
 import { ErrorState } from "@repo/ui/components/error-state";
+import { Input } from "@repo/ui/components/input";
 import { LoadingState } from "@repo/ui/components/loading-state";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@repo/ui/components/dropdown-menu";
 import {
   useAutomationRuns,
   useAutomations,
@@ -32,12 +59,21 @@ const emptyAutomation: AutomationInput = {
 export function AutomationsContent() {
   const { data: automations, isLoading, error } = useAutomations();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [editing, setEditing] = useState<{
     id: string | null;
     values: AutomationInput;
   } | null>(null);
+  const [creating, setCreating] = useState(false);
   const selected = automations?.find((item) => item.id === selectedId) ?? null;
+  const filteredAutomations = useMemo(
+    () =>
+      automations?.filter((automation) =>
+        automation.name.toLowerCase().includes(search.trim().toLowerCase()),
+      ) ?? [],
+    [automations, search],
+  );
   const runsQuery = useAutomationRuns(selected?.id ?? null);
   const preview = useSchedulePreview(selected?.id ?? null);
   const create = useCreateAutomation();
@@ -58,8 +94,10 @@ export function AutomationsContent() {
     if (target) {
       setSelectedId(target.automationId);
       setSelectedRunId(target.runId);
+    } else if (!selectedId && !creating && automations?.length) {
+      setSelectedId(automations[0]?.id ?? null);
     }
-  }, [consumeReturnTarget]);
+  }, [automations, consumeReturnTarget, creating, selectedId]);
 
   const save = (values: AutomationInput) => {
     const payload = { ...values };
@@ -92,51 +130,168 @@ export function AutomationsContent() {
         description="Create one to run repeatable agent work."
       />
     );
+  else if (!filteredAutomations.length)
+    listContent = (
+      <EmptyState
+        size="compact"
+        title="No matching automations"
+        description="Try another search term."
+      />
+    );
   else
-    listContent = automations.map((automation) => (
-      <button
-        key={automation.id}
-        type="button"
-        onClick={() => {
-          setSelectedId(automation.id);
-          setEditing(null);
-        }}
-        className={`w-full rounded-md border px-3 py-2 text-left text-sm hover:bg-muted ${selectedId === automation.id ? "bg-muted" : "bg-background"}`}
-      >
-        <span className="block truncate font-medium">{automation.name}</span>
-        <span className="text-xs text-muted-foreground">
-          {automation.schedule?.enabled ? automation.schedule.cron : "Manual"}
-        </span>
-      </button>
-    ));
+    listContent = filteredAutomations.map((automation, index) => {
+      const Icon = automationIcon(index);
+
+      return (
+        <div
+          key={automation.id}
+          className={`group flex items-center gap-3 rounded-lg border px-3 py-3 transition-colors ${selectedId === automation.id ? "border-primary/40 bg-primary/5" : "border-transparent hover:border-border hover:bg-muted/60"}`}
+        >
+          <button
+            type="button"
+            onClick={() => {
+              setSelectedId(automation.id);
+              setEditing(null);
+            }}
+            aria-current={selectedId === automation.id ? "true" : undefined}
+            className="flex min-w-0 flex-1 items-center gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted text-primary">
+              <Icon className="size-5" aria-hidden="true" />
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-medium">
+                {automation.name}
+              </span>
+              <span className="mt-1 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
+                <Clock3 className="size-3.5 shrink-0" aria-hidden="true" />
+                {automation.schedule?.enabled
+                  ? automation.schedule.cron
+                  : "Manual"}
+              </span>
+            </span>
+          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Automation item actions"
+                  className="size-8 shrink-0 text-muted-foreground"
+                />
+              }
+            >
+              <MoreVertical aria-hidden="true" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedId(automation.id);
+                  setEditing({
+                    id: automation.id,
+                    values: {
+                      name: automation.name,
+                      prompt: automation.prompt,
+                      providerInstanceId: automation.providerInstanceId,
+                      directoryMode: automation.directoryMode,
+                      ...(automation.agentId && {
+                        agentId: automation.agentId,
+                      }),
+                      ...(automation.model && { model: automation.model }),
+                      ...(automation.directoryPath && {
+                        directoryPath: automation.directoryPath,
+                      }),
+                      ...(automation.schedule && {
+                        schedule: automation.schedule,
+                      }),
+                    },
+                  });
+                }}
+              >
+                <Pencil data-icon="inline-start" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() =>
+                  remove.mutate(automation.id, {
+                    onSuccess: () => {
+                      if (selectedId === automation.id) setSelectedId(null);
+                    },
+                  })
+                }
+              >
+                <Trash2 data-icon="inline-start" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      );
+    });
 
   return (
-    <main className="h-full overflow-y-auto">
-      <div className="mx-auto flex max-w-6xl flex-col gap-5 p-6">
-        <header className="flex items-center justify-between gap-3">
-          <div>
+    <main className="h-full overflow-hidden p-4 md:p-5">
+      <div className="mx-auto grid h-full max-w-[1600px] min-h-0 grid-rows-[minmax(220px,0.8fr)_minmax(0,1fr)] gap-4 lg:grid-rows-1 lg:grid-cols-[minmax(280px,0.38fr)_minmax(0,1fr)] xl:gap-5">
+        <aside
+          className="flex min-h-0 flex-col gap-4 overflow-hidden rounded-xl border bg-card p-4 md:p-5"
+          aria-label="Automation list"
+        >
+          <header>
             <h1 className="text-2xl font-semibold tracking-tight">
               Automations
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               Repeatable prompts, scheduled or on demand.
             </p>
-          </div>
+          </header>
+          <label className="relative block">
+            <Search
+              className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search automations..."
+              className="pl-9"
+              aria-label="Search automations"
+            />
+          </label>
           <Button
+            className="w-full"
+            aria-label="New automation"
             onClick={() => {
               setSelectedId(null);
+              setCreating(true);
               setEditing({ id: null, values: { ...emptyAutomation } });
             }}
           >
-            New automation
+            <Plus data-icon="inline-start" />
+            Create automation
           </Button>
-        </header>
-        <div className="grid min-h-0 gap-5 lg:grid-cols-[240px_minmax(0,1fr)]">
-          <aside className="flex flex-col gap-2" aria-label="Automation list">
-            {listContent}
-          </aside>
-          <section className="min-w-0 rounded-xl border bg-card p-5">
-            {selected ? (
+          <div className="min-h-0 flex-1 overflow-y-auto">
+            <div className="flex flex-col gap-1" role="list">
+              {listContent}
+            </div>
+          </div>
+        </aside>
+        <section className="min-h-0 min-w-0 overflow-y-auto rounded-xl border bg-card p-4 md:p-6">
+          {selected ? (
+            editing?.id === selected.id ? (
+              <AutomationFormDialog
+                inline
+                open
+                values={editing.values}
+                isEditing
+                saving={update.isPending}
+                onOpenChange={(open) => {
+                  if (!open) setEditing(null);
+                }}
+                onSubmit={save}
+              />
+            ) : (
               <AutomationDetails
                 automation={selected}
                 runs={runsQuery.data ?? []}
@@ -144,7 +299,8 @@ export function AutomationsContent() {
                 runsError={runsQuery.error}
                 occurrences={preview.data?.occurrences ?? []}
                 highlightedRunId={selectedRunId}
-                onEdit={() =>
+                onEdit={() => {
+                  setCreating(false);
                   setEditing({
                     id: selected.id,
                     values: {
@@ -157,10 +313,12 @@ export function AutomationsContent() {
                       ...(selected.directoryPath && {
                         directoryPath: selected.directoryPath,
                       }),
-                      ...(selected.schedule && { schedule: selected.schedule }),
+                      ...(selected.schedule && {
+                        schedule: selected.schedule,
+                      }),
                     },
-                  })
-                }
+                  });
+                }}
                 onRun={() => startRun.mutate(selected.id)}
                 onDelete={() =>
                   remove.mutate(selected.id, {
@@ -172,7 +330,10 @@ export function AutomationsContent() {
                 }
                 onOpenSession={(run) => {
                   if (!run.sessionId) return;
-                  setReturnTarget({ automationId: selected.id, runId: run.id });
+                  setReturnTarget({
+                    automationId: selected.id,
+                    runId: run.id,
+                  });
                   const config = run.configSnapshot as Partial<AutomationInput>;
                   addTab("chat", {
                     providerId:
@@ -186,22 +347,25 @@ export function AutomationsContent() {
                   });
                 }}
               />
-            ) : (
-              <EmptyState
-                title="Select an automation"
-                description="Choose an automation or create a new one."
-              />
-            )}
-          </section>
-        </div>
+            )
+          ) : (
+            <EmptyState
+              title="Select an automation"
+              description="Choose an automation or create a new one."
+            />
+          )}
+        </section>
       </div>
       <AutomationFormDialog
-        open={editing !== null}
+        open={creating && editing !== null}
         values={editing?.values ?? emptyAutomation}
-        isEditing={editing?.id !== null && editing?.id !== undefined}
-        saving={create.isPending || update.isPending}
+        isEditing={false}
+        saving={create.isPending}
         onOpenChange={(open) => {
-          if (!open) setEditing(null);
+          if (!open) {
+            setCreating(false);
+            setEditing(null);
+          }
         }}
         onSubmit={save}
       />
@@ -236,70 +400,169 @@ function AutomationDetails({
 }) {
   return (
     <div className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-xl font-semibold">{automation.name}</h2>
-          <p className="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">
-            {automation.prompt}
-          </p>
+      <header className="flex flex-col gap-5">
+        <div className="flex items-start gap-4">
+          <span className="flex size-16 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Radar className="size-8" aria-hidden="true" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-2xl font-semibold tracking-tight md:text-3xl">
+              {automation.name}
+            </h2>
+            <p className="mt-1 max-h-40 overflow-y-auto whitespace-pre-wrap text-sm text-muted-foreground md:text-base">
+              {automation.prompt}
+            </p>
+          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="outline"
+                  size="icon"
+                  aria-label="Automation actions"
+                >
+                  <MoreVertical />
+                </Button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={onEdit}>
+                <Pencil data-icon="inline-start" />
+                Edit automation
+              </DropdownMenuItem>
+              <DropdownMenuItem variant="destructive" onClick={onDelete}>
+                <Trash2 data-icon="inline-start" />
+                Delete automation
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={onEdit}>
+            <Pencil data-icon="inline-start" />
             Edit
           </Button>
-          <Button onClick={onRun}>Run now</Button>
+          <Button onClick={onRun}>
+            <Play data-icon="inline-start" />
+            Run now
+          </Button>
           <Button variant="destructive" onClick={onDelete}>
+            <Trash2 data-icon="inline-start" />
             Delete
           </Button>
         </div>
-      </div>
-      {automation.schedule && (
-        <div className="rounded-lg border p-3 text-sm">
-          <span className="font-medium">
-            {automation.schedule.enabled ? "Scheduled" : "Schedule paused"}
-          </span>
-          <span className="ml-2 font-mono text-muted-foreground">
-            {automation.schedule.cron}
-          </span>
-          <span className="ml-2 text-muted-foreground">
-            {automation.schedule.timezone}
-          </span>
-          <ol
-            aria-label="Next three occurrences"
-            className="mt-2 flex flex-wrap gap-4 text-xs text-muted-foreground"
-          >
-            {occurrences.map((date) => (
-              <li key={date}>
-                {new Date(date).toLocaleString(undefined, {
-                  timeZone: automation.schedule!.timezone,
-                })}
-              </li>
-            ))}
-          </ol>
-        </div>
+      </header>
+      {automation.schedule ? (
+        <section
+          className="grid gap-4 rounded-xl border p-4 md:p-5"
+          aria-label="Schedule"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <h3 className="flex items-center gap-3 text-lg font-semibold">
+              <CalendarDays aria-hidden="true" />
+              Schedule
+            </h3>
+            <Button variant="outline" size="sm" onClick={onEdit}>
+              <Pencil data-icon="inline-start" />
+              Edit
+            </Button>
+          </div>
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
+            <span className="flex items-center gap-2">
+              <RefreshCw className="size-4" aria-hidden="true" />
+              {automation.schedule.enabled
+                ? automation.schedule.cron
+                : "Schedule paused"}
+            </span>
+            <span className="flex items-center gap-2 rounded-md bg-muted px-3 py-1.5">
+              <Globe2 className="size-4" aria-hidden="true" />
+              {automation.schedule.timezone}
+            </span>
+          </div>
+          {occurrences.length > 0 && (
+            <div className="grid gap-3 border-t pt-4">
+              <h4 className="text-sm font-medium text-muted-foreground">
+                Next {occurrences.length} runs
+              </h4>
+              <ol
+                aria-label="Next three occurrences"
+                className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3"
+              >
+                {occurrences.map((date, index) => (
+                  <li
+                    key={date}
+                    className={`flex items-center gap-3 rounded-lg border p-3 text-sm ${index === 0 ? "border-primary/50 bg-primary/5" : ""}`}
+                  >
+                    <CalendarDays
+                      className={`size-5 shrink-0 ${index === 0 ? "text-primary" : "text-muted-foreground"}`}
+                      aria-hidden="true"
+                    />
+                    <div className="grid min-w-0">
+                      <time dateTime={date}>
+                        {new Date(date).toLocaleString(undefined, {
+                          timeZone: automation.schedule!.timezone,
+                          dateStyle: "medium",
+                        })}
+                      </time>
+                      <span className="text-muted-foreground">
+                        {new Date(date).toLocaleString(undefined, {
+                          timeZone: automation.schedule!.timezone,
+                          timeStyle: "short",
+                        })}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+        </section>
+      ) : (
+        <section className="flex items-center gap-3 rounded-xl border p-4 text-sm text-muted-foreground">
+          <CalendarDays aria-hidden="true" />
+          This automation runs on demand.
+        </section>
       )}
-      <section className="grid gap-2">
-        <h3 className="text-sm font-semibold">Run history</h3>
+      <section className="flex min-h-[280px] flex-col rounded-xl border p-4 md:min-h-[340px] md:p-5">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="flex items-center gap-3 text-lg font-semibold">
+            <FileText aria-hidden="true" />
+            Run history
+          </h3>
+        </div>
         {runsLoading ? (
           <LoadingState size="inline" title="Loading runs..." />
         ) : runsError ? (
           <ErrorState size="inline" bare message={runsError.message} />
         ) : runs.length === 0 ? (
-          <EmptyState
-            size="compact"
-            title="No runs yet"
-            description="Run it now to start the first run."
-          />
-        ) : (
-          runs.map((run) => (
-            <RunRow
-              key={run.id}
-              run={run}
-              highlighted={run.id === highlightedRunId}
-              onStop={() => onStop(run)}
-              onOpenSession={() => onOpenSession(run)}
+          <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
+            <Activity
+              className="mb-4 size-12 text-muted-foreground/60"
+              aria-hidden="true"
             />
-          ))
+            <EmptyState
+              size="compact"
+              title="No runs yet"
+              description="Run it now to start the first run."
+              className="py-2"
+            />
+            <Button className="mt-3" onClick={onRun}>
+              <Play data-icon="inline-start" />
+              Run now
+            </Button>
+          </div>
+        ) : (
+          <div className="mt-4 grid content-start gap-2">
+            {runs.map((run) => (
+              <RunRow
+                key={run.id}
+                run={run}
+                highlighted={run.id === highlightedRunId}
+                onStop={() => onStop(run)}
+                onOpenSession={() => onOpenSession(run)}
+              />
+            ))}
+          </div>
         )}
       </section>
     </div>
@@ -362,4 +625,19 @@ function RunRow({
       </div>
     </article>
   );
+}
+
+function automationIcon(index: number) {
+  const icons = [
+    Radar,
+    FileText,
+    ChartNoAxesColumnIncreasing,
+    Shield,
+    Mail,
+    Megaphone,
+    Activity,
+    TrendingUp,
+  ];
+
+  return icons[index % icons.length]!;
 }

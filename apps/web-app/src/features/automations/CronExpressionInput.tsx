@@ -1,4 +1,12 @@
 import { useEffect, useState } from "react";
+import { Input } from "@repo/ui/components/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@repo/ui/components/select";
 
 const cronPresets = [
   ["Daily at 09:00", "0 9 * * *"],
@@ -95,20 +103,28 @@ export function CronExpressionInput({
     <div className="grid gap-2">
       <label className="grid gap-1 text-sm">
         Schedule preset
-        <select
-          className="h-9 rounded-md border bg-background px-3"
+        <Select
+          items={[
+            ...cronPresets.map(([label, value]) => ({ label, value })),
+            { label: "Custom expression", value: "custom" },
+          ]}
           value={selectedPreset ?? "custom"}
-          onChange={(event) => {
-            if (event.target.value !== "custom") onChange(event.target.value);
+          onValueChange={(next) => {
+            if (next && next !== "custom") onChange(next);
           }}
         >
-          {cronPresets.map(([name, cron]) => (
-            <option key={cron} value={cron}>
-              {name}
-            </option>
-          ))}
-          <option value="custom">Custom expression</option>
-        </select>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {cronPresets.map(([name, cron]) => (
+              <SelectItem key={cron} value={cron}>
+                {name}
+              </SelectItem>
+            ))}
+            <SelectItem value="custom">Custom expression</SelectItem>
+          </SelectContent>
+        </Select>
       </label>
       <fieldset className="grid gap-1">
         <legend className="text-sm">{label}</legend>
@@ -119,11 +135,11 @@ export function CronExpressionInput({
               className="grid gap-1 text-xs text-muted-foreground"
             >
               {field}
-              <input
+              <Input
                 id={index === 0 ? id : undefined}
                 aria-label={field}
-                aria-invalid={!valid}
-                className="h-9 min-w-0 rounded-md border bg-background px-2 font-mono text-sm text-foreground"
+                aria-invalid={!valid || undefined}
+                className="h-9 min-w-0 px-2 font-mono"
                 value={fields[index] ?? ""}
                 onChange={(event) => updateField(index, event.target.value)}
                 placeholder={["0", "9", "*", "*", "1-5"][index]}

@@ -321,7 +321,11 @@ export const ChatInput = memo(function ChatInput({
                   !isFocused && !modelOpen && "@max-compact:hidden",
                 )}
               >
-                <ModelSelector open={modelOpen} onOpenChange={setModelOpen} />
+                <ModelSelector
+                  open={modelOpen}
+                  onOpenChange={setModelOpen}
+                  variant="chat"
+                />
               </div>
 
               <div className="flex gap-2 shrink-0">

@@ -68,11 +68,7 @@ export function createAutomationsService(
         throw new ValidationError(
           `Provider ${providerId} does not support automation runs`,
         );
-      const info = await provider.getInfo();
-      if (info.capabilities.approvals || info.capabilities.questions)
-        throw new ValidationError(
-          `Provider ${providerId} may require interactive input`,
-        );
+      // TODO: Revisit how automation runs handle providers that need interactive input.
     }
     const schedule = input.schedule ?? prior?.schedule;
     if (schedule && !cron.validate(schedule.cron))

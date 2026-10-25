@@ -190,10 +190,10 @@ export function CreateChatDialog({
                   <h3 className="text-sm font-medium">Select provider</h3>
                   <ProviderSelector
                     providerId={providerId}
+                    variant="chat"
                     onChange={(value) => {
                       if (value) setProviderId(value);
                     }}
-                    triggerClassName="h-10 w-full justify-start rounded-lg border bg-muted/30 px-3 [&>svg:last-child]:ml-auto"
                   />
                 </section>
               )}

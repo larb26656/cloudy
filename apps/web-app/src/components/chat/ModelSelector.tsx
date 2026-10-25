@@ -10,6 +10,10 @@ import { useModels } from "@/hooks/queries/useModels";
 import { useFavoriteModelsStore } from "@/stores/favoriteModelsStore";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { useChatContext } from "./ChatProvider";
+import {
+  selectorTriggerVariants,
+  type SelectorTriggerVariant,
+} from "./selectorVariants";
 
 const providerIcons: Record<string, React.ReactNode> = {
   openai: <Cloud className="size-4" />,
@@ -29,7 +33,9 @@ interface ModelSelectorProps {
   providerId?: string;
   value?: ModelInfo | null;
   onChange?: (model: ModelInfo | null) => void;
+  variant?: Extract<SelectorTriggerVariant, "chat" | "form">;
   triggerClassName?: string;
+  triggerAriaLabel?: string;
 }
 
 type SelectorModel = ModelInfo & ModelSelectorModel;
@@ -63,7 +69,9 @@ export function ModelSelector({
   providerId: providerIdProp,
   value: valueProp,
   onChange,
+  variant = "form",
   triggerClassName,
+  triggerAriaLabel,
 }: ModelSelectorProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = open ?? internalOpen;
@@ -132,6 +140,11 @@ export function ModelSelector({
       onChange={(model) => setModel?.(model ? fromSelectorModel(model) : null)}
       onToggleFavorite={(model) => toggleFavorite(fromSelectorModel(model))}
       triggerClassName={triggerClassName}
+      triggerVariant={selectorTriggerVariants({ variant })}
+      triggerContentClassName={
+        variant === "form" ? "inline-flex w-full justify-between" : undefined
+      }
+      triggerAriaLabel={triggerAriaLabel}
     />
   );
 }

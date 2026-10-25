@@ -27,6 +27,38 @@ Tailwind v4 via `@tailwindcss/vite` (no `tailwind.config.js`), shadcn/ui primiti
 `@tiptap/*` for rich text, `hono/client`
 for the cloudy RPC. `react-hook-form` + `zod` for forms. `next-themes` for dark/light.
 
+### Forms and selectors
+
+- Before implementing or changing frontend UI, load the `shadcn` skill and check whether
+  the project already has a suitable shadcn/ui component. Prefer installed components and
+  their documented composition; build custom UI only when no suitable component exists.
+- Reuse an existing shared selector for provider, agent, model, and other established
+  choices before building a feature-local picker. For example, use
+  `ProviderSelector` and `AgentSelector` from `src/components/chat/` when configuring
+  provider/agent values outside chat. Use their controlled props (`value`/`providerId`,
+  `onChange`) and extend them with a narrowly-scoped prop only when the feature needs a
+  distinct constraint, such as filtering eligible providers.
+- For new forms, use `react-hook-form` with a Zod schema where it fits the form's shape.
+  Follow the app's field composition pattern: wrap each form control in
+  `Controller` (`name` + `control={form.control}`), then render `Field`, `FieldLabel`,
+  the control, and `FieldError` when `fieldState.invalid`. Use shadcn `Input`, `Textarea`,
+  and `Select` rather than raw HTML controls for form inputs and selections. Spread `field`
+  onto compatible inputs; pass `field.value`/`field.onChange` to controlled components.
+  Use `aria-invalid={fieldState.invalid}` and connect labels with matching `htmlFor`/`id`.
+  Import field primitives from `@repo/ui/components/field`.
+- Reuse an existing shared selector for provider, agent, model, and other established
+  choices before building a feature-local picker. For example, use `ProviderSelector` and
+  `AgentSelector` from `src/components/chat/` when configuring provider/agent values
+  outside chat, wrapped in the same `Controller` + `Field` pattern. Don't recreate a shared
+  picker as a shadcn `Select` just to fit a form.
+- Use `FieldGroup`, `FieldSet`, and `FieldLegend` from `@repo/ui/components/field` for
+  grouped fields, following `src/features/automations/AutomationFormDialog.tsx` as the
+  canonical example. Keep validation in the Zod schema when possible, and show
+  `fieldState.error` through `FieldError` rather than duplicating validation UI.
+- Use `ConfirmDialog` from `@repo/ui/components/confirm-dialog` for confirmation prompts
+  before consequential actions. Do not compose a separate confirmation dialog from the
+  lower-level alert-dialog primitives when this shared component fits.
+
 ## Directory map
 
 ```

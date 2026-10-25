@@ -1,4 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AutomationsContent } from "./AutomationsContent";
 
@@ -175,12 +176,15 @@ vi.mock("@/stores/automationNavigationStore", () => ({
 describe("AutomationsContent", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("requires name, prompt and provider before save and shows capability-aware selections", () => {
+  it("requires name, prompt and provider before save and shows capability-aware selections", async () => {
+    const user = userEvent.setup();
     render(<AutomationsContent />);
     fireEvent.click(screen.getByRole("button", { name: "New automation" }));
-    expect(
-      screen.getByRole("button", { name: "Save automation" }),
-    ).toBeDisabled();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Save automation" }),
+      ).toBeDisabled(),
+    );
     fireEvent.change(screen.getByLabelText("Name"), {
       target: { value: "Nightly" },
     });
@@ -193,18 +197,21 @@ describe("AutomationsContent", () => {
     fireEvent.click(screen.getByRole("option", { name: "Provider One" }));
     expect(screen.getByText("Default Agent")).toBeInTheDocument();
     expect(screen.getByLabelText("Model")).toBeInTheDocument();
-    fireEvent.change(screen.getByLabelText("Schedule"), {
-      target: { value: "scheduled" },
-    });
-    fireEvent.change(screen.getByLabelText("Minute"), {
+    await user.click(screen.getByRole("combobox", { name: "Schedule" }));
+    await user.click(
+      await screen.findByRole("option", { name: "Set a schedule" }),
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Minute" }), {
       target: { value: "not cron" },
     });
     expect(screen.getByRole("alert")).toHaveTextContent(
       "Invalid cron expression",
     );
-    expect(
-      screen.getByRole("button", { name: "Save automation" }),
-    ).toBeDisabled();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Save automation" }),
+      ).toBeDisabled(),
+    );
   });
 
   it("shows saved schedule preview and trigger source/reason, and runs manually", () => {

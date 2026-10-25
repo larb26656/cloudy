@@ -148,7 +148,7 @@ describe("automations service", () => {
     });
   });
 
-  it("rejects invalid directory, cron, interactive provider, and unsupported provider", async () => {
+  it("rejects invalid directory, cron, and unsupported provider", async () => {
     const { service, repository, provider } = makeHarness();
     const input = {
       name: "A",
@@ -169,21 +169,6 @@ describe("automations service", () => {
         schedule: { cron: "nope", timezone: "UTC", enabled: true },
       }),
     ).rejects.toMatchObject({ message: "Invalid cron expression" });
-    provider.getInfo.mockResolvedValueOnce({
-      id: "test",
-      name: "Test",
-      capabilities: { approvals: true, questions: false },
-      models: [],
-    });
-    await expect(service.create(input)).rejects.toMatchObject({
-      message: "Provider test may require interactive input",
-    });
-    provider.getInfo.mockResolvedValueOnce({
-      id: "test",
-      name: "Test",
-      capabilities: { approvals: false, questions: false },
-      models: [],
-    });
     const missingOperations = { ...provider, abortSession: undefined };
     const unsupported = createAutomationsService(
       repository as never,

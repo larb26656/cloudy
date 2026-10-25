@@ -93,22 +93,22 @@ export function PinnedAgentsSettings() {
                 <p className="text-sm font-medium">Provider</p>
                 <ProviderSelector
                   providerId={providerId}
+                  variant="form"
                   onChange={(value) => {
                     if (value) {
                       setProviderId(value);
                       setAgentId("");
                     }
                   }}
-                  triggerClassName="w-full justify-between rounded-md border px-3 text-sm"
                 />
               </div>
               <div className="space-y-2">
                 <p className="text-sm font-medium">Agent</p>
                 <AgentSelector
+                  variant="form"
                   providerId={providerId}
                   value={agentId || null}
                   onChange={(value) => setAgentId(value ?? "")}
-                  triggerClassName="w-full justify-between rounded-md border px-3 py-2 text-sm"
                 />
               </div>
             </div>

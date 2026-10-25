@@ -57,7 +57,10 @@ interface ModelSelectorProps<T extends ModelSelectorModel> {
   error?: string | null;
   onChange: (model: T | null) => void;
   onToggleFavorite: (model: T) => void;
+  triggerVariant?: string;
+  triggerContentClassName?: string;
   triggerClassName?: string;
+  triggerAriaLabel?: string;
 }
 
 export function ModelSelector<T extends ModelSelectorModel>({
@@ -72,7 +75,10 @@ export function ModelSelector<T extends ModelSelectorModel>({
   error = null,
   onChange,
   onToggleFavorite,
+  triggerVariant,
+  triggerContentClassName,
   triggerClassName,
+  triggerAriaLabel,
 }: ModelSelectorProps<T>) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -126,18 +132,25 @@ export function ModelSelector<T extends ModelSelectorModel>({
   );
 
   const trigger = (
-    <span className="inline-flex min-w-0 items-center justify-center gap-1.5">
-      <Bot className="size-4 shrink-0" />
-      <span className="max-w-48 truncate">{value?.name ?? "Default"}</span>
-      {selectedVariant && (
-        <Badge
-          variant="secondary"
-          className="max-w-24 px-1.5 text-[11px]"
-          title={selectedVariant.name}
-        >
-          {selectedVariant.name}
-        </Badge>
+    <span
+      className={cn(
+        triggerContentClassName ??
+          "inline-flex min-w-0 items-center justify-center gap-1.5",
       )}
+    >
+      <span className="flex min-w-0 flex-1 items-center gap-1.5">
+        <Bot className="size-4 shrink-0" />
+        <span className="truncate">{value?.name ?? "Default"}</span>
+        {selectedVariant && (
+          <Badge
+            variant="secondary"
+            className="max-w-24 px-1.5 text-[11px]"
+            title={selectedVariant.name}
+          >
+            {selectedVariant.name}
+          </Badge>
+        )}
+      </span>
       <ChevronDown className="size-3.5 shrink-0" />
     </span>
   );
@@ -236,6 +249,7 @@ export function ModelSelector<T extends ModelSelectorModel>({
       <>
         <button
           type="button"
+          aria-label={triggerAriaLabel}
           onPointerDown={(event) => {
             event.preventDefault();
             setIsOpen(true);
@@ -243,6 +257,7 @@ export function ModelSelector<T extends ModelSelectorModel>({
           onClick={() => setIsOpen(true)}
           className={cn(
             "inline-flex items-center justify-center gap-1",
+            triggerVariant,
             triggerClassName,
           )}
         >
@@ -279,8 +294,10 @@ export function ModelSelector<T extends ModelSelectorModel>({
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger
+        aria-label={triggerAriaLabel}
         className={cn(
           "inline-flex items-center justify-center gap-1",
+          triggerVariant,
           triggerClassName,
         )}
       >

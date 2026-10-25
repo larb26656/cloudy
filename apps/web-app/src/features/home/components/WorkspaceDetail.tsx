@@ -122,8 +122,8 @@ export function WorkspaceDetail({
             <div className="flex items-center gap-2">
               <ProviderSelector
                 providerId={providerId}
+                variant="chat"
                 onChange={setProviderId}
-                triggerClassName="h-10 rounded-lg border bg-muted/50 px-3 text-sm"
               />
               <Button
                 variant="secondary"

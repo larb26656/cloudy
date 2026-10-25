@@ -23,6 +23,10 @@ import { useAgents } from "@/hooks/queries/useAgents";
 import { useDeviceType } from "@/hooks/useDeviceType";
 import { cn } from "@repo/ui/lib/utils";
 import { useChatContext } from "./ChatProvider";
+import {
+  selectorTriggerVariants,
+  type SelectorTriggerVariant,
+} from "./selectorVariants";
 
 const agentModeLabels: Record<string, string> = {
   primary: "Primary",
@@ -43,7 +47,7 @@ const FALLBACK_AGENTS: Agent[] = [
 interface AgentSelectorProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  variant?: "default" | "status";
+  variant?: SelectorTriggerVariant;
   providerId?: string;
   value?: string | null;
   onChange?: (agent: string | null) => void;
@@ -53,7 +57,7 @@ interface AgentSelectorProps {
 export function AgentSelector({
   open,
   onOpenChange,
-  variant = "default",
+  variant = "form",
   providerId: providerIdProp,
   value: valueProp,
   onChange,
@@ -180,18 +184,17 @@ export function AgentSelector({
 
   const trigger = (
     <span
-      className={
-        variant === "status"
-          ? "inline-flex max-w-32 items-center justify-center gap-1 rounded-md border bg-muted/50 px-1.5 py-0.5 text-foreground transition-colors hover:bg-muted"
-          : cn(
-              "inline-flex items-center justify-center gap-1",
-              isMobile && triggerClassName,
-            )
-      }
+      className={cn(
+        "inline-flex items-center justify-center gap-1",
+        variant === "form" && "w-full justify-between",
+        isMobile && triggerClassName,
+      )}
     >
-      <Bot className="size-4" />
-      <span className="max-w-[120px] truncate">{getDisplayName()}</span>
-      {variant === "default" && <ChevronDown className="size-3.5" />}
+      <span className="flex min-w-0 flex-1 items-center gap-1">
+        <Bot className="size-4 shrink-0" />
+        <span className="truncate">{getDisplayName()}</span>
+      </span>
+      {variant !== "status" && <ChevronDown className="size-3.5" />}
     </span>
   );
 
@@ -202,7 +205,11 @@ export function AgentSelector({
           type="button"
           onPointerDown={(event) => event.preventDefault()}
           onClick={() => setOpenState(true)}
-          className="cursor-pointer"
+          className={cn(
+            "cursor-pointer",
+            selectorTriggerVariants({ variant }),
+            triggerClassName,
+          )}
         >
           {trigger}
         </button>
@@ -236,10 +243,7 @@ export function AgentSelector({
   return (
     <DropdownMenu open={openState} onOpenChange={setOpenState}>
       <DropdownMenuTrigger
-        className={cn(
-          "inline-flex items-center justify-center gap-1",
-          triggerClassName,
-        )}
+        className={cn(selectorTriggerVariants({ variant }), triggerClassName)}
       >
         {trigger}
       </DropdownMenuTrigger>

@@ -8,10 +8,12 @@ import { useModels } from "@/hooks/queries/useModels";
 import type { ResolvedAgentProviderInfo } from "@repo/contracts";
 import { ProviderIcon } from "../provider/ProviderIcon";
 import { cn } from "@repo/ui/lib/utils";
+import { selectorTriggerVariants } from "./selectorVariants";
 
 interface ProviderSelectorProps {
   providerId: string;
   onChange: (providerId: string) => void;
+  variant?: "form" | "chat";
   triggerClassName?: string;
   filterProviders?: (provider: ResolvedAgentProviderInfo) => boolean;
   triggerAriaLabel?: string;
@@ -20,6 +22,7 @@ interface ProviderSelectorProps {
 export function ProviderSelector({
   providerId,
   onChange,
+  variant = "form",
   triggerClassName,
   filterProviders,
   triggerAriaLabel,
@@ -45,13 +48,12 @@ export function ProviderSelector({
     >
       <SelectTrigger
         aria-label={triggerAriaLabel}
-        className={cn(
-          "h-8 w-auto gap-2 border-0 px-2 text-xs shadow-none",
-          triggerClassName,
-        )}
+        className={cn(selectorTriggerVariants({ variant }), triggerClassName)}
       >
-        <ProviderIcon providerId={providerId} />
-        <span className="max-w-40 truncate">{providerName}</span>
+        <span className="flex min-w-0 flex-1 items-center gap-2">
+          <ProviderIcon providerId={providerId} />
+          <span className="truncate">{providerName}</span>
+        </span>
       </SelectTrigger>
       <SelectContent>
         {availableProviders.map((item) => (
