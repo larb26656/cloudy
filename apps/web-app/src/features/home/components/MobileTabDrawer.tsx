@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { GripVertical, Home, X } from "lucide-react";
+import { Copy, GripVertical, Home, X } from "lucide-react";
 import {
   DndContext,
   PointerSensor,
@@ -108,6 +108,9 @@ export function MobileTabDrawer({
                     isActive={activeTabId === tab.id}
                     onClick={() => handleSelect(tab.id)}
                     onClose={() => removeTab(tab.id)}
+                    onDuplicate={() => {
+                      useTabStore.getState().addTab(tab.type, { ...tab.data });
+                    }}
                   />
                 );
               })}
@@ -125,6 +128,7 @@ interface DrawerRowProps {
   isActive: boolean;
   onClick: () => void;
   onClose?: () => void;
+  onDuplicate?: () => void;
   dragHandle?: ReactNode;
   ref?: Ref<HTMLDivElement>;
   style?: CSSProperties;
@@ -136,6 +140,7 @@ function DrawerRow({
   isActive,
   onClick,
   onClose,
+  onDuplicate,
   dragHandle,
   ref,
   style,
@@ -154,11 +159,20 @@ function DrawerRow({
       {dragHandle}
       <button
         onClick={onClick}
-        className="flex flex-1 min-w-0 items-center gap-2 px-3 py-2 text-left text-sm font-medium"
+        className="flex flex-1 min-w-0 select-none items-center gap-2 px-3 py-2 text-left text-sm font-medium"
       >
         <span className="[&>svg]:size-4 shrink-0">{icon}</span>
-        <span className="truncate">{label}</span>
+        <span className="truncate select-none">{label}</span>
       </button>
+      {onDuplicate && (
+        <button
+          onClick={onDuplicate}
+          aria-label="Duplicate tab"
+          className="rounded p-2 text-muted-foreground hover:bg-background hover:text-foreground"
+        >
+          <Copy size={14} />
+        </button>
+      )}
       {onClose && (
         <button
           onClick={onClose}
