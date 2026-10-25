@@ -216,6 +216,11 @@ function FullscreenDiagram({
     originX: number;
     originY: number;
   } | null>(null);
+  const pointersRef = useRef(new Map<number, Point>());
+  const pinchRef = useRef<{
+    distance: number;
+    zoom: number;
+  } | null>(null);
 
   const fittedRef = useRef(false);
 
@@ -323,8 +328,25 @@ function FullscreenDiagram({
     if (!viewport) return;
 
     event.preventDefault();
-
     viewport.setPointerCapture(event.pointerId);
+
+    pointersRef.current.set(event.pointerId, {
+      x: event.clientX,
+      y: event.clientY,
+    });
+
+    if (pointersRef.current.size === 2) {
+      const [first, second] = [...pointersRef.current.values()];
+      if (!first || !second) return;
+
+      pinchRef.current = {
+        distance: Math.hypot(second.x - first.x, second.y - first.y),
+        zoom: view.zoom,
+      };
+      dragRef.current = null;
+      setDragging(false);
+      return;
+    }
 
     dragRef.current = {
       pointerId: event.pointerId,
@@ -338,6 +360,47 @@ function FullscreenDiagram({
   };
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (pointersRef.current.has(event.pointerId)) {
+      pointersRef.current.set(event.pointerId, {
+        x: event.clientX,
+        y: event.clientY,
+      });
+    }
+
+    if (pointersRef.current.size === 2 && pinchRef.current) {
+      const [first, second] = [...pointersRef.current.values()];
+      if (!first || !second) return;
+
+      const viewport = viewportRef.current;
+      if (!viewport) return;
+
+      const initialDistance = pinchRef.current.distance;
+      if (!initialDistance) return;
+
+      const rect = viewport.getBoundingClientRect();
+      const center = {
+        x: (first.x + second.x) / 2 - rect.left,
+        y: (first.y + second.y) / 2 - rect.top,
+      };
+      const nextZoom = clamp(
+        pinchRef.current.zoom *
+          (Math.hypot(second.x - first.x, second.y - first.y) /
+            initialDistance),
+        MIN_ZOOM,
+        MAX_ZOOM,
+      );
+
+      setView((previous) => {
+        const ratio = nextZoom / previous.zoom;
+        return {
+          zoom: nextZoom,
+          x: center.x - (center.x - previous.x) * ratio,
+          y: center.y - (center.y - previous.y) * ratio,
+        };
+      });
+      return;
+    }
+
     const drag = dragRef.current;
 
     if (!drag || drag.pointerId !== event.pointerId) {
@@ -352,7 +415,25 @@ function FullscreenDiagram({
   };
 
   const handlePointerUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    pointersRef.current.delete(event.pointerId);
+    pinchRef.current = null;
+
+    if (pointersRef.current.size === 1) {
+      const [pointerId, point] = [...pointersRef.current.entries()][0] ?? [];
+      if (typeof pointerId === "number" && point) {
+        dragRef.current = {
+          pointerId,
+          startX: point.x,
+          startY: point.y,
+          originX: view.x,
+          originY: view.y,
+        };
+      }
+    }
+
     if (dragRef.current?.pointerId !== event.pointerId) {
+      if (pointersRef.current.size > 0) return;
+      setDragging(false);
       return;
     }
 
@@ -399,7 +480,7 @@ function FullscreenDiagram({
   return (
     <div className="flex min-h-0 flex-1 flex-col bg-background">
       {/* Toolbar */}
-      <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
+      <div className="flex shrink-0 flex-col gap-2 border-b px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pt-[max(0.5rem,env(safe-area-inset-top))] pb-2 sm:h-14 sm:flex-row sm:items-center sm:justify-between sm:px-4 sm:py-0">
         <div className="flex min-w-0 items-center gap-3">
           <span className="text-sm font-medium">Mermaid diagram</span>
           <span className="hidden text-xs text-muted-foreground sm:inline">
@@ -407,7 +488,7 @@ function FullscreenDiagram({
           </span>
         </div>
 
-        <div className="flex items-center gap-1">
+        <div className="flex w-full items-center justify-between gap-0 sm:w-auto sm:justify-normal sm:gap-1">
           <Button
             type="button"
             variant="ghost"
@@ -419,7 +500,7 @@ function FullscreenDiagram({
             <Minus className="size-4" />
           </Button>
 
-          <span className="w-14 text-center text-xs tabular-nums text-muted-foreground">
+          <span className="w-11 text-center text-xs tabular-nums text-muted-foreground sm:w-14">
             {Math.round(view.zoom * 100)}%
           </span>
 
@@ -509,7 +590,7 @@ function FullscreenDiagram({
       </div>
 
       {/* Footer */}
-      <div className="flex h-9 shrink-0 items-center justify-between border-t px-4 text-xs text-muted-foreground">
+      <div className="flex min-h-9 shrink-0 items-center justify-between border-t px-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2 text-xs text-muted-foreground sm:px-4 sm:py-0">
         <span>{error ? "Render failed" : "Mermaid"}</span>
         <span>{Math.round(view.zoom * 100)}%</span>
       </div>
