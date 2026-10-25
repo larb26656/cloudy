@@ -13,6 +13,9 @@ describe("PairDevicePage", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     render(<PairDevicePage />);
+    fireEvent.change(screen.getByRole("textbox", { name: "Device name" }), {
+      target: { value: "Work iPhone" },
+    });
     fireEvent.change(screen.getByRole("textbox", { name: "Pairing code" }), {
       target: { value: "123456" },
     });
@@ -21,7 +24,10 @@ describe("PairDevicePage", () => {
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
         "/api/lan/pair",
-        expect.objectContaining({ method: "POST" }),
+        expect.objectContaining({
+          method: "POST",
+          body: JSON.stringify({ code: "123456", name: "Work iPhone" }),
+        }),
       );
     });
     expect(await screen.findByRole("alert")).toHaveTextContent(

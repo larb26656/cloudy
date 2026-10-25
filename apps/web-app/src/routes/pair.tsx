@@ -7,6 +7,7 @@ import { Input } from "@repo/ui/components/input";
 
 export function PairDevicePage() {
   const [code, setCode] = useState("");
+  const [name, setName] = useState(`${navigator.platform || "Web"} browser`);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -20,7 +21,7 @@ export function PairDevicePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           code,
-          name: `${navigator.platform || "Web"} browser`,
+          name: name.trim(),
         }),
       });
       const result = (await response.json()) as {
@@ -58,6 +59,19 @@ export function PairDevicePage() {
           </p>
         </div>
         <div className="space-y-2">
+          <label htmlFor="device-name" className="text-sm font-medium">
+            Device name
+          </label>
+          <Input
+            id="device-name"
+            maxLength={80}
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            placeholder="e.g. My iPhone"
+            required
+          />
+        </div>
+        <div className="space-y-2">
           <label htmlFor="pair-code" className="text-sm font-medium">
             Pairing code
           </label>
@@ -81,7 +95,7 @@ export function PairDevicePage() {
         <Button
           type="submit"
           className="w-full"
-          disabled={code.length !== 6 || submitting}
+          disabled={code.length !== 6 || !name.trim() || submitting}
         >
           {submitting ? "Pairing…" : "Pair device"}
         </Button>
