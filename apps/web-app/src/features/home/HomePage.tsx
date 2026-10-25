@@ -8,7 +8,8 @@ import { ChatCreateDialog } from "./tabs/implementations/chat/ChatCreateDialog";
 import { tabTypeMap } from "./tabs/template";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { useGlobalEvent } from "@/providers";
-import { AppPageContent, AppSidebar } from "@/features/app/components";
+import { AppSidebar } from "@/features/app/components";
+import { AgentsContent, ProvidersContent, WorkspacesContent } from "./pages";
 import { useHomeSectionStore } from "@/stores/homeSectionStore";
 
 export default function HomePage() {
@@ -37,9 +38,9 @@ export default function HomePage() {
                 }}
               />
             </div>
-            {activeSection !== "home" && (
-              <AppPageContent page={activeSection} />
-            )}
+            {activeSection === "workspaces" && <WorkspacesContent />}
+            {activeSection === "agents" && <AgentsContent />}
+            {activeSection === "providers" && <ProvidersContent />}
           </div>
         </div>
         {tabs.map((tab) => {

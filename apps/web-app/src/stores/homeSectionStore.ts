@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { AppPage } from "@/features/app/components/AppPageContent";
+import type { AppPage } from "@/features/home/pages";
 
 export type HomeSection = "home" | AppPage;
 

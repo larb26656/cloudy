@@ -2,7 +2,7 @@ import { Bot, FolderKanban, Home, PlugZap } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useHomeSectionStore } from "@/stores/homeSectionStore";
 import { useTabStore } from "@/stores/tabStore";
-import type { AppPage } from "./AppPageContent";
+import type { AppPage } from "@/features/home/pages";
 
 const navItems = [
   { section: "home", label: "Home", icon: Home },

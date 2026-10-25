@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, test, vi } from "vitest";
 import { useState } from "react";
-import { act, screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import { userEvent } from "@testing-library/user-event";
 import HomePage from "./HomePage";
 import { useTabStore } from "@/stores/tabStore";
@@ -116,6 +116,22 @@ beforeEach(() => {
 });
 
 describe("HomePage work-on-a-project flow", () => {
+  test("shows the content for each home menu section", async () => {
+    renderWithProviders(<HomePage />);
+    const user = userEvent.setup();
+    const navigation = within(screen.getByRole("navigation", { name: "Main" }));
+
+    for (const section of ["Workspaces", "Agents", "Providers"] as const) {
+      await user.click(navigation.getByRole("button", { name: section }));
+      expect(
+        screen.getByRole("heading", { name: section, level: 1 }),
+      ).toBeInTheDocument();
+    }
+
+    await user.click(navigation.getByRole("button", { name: "Home" }));
+    expect(screen.getByRole("button", { name: /ask anything/i })).toBeVisible();
+  });
+
   test("Ask anything opens a chat with the Cloudy provider", async () => {
     renderWithProviders(<HomePage />);
     const user = userEvent.setup();

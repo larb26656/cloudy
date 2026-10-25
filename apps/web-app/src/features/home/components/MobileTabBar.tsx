@@ -3,7 +3,7 @@ import { useTabStore } from "@/stores/tabStore";
 import { AppBar } from "@/components/layout";
 import { TabTitle, tabTypeMap } from "../tabs/template";
 import { NotificationBell } from "@/components/notification";
-import { appPages } from "@/features/app/components/AppPageContent";
+import { appPages } from "@/features/home/pages";
 import { useHomeSectionStore } from "@/stores/homeSectionStore";
 
 interface MobileTabBarProps {
