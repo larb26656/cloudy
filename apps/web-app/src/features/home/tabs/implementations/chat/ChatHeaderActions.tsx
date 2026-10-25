@@ -6,6 +6,7 @@ import { useTabStore } from "@/stores/tabStore";
 import { ChatSessionMenu } from "@/components/chat/ChatSessionMenu";
 import type { TabHeaderActionsProps } from "../../template";
 import { useCreateSession } from "@/hooks/queries/useSessions";
+import { useSession } from "@/hooks/queries/useSessions";
 
 export function ChatHeaderActions({ tab }: TabHeaderActionsProps) {
   const filesOpen = useChatPanelStore(
@@ -14,8 +15,12 @@ export function ChatHeaderActions({ tab }: TabHeaderActionsProps) {
   const toggleFiles = useChatPanelStore((s) => s.toggleFiles);
   const updateTabData = useTabStore((s) => s.updateTabData);
   const createSession = useCreateSession();
+  const { data: session } = useSession({
+    sessionId: tab.type === "chat" ? tab.data.sessionId : null,
+  });
 
   if (tab.type !== "chat") return null;
+  if (session?.origin?.type === "automation_run") return null;
 
   return (
     <>

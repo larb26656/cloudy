@@ -22,6 +22,7 @@ function toChatSession(session: CoreChatSession): ChatSession {
     updatedAt: Date.parse(session.updatedAt),
     cost: session.cost,
     tokens: session.tokens,
+    origin: session.origin,
   };
 }
 

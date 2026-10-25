@@ -43,4 +43,5 @@ export interface ChatSession {
     cache: { read: number; write: number };
   };
   metadata?: Record<string, unknown>;
+  origin?: { type: "user" } | { type: "automation_run"; runId: string };
 }

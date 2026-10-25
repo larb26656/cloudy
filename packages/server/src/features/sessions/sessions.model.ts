@@ -77,6 +77,11 @@ export const permissionResponseSchema = z.object({
   reply: z.enum(["once", "always", "reject"]),
 });
 
+export const sessionOriginSchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("user") }),
+  z.object({ type: z.literal("automation_run"), runId: z.string().uuid() }),
+]);
+
 export type CreateSessionInput = z.infer<typeof createSessionSchema>;
 export type UpdateSessionInput = z.infer<typeof updateSessionSchema>;
 export type MessageInput = z.infer<typeof messageInputSchema>;

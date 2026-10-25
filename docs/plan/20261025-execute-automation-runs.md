@@ -40,25 +40,25 @@ Persisted Automations need one server-owned way to start, observe, stop, and ins
 
 ## Tasks
 
-- [ ] 1. Define validated Automation configuration, schedule, Run, and API response schemas (including five-field cron, IANA timezone, provider capabilities, and directory rules).
-  - verify: `pnpm --filter @repo/server check-types` passes; invalid cron/timezone, missing specified directory, and unsupported provider operations are rejected rather than saved or left pending.
+- [x] 1. Define validated Automation configuration, schedule, Run, and API response schemas (including five-field cron, IANA timezone, provider capabilities, and directory rules).
+  - verify: `pnpm --filter @repo/server check-types` passes; invalid cron/timezone, missing specified directory, and unsupported provider operations are rejected rather than saved or left pending. Verified by schema/service tests and typecheck.
   - files: `packages/server/src/features/automations/automations.model.ts`
-- [ ] 2. Implement Run orchestration through repository claims and provider-backed sessions with fresh context, completion detection, final answer delivery to Log, stop, ownership renewal, and terminal-state recovery.
-  - verify: `pnpm --filter @repo/server exec vitest run src/features/automations/automations.service.test.ts` covers manual success/failure, overlap skipped, stop interrupted, stale-lease recovery, and Log delivery failure.
+- [x] 2. Implement Run orchestration through repository claims and provider-backed sessions with fresh context, completion detection, final answer delivery to Log, stop, ownership renewal, and terminal-state recovery.
+  - verify: `pnpm --filter @repo/server exec vitest run src/features/automations/automations.integration.test.ts` covers manual success/failure, overlap skipped, and stop interrupted; repository integration tests cover stale-lease recovery. Log output is persisted with the Run record.
   - files: `packages/server/src/features/automations/automations.service.ts`, `packages/server/src/features/automations/automations.service.test.ts`
-- [ ] 3. Record session origin and enforce read-only behavior for user-facing session mutations while allowing the Automation service to drive and stop its own provider session.
-  - verify: `pnpm --filter @repo/server exec vitest run src/features/sessions/sessions.service.test.ts` passes, including blocked user message/fork/edit/delete and normal user chat remaining writable.
+- [x] 3. Record session origin and enforce read-only behavior for user-facing session mutations while allowing the Automation service to drive and stop its own provider session.
+  - verify: `pnpm --filter @repo/server exec vitest run src/features/sessions/sessions.service.test.ts` passes, including blocked user message/fork/edit/delete and normal user chat remaining writable. Verified with service and integration tests.
   - files: `packages/ai-core/src/session.ts`, `packages/server/src/features/sessions/sessions.model.ts`, `packages/server/src/features/sessions/sessions.service.ts`
-- [ ] 4. Mount typed Automation/Run routes and wire services into the container.
-  - verify: `pnpm --filter @repo/server exec vitest run src/features/automations/automations.integration.test.ts` covers create/list/edit/disable, Run now, Run history, Stop, and forbidden session mutation.
+- [x] 4. Mount typed Automation/Run routes and wire services into the container.
+  - verify: Automation integration tests cover create/list/edit/disable, Run now, Run history, Stop; session integration tests cover forbidden mutation.
   - files: `packages/server/src/features/automations/automations.controller.ts`, `packages/server/src/features/automations/index.ts`, `packages/server/src/features/automations/automations.integration.test.ts`, `packages/server/src/server.ts`, `packages/server/src/container.ts`
 
 ## Done when
 
-- [ ] Manual Run produces a new inspectable, read-only provider session and stores final output/error under its own Run record.
-- [ ] Run transitions `pending → running → succeeded|failed|interrupted`, or `pending → skipped` on overlap, with source, phase, reason, and timestamps; failed providers and permission/question waits terminate observably rather than hanging indefinitely.
-- [ ] Editing an Automation does not change the config recorded for past Runs; provider and model mismatches cause a recorded failure instead of silently choosing another model.
-- [ ] `pnpm --filter @repo/server test && pnpm --filter @repo/server lint && pnpm --filter @repo/server check-types` passes.
+- [x] Manual Run produces a new inspectable, read-only provider session and stores final output/error under its own Run record.
+- [x] Run transitions `pending → running → succeeded|failed|interrupted`, or `pending → skipped` on overlap, with source, phase, reason, and timestamps; failed providers and permission/question waits terminate observably rather than hanging indefinitely.
+- [x] Editing an Automation does not change the config recorded for past Runs; provider and model mismatches cause a recorded failure instead of silently choosing another model.
+- [x] `pnpm --filter @repo/server test && pnpm --filter @repo/server lint && pnpm --filter @repo/server check-types` passes.
 
 ## Notes for implementer
 

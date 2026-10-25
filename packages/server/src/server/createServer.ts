@@ -41,6 +41,9 @@ export function createServer({
       });
     }
 
+    container.automationsService.recoverExpired();
+    container.automationsScheduler.start();
+
     const address = server.address();
     const port =
       typeof address === "object" && address !== null
@@ -52,6 +55,7 @@ export function createServer({
 
   const stop = async () => {
     container?.ptyService.killAll();
+    await container?.automationsScheduler.stop();
     await container?.providerEventHub.stop();
     await new Promise<void>((resolve, reject) => {
       if (!server) {

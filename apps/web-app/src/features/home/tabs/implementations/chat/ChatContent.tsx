@@ -11,11 +11,13 @@ import {
 } from "@repo/ui/components/sheet";
 import { FilesContainer } from "@/components/files/FilesContainer";
 import { ChatContainer } from "@/components/chat/ChatContainer";
-import { useWorkspace } from "@/hooks/queries";
+import { useSession, useWorkspace } from "@/hooks/queries";
 import { useIsMobile } from "@repo/ui/hooks/use-mobile";
 import { useChatPanelStore } from "@/stores/chatPanelStore";
 import { useTabStore } from "@/stores/tabStore";
 import type { Tab } from "@/stores/tabStore";
+import { Button } from "@repo/ui/components/button";
+import { useHomeSectionStore } from "@/stores/homeSectionStore";
 
 interface ChatContentProps {
   tab: Extract<Tab, { type: "chat" }>;
@@ -34,20 +36,47 @@ export function ChatContent({ tab }: ChatContentProps) {
   );
   const clampedFilesWidth = Math.min(70, Math.max(20, filesWidth));
   const { data: workspace } = useWorkspace(tab.data.workspaceId);
+  const { data: session } = useSession({ sessionId: tab.data.sessionId });
+  const setActiveSection = useHomeSectionStore((s) => s.setActiveSection);
+  const automationRunId =
+    session?.origin?.type === "automation_run" ? session.origin.runId : null;
 
-  const directory = tab.data.directory;
+  const directory = automationRunId
+    ? (session?.directory ?? tab.data.directory)
+    : tab.data.directory;
 
   const chatContainer = (
     <ChatContainer
       workspace={workspace ?? null}
       directory={directory}
-      providerId={tab.data.providerId}
+      providerId={
+        automationRunId
+          ? (session?.providerId ?? tab.data.providerId)
+          : tab.data.providerId
+      }
       sessionId={tab.data.sessionId}
       onSessionChange={(sessionId) => updateTabData(tab.id, { sessionId })}
       agent={tab.data.agent}
       onAgentChange={(agent) => updateTabData(tab.id, { agent })}
       model={tab.data.model}
       onModelChange={(model) => updateTabData(tab.id, { model })}
+      readOnly={!!automationRunId}
+      topContent={
+        automationRunId ? (
+          <div className="border-b px-3 py-2">
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setActiveSection("automations");
+                useTabStore.getState().setActiveTab("home");
+              }}
+            >
+              Back to Automations
+            </Button>
+          </div>
+        ) : undefined
+      }
     />
   );
 

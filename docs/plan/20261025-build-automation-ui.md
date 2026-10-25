@@ -35,25 +35,33 @@ The Automation API needs an interface for configuring a repeatable prompt, choos
 
 ## Tasks
 
-- [ ] 1. Add typed RPC query/mutation hooks and keys for Automation CRUD, cron previews, Run now/stop, and Run detail/history.
+- [x] 1. Add typed RPC query/mutation hooks and keys for Automation CRUD, cron previews, Run now/stop, and Run detail/history.
   - verify: `pnpm --filter web-app check-types` passes and hooks invalidate Automation/Run queries after each mutation.
   - files: `apps/web-app/src/hooks/queries/`, `apps/web-app/src/lib/cloudy/query-keys.ts`
-- [ ] 2. Build Automation list/editor with provider catalog selection, prompt, directory configuration, optional cron presets/expression/timezone, next-three preview, and Run now.
+- [x] 2. Build Automation list/editor with provider catalog selection, prompt, directory configuration, optional cron presets/expression/timezone, next-three preview, and Run now.
   - verify: `pnpm --filter web-app exec vitest run src/features/automations` covers required fields, capability-dependent controls, cron error/preview, and manual trigger.
   - files: `apps/web-app/src/features/automations/`, `apps/web-app/src/features/app/`
-- [ ] 3. Build Run history/detail with states, Log output, Stop action, and a link to the associated session.
+- [x] 3. Build Run history/detail with states, Log output, Stop action, and a link to the associated session.
   - verify: focused component tests distinguish manual/schedule, show skipped/failed/interrupted reasons, and open the matching session ID.
   - files: `apps/web-app/src/features/automations/`
-- [ ] 4. Make automation-owned session viewing read-only using the persisted session origin, while preserving normal interactive chats.
+- [x] 4. Make automation-owned session viewing read-only using the persisted session origin, while preserving normal interactive chats.
   - verify: `pnpm --filter web-app exec vitest run src/components/chat src/features/home/tabs/implementations/chat` passes, including no input/edit/action controls for `automation_run` and ordinary user chat still accepting input.
   - files: `apps/web-app/src/features/home/tabs/implementations/chat/ChatContent.tsx`, `apps/web-app/src/components/chat/ChatContainer.tsx`, `apps/web-app/src/features/home/tabs/implementations/chat/meta.tsx`
 
 ## Done when
 
-- [ ] A user can create/edit an Automation, choose a valid provider/agent/model and directory, enable cron in a fixed timezone, preview its next three occurrences, and run it manually.
-- [ ] The Automation's Runs list shows status/source/reason and Log output, and each working/completed Run opens its own read-only session for details.
-- [ ] Normal chat sessions remain interactive; automation sessions cannot be edited or sent additional messages from the UI.
+- [x] A user can create/edit an Automation, choose a valid provider/agent/model and directory, enable cron in a fixed timezone, preview its next three occurrences, and run it manually.
+- [x] The Automation's Runs list shows status/source/reason and Log output, and each working/completed Run opens its own read-only session for details.
+- [x] Normal chat sessions remain interactive; automation sessions cannot be edited or sent additional messages from the UI.
 - [ ] `pnpm --filter web-app lint && pnpm --filter web-app check-types && pnpm --filter web-app exec vitest run` passes.
+
+## Verification results
+
+- `pnpm --filter web-app check-types` — passed.
+- `pnpm --filter web-app lint` — passed with 7 existing warnings outside the automation changes.
+- `pnpm --filter web-app exec vitest run src/features/automations src/components/chat src/features/home/tabs/implementations/chat` — passed (250 tests).
+- `pnpm --filter web-app design:lint` — passed with 23 existing design-token/contrast warnings and no errors.
+- `pnpm --filter web-app exec vitest run` — blocked by 3 Storybook interaction failures in `src/features/chat/components/CreateChatDialog.stories.tsx` (`Choose Workspace`, `Session Picker`, `Session Empty`); 908 other tests passed. Therefore the final Done when checkbox remains unchecked.
 
 ## Notes for implementer
 

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bot, FolderKanban, PlugZap } from "lucide-react";
+import { Bot, FolderKanban, PlugZap, Workflow } from "lucide-react";
 import { BoxContainer } from "@/components/layout/BoxContainer";
 
 export const appPages = {
@@ -17,6 +17,11 @@ export const appPages = {
     label: "Providers",
     description: "Manage the AI providers and connections available to Cloudy.",
     icon: PlugZap,
+  },
+  automations: {
+    label: "Automations",
+    description: "Schedule repeatable agent work and inspect each run.",
+    icon: Workflow,
   },
 } as const satisfies Record<
   string,

@@ -217,6 +217,7 @@ function renderChat(
     fileMentions: true,
     commands: true,
   },
+  readOnly = false,
 ) {
   server.use(
     http.get(/\/api\/agent-providers$/, () =>
@@ -245,12 +246,35 @@ function renderChat(
         providerId="opencode"
         sessionId={sessionId}
         onSessionChange={vi.fn()}
+        readOnly={readOnly}
       />
     </QueryClientProvider>,
   );
 }
 
 describe("ChatCoatainer", () => {
+  test("hides chat input and session actions in read-only mode while normal chat stays interactive", async () => {
+    server.use(
+      childrenHandler([]),
+      emptyPermissionsHandler(),
+      http.get(/\/api\/sessions\/[^/]+\/questions$/, () =>
+        HttpResponse.json([]),
+      ),
+    );
+    const { unmount } = renderChat("automation-session", undefined, true);
+    await waitFor(() =>
+      expect(screen.getByTestId("message-list")).toBeInTheDocument(),
+    );
+    expect(screen.queryByTestId("chat-input")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("session-picker-dialog"),
+    ).not.toBeInTheDocument();
+    unmount();
+
+    renderChat("user-session");
+    expect(await screen.findByTestId("chat-input")).toBeInTheDocument();
+  });
+
   test("does not poll question or permission endpoints for unsupported capabilities", async () => {
     const questionsRequest = vi.fn(() => HttpResponse.json([]));
     const permissionsRequest = vi.fn(() => HttpResponse.json([]));

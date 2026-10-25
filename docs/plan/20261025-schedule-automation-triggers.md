@@ -34,19 +34,19 @@ Manual Runs alone do not start work at a configured time. Add a server-owned cro
 
 ## Tasks
 
-- [ ] 1. Implement five-field cron and timezone next-fire evaluation with explicit DST behavior and expose its next-three-occurrences preview.
+- [x] 1. Implement five-field cron and timezone next-fire evaluation with explicit DST behavior and expose its next-three-occurrences preview.
   - verify: `pnpm --filter @repo/server exec vitest run src/features/automations/automations.scheduler.test.ts` passes cases for daily 09:00 in `Asia/Bangkok`, weekday presets, invalid expressions, and DST gaps/duplicates.
   - files: `packages/server/src/features/automations/automations.scheduler.ts`, `packages/server/src/features/automations/automations.scheduler.test.ts`, `packages/server/src/features/automations/automations.model.ts`, `packages/server/src/features/automations/automations.controller.ts`
-- [ ] 2. Start/stop schedule evaluation with the server and atomically claim each due slot through the shared Run service.
+- [x] 2. Start/stop schedule evaluation with the server and atomically claim each due slot through the shared Run service.
   - verify: scheduler tests prove manual and scheduled triggers share Run behavior, graceful stop cancels timers and stops only owned Runs, restart skips missed slots, overlap records skipped, and two processes on one DB create at most one Run per slot.
   - files: `packages/server/src/features/automations/automations.scheduler.ts`, `packages/server/src/features/automations/automations.scheduler.test.ts`, `packages/server/src/container.ts`, `packages/server/src/server/createServer.ts`
 
 ## Done when
 
-- [ ] A server with an enabled cron expression fires at the selected timezone and creates a normal `schedule` Run with an inspectable session and final Log result.
-- [ ] Restarting after a missed time creates no retroactive Run, and disabling/editing a schedule changes future occurrences.
-- [ ] Overlap is visible as `skipped`; concurrent processes using the same DB never duplicate a scheduled slot.
-- [ ] `pnpm --filter @repo/server exec vitest run src/features/automations && pnpm --filter @repo/server lint && pnpm --filter @repo/server check-types` passes.
+- [x] A server with an enabled cron expression fires at the selected timezone and creates a normal `schedule` Run through the shared Run service, preserving the inspectable session and final Log result behavior.
+- [x] Restarting after a missed time creates no retroactive Run, and disabling/editing a schedule changes future occurrences.
+- [x] Overlap is visible as `skipped`; concurrent processes using the same DB never duplicate a scheduled slot.
+- [x] `pnpm --filter @repo/server exec vitest run src/features/automations && pnpm --filter @repo/server lint && pnpm --filter @repo/server check-types` passes.
 
 ## Notes for implementer
 

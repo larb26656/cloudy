@@ -1,4 +1,4 @@
-import { FolderKanban, Home } from "lucide-react";
+import { FolderKanban, Home, Workflow } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useHomeSectionStore } from "@/stores/homeSectionStore";
 import { useTabStore } from "@/stores/tabStore";
@@ -7,6 +7,7 @@ import type { AppPage } from "@/features/home/pages";
 const navItems = [
   { section: "home", label: "Home", icon: Home },
   { section: "workspaces", label: "Workspaces", icon: FolderKanban },
+  { section: "automations", label: "Automations", icon: Workflow },
 ] as const;
 
 export function AppNav({

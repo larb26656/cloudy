@@ -40,6 +40,20 @@ export function createAutomationsRepository(db: DbClient) {
       .where(eq(automationRuns.automationId, automationId))
       .orderBy(desc(automationRuns.createdAt))
       .all();
+  const findRunById = (
+    automationId: string,
+    runId: string,
+  ): AutomationRunRecord | null =>
+    db
+      .select()
+      .from(automationRuns)
+      .where(
+        and(
+          eq(automationRuns.automationId, automationId),
+          eq(automationRuns.id, runId),
+        ),
+      )
+      .get() ?? null;
   const claimRun = (input: {
     id: string;
     automationId: string;
@@ -218,6 +232,7 @@ export function createAutomationsRepository(db: DbClient) {
     update,
     delete: remove,
     listRuns,
+    findRunById,
     claimRun,
     transitionRun,
     reclaimExpiredRuns,

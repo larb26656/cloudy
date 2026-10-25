@@ -21,6 +21,7 @@ import { createLanAccessController } from "./features/lan-access";
 import type { Container } from "./container";
 import { onError as domainErrorHandler } from "./presentation/error-middleware";
 import { createLanAccessMiddleware } from "./server/lan-access";
+import { createAutomationsController } from "./features/automations";
 
 export function createApp({
   corsOrigins = [] as string[] | "*",
@@ -84,6 +85,10 @@ export function createApp({
       ),
     )
     .route("/api/sessions", createSessionsController(container.sessionsService))
+    .route(
+      "/api/automations",
+      createAutomationsController(container.automationsService),
+    )
     .route(
       "/api/quick-cloudy",
       createQuickCloudyController(container.quickCloudyService),

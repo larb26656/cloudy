@@ -41,3 +41,13 @@ export const settingsKeys = {
   agentProviders: () => [...settingsKeys.root(), "agent-providers"] as const,
   agents: () => [...settingsKeys.root(), "agents"] as const,
 };
+
+export const automationKeys = {
+  root: () => ["automations"] as const,
+  list: () => [...automationKeys.root(), "list"] as const,
+  detail: (id: string) => [...automationKeys.root(), "detail", id] as const,
+  runs: (id: string) => [...automationKeys.detail(id), "runs"] as const,
+  run: (id: string, runId: string) =>
+    [...automationKeys.runs(id), runId] as const,
+  preview: (id: string) => [...automationKeys.detail(id), "preview"] as const,
+};

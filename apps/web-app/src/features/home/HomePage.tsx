@@ -10,6 +10,7 @@ import { ErrorState } from "@repo/ui/components/error-state";
 import { useGlobalEvent } from "@/providers";
 import { AppSidebar } from "@/features/app/components";
 import { AgentsContent, ProvidersContent, WorkspacesContent } from "./pages";
+import { AutomationsContent } from "@/features/automations/AutomationsContent";
 import { useHomeSectionStore } from "@/stores/homeSectionStore";
 
 export default function HomePage() {
@@ -41,6 +42,7 @@ export default function HomePage() {
             {activeSection === "workspaces" && <WorkspacesContent />}
             {activeSection === "agents" && <AgentsContent />}
             {activeSection === "providers" && <ProvidersContent />}
+            {activeSection === "automations" && <AutomationsContent />}
           </div>
         </div>
         {tabs.map((tab) => {

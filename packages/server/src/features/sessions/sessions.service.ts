@@ -30,6 +30,10 @@ function toSession(record: SessionRecord): ChatSession {
     updatedAt: record.updatedAt.toISOString(),
     ...(typeof agentId === "string" && { agent: { id: agentId } }),
     metadata: record.metadata ?? undefined,
+    origin:
+      record.metadata?.origin && typeof record.metadata.origin === "object"
+        ? (record.metadata.origin as ChatSession["origin"])
+        : { type: "user" },
   };
 }
 
@@ -41,6 +45,16 @@ export function createSessionsService(
     const session = repository.findById(id);
     if (!session) throw new SessionNotFoundError(id);
     return session;
+  };
+
+  const assertWritable = (record: SessionRecord) => {
+    if (
+      record.metadata?.origin &&
+      typeof record.metadata.origin === "object" &&
+      (record.metadata.origin as { type?: string }).type === "automation_run"
+    ) {
+      throw new ValidationError("Automation run sessions are read-only");
+    }
   };
 
   const toProviderInput = (record: SessionRecord) => ({
@@ -115,6 +129,7 @@ export function createSessionsService(
     input: UpdateSessionInput,
   ): Promise<ChatSession> => {
     const record = getRecord(id);
+    assertWritable(record);
     const providerSession = await registry.updateSession(record.providerId, {
       ...toProviderInput(record),
       ...input,
@@ -130,6 +145,7 @@ export function createSessionsService(
 
   const remove = async (id: string): Promise<void> => {
     const record = getRecord(id);
+    assertWritable(record);
     await registry.deleteSession(record.providerId, toProviderInput(record));
     repository.delete(id);
   };
@@ -191,6 +207,7 @@ export function createSessionsService(
     value: unknown,
   ) => {
     const record = getRecord(id);
+    assertWritable(record);
     return registry.respondToInteraction(record.providerId, {
       kind: "question",
       sessionId: record.providerSessionId,
@@ -217,12 +234,36 @@ export function createSessionsService(
     });
   };
 
+  const hasPendingInteractions = async (id: string) => {
+    const record = getRecord(id);
+    const provider = registry.get(record.providerId);
+    const input = { directory: record.directory ?? undefined };
+    const [questions, permissions] = await Promise.all([
+      provider.listQuestions
+        ? provider.listQuestions({
+            ...input,
+            sessionId: record.providerSessionId,
+          })
+        : [],
+      provider.listPermissions ? provider.listPermissions(input) : [],
+    ]);
+    return (
+      questions.some(
+        (question) => question.sessionId === record.providerSessionId,
+      ) ||
+      permissions.some(
+        (permission) => permission.sessionId === record.providerSessionId,
+      )
+    );
+  };
+
   const respondToPermission = async (
     id: string,
     permissionId: string,
     reply: "once" | "always" | "reject",
   ) => {
     const record = getRecord(id);
+    assertWritable(record);
     return registry.respondToInteraction(record.providerId, {
       kind: "permission",
       sessionId: record.providerSessionId,
@@ -234,6 +275,7 @@ export function createSessionsService(
 
   const sendMessage = async (id: string, input: MessageInput) => {
     const record = getRecord(id);
+    assertWritable(record);
     const request: ProviderMessageRequest = {
       ...input,
       sessionId: record.providerSessionId,
@@ -243,8 +285,22 @@ export function createSessionsService(
     return { ...response, interactionId: id };
   };
 
+  const automationSendMessage = async (id: string, input: MessageInput) => {
+    const record = getRecord(id);
+    if (toSession(record).origin?.type !== "automation_run") {
+      throw new ValidationError("Session is not owned by an automation run");
+    }
+    const response = await registry.sendMessage(record.providerId, {
+      ...input,
+      sessionId: record.providerSessionId,
+      directory: record.directory ?? undefined,
+    });
+    return { ...response, interactionId: id };
+  };
+
   const executeCommand = (id: string, input: CommandInput) => {
     const record = getRecord(id);
+    assertWritable(record);
     return registry.executeCommand(record.providerId, {
       sessionId: record.providerSessionId,
       command: input.command,
@@ -258,6 +314,7 @@ export function createSessionsService(
     input: { messageId?: string },
   ): Promise<ChatSession> => {
     const record = getRecord(id);
+    assertWritable(record);
     const providerSession = await registry.forkSession(record.providerId, {
       ...toProviderInput(record),
       ...input,
@@ -280,6 +337,15 @@ export function createSessionsService(
 
   const abort = (id: string): Promise<void> => {
     const record = getRecord(id);
+    assertWritable(record);
+    return registry.abortSession(record.providerId, toProviderInput(record));
+  };
+
+  const automationAbort = (id: string): Promise<void> => {
+    const record = getRecord(id);
+    if (toSession(record).origin?.type !== "automation_run") {
+      throw new ValidationError("Session is not owned by an automation run");
+    }
     return registry.abortSession(record.providerId, toProviderInput(record));
   };
 
@@ -348,11 +414,14 @@ export function createSessionsService(
     questions,
     respondToQuestion,
     permissions,
+    hasPendingInteractions,
     respondToPermission,
     sendMessage,
+    automationSendMessage,
     executeCommand,
     fork,
     abort,
+    automationAbort,
     mapEvent,
     applyEvent,
   };

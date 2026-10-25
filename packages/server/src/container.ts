@@ -36,6 +36,11 @@ import {
   openaiProviderDefinition,
 } from "./lib/llm-provider";
 import path from "node:path";
+import {
+  createAutomationsRepository,
+  createAutomationsService,
+} from "./features/automations";
+import { createAutomationsScheduler } from "./features/automations/automations.scheduler";
 
 export function createContainer(
   config: AppConfig,
@@ -116,6 +121,14 @@ export function createContainer(
     agentsService,
     sessionsService,
   );
+  const automationsRepository = createAutomationsRepository(db);
+  const automationsService = createAutomationsService(
+    automationsRepository,
+    agentProviderRegistry,
+    sessionsService,
+    workspacesService,
+  );
+  const automationsScheduler = createAutomationsScheduler(automationsService);
   const providerEventHub = createProviderEventHub(agentProviderRegistry, {
     onEvent: (event) => sessionsService.applyEvent(event),
   });
@@ -134,6 +147,8 @@ export function createContainer(
     agentProviderRegistry,
     sessionsService,
     quickCloudyService,
+    automationsService,
+    automationsScheduler,
     providerEventHub,
   };
 }

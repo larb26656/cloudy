@@ -32,7 +32,11 @@ function ChatTabTitle({ data }: TabTitleProps<ChatData>) {
 
   const resolvedTitle = session?.title ?? data.sessionName ?? "New Chat";
 
-  if (isEditing && data.sessionId) {
+  if (
+    isEditing &&
+    data.sessionId &&
+    session?.origin?.type !== "automation_run"
+  ) {
     return (
       <SessionTitleInput
         sessionId={data.sessionId}
@@ -46,7 +50,7 @@ function ChatTabTitle({ data }: TabTitleProps<ChatData>) {
   return (
     <span
       onDoubleClick={
-        data.sessionId
+        data.sessionId && session?.origin?.type !== "automation_run"
           ? (e) => {
               e.stopPropagation();
               setIsEditing(true);

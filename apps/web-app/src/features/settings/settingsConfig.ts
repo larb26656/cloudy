@@ -20,6 +20,13 @@ export interface SettingsSection {
 
 export const settingsSections: SettingsSection[] = [
   {
+    id: "appearance",
+    label: "Appearance",
+    description: "Customize how the app looks on your device.",
+    to: "/settings/appearance",
+    icon: Palette,
+  },
+  {
     id: "llm-connections",
     label: "LLM Connections",
     description: "Configure API connections used by Cloudy AI.",
@@ -54,13 +61,7 @@ export const settingsSections: SettingsSection[] = [
     to: "/settings/pinned-agents",
     icon: Pin,
   },
-  {
-    id: "appearance",
-    label: "Appearance",
-    description: "Customize how the app looks on your device.",
-    to: "/settings/appearance",
-    icon: Palette,
-  },
+
   {
     id: "quick-phrases",
     label: "Quick Phrases",

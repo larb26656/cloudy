@@ -5,6 +5,7 @@ import {
   SelectTrigger,
 } from "@repo/ui/components/select";
 import { useModels } from "@/hooks/queries/useModels";
+import type { ResolvedAgentProviderInfo } from "@repo/contracts";
 import { ProviderIcon } from "../provider/ProviderIcon";
 import { cn } from "@repo/ui/lib/utils";
 
@@ -12,16 +13,23 @@ interface ProviderSelectorProps {
   providerId: string;
   onChange: (providerId: string) => void;
   triggerClassName?: string;
+  filterProviders?: (provider: ResolvedAgentProviderInfo) => boolean;
+  triggerAriaLabel?: string;
 }
 
 export function ProviderSelector({
   providerId,
   onChange,
   triggerClassName,
+  filterProviders,
+  triggerAriaLabel,
 }: ProviderSelectorProps) {
   const { data: providers = [] } = useModels();
-  const availableProviders = providers.length
-    ? providers
+  const filteredProviders = filterProviders
+    ? providers.filter(filterProviders)
+    : providers;
+  const availableProviders = filteredProviders.length
+    ? filteredProviders
     : [{ id: providerId, name: providerId }];
   const providerName =
     availableProviders.find((provider) => provider.id === providerId)?.name ??
@@ -36,6 +44,7 @@ export function ProviderSelector({
       }}
     >
       <SelectTrigger
+        aria-label={triggerAriaLabel}
         className={cn(
           "h-8 w-auto gap-2 border-0 px-2 text-xs shadow-none",
           triggerClassName,

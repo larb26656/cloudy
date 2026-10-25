@@ -66,6 +66,12 @@ describe("automations repository", () => {
       sessionId: "session-1",
       output: "Done",
     });
+    expect(recreated.findRunById("automation-1", "run-history")).toMatchObject({
+      id: "run-history",
+      state: "succeeded",
+    });
+    expect(recreated.findRunById("other-automation", "run-history")).toBeNull();
+    expect(recreated.findRunById("automation-1", "missing-run")).toBeNull();
   });
 
   it("atomically admits one active run and records an overlapping attempt as skipped", () => {

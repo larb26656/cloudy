@@ -32,6 +32,8 @@ interface ChatContainerProps {
   onAgentChange?: (agent: string | null) => void;
   model?: ModelInfo | null;
   onModelChange?: (model: ModelInfo | null) => void;
+  readOnly?: boolean;
+  topContent?: ReactNode;
 }
 
 export function ChatContainer({
@@ -44,6 +46,8 @@ export function ChatContainer({
   onAgentChange,
   model,
   onModelChange,
+  readOnly = false,
+  topContent,
 }: ChatContainerProps) {
   const chatplaceholder = useMemo(() => generatePlaceholder(), []);
   const { data: capacity, isLoading, error } = useCapacity(providerId);
@@ -64,7 +68,11 @@ export function ChatContainer({
       model={model}
       onModelChange={onModelChange}
     >
-      <ChatSurface placeholder={chatplaceholder} />
+      <ChatSurface
+        placeholder={chatplaceholder}
+        readOnly={readOnly}
+        topContent={topContent}
+      />
     </ChatProvider>
   );
 }
@@ -74,6 +82,7 @@ export interface ChatSurfaceProps {
   placeholder?: string;
   allowTypingWhileSending?: boolean;
   className?: string;
+  readOnly?: boolean;
 }
 
 export function ChatSurface({
@@ -81,6 +90,7 @@ export function ChatSurface({
   placeholder,
   allowTypingWhileSending,
   className,
+  readOnly = false,
 }: ChatSurfaceProps) {
   const [questionOpen, setQuestionOpen] = useState(false);
   const [permissionOpen, setPermissionOpen] = useState(false);
@@ -101,9 +111,9 @@ export function ChatSurface({
     isGenerating,
     directory,
     sessionId,
-    changeSession,
     sessionPickerOpen,
     setSessionPickerOpen,
+    changeSession,
     capacity,
   } = useChat();
   const {
@@ -121,7 +131,7 @@ export function ChatSurface({
 
   const handleContainerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Escape") return;
-    if (questionOpen || permissionOpen || !isGenerating) return;
+    if (readOnly || questionOpen || permissionOpen || !isGenerating) return;
 
     e.preventDefault();
     abortGeneration();
@@ -139,7 +149,7 @@ export function ChatSurface({
       >
         {topContent}
         <div className="absolute z-50 top-0 left-0 right-0 flex justify-end gap-2 p-2">
-          {!!sessionQuestions.length && !questionOpen && (
+          {!readOnly && !!sessionQuestions.length && !questionOpen && (
             <QuestionBanner
               onOpenDialog={() => setQuestionOpen(true)}
               count={sessionQuestions.reduce(
@@ -149,7 +159,7 @@ export function ChatSurface({
             />
           )}
 
-          {!!sessionPermissions.length && !permissionOpen && (
+          {!readOnly && !!sessionPermissions.length && !permissionOpen && (
             <PermissionBanner
               onOpenDialog={() => setPermissionOpen(true)}
               count={sessionPermissions.length}
@@ -164,23 +174,27 @@ export function ChatSurface({
             minimapOpen={minimapOpen}
             onCloseMinimap={() => setMinimapOpen(false)}
           />
-          <ChatInput
-            placeholder={placeholder}
-            allowTypingWhileSending={allowTypingWhileSending}
-            supportsFileMentions={capacity.fileMentions}
-            supportsCommands={capacity.commands}
-          />
+          {!readOnly && (
+            <ChatInput
+              placeholder={placeholder}
+              allowTypingWhileSending={allowTypingWhileSending}
+              supportsFileMentions={capacity.fileMentions}
+              supportsCommands={capacity.commands}
+            />
+          )}
         </MessageScrollerProvider>
 
-        <SessionStatusBar
-          sessionId={sessionId}
-          directory={directory}
-          agentSelector={<AgentSelector variant="status" />}
-          minimapOpen={minimapOpen}
-          onToggleMinimap={() => setMinimapOpen((v) => !v)}
-        />
+        {!readOnly && (
+          <SessionStatusBar
+            sessionId={sessionId}
+            directory={directory}
+            agentSelector={<AgentSelector variant="status" />}
+            minimapOpen={minimapOpen}
+            onToggleMinimap={() => setMinimapOpen((v) => !v)}
+          />
+        )}
 
-        {currentQuestion && (
+        {!readOnly && currentQuestion && (
           <QuestionSheet
             open={questionOpen}
             onOpenChange={setQuestionOpen}
@@ -188,7 +202,7 @@ export function ChatSurface({
           />
         )}
 
-        {currentPermission && (
+        {!readOnly && currentPermission && (
           <PermissionDialog
             open={permissionOpen}
             onOpenChange={setPermissionOpen}
@@ -197,13 +211,15 @@ export function ChatSurface({
           />
         )}
 
-        <SessionPickerDialog
-          open={sessionPickerOpen}
-          onOpenChange={setSessionPickerOpen}
-          directory={directory}
-          sessionId={sessionId}
-          onSessionChange={changeSession}
-        />
+        {!readOnly && (
+          <SessionPickerDialog
+            open={sessionPickerOpen}
+            onOpenChange={setSessionPickerOpen}
+            directory={directory}
+            sessionId={sessionId}
+            onSessionChange={changeSession}
+          />
+        )}
       </div>
 
       <SessionViewDialog

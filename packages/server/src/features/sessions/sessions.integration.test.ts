@@ -32,6 +32,8 @@ function provider(
     }),
     createSession: async (input) =>
       session(`native-${++next}`, input.directory),
+    updateSession: async (input) =>
+      session(input.sessionId ?? "", input.directory),
     getSession: async (input) => session(input.sessionId, input.directory),
     getSessionStatuses: async () => ({ "native-1": "running" }),
     executeCommand,
@@ -227,5 +229,60 @@ describe("sessions integration", () => {
     expect(await response.json()).toEqual({
       error: "Session not found: 00000000-0000-4000-8000-000000000000",
     });
+  });
+
+  it("keeps automation sessions inspectable but blocks user mutations", async () => {
+    const response = await app.request("/api/sessions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        providerId: "test",
+        metadata: {
+          origin: {
+            type: "automation_run",
+            runId: "00000000-0000-4000-8000-000000000001",
+          },
+        },
+      }),
+    });
+    const session = await response.json();
+    expect(session.origin).toEqual({
+      type: "automation_run",
+      runId: "00000000-0000-4000-8000-000000000001",
+    });
+    for (const request of [
+      app.request(`/api/sessions/${session.id}/messages`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ content: "not allowed" }),
+      }),
+      app.request(`/api/sessions/${session.id}/fork`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({}),
+      }),
+      app.request(`/api/sessions/${session.id}`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ title: "not allowed" }),
+      }),
+      app.request(`/api/sessions/${session.id}`, { method: "DELETE" }),
+    ]) {
+      expect((await request).status).toBe(400);
+    }
+    const userSession = await app.request("/api/sessions", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ providerId: "test" }),
+    });
+    expect(
+      (
+        await app.request(`/api/sessions/${(await userSession.json()).id}`, {
+          method: "PATCH",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ title: "still writable" }),
+        })
+      ).status,
+    ).toBe(200);
   });
 });

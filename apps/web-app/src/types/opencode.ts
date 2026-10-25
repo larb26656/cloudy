@@ -30,6 +30,7 @@ export interface ChatSession {
     reasoning: number;
     cache: { read: number; write: number };
   };
+  origin?: { type: "user" } | { type: "automation_run"; runId: string };
 }
 
 export interface RecentChatSession extends ChatSession {
