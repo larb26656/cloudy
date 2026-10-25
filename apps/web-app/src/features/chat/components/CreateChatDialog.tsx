@@ -20,7 +20,15 @@ import { useRecentDirectoryStore } from "@/stores/recentDirectoryStore";
 import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { useSessions } from "@/hooks/queries";
 import { useNewChat } from "@/hooks/useNewChat";
-import { ArrowLeft, MessageCircleDashed } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ChevronRight,
+  Folder,
+  FolderOpen,
+  LoaderCircle,
+  MessageCircleDashed,
+} from "lucide-react";
 import { ProviderSelector } from "@/components/chat/ProviderSelector";
 import { useCapacity } from "@/hooks/queries/useModels";
 
@@ -53,6 +61,9 @@ export function CreateChatDialog({
   const pushRecentDirectory = useRecentDirectoryStore((s) => s.push);
   const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [selected, setSelected] = useState<ChatTarget | null>(null);
+  const [directoryChoice, setDirectoryChoice] = useState<
+    "workspace" | "path" | null
+  >(null);
   const [providerId, setProviderId] = useState(defaultProviderId);
   const [agentId, setAgentId] = useState<string | null>(null);
   useEffect(() => {
@@ -105,7 +116,7 @@ export function CreateChatDialog({
   };
 
   const handleBack = () => {
-    setSelected(null);
+    setDirectoryChoice(null);
   };
 
   const resolveSession = (sessionId: string | null, sessionName: string) => {
@@ -140,6 +151,7 @@ export function CreateChatDialog({
 
   const handleClose = () => {
     setSelected(null);
+    setDirectoryChoice(null);
     onOpenChange(false);
   };
 
@@ -150,73 +162,115 @@ export function CreateChatDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="flex max-h-[85vh] flex-col overflow-hidden sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {selected ? `Sessions in ${selected.name}` : "New Chat"}
-          </DialogTitle>
+      <DialogContent className="flex max-h-[85vh] min-h-[440px] flex-col overflow-hidden p-6 sm:max-w-md">
+        <DialogHeader className="space-y-0">
+          <div className="flex items-center gap-2">
+            {directoryChoice && !selected && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="-ml-2"
+                aria-label="Back"
+                onClick={handleBack}
+              >
+                <ArrowLeft />
+              </Button>
+            )}
+            <DialogTitle className="text-base">
+              {selected ? `Sessions in ${selected.name}` : "New Chat"}
+            </DialogTitle>
+          </div>
         </DialogHeader>
 
-        <div className="flex min-h-0 flex-1 flex-col gap-5 py-5">
+        <div className="flex min-h-0 flex-1 flex-col gap-5 pt-5">
           {!selected ? (
             <>
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Execution provider</p>
-                <ProviderSelector
-                  providerId={providerId}
-                  onChange={(value) => {
-                    if (value) setProviderId(value);
-                  }}
-                />
-              </div>
-              {!requiresDirectory ? (
-                <Button
-                  variant="outline"
-                  className="justify-start gap-2 shrink-0"
-                  onClick={handleDirectorylessChat}
-                >
-                  <MessageCircleDashed />
-                  New Chat
-                </Button>
-              ) : (
-                <>
-                  <div className="flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-sm font-medium">Use a directory</h3>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="shrink-0"
-                        onClick={handleCreateTempChat}
-                        disabled={isCreatingTemp}
-                      >
-                        <MessageCircleDashed /> Temp chat
-                      </Button>
-                    </div>
-                  </div>
-                  <QuickPathSection onPathSubmit={handleQuickPath} />
-                  <div className="flex items-end justify-between gap-3 border-t pt-4">
-                    <h3 className="text-sm font-medium">
-                      Registered workspaces
-                    </h3>
-                  </div>
-                  <WorkspaceSelectStep
-                    onSelect={handleWorkspaceSelect}
-                    onGoToWorkspaces={handleGoToWorkspaces}
-                    workspaceType="agent"
+              {!directoryChoice && (
+                <section className="space-y-2">
+                  <h3 className="text-sm font-medium">Select provider</h3>
+                  <ProviderSelector
+                    providerId={providerId}
+                    onChange={(value) => {
+                      if (value) setProviderId(value);
+                    }}
+                    triggerClassName="h-10 w-full justify-start rounded-lg border bg-muted/30 px-3 [&>svg:last-child]:ml-auto"
                   />
+                </section>
+              )}
+
+              {!requiresDirectory ? (
+                <div className="flex flex-1 flex-col items-center justify-center gap-5 py-2 text-center">
+                  <ChatReadyIllustration />
+                  <div className="space-y-1.5">
+                    <h3 className="text-sm font-semibold">Ready to chat</h3>
+                    <p className="max-w-xs text-sm leading-5 text-muted-foreground">
+                      This provider doesn’t use a project directory.
+                      <br />
+                      Just start chatting.
+                    </p>
+                  </div>
+                  <Button
+                    className="mt-auto w-full gap-2"
+                    onClick={handleDirectorylessChat}
+                  >
+                    Start Chat <ArrowRight data-icon="inline-end" />
+                  </Button>
+                </div>
+              ) : directoryChoice ? (
+                <>
+                  {directoryChoice === "workspace" ? (
+                    <div className="flex min-h-0 flex-1 flex-col gap-3">
+                      <h3 className="text-sm font-medium">
+                        Choose a workspace
+                      </h3>
+                      <WorkspaceSelectStep
+                        onSelect={handleWorkspaceSelect}
+                        onGoToWorkspaces={handleGoToWorkspaces}
+                        workspaceType="agent"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex flex-1 flex-col gap-3">
+                      <h3 className="text-sm font-medium">Open by path</h3>
+                      <p className="text-xs text-muted-foreground">
+                        Enter an absolute project directory path.
+                      </p>
+                      <QuickPathSection onPathSubmit={handleQuickPath} />
+                    </div>
+                  )}
                 </>
+              ) : (
+                <section className="flex flex-1 flex-col gap-2">
+                  <h3 className="text-sm font-medium">
+                    Choose project directory
+                  </h3>
+                  <ChoiceButton
+                    icon={FolderOpen}
+                    title="Use existing workspace"
+                    description="Continue in a registered project"
+                    onClick={() => setDirectoryChoice("workspace")}
+                  />
+                  <ChoiceButton
+                    icon={Folder}
+                    title="Open by path"
+                    description="Enter an absolute directory path"
+                    onClick={() => setDirectoryChoice("path")}
+                  />
+                  <ChoiceButton
+                    icon={LoaderCircle}
+                    title="Create temporary workspace"
+                    description="Auto-create a temporary directory"
+                    onClick={handleCreateTempChat}
+                    disabled={isCreatingTemp}
+                  />
+                </section>
               )}
             </>
           ) : (
             <SessionStep
               providerId={providerId}
-              onProviderChange={(value) => {
-                if (value) setProviderId(value);
-              }}
               sessions={sessions}
               isLoading={sessionsLoading}
-              onBack={handleBack}
               onNewChat={handleNewChat}
               onSelect={handleSessionSelect}
             />
@@ -227,20 +281,73 @@ export function CreateChatDialog({
   );
 }
 
+function ChoiceButton({
+  icon: Icon,
+  title,
+  description,
+  onClick,
+  disabled = false,
+}: {
+  icon: typeof FolderOpen;
+  title: string;
+  description: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="group flex min-h-[66px] items-center gap-3 rounded-lg border bg-card px-3 text-left transition-colors hover:border-primary/60 hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-wait disabled:opacity-60"
+    >
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+        <Icon className="size-5" />
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm font-medium">{title}</span>
+        <span className="mt-0.5 block text-xs text-muted-foreground">
+          {description}
+        </span>
+      </span>
+      {disabled ? (
+        <span className="text-xs text-muted-foreground">Creating…</span>
+      ) : (
+        <ChevronRight className="size-4 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+      )}
+    </button>
+  );
+}
+
+function ChatReadyIllustration() {
+  return (
+    <div aria-hidden="true" className="relative h-28 w-40">
+      <div className="absolute left-1 top-8 h-12 w-20 rounded-lg rounded-bl-sm bg-muted p-2.5">
+        <span className="mb-1.5 block h-1 w-10 rounded-full bg-muted-foreground/40" />
+        <span className="block h-1 w-14 rounded-full bg-muted-foreground/30" />
+      </div>
+      <div className="absolute right-0 top-1 h-9 w-16 rounded-lg rounded-br-sm bg-muted/80 p-2">
+        <span className="mb-1 block h-1 w-8 rounded-full bg-muted-foreground/40" />
+        <span className="block h-1 w-11 rounded-full bg-muted-foreground/30" />
+      </div>
+      <div className="absolute bottom-0 right-1 h-12 w-20 rounded-lg rounded-br-sm bg-primary p-2.5">
+        <span className="mb-1.5 block h-1 w-10 rounded-full bg-primary-foreground/75" />
+        <span className="block h-1 w-14 rounded-full bg-primary-foreground/55" />
+      </div>
+    </div>
+  );
+}
+
 function SessionStep({
   providerId,
-  onProviderChange,
   sessions,
   isLoading,
-  onBack,
   onNewChat,
   onSelect,
 }: {
   providerId: string;
-  onProviderChange: (providerId: string) => void;
   sessions: ChatSession[];
   isLoading: boolean;
-  onBack: () => void;
   onNewChat: () => void;
   onSelect: (session: ChatSession) => void;
 }) {
@@ -250,10 +357,6 @@ function SessionStep({
 
   return (
     <div className="flex flex-col gap-4 flex-1 min-h-0">
-      <div className="space-y-2">
-        <p className="text-sm font-medium">Execution provider</p>
-        <ProviderSelector providerId={providerId} onChange={onProviderChange} />
-      </div>
       <Button
         variant="outline"
         className="justify-start gap-2 shrink-0"
@@ -282,16 +385,6 @@ function SessionStep({
           ))}
         </div>
       )}
-
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onBack}
-        className="self-start -ml-2 shrink-0"
-      >
-        <ArrowLeft />
-        Back
-      </Button>
     </div>
   );
 }

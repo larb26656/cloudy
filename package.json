@@ -17,6 +17,7 @@
     "hooks:install": "lefthook install",
     "generate:package": "npx tsx scripts/generate-package.ts",
     "dev:web-app": "turbo run dev --filter=web-app --filter=server",
+    "storybook-webapp": "pnpm --filter web-app storybook",
     "dev:server": "turbo run dev --filter=server",
     "dev:extension": "turbo run dev --filter=cloudy-extension --filter=server",
     "dev:desktop": "turbo run dev --filter=web-app --filter=desktop",

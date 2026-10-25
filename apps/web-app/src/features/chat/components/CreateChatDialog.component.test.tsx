@@ -84,9 +84,17 @@ describe("CreateChatDialog", () => {
     return onSubmit;
   };
 
+  const openPathEntry = () => {
+    fireEvent.click(screen.getByRole("button", { name: /Open by path/ }));
+  };
+
   it("submits a quick-path chat with null workspaceId", () => {
     const onSubmit = renderDialog();
 
+    expect(screen.queryByText("Browse on this device")).not.toBeInTheDocument();
+    expect(screen.queryByText("Requires directory")).not.toBeInTheDocument();
+    expect(screen.queryByText("No directory")).not.toBeInTheDocument();
+    openPathEntry();
     fireEvent.change(screen.getByRole("textbox", { name: "Chat directory" }), {
       target: { value: "/work/my-app" },
     });
@@ -109,6 +117,7 @@ describe("CreateChatDialog", () => {
     useDefaultProviderStore.setState({ defaultProviderId: "codex" });
     const onSubmit = renderDialog();
 
+    openPathEntry();
     fireEvent.change(screen.getByRole("textbox", { name: "Chat directory" }), {
       target: { value: "/work/my-app" },
     });
@@ -128,6 +137,7 @@ describe("CreateChatDialog", () => {
   it("rejects a relative path and stays on step 1", () => {
     const onSubmit = renderDialog();
 
+    openPathEntry();
     fireEvent.change(screen.getByRole("textbox", { name: "Chat directory" }), {
       target: { value: "relative/path" },
     });
@@ -142,6 +152,7 @@ describe("CreateChatDialog", () => {
   it("records the quick path in the recent list", () => {
     renderDialog();
 
+    openPathEntry();
     fireEvent.change(screen.getByRole("textbox", { name: "Chat directory" }), {
       target: { value: "/work/my-app" },
     });
@@ -154,6 +165,7 @@ describe("CreateChatDialog", () => {
     useRecentDirectoryStore.setState({ paths: ["/tmp/scratch"] });
     renderDialog();
 
+    openPathEntry();
     fireEvent.click(screen.getByRole("button", { name: "/tmp/scratch" }));
 
     expect(screen.getByText("Sessions in scratch")).toBeInTheDocument();
@@ -163,6 +175,7 @@ describe("CreateChatDialog", () => {
     useRecentDirectoryStore.setState({ paths: ["/tmp/scratch"] });
     renderDialog();
 
+    openPathEntry();
     fireEvent.click(
       screen.getByRole("button", { name: "Remove /tmp/scratch" }),
     );
@@ -174,8 +187,16 @@ describe("CreateChatDialog", () => {
   it("still resolves a registered workspace", () => {
     const onSubmit = renderDialog();
 
+    fireEvent.click(
+      screen.getByRole("button", { name: /Use existing workspace/ }),
+    );
+    expect(screen.queryByText("Select provider")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Cloudy workspace" }));
     expect(screen.getByText("Sessions in Cloudy")).toBeInTheDocument();
+    expect(screen.queryByText("Select provider")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Back" }),
+    ).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
     expect(onSubmit).toHaveBeenCalledWith({
@@ -207,7 +228,8 @@ describe("CreateChatDialog", () => {
     expect(
       screen.queryByRole("button", { name: "Temp chat" }),
     ).not.toBeInTheDocument();
-    fireEvent.click(screen.getByRole("button", { name: "New Chat" }));
+    expect(screen.getByText("Ready to chat")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Start Chat" }));
 
     expect(onSubmit).toHaveBeenCalledWith({
       agent: null,
