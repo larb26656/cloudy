@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Activity,
-  CalendarDays,
   ChartNoAxesColumnIncreasing,
   Clock3,
   FileText,
-  Globe2,
   Mail,
   Megaphone,
   MoreVertical,
@@ -13,7 +11,6 @@ import {
   Play,
   Plus,
   Radar,
-  RefreshCw,
   Search,
   Shield,
   Trash2,
@@ -49,6 +46,8 @@ import type {
 import { AutomationFormDialog } from "./AutomationFormDialog";
 import { useTabStore } from "@/stores/tabStore";
 import { useAutomationNavigationStore } from "@/stores/automationNavigationStore";
+import { AutomationScheduleSection } from "./AutomationScheduleSection";
+import { RunHistorySection } from "./RunHistorySection";
 
 const emptyAutomation: AutomationInput = {
   name: "",
@@ -425,209 +424,51 @@ function AutomationDetails({
               {automation.prompt}
             </p>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              render={
-                <Button
-                  variant="outline"
-                  size="icon"
-                  aria-label="Automation actions"
-                >
-                  <MoreVertical />
-                </Button>
-              }
-            />
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem variant="destructive" onClick={onDelete}>
-                <Trash2 data-icon="inline-start" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={onEdit}>
-            <Pencil data-icon="inline-start" />
-            Edit
-          </Button>
-          <Button onClick={onRun}>
-            <Play data-icon="inline-start" />
-            Run now
-          </Button>
-        </div>
-      </header>
-      {automation.schedule ? (
-        <section
-          className="grid gap-4 rounded-xl border p-4 md:p-5"
-          aria-label="Schedule"
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h3 className="flex items-center gap-3 text-lg font-semibold">
-              <CalendarDays aria-hidden="true" />
-              Schedule
-            </h3>
-            <Button variant="outline" size="sm" onClick={onEdit}>
-              <Pencil data-icon="inline-start" />
-              Edit
-            </Button>
-          </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-muted-foreground">
-            <span className="flex items-center gap-2">
-              <RefreshCw className="size-4" aria-hidden="true" />
-              {automation.schedule.enabled
-                ? automation.schedule.cron
-                : "Schedule paused"}
-            </span>
-            <span className="flex items-center gap-2 rounded-md bg-muted px-3 py-1.5">
-              <Globe2 className="size-4" aria-hidden="true" />
-              {automation.schedule.timezone}
-            </span>
-          </div>
-          {occurrences.length > 0 && (
-            <div className="grid gap-3 border-t pt-4">
-              <h4 className="text-sm font-medium text-muted-foreground">
-                Next {occurrences.length} runs
-              </h4>
-              <ol
-                aria-label="Next three occurrences"
-                className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3"
-              >
-                {occurrences.map((date, index) => (
-                  <li
-                    key={date}
-                    className={`flex items-center gap-3 rounded-lg border p-3 text-sm ${index === 0 ? "border-primary/50 bg-primary/5" : ""}`}
-                  >
-                    <CalendarDays
-                      className={`size-5 shrink-0 ${index === 0 ? "text-primary" : "text-muted-foreground"}`}
-                      aria-hidden="true"
-                    />
-                    <div className="grid min-w-0">
-                      <time dateTime={date}>
-                        {new Date(date).toLocaleString(undefined, {
-                          timeZone: automation.schedule!.timezone,
-                          dateStyle: "medium",
-                        })}
-                      </time>
-                      <span className="text-muted-foreground">
-                        {new Date(date).toLocaleString(undefined, {
-                          timeZone: automation.schedule!.timezone,
-                          timeStyle: "short",
-                        })}
-                      </span>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-            </div>
-          )}
-        </section>
-      ) : (
-        <section className="flex items-center gap-3 rounded-xl border p-4 text-sm text-muted-foreground">
-          <CalendarDays aria-hidden="true" />
-          This automation runs on demand.
-        </section>
-      )}
-      <section className="flex min-h-[280px] flex-col rounded-xl border p-4 md:min-h-[340px] md:p-5">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="flex items-center gap-3 text-lg font-semibold">
-            <FileText aria-hidden="true" />
-            Run history
-          </h3>
-        </div>
-        {runsLoading ? (
-          <LoadingState size="inline" title="Loading runs..." />
-        ) : runsError ? (
-          <ErrorState size="inline" bare message={runsError.message} />
-        ) : runs.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center py-8 text-center">
-            <Activity
-              className="mb-4 size-12 text-muted-foreground/60"
-              aria-hidden="true"
-            />
-            <EmptyState
-              size="compact"
-              title="No runs yet"
-              description="Run it now to start the first run."
-              className="py-2"
-            />
-            <Button className="mt-3" onClick={onRun}>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button onClick={onRun}>
               <Play data-icon="inline-start" />
               Run now
             </Button>
-          </div>
-        ) : (
-          <div className="mt-4 grid content-start gap-2">
-            {runs.map((run) => (
-              <RunRow
-                key={run.id}
-                run={run}
-                highlighted={run.id === highlightedRunId}
-                onStop={() => onStop(run)}
-                onOpenSession={() => onOpenSession(run)}
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    aria-label="Automation actions"
+                  >
+                    <MoreVertical />
+                  </Button>
+                }
               />
-            ))}
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={onEdit}>
+                  <Pencil data-icon="inline-start" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onClick={onDelete}>
+                  <Trash2 data-icon="inline-start" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
-        )}
-      </section>
-    </div>
-  );
-}
-
-function RunRow({
-  run,
-  onStop,
-  onOpenSession,
-  highlighted = false,
-}: {
-  run: Run;
-  onStop: () => void;
-  onOpenSession: () => void;
-  highlighted?: boolean;
-}) {
-  return (
-    <article
-      aria-current={highlighted ? "true" : undefined}
-      className={`grid gap-2 rounded-lg border p-3 text-sm md:grid-cols-[1fr_auto] ${highlighted ? "border-primary" : ""}`}
-    >
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          <strong className="capitalize">{run.state}</strong>
-          <span className="rounded-full bg-muted px-2 py-0.5 text-xs">
-            {run.trigger}
-          </span>
-          {run.phase && (
-            <span className="text-xs text-muted-foreground">
-              {run.phase === "send_to_log" ? "Saving to Log" : "Working"}
-            </span>
-          )}
-          <time className="text-xs text-muted-foreground">
-            {new Date(run.createdAt).toLocaleString()}
-          </time>
         </div>
-        {(run.reason || run.error) && (
-          <p className="mt-1 text-sm text-destructive">
-            {run.reason ?? run.error}
-          </p>
-        )}
-        {run.output && (
-          <pre className="mt-2 max-h-48 overflow-auto whitespace-pre-wrap rounded-md bg-muted p-3 text-xs">
-            {run.output}
-          </pre>
-        )}
-      </div>
-      <div className="flex items-start gap-2">
-        {["pending", "running"].includes(run.state) && (
-          <Button size="sm" variant="outline" onClick={onStop}>
-            Stop
-          </Button>
-        )}
-        {run.sessionId && (
-          <Button size="sm" variant="outline" onClick={onOpenSession}>
-            Open session
-          </Button>
-        )}
-      </div>
-    </article>
+      </header>
+      <AutomationScheduleSection
+        schedule={automation.schedule}
+        occurrences={occurrences}
+      />
+      <RunHistorySection
+        runs={runs}
+        runsLoading={runsLoading}
+        runsError={runsError}
+        highlightedRunId={highlightedRunId}
+        onRun={onRun}
+        onStop={onStop}
+        onOpenSession={onOpenSession}
+      />
+    </div>
   );
 }
 
