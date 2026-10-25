@@ -1,5 +1,6 @@
 import type { CSSProperties, ReactNode, Ref } from "react";
-import { Copy, GripVertical, Home, X } from "lucide-react";
+import { Copy, GripVertical, Settings, X } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import {
   DndContext,
   PointerSensor,
@@ -23,6 +24,7 @@ import {
 } from "@repo/ui/components/sheet";
 import { cn } from "@repo/ui/lib/utils";
 import { ProviderIcon } from "@/components/provider/ProviderIcon";
+import { AppNav } from "@/features/app/components/AppNav";
 import { TabTitle, tabTypeMap, tabTemplates } from "../tabs/template";
 import { AddTabMenu } from "./AddTabMenu";
 
@@ -72,6 +74,10 @@ export function MobileTabDrawer({
           </SheetTitle>
           <AddTabMenu onAddTab={onAddTab} align="start" showLabel />
         </SheetHeader>
+        <AppNav
+          className="border-b py-3"
+          onNavigate={() => onOpenChange(false)}
+        />
 
         <DndContext
           sensors={sensors}
@@ -79,12 +85,9 @@ export function MobileTabDrawer({
           onDragEnd={handleDragEnd}
         >
           <div className="flex-1 overflow-y-auto p-2">
-            <DrawerRow
-              icon={<Home />}
-              label="Home"
-              isActive={activeTabId === "home"}
-              onClick={() => handleSelect("home")}
-            />
+            <p className="px-3 pb-2 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              Open tabs
+            </p>
             <SortableContext
               items={tabs.map((t) => t.id)}
               strategy={verticalListSortingStrategy}
@@ -117,6 +120,16 @@ export function MobileTabDrawer({
             </SortableContext>
           </div>
         </DndContext>
+        <div className="border-t p-2">
+          <Link
+            to="/settings"
+            onClick={() => onOpenChange(false)}
+            className="flex h-10 items-center gap-2 rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          >
+            <Settings data-icon className="size-4" />
+            Settings
+          </Link>
+        </div>
       </SheetContent>
     </Sheet>
   );

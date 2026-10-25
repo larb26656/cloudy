@@ -1,34 +1,61 @@
-import { Link, useLocation } from "@tanstack/react-router";
-import { Home, LampDesk, MessageCircle } from "lucide-react";
+import { Bot, FolderKanban, Home, PlugZap } from "lucide-react";
+import { cn } from "@repo/ui/lib/utils";
+import { useHomeSectionStore } from "@/stores/homeSectionStore";
+import { useTabStore } from "@/stores/tabStore";
+import type { AppPage } from "./AppPageContent";
 
 const navItems = [
-  { to: "/home", label: "Home", icon: Home },
-  { to: "/", label: "Chat", icon: MessageCircle },
-  { to: "/desk", label: "Desk", icon: LampDesk },
-];
+  { section: "home", label: "Home", icon: Home },
+  { section: "workspaces", label: "Workspaces", icon: FolderKanban },
+  { section: "agents", label: "Agents", icon: Bot },
+  { section: "providers", label: "Providers", icon: PlugZap },
+] as const;
 
-export function AppNav() {
-  const location = useLocation();
+export function AppNav({
+  className,
+  onNavigate,
+  compact = false,
+}: {
+  className?: string;
+  onNavigate?: () => void;
+  compact?: boolean;
+}) {
+  const activeSection = useHomeSectionStore((s) => s.activeSection);
+  const setActiveSection = useHomeSectionStore((s) => s.setActiveSection);
+  const activeTabId = useTabStore((s) => s.activeTabId);
+  const setActiveTab = useTabStore((s) => s.setActiveTab);
+
+  const handleSelect = (section: "home" | AppPage) => {
+    setActiveSection(section);
+    setActiveTab("home");
+    onNavigate?.();
+  };
 
   return (
-    <div className="flex flex-col gap-1 p-2">
-      {navItems.map(({ to, label, icon: Icon }) => {
-        const isActive = location.pathname === to;
+    <nav className={cn("flex flex-col gap-1 p-2", className)} aria-label="Main">
+      {navItems.map(({ section, label, icon: Icon }) => {
         return (
-          <Link
-            key={to}
-            to={to}
-            className={`inline-flex shrink-0 items-center justify-start gap-2 h-10 rounded-[min(var(--radius-md),12px)] px-2.5 text-sm font-medium transition-all outline-none select-none whitespace-nowrap focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 ${
-              isActive
-                ? "bg-primary text-primary-foreground"
-                : "hover:bg-muted hover:text-foreground"
-            }`}
+          <button
+            key={section}
+            type="button"
+            onClick={() => handleSelect(section)}
+            title={label}
+            aria-label={label}
+            className={cn(
+              "inline-flex h-10 shrink-0 items-center rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors outline-none select-none whitespace-nowrap hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
+              compact ? "justify-center lg:justify-start lg:gap-2" : "gap-2",
+              activeTabId === "home" &&
+                activeSection === section &&
+                "bg-muted text-foreground",
+            )}
           >
-            <Icon className="size-4" />
-            {label}
-          </Link>
+            <Icon data-icon className="size-4" />
+            <span className={compact ? "hidden lg:inline" : undefined}>
+              {label}
+            </span>
+          </button>
         );
       })}
-    </div>
+    </nav>
   );
 }

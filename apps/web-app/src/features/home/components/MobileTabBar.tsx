@@ -1,10 +1,10 @@
 import { Menu } from "lucide-react";
-import { Settings } from "lucide-react";
-import { Link } from "@tanstack/react-router";
 import { useTabStore } from "@/stores/tabStore";
 import { AppBar } from "@/components/layout";
 import { TabTitle, tabTypeMap } from "../tabs/template";
 import { NotificationBell } from "@/components/notification";
+import { appPages } from "@/features/app/components/AppPageContent";
+import { useHomeSectionStore } from "@/stores/homeSectionStore";
 
 interface MobileTabBarProps {
   onOpenDrawer: () => void;
@@ -13,6 +13,7 @@ interface MobileTabBarProps {
 export function MobileTabBar({ onOpenDrawer }: MobileTabBarProps) {
   const tabs = useTabStore((s) => s.tabs);
   const activeTabId = useTabStore((s) => s.activeTabId);
+  const activeSection = useHomeSectionStore((s) => s.activeSection);
   const isHome = activeTabId === "home";
 
   const activeTab =
@@ -37,23 +38,14 @@ export function MobileTabBar({ onOpenDrawer }: MobileTabBarProps) {
         {activeTab &&
         tabTypeMap[activeTab.type]?.hideMobileAppBarTitle ? null : activeTab ? (
           <TabTitle tab={activeTab} />
-        ) : (
+        ) : activeSection === "home" ? (
           "Home"
+        ) : (
+          appPages[activeSection].label
         )}
       </AppBar.Title>
       <AppBar.Actions>
-        {isHome ? (
-          <>
-            <NotificationBell />
-            <Link
-              to="/settings"
-              aria-label="Settings"
-              className="flex items-center px-3 py-2 text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <Settings data-icon className="size-4" />
-            </Link>
-          </>
-        ) : null}
+        {isHome ? <NotificationBell /> : null}
         {activeTab && <>{Actions && <Actions tab={activeTab} />}</>}
       </AppBar.Actions>
     </AppBar>

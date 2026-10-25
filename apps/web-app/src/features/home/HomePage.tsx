@@ -8,28 +8,39 @@ import { ChatCreateDialog } from "./tabs/implementations/chat/ChatCreateDialog";
 import { tabTypeMap } from "./tabs/template";
 import { ErrorState } from "@repo/ui/components/error-state";
 import { useGlobalEvent } from "@/providers";
+import { AppPageContent, AppSidebar } from "@/features/app/components";
+import { useHomeSectionStore } from "@/stores/homeSectionStore";
 
 export default function HomePage() {
   const { status } = useGlobalEvent();
   const activeTabId = useTabStore((s) => s.activeTabId);
   const tabs = useTabStore((s) => s.tabs);
   const removeTab = useTabStore((s) => s.removeTab);
+  const activeSection = useHomeSectionStore((s) => s.activeSection);
   const [projectChatOpen, setProjectChatOpen] = useState(false);
 
   return (
-    <div className="flex flex-col h-full w-full overflow-hidden bg-background">
+    <div className="flex h-full w-full flex-col overflow-hidden bg-background">
       <MainTabBar />
       {(status === "PENDING" || status === "DISCONNECTED") && (
         <ConnectionStatusBanner />
       )}
       <TabHeaderBar />
       <div className="flex-1 overflow-hidden">
-        <div className={activeTabId === "home" ? "h-full" : "hidden"}>
-          <HomeContent
-            onOpenProjectChat={() => {
-              setProjectChatOpen(true);
-            }}
-          />
+        <div className={activeTabId === "home" ? "flex h-full" : "hidden"}>
+          <AppSidebar />
+          <div className="min-w-0 flex-1">
+            <div className={activeSection === "home" ? "h-full" : "hidden"}>
+              <HomeContent
+                onOpenProjectChat={() => {
+                  setProjectChatOpen(true);
+                }}
+              />
+            </div>
+            {activeSection !== "home" && (
+              <AppPageContent page={activeSection} />
+            )}
+          </div>
         </div>
         {tabs.map((tab) => {
           const isActive = activeTabId === tab.id;
