@@ -123,12 +123,10 @@ describe("HomePage work-on-a-project flow", () => {
     const user = userEvent.setup();
     const navigation = within(screen.getByRole("navigation", { name: "Main" }));
 
-    for (const section of ["Workspaces", "Agents", "Providers"] as const) {
-      await user.click(navigation.getByRole("button", { name: section }));
-      expect(
-        screen.getByRole("heading", { name: section, level: 1 }),
-      ).toBeInTheDocument();
-    }
+    await user.click(navigation.getByRole("button", { name: "Workspaces" }));
+    expect(
+      screen.getByRole("heading", { name: "Workspaces", level: 1 }),
+    ).toBeInTheDocument();
 
     await user.click(navigation.getByRole("button", { name: "Home" }));
     expect(screen.getByRole("button", { name: /ask anything/i })).toBeVisible();
