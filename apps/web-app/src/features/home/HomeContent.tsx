@@ -6,8 +6,8 @@ import { QuickActions } from "./components/QuickActions";
 import { RecentSessionsSection } from "./components/RecentSessionsSection";
 import { WorkspacesSection } from "./components/WorkspacesSection";
 import { WorkspaceDetail } from "./components/WorkspaceDetail";
-import { ProviderSection } from "./components/ProviderSection";
 import { PinnedAgentsSection } from "./components/PinnedAgentsSection";
+import { useDeviceType } from "@/hooks/useDeviceType";
 
 export function HomeContent({
   onOpenProjectChat,
@@ -18,6 +18,7 @@ export function HomeContent({
   const [selectedWorkspace, setSelectedWorkspace] = useState<Workspace | null>(
     null,
   );
+  const { isDesktop } = useDeviceType();
 
   // The scroll container lives here so the component that owns the
   // selectedWorkspace state also owns the scroll position. On open we save
@@ -49,17 +50,38 @@ export function HomeContent({
       <>
         <HomeGreeting />
         <QuickActions onOpenProjectChat={onOpenProjectChat} />
-        <ProviderSection />
-        <PinnedAgentsSection />
-        <RecentSessionsSection />
-        <WorkspacesSection onSelectWorkspace={setSelectedWorkspace} />
+        {isDesktop ? (
+          <div className="grid grid-cols-[minmax(0,1fr)_20rem] items-start gap-7">
+            <div className="min-w-0">
+              <RecentSessionsSection />
+            </div>
+            <aside className="min-w-0">
+              <PinnedAgentsSection />
+              <WorkspacesSection
+                compact
+                onSelectWorkspace={setSelectedWorkspace}
+              />
+            </aside>
+          </div>
+        ) : (
+          <>
+            <PinnedAgentsSection />
+            <RecentSessionsSection />
+            <WorkspacesSection
+              compact
+              onSelectWorkspace={setSelectedWorkspace}
+            />
+          </>
+        )}
       </>
     );
   }
 
   return (
     <div className="h-full overflow-y-auto" ref={scrollRef}>
-      <div className="mx-auto w-full max-w-4xl px-6 py-10">{content}</div>
+      <div className="mx-auto w-full max-w-4xl px-6 py-10 lg:max-w-6xl lg:px-10">
+        {content}
+      </div>
     </div>
   );
 }

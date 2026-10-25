@@ -13,12 +13,11 @@ import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
 import { useSessions } from "@/hooks/queries";
 import { Plus } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
-import type { WorkspaceType } from "@/lib/cloudy/workspaces";
 
 interface SessionListProps {
   directory: string;
   workspaceId: string;
-  workspaceType: WorkspaceType;
+  search?: string;
   /** Optional custom header rendered above the list. When omitted, the default "New chat" button is shown. */
   header?: ReactNode;
 }
@@ -26,7 +25,7 @@ interface SessionListProps {
 function SessionList({
   directory,
   workspaceId,
-  workspaceType,
+  search = "",
   header,
 }: SessionListProps) {
   const { data: sessions = [], isLoading, error } = useSessions({ directory });
@@ -64,7 +63,11 @@ function SessionList({
   }
 
   const rootSessions = sessions.filter(
-    (session: ChatSession) => !session.parentID,
+    (session: ChatSession) =>
+      !session.parentID &&
+      (session.title || "New Chat")
+        .toLowerCase()
+        .includes(search.trim().toLowerCase()),
   );
 
   return (
@@ -77,7 +80,7 @@ function SessionList({
           className="self-start gap-2"
         >
           <Plus data-icon="inline-start" />
-          {workspaceType === "bot" ? "New bot chat" : "New chat"}
+          New chat
         </Button>
       )}
       {rootSessions.map((session: ChatSession) =>
@@ -86,10 +89,7 @@ function SessionList({
             key={session.id}
             sessionId={session.id}
             directory={directory}
-            initialTitle={
-              session.title ||
-              (workspaceType === "bot" ? "New Bot Chat" : "New Chat")
-            }
+            initialTitle={session.title || "New Chat"}
             onDone={() => setEditingId(null)}
             className="px-2 py-1.5"
           />
@@ -106,8 +106,7 @@ function SessionList({
               "shrink-0 truncate rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted",
             )}
           >
-            {session.title ||
-              (workspaceType === "bot" ? "New Bot Chat" : "New Chat")}
+            {session.title || "New Chat"}
           </button>
         ),
       )}

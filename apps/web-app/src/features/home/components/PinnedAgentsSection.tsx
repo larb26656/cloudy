@@ -25,7 +25,7 @@ export function PinnedAgentsSection() {
   return (
     <section className="mb-9">
       <h2 className="mb-3.5 text-sm font-bold">Pinned agents</h2>
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 lg:flex-nowrap lg:overflow-x-auto lg:pb-2">
         {pins.map((pin) => (
           <PinnedAgentButton
             key={`${pin.providerId}:${pin.agentId}`}

@@ -18,18 +18,8 @@ vi.mock("@/features/workspace/WorkspaceDialog", () => ({
   WorkspaceDialog: () => null,
 }));
 
-vi.mock("@/components/chat/AgentProviderPicker", () => ({
-  AgentProviderPicker: ({
-    onSelect,
-    label,
-  }: {
-    onSelect: (providerId: string, agentId: string) => void;
-    label: string;
-  }) => (
-    <button type="button" onClick={() => onSelect("codex", "build")}>
-      {label}
-    </button>
-  ),
+vi.mock("@/components/chat/ProviderSelector", () => ({
+  ProviderSelector: () => <div>Provider selector</div>,
 }));
 
 describe("WorkspaceDetail", () => {
@@ -37,7 +27,7 @@ describe("WorkspaceDetail", () => {
     useTabStore.setState({ tabs: [], activeTabId: "home" });
   });
 
-  it("creates a chat with the selected provider and agent", () => {
+  it("shows a provider selector and creates a chat for the workspace", () => {
     render(
       <WorkspaceDetail
         workspace={{
@@ -54,12 +44,13 @@ describe("WorkspaceDetail", () => {
       />,
     );
 
+    expect(screen.getByText("Provider selector")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "New chat" }));
 
     expect(useTabStore.getState().tabs).toContainEqual(
       expect.objectContaining({
         type: "chat",
-        data: expect.objectContaining({ providerId: "codex", agent: "build" }),
+        data: expect.objectContaining({ providerId: "opencode" }),
       }),
     );
   });

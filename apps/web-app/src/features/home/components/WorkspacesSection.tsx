@@ -10,10 +10,12 @@ import { WorkspaceCard } from "./WorkspaceCard";
 
 interface WorkspacesSectionProps {
   onSelectWorkspace: (workspace: Workspace) => void;
+  compact?: boolean;
 }
 
 export function WorkspacesSection({
   onSelectWorkspace,
+  compact = false,
 }: WorkspacesSectionProps) {
   const { data: workspaces = [], isLoading, error } = useWorkspaces();
   const setActiveSection = useHomeSectionStore((s) => s.setActiveSection);
@@ -22,7 +24,9 @@ export function WorkspacesSection({
   return (
     <section className="mb-9">
       <div className="mb-3.5 flex items-center justify-between">
-        <h2 className="text-sm font-bold">Recent workspaces</h2>
+        <h2 className="text-sm font-bold">
+          {compact ? "Your workspaces" : "Recent workspaces"}
+        </h2>
         <div className="flex items-center gap-1">
           <Button
             variant="ghost"
@@ -30,7 +34,7 @@ export function WorkspacesSection({
             className="h-7 gap-1 px-2 text-xs text-muted-foreground"
             onClick={() => setActiveSection("workspaces")}
           >
-            View more
+            {compact ? "View all" : "View more"}
             <ArrowRight data-icon="inline-end" />
           </Button>
         </div>
@@ -43,11 +47,18 @@ export function WorkspacesSection({
       ) : workspaces.length === 0 ? (
         <EmptyState size="inline" title="No workspaces yet" />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div
+          className={
+            compact
+              ? "flex flex-col gap-2"
+              : "grid grid-cols-1 gap-3 md:grid-cols-2"
+          }
+        >
           {displayedWorkspaces.map((w) => (
             <WorkspaceCard
               key={w.id}
               workspace={w}
+              compact={compact}
               onClick={() => onSelectWorkspace(w)}
             />
           ))}

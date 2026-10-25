@@ -1,5 +1,12 @@
 import { useEffect, useState } from "react";
-import { ArrowLeft, Settings2, Trash2, MoreHorizontal } from "lucide-react";
+import {
+  ArrowLeft,
+  Search,
+  Settings2,
+  Trash2,
+  MoreHorizontal,
+  Plus,
+} from "lucide-react";
 import type { Workspace } from "@/lib/cloudy/workspaces";
 import { useDeleteWorkspace, useMarkWorkspaceActive } from "@/hooks/queries";
 import { useNewChat } from "@/hooks/useNewChat";
@@ -14,7 +21,9 @@ import {
   DropdownMenuSeparator,
 } from "@repo/ui/components/dropdown-menu";
 import { SessionList } from "./SessionList";
-import { AgentProviderPicker } from "@/components/chat/AgentProviderPicker";
+import { ProviderSelector } from "@/components/chat/ProviderSelector";
+import { useDefaultProviderStore } from "@/stores/defaultProviderStore";
+import { Input } from "@repo/ui/components/input";
 
 interface WorkspaceDetailProps {
   workspace: Workspace;
@@ -30,17 +39,20 @@ export function WorkspaceDetail({
   const deleteWorkspace = useDeleteWorkspace();
   const { mutate: markActive } = useMarkWorkspaceActive();
   const { create } = useNewChat();
+  const defaultProviderId = useDefaultProviderStore((s) => s.defaultProviderId);
   const [editing, setEditing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [providerId, setProviderId] = useState(defaultProviderId);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     markActive(workspace.id);
   }, [markActive, workspace.id]);
 
-  const handleNewChat = (providerId: string, agent: string) => {
+  const handleNewChat = () => {
     create({
       providerId,
-      agent,
       workspaceId: workspace.id,
       directory: workspace.directory,
       sessionName: "New Chat",
@@ -104,12 +116,45 @@ export function WorkspaceDetail({
       <SessionList
         directory={workspace.directory}
         workspaceId={workspace.id}
-        workspaceType={workspace.type}
+        search={search}
         header={
-          <AgentProviderPicker
-            label={workspace.type === "bot" ? "New bot chat" : "New chat"}
-            onSelect={handleNewChat}
-          />
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <ProviderSelector
+                providerId={providerId}
+                onChange={setProviderId}
+                triggerClassName="h-10 rounded-lg border bg-muted/50 px-3 text-sm"
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                className="h-10 gap-2 rounded-lg px-3"
+                onClick={() => setSearchOpen((open) => !open)}
+                aria-expanded={searchOpen}
+              >
+                <Search data-icon="inline-start" />
+                Search
+              </Button>
+              <Button
+                variant="default"
+                size="sm"
+                className="ml-auto h-10 rounded-lg px-4"
+                onClick={handleNewChat}
+              >
+                <Plus data-icon="inline-start" />
+                New chat
+              </Button>
+            </div>
+            {searchOpen && (
+              <Input
+                autoFocus
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search chats..."
+                aria-label="Search chats"
+              />
+            )}
+          </div>
         }
       />
 
