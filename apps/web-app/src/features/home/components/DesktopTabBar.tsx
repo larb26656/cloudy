@@ -83,9 +83,7 @@ export function DesktopTabBar({ onOpenAllTabs, onAddTab }: DesktopTabBarProps) {
         onClick={interactive ? () => setActiveTab(tab.id) : () => {}}
         onClose={interactive ? () => removeTab(tab.id) : () => {}}
         onDuplicate={
-          interactive && tab.type === "chat"
-            ? () => addTab("chat", { ...tab.data })
-            : undefined
+          interactive ? () => addTab(tab.type, { ...tab.data }) : undefined
         }
       />
     );

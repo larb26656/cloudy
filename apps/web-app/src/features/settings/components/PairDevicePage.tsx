@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { ShieldCheck } from "lucide-react";
 import { Button } from "@repo/ui/components/button";
+import { Field, FieldGroup, FieldLabel } from "@repo/ui/components/field";
 import { Input } from "@repo/ui/components/input";
 import {
   InputOTP,
@@ -49,7 +50,10 @@ export function PairDevicePage() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center p-5">
-      <form onSubmit={pairDevice} className="w-full max-w-sm space-y-6">
+      <form
+        onSubmit={pairDevice}
+        className="flex w-full max-w-sm flex-col gap-6"
+      >
         <div className="space-y-2 text-center">
           <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-muted">
             <ShieldCheck className="size-6" />
@@ -59,42 +63,41 @@ export function PairDevicePage() {
             Enter the one-time PIN from the Cloudy host.
           </p>
         </div>
-        <div className="space-y-2">
-          <label htmlFor="device-name" className="text-sm font-medium">
-            Device name
-          </label>
-          <Input
-            id="device-name"
-            maxLength={80}
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            placeholder="e.g. My iPhone"
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <label htmlFor="pair-code" className="text-sm font-medium">
-            Pairing code
-          </label>
-          <InputOTP
-            id="pair-code"
-            maxLength={6}
-            pattern="^[0-9]+$"
-            value={code}
-            onChange={setCode}
-            autoFocus
-          >
-            <InputOTPGroup>
-              {Array.from({ length: 6 }, (_, index) => (
-                <InputOTPSlot
-                  key={index}
-                  index={index}
-                  className="size-11 text-xl"
-                />
-              ))}
-            </InputOTPGroup>
-          </InputOTP>
-        </div>
+        <FieldGroup className="gap-4">
+          <Field>
+            <FieldLabel htmlFor="device-name">Device name</FieldLabel>
+            <Input
+              id="device-name"
+              maxLength={80}
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              placeholder="e.g. My iPhone"
+              required
+            />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="pair-code">Pairing code</FieldLabel>
+            <InputOTP
+              id="pair-code"
+              maxLength={6}
+              pattern="^[0-9]+$"
+              value={code}
+              onChange={setCode}
+              containerClassName="w-full justify-center"
+              autoFocus
+            >
+              <InputOTPGroup>
+                {Array.from({ length: 6 }, (_, index) => (
+                  <InputOTPSlot
+                    key={index}
+                    index={index}
+                    className="size-11 text-xl"
+                  />
+                ))}
+              </InputOTPGroup>
+            </InputOTP>
+          </Field>
+        </FieldGroup>
         {error && (
           <p role="alert" className="text-sm text-destructive">
             {error}

@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Copy, X } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import {
@@ -26,6 +26,7 @@ export function TabItemShell({
   onDuplicate,
 }: TabItemShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const contextMenuRequested = useRef(false);
   const tabButton = (
     <button
       onClick={onClick}
@@ -57,11 +58,20 @@ export function TabItemShell({
   if (!onDuplicate) return tabButton;
 
   return (
-    <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+    <DropdownMenu
+      open={menuOpen}
+      onOpenChange={(open) => {
+        if (open && !contextMenuRequested.current) return;
+        contextMenuRequested.current = false;
+        setMenuOpen(open);
+      }}
+    >
       <DropdownMenuTrigger
         render={tabButton}
+        onClick={(event) => event.preventDefault()}
         onContextMenu={(event) => {
           event.preventDefault();
+          contextMenuRequested.current = true;
           setMenuOpen(true);
         }}
       />
