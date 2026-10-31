@@ -2,7 +2,7 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, test, vi } from "vitest";
-import { petTriggerLabel, usePetActivity } from "./usePetActivity";
+import { useAgentActivity } from "./useAgentActivity";
 
 const mocks = vi.hoisted(() => ({
   permissions: vi.fn(),
@@ -75,7 +75,7 @@ const sessions = [
   },
 ] as const;
 
-function renderPetActivity() {
+function renderActivity() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
@@ -83,23 +83,17 @@ function renderPetActivity() {
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
 
-  return renderHook(() => usePetActivity(), { wrapper });
+  return renderHook(() => useAgentActivity(), { wrapper });
 }
 
-describe("usePetActivity", () => {
+describe("useAgentActivity", () => {
   beforeEach(() => {
     mocks.permissions.mockReset();
     mocks.questions.mockReset();
     mocks.useModels.mockReturnValue({
       data: [
-        {
-          id: "agent",
-          capabilities: { approvals: true, questions: true },
-        },
-        {
-          id: "basic",
-          capabilities: { approvals: false, questions: false },
-        },
+        { id: "agent", capabilities: { approvals: true, questions: true } },
+        { id: "basic", capabilities: { approvals: false, questions: false } },
       ],
     });
     mocks.useRecentSessions.mockReturnValue({
@@ -110,13 +104,7 @@ describe("usePetActivity", () => {
     mocks.questions.mockImplementation(async (sessionId: string) =>
       Response.json(
         sessionId === "question"
-          ? [
-              {
-                id: "question-request",
-                sessionId,
-                questions: [],
-              },
-            ]
+          ? [{ id: "question-request", sessionId, questions: [] }]
           : [],
       ),
     );
@@ -137,13 +125,13 @@ describe("usePetActivity", () => {
     );
   });
 
-  test("prioritizes sessions waiting for questions or permissions over working sessions", async () => {
-    const { result } = renderPetActivity();
+  test("prioritizes waiting sessions and derives activity counts", async () => {
+    const { result } = renderActivity();
 
     await waitFor(() => expect(result.current.waitingCount).toBe(2));
 
     expect(result.current).toMatchObject({
-      petState: "wait-for-human",
+      activityState: "wait-for-human",
       waitingCount: 2,
       workingCount: 1,
       records: [
@@ -163,7 +151,7 @@ describe("usePetActivity", () => {
   });
 
   test("does not poll sessions whose provider cannot request human input", async () => {
-    const { result } = renderPetActivity();
+    const { result } = renderActivity();
 
     await waitFor(() => expect(result.current.records).toHaveLength(3));
 
@@ -172,17 +160,17 @@ describe("usePetActivity", () => {
     expect(mocks.questions).not.toHaveBeenCalledWith("unsupported");
     expect(mocks.permissions).not.toHaveBeenCalledWith("unsupported");
   });
-});
 
-describe("petTriggerLabel", () => {
-  test("describes waiting activity before working activity", () => {
-    expect(petTriggerLabel(1, 2)).toBe(
-      "Agent activity: 1 session waiting for you",
-    );
-  });
+  test("returns idle state and zero counts when there is no agent activity", async () => {
+    mocks.useRecentSessions.mockReturnValue({ data: [], isLoading: false });
 
-  test("uses plural labels and an idle fallback", () => {
-    expect(petTriggerLabel(0, 2)).toBe("Agent activity: 2 sessions working");
-    expect(petTriggerLabel(0, 0)).toBe("Agent activity");
+    const { result } = renderActivity();
+
+    await waitFor(() => expect(result.current.activityState).toBe("idle"));
+    expect(result.current).toMatchObject({
+      waitingCount: 0,
+      workingCount: 0,
+      records: [],
+    });
   });
 });

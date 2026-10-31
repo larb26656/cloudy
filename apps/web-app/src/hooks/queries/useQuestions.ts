@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { ProviderQuestionRequest } from "@repo/contracts";
 import { cloudyClient } from "@/lib/api";
 import { emptyResponse, jsonResponse } from "@/lib/api-response";
@@ -16,14 +21,14 @@ function toQuestion(request: ProviderQuestionRequest): QuestionRequest {
   };
 }
 
-export function useSessionQuestions({
+export function sessionQuestionsQueryOptions({
   sessionId,
   enabled = true,
 }: {
   sessionId: string;
   enabled?: boolean;
 }) {
-  return useQuery({
+  return queryOptions({
     queryKey: questionKeys.list(sessionId),
     queryFn: async (): Promise<QuestionRequest[]> =>
       (
@@ -37,6 +42,13 @@ export function useSessionQuestions({
     refetchInterval: CHAT_POLL_INTERVAL,
     refetchIntervalInBackground: false,
   });
+}
+
+export function useSessionQuestions(options: {
+  sessionId: string;
+  enabled?: boolean;
+}) {
+  return useQuery(sessionQuestionsQueryOptions(options));
 }
 
 export function useReplyQuestion() {

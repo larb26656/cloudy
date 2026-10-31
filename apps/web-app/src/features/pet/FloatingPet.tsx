@@ -2,7 +2,8 @@ import { useRef, useState } from "react";
 import type { PointerEvent } from "react";
 import { EyeOff, X } from "lucide-react";
 import { isModeElectron } from "@/config/env";
-import { petTriggerLabel, usePetActivity } from "@/hooks/usePetActivity";
+import { useAgentActivity } from "@/hooks/useAgentActivity";
+import type { PetState } from "./PetSprite";
 import { useTabStore } from "@/stores/tabStore";
 import { usePetVisibilityStore } from "@/stores/petVisibilityStore";
 import type { RecentChatSession } from "@/types";
@@ -15,6 +16,7 @@ import {
 import { PetActivityList } from "./PetActivityList";
 import { PetSprite } from "./PetSprite";
 import { openSessionTab } from "./openSessionTab";
+import { petTriggerLabel } from "./petActivityPresentation";
 
 type PetPosition = { left: number; top: number };
 
@@ -38,13 +40,14 @@ export function FloatingPet() {
   const didDrag = useRef(false);
   const {
     records,
-    petState,
+    activityState,
     waitingCount,
     workingCount,
     isLoading,
     error,
     workspaces,
-  } = usePetActivity();
+  } = useAgentActivity();
+  const petState: PetState = activityState;
   const openTab = useTabStore((s) => s.openTab);
 
   if (isModeElectron) return null;

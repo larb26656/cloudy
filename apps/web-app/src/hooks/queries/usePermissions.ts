@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  queryOptions,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { PermissionRequest as CorePermissionRequest } from "@repo/contracts";
 import { cloudyClient } from "@/lib/api";
 import { emptyResponse, jsonResponse } from "@/lib/api-response";
@@ -16,14 +21,14 @@ function toPermission(request: CorePermissionRequest): PermissionRequest {
   };
 }
 
-export function useSessionPermissions({
+export function sessionPermissionsQueryOptions({
   sessionId,
   enabled = true,
 }: {
   sessionId: string;
   enabled?: boolean;
 }) {
-  return useQuery({
+  return queryOptions({
     queryKey: permissionKeys.list(sessionId),
     queryFn: async (): Promise<PermissionRequest[]> =>
       (
@@ -37,6 +42,13 @@ export function useSessionPermissions({
     refetchInterval: CHAT_POLL_INTERVAL,
     refetchIntervalInBackground: false,
   });
+}
+
+export function useSessionPermissions(options: {
+  sessionId: string;
+  enabled?: boolean;
+}) {
+  return useQuery(sessionPermissionsQueryOptions(options));
 }
 
 export function useReplyPermission() {

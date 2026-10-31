@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type { PointerEvent } from "react";
 import { X } from "lucide-react";
-import { petTriggerLabel, usePetActivity } from "@/hooks/usePetActivity";
+import { useAgentActivity } from "@/hooks/useAgentActivity";
 import { petBridge } from "@/lib/desktop/petBridge";
 import type { RecentChatSession } from "@/types";
 import { PetActivityList } from "./PetActivityList";
 import { PetSprite } from "./PetSprite";
 import { openSessionTab } from "./openSessionTab";
+import { petTriggerLabel } from "./petActivityPresentation";
 
 const COLLAPSED_SIZE = { width: 144, height: 160 };
 const EXPANDED_SIZE = { width: 448, height: 384 };
@@ -30,13 +31,14 @@ export function PetOverlay() {
   const lastScreen = useRef<{ x: number; y: number } | undefined>(undefined);
   const {
     records,
-    petState,
+    activityState,
     waitingCount,
     workingCount,
     isLoading,
     error,
     workspaces,
-  } = usePetActivity();
+  } = useAgentActivity();
+  const petState = activityState;
 
   useEffect(() => {
     const size = expanded ? EXPANDED_SIZE : COLLAPSED_SIZE;
