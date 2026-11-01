@@ -1,6 +1,7 @@
 import { useRef, useState, type ReactNode } from "react";
 import { Copy, X } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
+import { CloseButtonWithIndicator } from "@/components/ui/CloseButtonWithIndicator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,6 +16,7 @@ interface TabItemShellProps {
   onClick: () => void;
   onClose?: () => void;
   onDuplicate?: () => void;
+  closeControl?: ReactNode;
 }
 
 export function TabItemShell({
@@ -24,6 +26,7 @@ export function TabItemShell({
   onClick,
   onClose,
   onDuplicate,
+  closeControl,
 }: TabItemShellProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const contextMenuRequested = useRef(false);
@@ -41,17 +44,15 @@ export function TabItemShell({
       {label !== undefined && (
         <span className="text-[13px] max-w-30 truncate">{label}</span>
       )}
-      {onClose && (
-        <span
-          onClick={(e) => {
-            e.stopPropagation();
-            onClose();
-          }}
-          className="ml-1 rounded p-0.5 hover:bg-muted"
-        >
-          <X size={12} />
-        </span>
-      )}
+      {closeControl ??
+        (onClose && (
+          <CloseButtonWithIndicator
+            aria-label="Close tab"
+            onClick={onClose}
+            closeButton={<X size={12} aria-hidden="true" />}
+            className="ml-1 rounded p-0.5 hover:bg-muted"
+          />
+        ))}
     </button>
   );
 

@@ -5,6 +5,7 @@ import type { LucideIcon } from "lucide-react";
 import { WorkspaceDot } from "@/components/workspace/WorkspaceDot";
 import { useDeleteNode } from "./useDeleteNode";
 import { NodeResizeHandles } from "./NodeResizeHandles";
+import { CloseButtonWithIndicator } from "@/components/ui/CloseButtonWithIndicator";
 
 export interface WindowFrameAction {
   icon: LucideIcon;
@@ -26,6 +27,7 @@ interface WindowFrameProps {
   color?: string;
   headerClassName?: string;
   headerAction?: React.ReactNode;
+  indicator?: React.ReactNode;
   actions?: WindowFrameAction[];
   workspaceId?: string;
   /** Override the default close (delete-node) behavior, e.g. to clean up
@@ -49,6 +51,7 @@ export function WindowFrame({
   color,
   headerClassName,
   headerAction,
+  indicator,
   actions,
   workspaceId,
   onCloseOverride,
@@ -169,12 +172,13 @@ export function WindowFrame({
                 </button>
               );
             })}
-            <button
+            <CloseButtonWithIndicator
+              aria-label="Close window"
               onClick={handleClose}
-              className="p-1 hover:bg-muted-foreground/20 rounded"
-            >
-              <X className="h-4 w-4" />
-            </button>
+              indicator={indicator}
+              closeButton={<X aria-hidden="true" className="h-4 w-4" />}
+              className="rounded p-1 hover:bg-muted-foreground/20"
+            />
           </div>
         </div>
         <div className="nodrag nopan nowheel select-text cursor-auto flex-1 min-h-0 overflow-auto">

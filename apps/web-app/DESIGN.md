@@ -24,6 +24,7 @@ colors:
   muted-foreground: "oklch(0.556 0 0)"
   accent: "oklch(0.97 0 0)"
   accent-foreground: "oklch(0.205 0 0)"
+  info: "#3079fa"
   success: "#16a34a"
   destructive: "oklch(0.58 0.22 27)"
   border: "oklch(0.922 0 0)"
@@ -167,6 +168,8 @@ components:
   tabs-trigger-active:
     backgroundColor: "{colors.background}"
     textColor: "{colors.foreground}"
+  agent-activity-indicator:
+    backgroundColor: "{colors.info}"
 ---
 
 # Cloudy — DESIGN.md
@@ -214,6 +217,8 @@ A **monochrome grayscale foundation** with three semantic accents.
   states, sidebar tiles, code-chip backgrounds.
 - **Muted-foreground (`oklch(0.556 0 0)`)** — Mid-gray for metadata, captions,
   placeholder text, inactive tabs.
+- **Info (`#3079fa` light / `#60a5fa` dark)** — Blue for informational and
+  in-progress states, such as an agent currently working.
 - **Success (`#16a34a` light / `#4ade80` dark)** — Green for agent/workspace
   flavor (e.g. the "Work on a project" card, agent session rows). Never for
   errors or emphasis beyond its semantic role.
@@ -236,8 +241,9 @@ borders `#2a2d35`, muted text `#8b949e`), applied by toggling the `.dark`
 class on `<html>` (handled by `next-themes`). The exact dark values live in
 `packages/ui/src/styles/globals.css` under `.dark { ... }` — consult them
 directly when matching a dark-only state. The semantic roles (primary = blue
-filled actions, success = green, destructive = red, muted-foreground =
-metadata) are identical across themes; only the lightness flips.
+filled actions, info = blue, success = green, destructive = red,
+muted-foreground = metadata) are identical across themes; only the lightness
+flips.
 
 ## Typography
 

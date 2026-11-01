@@ -1,4 +1,4 @@
-import { MessageCircle } from "lucide-react";
+import { MessageCircle, X } from "lucide-react";
 import { useState } from "react";
 import type { ModelInfo } from "@repo/contracts";
 import type { TabTemplate, TabTitleProps } from "../../template";
@@ -8,6 +8,28 @@ import { SessionTitleInput } from "@/components/session/SessionTitleInput";
 import { ChatCreateDialog } from "./ChatCreateDialog";
 import { ChatContent } from "./ChatContent";
 import { ChatHeaderActions } from "./ChatHeaderActions";
+import { AgentActivityIndicator } from "@/components/chat/AgentActivityIndicator";
+import { CloseButtonWithIndicator } from "@/components/ui/CloseButtonWithIndicator";
+import { useSessionAgentActivity } from "@/hooks/useSessionAgentActivity";
+import type { TabIndicatorProps } from "../../template";
+
+function ChatTabIndicator({ data, onClose }: TabIndicatorProps<ChatData>) {
+  const activity = useSessionAgentActivity(data.sessionId ?? "");
+  const indicator =
+    activity.state === "idle" ? undefined : (
+      <AgentActivityIndicator state={activity.state} reason={activity.reason} />
+    );
+
+  return (
+    <CloseButtonWithIndicator
+      aria-label="Close tab"
+      onClick={onClose}
+      indicator={indicator}
+      closeButton={<X aria-hidden="true" className="size-3" />}
+      className="ml-1 rounded p-0.5 hover:bg-muted"
+    />
+  );
+}
 
 export type ChatData = {
   providerId: string;
@@ -75,6 +97,7 @@ export const chatTemplate: TabTemplate<ChatData> = {
   CreateDialog: ChatCreateDialog,
   getWorkspaceId: (data) => data.workspaceId,
   HeaderActionsComponent: ChatHeaderActions,
+  IndicatorComponent: ChatTabIndicator,
   hideMobileAppBarTitle: true,
   onClose: (tab) => {
     useChatPanelStore.getState().clearTab(tab.id);

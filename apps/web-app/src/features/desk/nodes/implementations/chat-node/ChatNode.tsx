@@ -10,6 +10,8 @@ import { ErrorState } from "@repo/ui/components/error-state";
 import { Center } from "@/components/layout";
 import type { ModelInfo } from "@repo/contracts";
 import { ProviderIcon } from "@/components/provider/ProviderIcon";
+import { AgentActivityIndicator } from "@/components/chat/AgentActivityIndicator";
+import { useSessionAgentActivity } from "@/hooks/useSessionAgentActivity";
 
 type ChatNodeProps = Node<
   {
@@ -32,9 +34,14 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
   const updateSession = useUpdateSession();
 
   const { data: session } = useSession({ sessionId: data.sessionId });
+  const activity = useSessionAgentActivity(data.sessionId ?? "");
   const title = session?.title ?? data.sessionName ?? "Chat";
   const directory = workspace?.directory ?? data.directory ?? "";
   const providerId = data.providerId;
+  const indicator =
+    activity.state === "idle" ? undefined : (
+      <AgentActivityIndicator state={activity.state} reason={activity.reason} />
+    );
 
   const handleSessionChange = useCallback(
     (sessionId: string | null) => {
@@ -99,6 +106,7 @@ export function ChatNode({ data, id, selected }: NodeProps<ChatNodeProps>) {
       headerAction={
         <ProviderIcon providerId={session?.providerId ?? providerId} />
       }
+      indicator={indicator}
       maxWidth={1200}
       maxHeight={1200}
       onRename={data.sessionId ? handleRename : undefined}

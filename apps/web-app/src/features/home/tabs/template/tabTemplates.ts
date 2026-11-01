@@ -30,6 +30,12 @@ export interface TabHeaderActionsProps<T = Tab> {
   tab: T;
 }
 
+export interface TabIndicatorProps<T = Tab> {
+  data: T;
+  tabId: string;
+  onClose: () => void;
+}
+
 export interface TabTemplate<T = unknown> {
   type: string;
   label: string;
@@ -46,6 +52,7 @@ export interface TabTemplate<T = unknown> {
    * the host bars — render only icon buttons, no outer bar/border.
    */
   HeaderActionsComponent?: ComponentType<TabHeaderActionsProps>;
+  IndicatorComponent?: ComponentType<TabIndicatorProps<T>>;
   /**
    * Hide the tab title in the mobile app bar (the desktop tab chip is
    * unaffected). Used by chat surfaces where the session name crowds the
