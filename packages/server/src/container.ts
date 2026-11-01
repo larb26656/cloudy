@@ -25,6 +25,7 @@ import {
 import { createDb, runMigrations, type DbClient } from "./db";
 import {
   createEchoAdapter,
+  createOmpAdapter,
   createProviderEventHub,
   createAgentProviderRegistry,
   createProviderTemplateRegistry,
@@ -97,6 +98,7 @@ export function createContainer(
   const agentProviderRegistry = createAgentProviderRegistry({
     providers: [
       createEchoAdapter(),
+      createOmpAdapter(),
       createCloudyAdapter({
         apiProviderRegistry,
         sessionsRepository,

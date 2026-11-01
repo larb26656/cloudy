@@ -11,6 +11,7 @@ export {
   createOpenCodeAdapter,
   type OpenCodeAdapterOptions,
 } from "./opencode/opencode.adapter";
+export { createOmpAdapter, type OmpAdapterOptions } from "./omp/omp.adapter";
 export { createEchoAdapter } from "./echo/echo.adapter";
 export { createProviderTemplateRegistry } from "./provider-template.registry";
 export {
