@@ -2,12 +2,17 @@ import { spawn } from "node:child_process";
 import { isAbsolute } from "node:path";
 import { Readable, Writable } from "node:stream";
 import * as acp from "@agentclientprotocol/sdk";
+import {
+  createAcpMessageState,
+  finishPrompt,
+  mapSessionUpdate,
+  startPrompt,
+} from "./acp.message-mapper";
 import type { ChildProcess, SpawnOptions } from "node:child_process";
 import type {
   AgentProviderAdapter,
   AgentProviderInfo,
   ChatEvent,
-  ChatMessage,
   ChatSession,
   InteractionResponse,
   InteractionResponseInput,
@@ -16,6 +21,7 @@ import type {
   ProviderMessageRequest,
   ProviderSessionInput,
 } from "@repo/ai-core";
+import type { AcpMessageState, MessageChange } from "./acp.message-mapper";
 
 export interface AcpLaunchSpec {
   command: string;
@@ -53,8 +59,12 @@ interface AcpSession {
   process: ChildProcess;
   connection: acp.ClientConnection;
   capabilities: acp.AgentCapabilities | undefined;
+  modelId?: string;
   // TODO: Move message persistence to the database layer.
-  messages: ChatMessage[];
+  messageState: AcpMessageState;
+  replaying: boolean;
+  loadingMessages?: Promise<void>;
+  prompting: boolean;
   pendingPermissions: Map<
     string,
     (response: acp.RequestPermissionResponse) => void
@@ -95,6 +105,71 @@ export function createAcpAdapter({
     }
   };
 
+  const publishChanges = (session: AcpSession, changes: MessageChange[]) => {
+    for (const change of changes) {
+      const context = {
+        providerId: id,
+        directory: session.directory,
+        sessionId: session.id,
+      };
+      switch (change.type) {
+        case "message":
+          publish({
+            type: "message.updated",
+            ...context,
+            message: change.message,
+          });
+          break;
+        case "part":
+          publish({
+            type: "message.part.updated",
+            ...context,
+            messageId: change.messageId,
+            part: change.part,
+          });
+          break;
+        case "delta":
+          publish({
+            type: "message.delta",
+            ...context,
+            messageId: change.messageId,
+            partId: change.partId,
+            delta: change.delta,
+          });
+          break;
+      }
+    }
+  };
+
+  const replayMessages = async (session: AcpSession) => {
+    const previous = session.messageState;
+    session.messageState = createAcpMessageState(session.id);
+    session.replaying = true;
+    try {
+      await withTimeout(
+        session.connection.agent.request(acp.methods.agent.session.load, {
+          sessionId: session.id,
+          cwd: session.directory,
+          mcpServers: [],
+        }),
+        timeoutMs,
+        "ACP session load timed out",
+      );
+    } catch (error) {
+      session.messageState = previous;
+      throw error;
+    } finally {
+      session.replaying = false;
+    }
+  };
+
+  const loadMessages = (session: AcpSession) => {
+    session.loadingMessages ??= replayMessages(session).finally(() => {
+      session.loadingMessages = undefined;
+    });
+    return session.loadingMessages;
+  };
+
   const closeSession = (session: AcpSession, error?: unknown) => {
     if (session.closed) return;
     session.closed = true;
@@ -115,6 +190,8 @@ export function createAcpAdapter({
       requiresDirectory: true,
       approvals: true,
       agents: true,
+      tools: true,
+      reasoning: true,
       models: false,
     },
     async getInfo(): Promise<AgentProviderInfo> {
@@ -232,22 +309,33 @@ export function createAcpAdapter({
           },
         )
         .onNotification(acp.methods.client.session.update, ({ params }) => {
-          if (params.update.sessionUpdate !== "agent_message_chunk") return;
-          if (params.update.content.type !== "text") return;
           const session = sessions.get(params.sessionId);
-          const message = session?.messages.at(-1);
-          const part = message?.parts[0];
-          if (message && part?.type === "text")
-            part.text += params.update.content.text;
-          publish({
-            type: "message.delta",
-            providerId: id,
-            directory: input.directory,
-            sessionId: params.sessionId,
-            messageId: `acp:${params.sessionId}`,
-            partId: `acp:${params.sessionId}:text`,
-            delta: params.update.content.text,
-          });
+          if (!session) return;
+          const update = params.update;
+          if (update.sessionUpdate === "config_option_update") {
+            const model = update.configOptions.find(
+              (option) => option.id === "model" && option.type === "select",
+            );
+            if (model?.type === "select") session.modelId = model.currentValue;
+          }
+          if (
+            update.sessionUpdate === "session_info_update" &&
+            update.title != null &&
+            !session.replaying
+          )
+            publish({
+              type: "session.title.updated",
+              providerId: id,
+              directory: session.directory,
+              sessionId: session.id,
+              title: update.title,
+            });
+          const changes = mapSessionUpdate(
+            session.messageState,
+            update,
+            session.replaying ? "load" : "live",
+          );
+          if (!session.replaying) publishChanges(session, changes);
         });
       const connection = client.connect(stream);
       const session: AcpSession = {
@@ -256,7 +344,9 @@ export function createAcpAdapter({
         process: child,
         connection,
         capabilities: undefined,
-        messages: [],
+        messageState: createAcpMessageState(input.sessionId ?? sessionId),
+        replaying: false,
+        prompting: false,
         pendingPermissions,
         closed: false,
       };
@@ -289,17 +379,33 @@ export function createAcpAdapter({
           agentInfo: initialized.agentInfo,
           capabilities: initialized.agentCapabilities,
         });
+        if (input.sessionId && !session.capabilities?.loadSession)
+          throw new Error("ACP agent does not support loading sessions");
+        if (input.sessionId) {
+          session.id = input.sessionId;
+          sessions.set(session.id, session);
+          session.replaying = true;
+        }
         const created = await withTimeout(
-          connection.agent.request(acp.methods.agent.session.new, {
-            cwd: input.directory,
-            mcpServers: [],
-          }),
+          connection.agent.request(
+            input.sessionId
+              ? acp.methods.agent.session.load
+              : acp.methods.agent.session.new,
+            input.sessionId
+              ? {
+                  sessionId: input.sessionId,
+                  cwd: input.directory,
+                  mcpServers: [],
+                }
+              : { cwd: input.directory, mcpServers: [] },
+          ),
           timeoutMs,
           "ACP session creation timed out",
         );
+        session.replaying = false;
         console.info("[ACP] Session config options received", {
           providerId: id,
-          sessionId: created.sessionId,
+          sessionId: session.id,
           configOptions: (created.configOptions ?? []).map((option) => ({
             id: option.id,
             name: option.name,
@@ -328,11 +434,19 @@ export function createAcpAdapter({
             }
           }
         }
-        session.id = created.sessionId;
-        sessions.set(created.sessionId, session);
+        session.id =
+          input.sessionId ??
+          ("sessionId" in created ? created.sessionId : session.id);
+        session.messageState.sessionId = session.id;
+        const selectedModel = created.configOptions?.find(
+          (option) => option.id === "model" && option.type === "select",
+        );
+        if (selectedModel?.type === "select")
+          session.modelId = selectedModel.currentValue;
+        sessions.set(session.id, session);
         const now = new Date().toISOString();
         return {
-          id: created.sessionId,
+          id: session.id,
           title: input.title,
           status: "idle",
           runStatus: "idle",
@@ -348,40 +462,18 @@ export function createAcpAdapter({
     },
     async sendMessage(request: ProviderMessageRequest) {
       const session = getSession(sessions, request.sessionId);
+      if (session.loadingMessages) await session.loadingMessages;
       if (request.attachments?.length)
         throw new Error("ACP attachments are not supported");
-      const now = new Date().toISOString();
-      const userMessage: ChatMessage = {
-        id: crypto.randomUUID(),
-        sessionId: session.id,
-        role: "user",
-        parts: [
-          { id: crypto.randomUUID(), type: "text", text: request.content },
-        ],
-        createdAt: now,
-      };
-      const assistantMessage: ChatMessage = {
-        id: `acp:${session.id}`,
-        sessionId: session.id,
-        role: "assistant",
-        parts: [{ id: `acp:${session.id}:text`, type: "text", text: "" }],
-        createdAt: now,
-      };
-      session.messages.push(userMessage, assistantMessage);
-      publish({
-        type: "message.updated",
-        providerId: id,
-        directory: session.directory,
-        sessionId: session.id,
-        message: userMessage,
-      });
-      publish({
-        type: "message.updated",
-        providerId: id,
-        directory: session.directory,
-        sessionId: session.id,
-        message: assistantMessage,
-      });
+      session.prompting = true;
+      publishChanges(
+        session,
+        startPrompt(
+          session.messageState,
+          request.content,
+          request.turnId ?? crypto.randomUUID(),
+        ),
+      );
       publish({
         type: "session.status",
         providerId: id,
@@ -399,6 +491,10 @@ export function createAcpAdapter({
           timeoutMs,
           "ACP prompt timed out",
         );
+        publishChanges(
+          session,
+          finishPrompt(session.messageState, response, session.modelId),
+        );
         publish({
           type: "session.status",
           providerId: id,
@@ -412,23 +508,25 @@ export function createAcpAdapter({
       } catch (error) {
         closeSession(session, error);
         throw error;
+      } finally {
+        session.prompting = false;
       }
     },
-    async listMessages(input: {
-      sessionId: string;
-      limit?: number;
-      before?: string;
-    }) {
-      const messages = getSession(sessions, input.sessionId).messages;
-      const beforeIndex = input.before
-        ? messages.findIndex((message) => message.id === input.before)
-        : messages.length;
-      const end = beforeIndex < 0 ? messages.length : beforeIndex;
-      const start = Math.max(0, end - (input.limit ?? messages.length));
-      return {
-        messages: messages.slice(start, end),
-        ...(start > 0 ? { nextCursor: messages[start]?.id } : {}),
-      };
+    async listMessages(input: { sessionId: string; directory?: string }) {
+      let session = sessions.get(input.sessionId);
+      if (!session || session.closed) {
+        if (!input.directory)
+          throw new Error("ACP sessions require an absolute directory");
+        await adapter.createSession({
+          sessionId: input.sessionId,
+          directory: input.directory,
+        });
+        session = getSession(sessions, input.sessionId);
+        return { messages: session.messageState.messages };
+      }
+      if (session.capabilities?.loadSession && !session.prompting)
+        await loadMessages(session);
+      return { messages: session.messageState.messages };
     },
     async abortSession(input: { sessionId: string }): Promise<void> {
       const session = getSession(sessions, input.sessionId);

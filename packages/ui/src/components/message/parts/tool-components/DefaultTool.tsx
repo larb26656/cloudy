@@ -38,6 +38,16 @@ export function DefaultTool({ tool, state }: ToolComponentProps) {
               </div>
             ))}
           </div>
+          {state.output !== undefined && state.status !== "completed" && (
+            <div className="min-w-0 border-t border-border pt-2 text-xs">
+              <div className="mb-1 font-medium text-muted-foreground">
+                Output
+              </div>
+              <div className="max-h-64 overflow-auto break-words">
+                <ToolValueRenderer value={state.output} keyName="output" />
+              </div>
+            </div>
+          )}
         </div>
       }
     />

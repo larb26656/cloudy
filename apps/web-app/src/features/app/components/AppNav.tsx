@@ -1,4 +1,5 @@
-import { FolderKanban, Home, Workflow } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { FlaskConical, FolderKanban, Home, Workflow } from "lucide-react";
 import { cn } from "@repo/ui/lib/utils";
 import { useHomeSectionStore } from "@/stores/homeSectionStore";
 import { useTabStore } from "@/stores/tabStore";
@@ -55,6 +56,24 @@ export function AppNav({
           </button>
         );
       })}
+      {import.meta.env.DEV && (
+        <Link
+          to="/agent-playground"
+          onClick={onNavigate}
+          title="Agent Playground"
+          aria-label="Agent Playground"
+          activeProps={{ className: "bg-muted text-foreground" }}
+          className={cn(
+            "inline-flex h-10 shrink-0 items-center rounded-md px-2.5 text-sm font-medium text-muted-foreground transition-colors outline-none select-none whitespace-nowrap hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
+            compact ? "justify-center lg:justify-start lg:gap-2" : "gap-2",
+          )}
+        >
+          <FlaskConical data-icon className="size-4" />
+          <span className={compact ? "hidden lg:inline" : undefined}>
+            Agent Playground
+          </span>
+        </Link>
+      )}
     </nav>
   );
 }

@@ -12,7 +12,9 @@ export function ToolPart({ part }: ToolPartProps) {
     input:
       typeof part.input === "object" && part.input !== null
         ? (part.input as Record<string, unknown>)
-        : {},
+        : part.input === undefined
+          ? {}
+          : { value: part.input },
     output: part.output,
     error: part.error,
   };

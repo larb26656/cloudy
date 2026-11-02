@@ -67,6 +67,7 @@ export function useSendMessage() {
           param: { sessionId },
           json: {
             content: content.text,
+            turnId: crypto.randomUUID(),
             attachments: content.attachments.map((attachment) => ({
               name: attachment.filename,
               mimeType: attachment.mime,

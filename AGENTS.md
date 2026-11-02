@@ -161,3 +161,17 @@ node-adding workflow, Storybook, and the test matrix, **read the nested guide.**
 8. When working from a `docs/plan/*.md` file, update the plan's checklist (`## Tasks` /
    `## Done when`) to mark completed items — both to keep the plan accurate and to
    communicate progress to the team.
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked as local Markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Triage uses the five canonical label names. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Domain documentation uses a single-context layout. See `docs/agents/domain.md`.
