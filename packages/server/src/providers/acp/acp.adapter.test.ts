@@ -1,6 +1,7 @@
 import { spawn } from "node:child_process";
 import { describe, expect, it, vi } from "vitest";
 import { createAcpAdapter } from "./acp.adapter";
+import { applyChatEvent } from "../../../../../apps/web-app/src/lib/streaming/message-stream";
 
 const fakeAgent = `
 import { Readable, Writable } from "node:stream";
@@ -42,6 +43,26 @@ const agent = acp.agent({ name: "fake-agent" })
     return {};
   })
   .onRequest(acp.methods.agent.session.prompt, async ({ params, client }) => {
+    if (profile === "conversation") {
+      const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+      const text = (text) => emit({ sessionUpdate: "agent_message_chunk", content: { type: "text", text } });
+      if (params.prompt[0].text === "first") {
+        await text("Hel");
+        await text("lo");
+        await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", rawOutput: { progress: 1 } });
+        await emit({ sessionUpdate: "tool_call", toolCallId: "b", name: "write", title: "Write", status: "pending" });
+        await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", status: "in_progress" });
+        await emit({ sessionUpdate: "tool_call_update", toolCallId: "b", status: "completed", rawOutput: { done: "b" } });
+        await emit({ sessionUpdate: "tool_call", toolCallId: "a", name: "read", title: "Read", status: "completed", rawOutput: { done: "a" } });
+        await text(" wor");
+        await text("ld");
+      } else {
+        await text("Next");
+        await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", rawOutput: { delayed: true } });
+        await text(" turn");
+      }
+      return { stopReason: "end_turn" };
+    }
     if (profile === "events") {
       const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
       await emit({ sessionUpdate: "agent_thought_chunk", messageId: "thought-1", content: { type: "text", text: "considering" } });
@@ -92,6 +113,106 @@ function createAdapter(profile: string) {
 }
 
 describe("createAcpAdapter", () => {
+  it("keeps streamed chunks and interleaved tool updates in their owning turns", async () => {
+    const adapter = createAdapter("conversation");
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    const directory = process.cwd();
+    await adapter.createSession({ directory });
+    const received = [];
+    for (const [content, turnId] of [
+      ["first", "one"],
+      ["second", "two"],
+    ]) {
+      await adapter.sendMessage({
+        sessionId: "conversation-session",
+        directory,
+        content: content!,
+        turnId: turnId!,
+      });
+      while (true) {
+        const next = await events.next();
+        if (next.done) break;
+        received.push(next.value);
+        if (
+          next.value.type === "session.status" &&
+          next.value.runStatus === "completed"
+        )
+          break;
+      }
+    }
+    expect(received.some((event) => event.type === "message.delta")).toBe(
+      false,
+    );
+    const partial = received.find(
+      (event) =>
+        event.type === "message.part.updated" &&
+        event.part.type === "tool" &&
+        event.part.callId === "a",
+    );
+    expect(partial).toMatchObject({
+      part: { type: "tool", callId: "a", output: { progress: 1 } },
+    });
+    if (
+      partial?.type !== "message.part.updated" ||
+      partial.part.type !== "tool"
+    )
+      throw new Error("missing partial tool");
+    expect(partial.part.toolName).toBeUndefined();
+    expect(partial.part.status).toBeUndefined();
+    const page = await adapter.listMessages?.({
+      sessionId: "conversation-session",
+    });
+    const assistants =
+      page?.messages.filter((message) => message.role === "assistant") ?? [];
+    expect(assistants).toHaveLength(2);
+    expect(assistants[0]?.parts).toMatchObject([
+      { type: "text", text: "Hello" },
+      {
+        type: "tool",
+        callId: "a",
+        toolName: "read",
+        status: "completed",
+        output: { delayed: true },
+      },
+      {
+        type: "tool",
+        callId: "b",
+        toolName: "write",
+        status: "completed",
+        output: { done: "b" },
+      },
+      { type: "text", text: " world" },
+      { type: "step-finish" },
+    ]);
+    expect(assistants[1]?.parts).toMatchObject([
+      { type: "text", text: "Next" },
+      { type: "text", text: " turn" },
+      { type: "step-finish" },
+    ]);
+    let stream = { messages: new Map(), pendingDeltas: new Map() };
+    for (const event of received)
+      stream = applyChatEvent(stream, event, "conversation-session");
+    expect(stream.messages.get(assistants[0]!.id)?.parts).toEqual(
+      assistants[0]!.parts,
+    );
+    expect(stream.messages.get(assistants[1]!.id)?.parts).toEqual(
+      assistants[1]!.parts,
+    );
+    const delayed = received.find(
+      (event) =>
+        event.type === "message.part.updated" &&
+        event.part.type === "tool" &&
+        event.part.callId === "a" &&
+        event.part.output != null &&
+        typeof event.part.output === "object" &&
+        "delayed" in event.part.output &&
+        event.part.output.delayed === true,
+    );
+    expect(delayed).toMatchObject({ messageId: assistants[0]?.id });
+    await adapter.deleteSession({ sessionId: "conversation-session" });
+    await events.return?.();
+  });
+
   it("loads the full message history from ACP and can reopen a session after the process exits", async () => {
     const adapter = createAdapter("replay");
     const directory = process.cwd();
@@ -170,11 +291,8 @@ describe("createAcpAdapter", () => {
         title: "Updated title",
       }),
     );
-    expect(received).toContainEqual(
-      expect.objectContaining({
-        type: "message.delta",
-        delta: "Done.",
-      }),
+    expect(received.some((event) => event.type === "message.delta")).toBe(
+      false,
     );
     expect(received).toContainEqual(
       expect.objectContaining({
@@ -353,9 +471,6 @@ describe("createAcpAdapter", () => {
         part: { type: "text", text: "alpha:hello" },
       },
     });
-    await expect(alphaEvents.next()).resolves.toMatchObject({
-      value: { type: "message.delta", delta: "alpha:hello" },
-    });
     await expect(prompt).resolves.toMatchObject({
       interactionId: "alpha-session",
     });
@@ -461,7 +576,6 @@ describe("createAcpAdapter", () => {
       directory: process.cwd(),
       content: "permission",
     });
-    await events.next();
     await events.next();
     await events.next();
     await events.next();
