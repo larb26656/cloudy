@@ -175,14 +175,19 @@ export const ChatInput = memo(function ChatInput({
     const hasAttachments = chatInputContent.attachments.length > 0;
     if ((finalText || hasAttachments) && !isSending) {
       scrollToEnd();
+      const submittedContent = chatInputContent;
       void sendMessage(
-        { ...chatInputContent, text: finalText },
+        { ...submittedContent, text: finalText },
         effectiveModel,
         effectiveAgent,
-      );
-      setChatInputContent(EMPTY_CONTENT);
-      setSpeechDraft("");
-      setHistoryIndex(-1);
+      ).then((sent) => {
+        if (!sent) return;
+        setChatInputContent((current) =>
+          current === submittedContent ? EMPTY_CONTENT : current,
+        );
+        setSpeechDraft("");
+        setHistoryIndex(-1);
+      });
     }
   };
 

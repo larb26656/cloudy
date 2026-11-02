@@ -41,7 +41,7 @@ type ChatContextValue = {
     model?: ModelInfo | null,
     agent?: string | null,
     options?: { newSession?: boolean; providerId?: string },
-  ) => Promise<void>;
+  ) => Promise<boolean>;
   abortGeneration: () => void;
   executeImmediateCommand: (commandName: string) => Promise<void>;
   isGenerating: boolean;
@@ -200,7 +200,7 @@ export function ChatProvider({
     ) => {
       const text = content.text.trim();
       const hasAttachments = content.attachments.length > 0;
-      if (!text && !hasAttachments) return;
+      if (!text && !hasAttachments) return false;
 
       let sessionIdPromise: Promise<string> | undefined;
       const getSessionId = () => {
@@ -212,7 +212,7 @@ export function ChatProvider({
       try {
         if (isCommand(text)) {
           const parsed = parseCommand(text);
-          if (!parsed) return;
+          if (!parsed) return false;
 
           if (findSystemCommand(parsed.command)) {
             const commandSessionId = await getSessionId();
@@ -224,7 +224,7 @@ export function ChatProvider({
               model,
               agent,
             });
-            return;
+            return true;
           }
 
           if (!chatCapabilities.commands) {
@@ -243,7 +243,7 @@ export function ChatProvider({
               model,
               agent,
             });
-            return;
+            return true;
           }
 
           const commandSessionId = await getSessionId();
@@ -252,7 +252,7 @@ export function ChatProvider({
             command: parsed.command,
             args: parsed.arguments,
           });
-          return;
+          return true;
         }
 
         const messageSessionId = await getSessionId();
@@ -268,6 +268,7 @@ export function ChatProvider({
           model,
           agent,
         });
+        return true;
       } catch (err) {
         showActionError(
           err,
@@ -275,6 +276,7 @@ export function ChatProvider({
             ? "Failed to execute command"
             : "Failed to send message",
         );
+        return false;
       }
     },
     [

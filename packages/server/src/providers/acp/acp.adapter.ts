@@ -8,6 +8,7 @@ import {
   mapSessionUpdate,
   startPrompt,
 } from "./acp.message-mapper";
+import { ConflictError } from "../../shared/domain-error";
 import type { ChildProcess, SpawnOptions } from "node:child_process";
 import type {
   AgentProviderAdapter,
@@ -64,6 +65,8 @@ interface AcpSession {
   messageState: AcpMessageState;
   replaying: boolean;
   loadingMessages?: Promise<void>;
+  historyUnavailable: boolean;
+  pendingChanges?: MessageChange[];
   prompting: boolean;
   pendingPermissions: Map<
     string,
@@ -327,7 +330,10 @@ export function createAcpAdapter({
               update,
               session.replaying ? "load" : "live",
             );
-            if (!session.replaying) publishChanges(session, changes);
+            if (!session.replaying) {
+              if (session.pendingChanges) session.pendingChanges.push(...changes);
+              else publishChanges(session, changes);
+            }
           },
         }),
       );
@@ -368,6 +374,7 @@ export function createAcpAdapter({
         capabilities: undefined,
         messageState: createAcpMessageState(input.sessionId ?? sessionId),
         replaying: false,
+        historyUnavailable: false,
         prompting: false,
         pendingPermissions,
         closed: false,
@@ -401,29 +408,54 @@ export function createAcpAdapter({
           agentInfo: initialized.agentInfo,
           capabilities: initialized.agentCapabilities,
         });
-        if (input.sessionId && !session.capabilities?.loadSession)
-          throw new Error("ACP agent does not support loading sessions");
+        let created: acp.NewSessionResponse | acp.LoadSessionResponse | acp.ResumeSessionResponse = {};
         if (input.sessionId) {
           session.id = input.sessionId;
           sessions.set(session.id, session);
           session.replaying = true;
-        }
-        const created = await withTimeout(
-          connection.agent.request(
-            input.sessionId
-              ? acp.methods.agent.session.load
-              : acp.methods.agent.session.new,
-            input.sessionId
-              ? {
+          let loaded = false;
+          if (session.capabilities?.loadSession) {
+            try {
+              created = await withTimeout(
+                connection.agent.request(acp.methods.agent.session.load, {
                   sessionId: input.sessionId,
                   cwd: input.directory,
                   mcpServers: [],
-                }
-              : { cwd: input.directory, mcpServers: [] },
-          ),
-          timeoutMs,
-          "ACP session creation timed out",
-        );
+                }),
+                timeoutMs,
+                "ACP session load timed out",
+              );
+              loaded = true;
+            } catch {
+              session.messageState = createAcpMessageState(input.sessionId);
+            }
+          }
+          session.historyUnavailable = !loaded;
+          if (!loaded && session.capabilities?.sessionCapabilities?.resume) {
+            try {
+              created = await withTimeout(
+                connection.agent.request(acp.methods.agent.session.resume, {
+                  sessionId: input.sessionId,
+                  cwd: input.directory,
+                  mcpServers: [],
+                }),
+                timeoutMs,
+                "ACP session resume timed out",
+              );
+            } catch {
+              session.messageState = createAcpMessageState(input.sessionId);
+            }
+          }
+        } else {
+          created = await withTimeout(
+            connection.agent.request(acp.methods.agent.session.new, {
+              cwd: input.directory,
+              mcpServers: [],
+            }),
+            timeoutMs,
+            "ACP session creation timed out",
+          );
+        }
         session.replaying = false;
         console.info("[ACP] Session config options received", {
           providerId: id,
@@ -485,19 +517,26 @@ export function createAcpAdapter({
       }
     },
     async sendMessage(request: ProviderMessageRequest) {
-      const session = getSession(sessions, request.sessionId);
+      let session = sessions.get(request.sessionId);
+      if (!session || session.closed) {
+        await adapter.createSession({
+          sessionId: request.sessionId,
+          directory: request.directory,
+        });
+        session = getSession(sessions, request.sessionId);
+      }
       if (session.loadingMessages) await session.loadingMessages;
       if (request.attachments?.length)
         throw new Error("ACP attachments are not supported");
       session.prompting = true;
-      publishChanges(
-        session,
-        startPrompt(
-          session.messageState,
-          request.content,
-          request.turnId ?? crypto.randomUUID(),
-        ),
+      if (session.historyUnavailable) session.pendingChanges = [];
+      const initialChanges = startPrompt(
+        session.messageState,
+        request.content,
+        request.turnId ?? crypto.randomUUID(),
       );
+      if (session.pendingChanges) session.pendingChanges.push(...initialChanges);
+      else publishChanges(session, initialChanges);
       publish({
         type: "session.status",
         providerId: id,
@@ -515,10 +554,14 @@ export function createAcpAdapter({
           timeoutMs,
           "ACP prompt timed out",
         );
-        publishChanges(
-          session,
-          finishPrompt(session.messageState, response, session.modelId),
-        );
+        const finalChanges = finishPrompt(session.messageState, response, session.modelId);
+        if (session.pendingChanges) {
+          session.pendingChanges.push(...finalChanges);
+          publishChanges(session, session.pendingChanges);
+          session.pendingChanges = undefined;
+        } else {
+          publishChanges(session, finalChanges);
+        }
         publish({
           type: "session.status",
           providerId: id,
@@ -531,7 +574,17 @@ export function createAcpAdapter({
         return { interactionId: session.id, value: response };
       } catch (error) {
         closeSession(session, error);
-        throw error;
+        publish({
+          type: "session.status",
+          providerId: id,
+          directory: session.directory,
+          sessionId: session.id,
+          status: "idle",
+          runStatus: "idle",
+        });
+        throw new ConflictError(
+          "Sending to the original session failed. Your draft was kept; delivery may be uncertain.",
+        );
       } finally {
         session.prompting = false;
       }
@@ -546,11 +599,23 @@ export function createAcpAdapter({
           directory: input.directory,
         });
         session = getSession(sessions, input.sessionId);
-        return { messages: session.messageState.messages };
+        return {
+          messages: session.messageState.messages,
+          historyUnavailable: session.historyUnavailable,
+        };
       }
-      if (session.capabilities?.loadSession && !session.prompting)
-        await loadMessages(session);
-      return { messages: session.messageState.messages };
+      if (session.capabilities?.loadSession && !session.prompting && !session.historyUnavailable) {
+        try {
+          await loadMessages(session);
+        } catch {
+          session.historyUnavailable = true;
+          session.messageState = createAcpMessageState(session.id);
+        }
+      }
+      return {
+        messages: session.messageState.messages,
+        historyUnavailable: session.historyUnavailable,
+      };
     },
     async abortSession(input: { sessionId: string }): Promise<void> {
       const session = getSession(sessions, input.sessionId);
