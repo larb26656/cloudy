@@ -27,6 +27,11 @@ CLOUDY_OPENCODE_API_BASE=http://localhost:4096
 
 Keep API keys and other secrets in `.env`, and do not commit that file.
 
+ACP activity that does not fit the shared chat model appears as a generic
+activity card. Its raw provider payload is collapsed by default and can be
+expanded for inspection; it may contain sensitive information. Raw activity is
+kept only in temporary presentation state, not in a Cloudy-owned transcript.
+
 ## Browser Extension Development
 
 The browser extension lives in `apps/browser-extension` and is built with WXT.
