@@ -270,6 +270,15 @@ describe("ChatInput — abort/send button behavior", () => {
       ).not.toBeInTheDocument();
     });
 
+    test("allows stopping while the submitted draft is retained", () => {
+      mocks.isSending = true;
+      renderInput({ allowTypingWhileSending: true });
+      typeText("submitted draft");
+      fireEvent.click(screen.getByRole("button", { name: "Stop generating" }));
+      expect(mocks.abort).toHaveBeenCalledOnce();
+      expect(screen.getByLabelText("chat-editor")).toHaveValue("submitted draft");
+    });
+
     test("swaps to Send button once text is entered (queue path)", () => {
       renderInput();
       typeText("queued follow-up");

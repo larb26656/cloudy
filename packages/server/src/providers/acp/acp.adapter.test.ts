@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { describe, expect, it, vi } from "vitest";
 import { createAcpAdapter } from "./acp.adapter";
 import { applyChatEvent } from "../../../../../apps/web-app/src/lib/streaming/message-stream";
+import type { MessageStreamState } from "../../../../../apps/web-app/src/lib/streaming/message-stream";
 
 const fakeAgent = `
 import { Readable, Writable } from "node:stream";
@@ -10,11 +11,20 @@ import * as acp from "@agentclientprotocol/sdk";
 const profile = process.argv.at(-1);
 let cancelled = () => {};
 let loadCount = 0;
+let restored = false;
+const waitForRestore = async (params, client) => {
+  await client.request(acp.methods.client.session.requestPermission, {
+    sessionId: params.sessionId,
+    toolCall: { toolCallId: "restore", title: "Restore" },
+    options: [{ optionId: "allow", name: "Allow", kind: "allow_once" }],
+  });
+  restored = true;
+};
 const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.initialize, () => ({
     protocolVersion: acp.PROTOCOL_VERSION,
     agentInfo: { name: profile, version: "1.0.0" },
-    agentCapabilities: { loadSession: ["replay", "replay-conversation", "no-user"].includes(profile), sessionCapabilities: { close: true, delete: true } },
+    agentCapabilities: { loadSession: ["replay", "replay-conversation", "no-user", "delayed-load", "reload-failure"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume"].includes(profile) ? { resume: {} } : {}) } },
   }))
   .onRequest(acp.methods.agent.session.new, ({ params }) => {
     if (!params.cwd.startsWith("/")) throw new Error("cwd must be absolute");
@@ -35,6 +45,14 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.session.close, () => ({}))
   .onRequest(acp.methods.agent.session.load, async ({ params, client }) => {
     const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+    if (profile === "delayed-load") {
+      await waitForRestore(params, client);
+      return {};
+    }
+    if (profile === "reload-failure") {
+      await emit({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "partial replay" } });
+      throw new Error("transient history error");
+    }
     if (profile === "no-user") {
       await emit({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "Only answer" } });
       return {};
@@ -67,7 +85,13 @@ const agent = acp.agent({ name: "fake-agent" })
     await emit({ sessionUpdate: "agent_message_chunk", messageId: "assistant-1", content: { type: "text", text: "from agent " + ++loadCount } });
     return {};
   })
+  .onRequest(acp.methods.agent.session.resume, async ({ params, client }) => {
+    if (profile === "delayed-resume") await waitForRestore(params, client);
+    else restored = true;
+    return {};
+  })
   .onRequest(acp.methods.agent.session.prompt, async ({ params, client }) => {
+    if (["delayed-load", "delayed-resume"].includes(profile) && !restored) throw new Error("session not restored");
     if (profile === "conversation" || profile === "replay-conversation") {
       const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
       const text = (text) => emit({ sessionUpdate: "agent_message_chunk", content: { type: "text", text } });
@@ -138,6 +162,115 @@ function createAdapter(profile: string) {
 }
 
 describe("createAcpAdapter", () => {
+  it.each(["delayed-load", "delayed-resume"])(
+    "waits for initial %s restoration before sending to the bound session",
+    async (profile) => {
+      const adapter = createAdapter(profile);
+      const directory = process.cwd();
+      const sessionId = `${profile}-session`;
+      const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+      const restoring = adapter.createSession({ sessionId, directory });
+      const approval = await events.next();
+      expect(approval.value).toMatchObject({
+        type: "approval.requested",
+        request: { id: `${sessionId}:restore` },
+      });
+      const sending = adapter.sendMessage({ sessionId, directory, content: "hello" });
+      await adapter.respondToInteraction({
+        kind: "permission",
+        sessionId,
+        interactionId: `${sessionId}:restore`,
+        value: { optionId: "allow" },
+      });
+      await restoring;
+      await expect(sending).resolves.toMatchObject({ interactionId: sessionId });
+      await adapter.deleteSession({ sessionId });
+      await events.return?.();
+    },
+  );
+
+  it("shares an in-flight restoration between concurrent sends and history requests", async () => {
+    const spy = vi.fn(spawn);
+    const adapter = createAcpAdapter({
+      id: "concurrent-restore",
+      name: "Concurrent restore",
+      launch: {
+        command: process.execPath,
+        args: ["--input-type=module", "--eval", fakeAgent, "delayed-resume"],
+      },
+      spawn: spy,
+      timeoutMs: 2000,
+    });
+    const directory = process.cwd();
+    const sessionId = "delayed-resume-session";
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    const sending = adapter.sendMessage({ sessionId, directory, content: "hello" });
+    const listing = adapter.listMessages!({ sessionId, directory });
+    expect((await events.next()).value).toMatchObject({ type: "approval.requested" });
+    await adapter.respondToInteraction({
+      kind: "permission",
+      sessionId,
+      interactionId: `${sessionId}:restore`,
+      value: { optionId: "allow" },
+    });
+    await expect(sending).resolves.toMatchObject({ interactionId: sessionId });
+    await listing;
+    expect(spy).toHaveBeenCalledTimes(1);
+    await adapter.deleteSession({ sessionId });
+    await events.return?.();
+  });
+
+  it("streams resumed-session activity before the prompt completes without history", async () => {
+    const adapter = createAdapter("resume");
+    const directory = process.cwd();
+    const sessionId = "resume-session";
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    await adapter.createSession({ sessionId, directory });
+    const sending = adapter.sendMessage({ sessionId, directory, content: "permission" });
+    const received = [];
+    while (true) {
+      const event = await events.next();
+      if (event.done) throw new Error("Event stream closed before permission request");
+      received.push(event.value);
+      if (event.value.type === "approval.requested") break;
+    }
+    expect(received).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        type: "message.part.updated",
+        part: expect.objectContaining({ type: "text", text: "resume:permission" }),
+      }),
+    ]));
+    await adapter.respondToInteraction({
+      kind: "permission",
+      sessionId,
+      interactionId: `${sessionId}:tool-1`,
+      value: { optionId: "allow" },
+    });
+    await sending;
+    await adapter.deleteSession({ sessionId });
+    await events.return?.();
+  });
+
+  it("retains in-memory conversation when a history reload fails after partial replay", async () => {
+    const adapter = createAdapter("reload-failure");
+    const directory = process.cwd();
+    const sessionId = "reload-failure-session";
+    await adapter.createSession({ directory });
+    await adapter.sendMessage({ sessionId, directory, content: "hello" });
+    const history = await adapter.listMessages!({ sessionId });
+    expect(history).toMatchObject({
+      historyUnavailable: true,
+      messages: [
+        { role: "user", parts: [{ type: "text", text: "hello" }] },
+        { role: "assistant", parts: [
+          { type: "text", text: "reload-failure:hello" },
+          { type: "step-finish" },
+        ] },
+      ],
+    });
+    await adapter.deleteSession({ sessionId });
+  });
+
   it("keeps streamed chunks and interleaved tool updates in their owning turns", async () => {
     const adapter = createAdapter("conversation");
     const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
@@ -244,7 +377,7 @@ describe("createAcpAdapter", () => {
     const sessionId = "replay-conversation-session";
     const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
     await adapter.createSession({ directory });
-    let stream = { messages: new Map(), pendingDeltas: new Map() };
+    let stream: MessageStreamState = { messages: new Map(), pendingDeltas: new Map() };
     for (const content of ["first", "second"]) {
       await adapter.sendMessage({ sessionId, directory, content });
       while (true) {

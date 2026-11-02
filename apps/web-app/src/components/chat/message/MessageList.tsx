@@ -65,36 +65,39 @@ export const MessageList = memo(function MessageList({
 
   return (
     <MessageSettingsContext.Provider value={settingsValue}>
-      <MessageListView
-        remoteMessages={remoteMessages}
-        displayItems={displayItems}
-        streamingCount={streamingIds.length}
-        isLoading={isLoading}
-        error={error}
-        onRetry={handleRetry}
-        emptyState={
-          historyUnavailable ? (
-            <p role="status" className="text-sm text-muted-foreground">
-              Conversation history is unavailable for this session.
-            </p>
-          ) : isShowEmptyState ? (
-            <EmptyChatState onSnippetSelect={onSnippetSelect} />
-          ) : undefined
-        }
-        sessionStatus={sessionStatus}
-        isStreaming={isStreaming}
-        sessionError={sessionError}
-        onDismissError={handleDismissError}
-        hasNextPage={hasNextPage}
-        isFetchingNextPage={isFetchingNextPage}
-        onLoadMore={handleLoadMore}
-        streamingMessage={renderStreamingMessage}
-        minimap={
-          minimapOpen && onCloseMinimap && remoteMessages.length > 0 ? (
-            <ChatMinimap messages={remoteMessages} onClose={onCloseMinimap} />
-          ) : undefined
-        }
-      />
+      <div className="flex flex-1 min-h-0 flex-col">
+        {historyUnavailable && (
+          <p role="status" className="px-4 pt-4 text-center text-sm text-muted-foreground">
+            Conversation history is unavailable for this session.
+          </p>
+        )}
+        <MessageListView
+          remoteMessages={remoteMessages}
+          displayItems={displayItems}
+          streamingCount={streamingIds.length}
+          isLoading={isLoading}
+          error={error}
+          onRetry={handleRetry}
+          emptyState={
+            !historyUnavailable && isShowEmptyState ? (
+              <EmptyChatState onSnippetSelect={onSnippetSelect} />
+            ) : undefined
+          }
+          sessionStatus={sessionStatus}
+          isStreaming={isStreaming}
+          sessionError={sessionError}
+          onDismissError={handleDismissError}
+          hasNextPage={hasNextPage}
+          isFetchingNextPage={isFetchingNextPage}
+          onLoadMore={handleLoadMore}
+          streamingMessage={renderStreamingMessage}
+          minimap={
+            minimapOpen && onCloseMinimap && remoteMessages.length > 0 ? (
+              <ChatMinimap messages={remoteMessages} onClose={onCloseMinimap} />
+            ) : undefined
+          }
+        />
+      </div>
     </MessageSettingsContext.Provider>
   );
 });

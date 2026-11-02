@@ -146,7 +146,12 @@ export function ModelSelector({
       error={error instanceof Error ? error.message : null}
       onRefresh={refreshModels}
       isRefreshing={isRefreshingModels}
-      refreshError={refreshError instanceof Error ? refreshError.message : null}
+      refreshError={
+        refreshError instanceof Error
+          ? refreshError.message
+          : (providers.find((provider) => provider.modelDiscoveryError)
+              ?.modelDiscoveryError ?? null)
+      }
       onChange={(model) => setModel?.(model ? fromSelectorModel(model) : null)}
       onToggleFavorite={(model) => toggleFavorite(fromSelectorModel(model))}
       triggerClassName={triggerClassName}

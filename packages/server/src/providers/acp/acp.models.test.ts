@@ -57,13 +57,20 @@ describe("ACP model discovery", () => {
         method: "POST",
       });
     expect(await catalog()).toMatchObject({
-      providers: [],
+      providers: [
+        {
+          id: "fake",
+          agents: [{ id: "fake", name: "Fake" }],
+          modelDiscoveryError: expect.any(String),
+        },
+      ],
       errors: [{ providerId: "fake" }],
     });
     model = "first";
     expect(await catalog()).toMatchObject({
       providers: [{ models: [{ modelId: "first" }] }],
     });
+    expect((await catalog()).errors).toEqual([]);
     expect(await catalog()).toMatchObject({
       providers: [{ models: [{ modelId: "first" }] }],
     });

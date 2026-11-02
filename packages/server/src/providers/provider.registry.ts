@@ -128,6 +128,12 @@ export function createAgentProviderRegistry({
               ...result.value.info.capabilities,
             },
           });
+          if (result.value.info.modelDiscoveryError) {
+            errors.push({
+              providerId: result.value.providerId,
+              message: result.value.info.modelDiscoveryError,
+            });
+          }
         } else if (provider) {
           errors.push({
             providerId: provider.id,

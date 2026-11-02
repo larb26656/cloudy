@@ -28,6 +28,39 @@ const provider = (name: string) => ({
 });
 
 describe("model selector refresh", () => {
+  it("reports an initial discovery failure and allows refresh to recover", async () => {
+    api.get.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        providers: [{
+          ...provider("unused"),
+          models: [],
+          modelDiscoveryError: "Discovery failed",
+        }],
+        errors: [{ providerId: "fake", message: "Discovery failed" }],
+      }),
+    });
+    api.refresh.mockReset();
+    api.refresh.mockResolvedValueOnce({
+      ok: true,
+      json: async () => provider("Recovered model"),
+    });
+    const user = userEvent.setup();
+    render(
+      <QueryClientProvider
+        client={
+          new QueryClient({ defaultOptions: { queries: { retry: false } } })
+        }
+      >
+        <ModelSelector providerId="fake" open onOpenChange={() => {}} />
+      </QueryClientProvider>,
+    );
+    expect(await screen.findByRole("alert")).toHaveTextContent("Discovery failed");
+    await user.click(screen.getByRole("button", { name: "Refresh models" }));
+    expect(await screen.findByText("Recovered model")).toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  });
+
   it("shows refreshed models and retains them with a warning when refresh fails", async () => {
     api.get.mockResolvedValue({
       ok: true,

@@ -7,6 +7,22 @@ interface ToolPartProps {
 }
 
 export function ToolPart({ part }: ToolPartProps) {
+  const rawMetadata = part.metadata?.acp;
+  const partial = !part.toolName || !part.status;
+  const rawDetails = rawMetadata === undefined && (!partial || (part.input === undefined && part.output === undefined)) ? null : (
+    <details className="mt-1 text-xs text-muted-foreground">
+      <summary className="cursor-pointer">Raw tool details</summary>
+      {partial && part.input !== undefined && (
+        <ToolValueRenderer value={part.input} keyName="input" />
+      )}
+      {partial && part.output !== undefined && (
+        <ToolValueRenderer value={part.output} keyName="output" />
+      )}
+      {rawMetadata !== undefined && <pre className="mt-1 max-h-64 overflow-auto whitespace-pre-wrap wrap-anywhere">
+        {JSON.stringify(rawMetadata, null, 2)}
+      </pre>}
+    </details>
+  );
   if (!part.toolName || !part.status) {
     return (
       <div>
@@ -14,12 +30,7 @@ export function ToolPart({ part }: ToolPartProps) {
           Tool activity{part.toolName ? `: ${part.toolName}` : ""}
           {part.status ? ` (${part.status})` : ""}
         </div>
-        {part.input !== undefined && (
-          <ToolValueRenderer value={part.input} keyName="input" />
-        )}
-        {part.output !== undefined && (
-          <ToolValueRenderer value={part.output} keyName="output" />
-        )}
+        {rawDetails}
       </div>
     );
   }
@@ -35,5 +46,10 @@ export function ToolPart({ part }: ToolPartProps) {
     output: part.output,
     error: part.error,
   };
-  return <ToolComponent tool={part.toolName} state={state} />;
+  return (
+    <div>
+      <ToolComponent tool={part.toolName} state={state} />
+      {rawDetails}
+    </div>
+  );
 }

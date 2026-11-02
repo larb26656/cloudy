@@ -220,7 +220,7 @@ export const ChatInput = memo(function ChatInput({
     }
 
     if (e.key === "Escape") {
-      if (isStreaming && !displayText.trim()) {
+      if (isStreaming && (isSending || !displayText.trim())) {
         e.preventDefault();
         abortGeneration();
       }
@@ -366,7 +366,7 @@ export const ChatInput = memo(function ChatInput({
                   onListeningChange={setIsListening}
                 />
 
-                {isListening ? null : isStreaming && !displayText.trim() ? (
+                {isListening ? null : isStreaming && (isSending || !displayText.trim()) ? (
                   <Button
                     size="icon"
                     className="rounded-full p-4"

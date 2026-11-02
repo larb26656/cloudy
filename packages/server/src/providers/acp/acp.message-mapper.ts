@@ -204,6 +204,7 @@ export function mapSessionUpdate(
     case "config_option_update":
       break;
     default: {
+      state.currentTextPartId = undefined;
       const current = currentMessage(state);
       const message =
         current?.role === "assistant" ? current : messageForChunk("assistant");

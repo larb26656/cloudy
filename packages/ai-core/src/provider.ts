@@ -47,6 +47,7 @@ export interface AgentProviderInfo {
   name: string;
   capabilities: ProviderCapabilities;
   models?: ModelInfo[];
+  modelDiscoveryError?: string;
   agents?: AgentInfo[];
   metadata?: Record<string, unknown>;
 }

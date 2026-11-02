@@ -93,6 +93,7 @@ export function createAcpAdapter({
   spawn: spawnProcess = spawn,
 }: AcpAdapterOptions): AcpAdapter {
   const sessions = new Map<string, AcpSession>();
+  const creatingSessions = new Map<string, Promise<ChatSession>>();
   const subscribers = new Set<Subscriber>();
   const models = new Map<string, ModelInfo>();
   let catalogProbe: Promise<void> | undefined;
@@ -190,6 +191,7 @@ export function createAcpAdapter({
     async getInfo(input?: {
       refreshModels?: boolean;
     }): Promise<AgentProviderInfo> {
+      let modelDiscoveryError: string | undefined;
       if (catalogDirectory && (!catalogProbed || input?.refreshModels)) {
         catalogProbe ??= (async () => {
           let sessionId: string | undefined;
@@ -226,6 +228,10 @@ export function createAcpAdapter({
         })();
         try {
           await catalogProbe;
+        } catch (error) {
+          if (input?.refreshModels) throw error;
+          modelDiscoveryError =
+            error instanceof Error ? error.message : String(error);
         } finally {
           catalogProbe = undefined;
         }
@@ -243,10 +249,14 @@ export function createAcpAdapter({
         capabilities: { ...adapter.capabilities, models: models.size > 0 },
         agents: [{ id, name, mode: "primary" }],
         ...(models.size > 0 ? { models: [...models.values()] } : {}),
+        ...(modelDiscoveryError ? { modelDiscoveryError } : {}),
         metadata: { command: launch.command, args: launch.args },
       };
     },
     async createSession(input: ProviderSessionInput): Promise<ChatSession> {
+      const existing = input.sessionId && creatingSessions.get(input.sessionId);
+      if (existing) return existing;
+      const creation = (async (): Promise<ChatSession> => {
       if (!input.directory || !isAbsolute(input.directory))
         throw new Error("ACP sessions require an absolute directory");
 
@@ -330,8 +340,12 @@ export function createAcpAdapter({
               session.replaying ? "load" : "live",
             );
             if (!session.replaying) {
-              if (session.pendingChanges) session.pendingChanges.push(...changes);
-              else publishChanges(session, changes);
+              if (session.pendingChanges && changes.length > 0) {
+                publishChanges(session, [...session.pendingChanges, ...changes]);
+                session.pendingChanges = undefined;
+              } else if (!session.pendingChanges) {
+                publishChanges(session, changes);
+              }
             }
           },
         }),
@@ -514,8 +528,17 @@ export function createAcpAdapter({
         closeSession(session, error);
         throw error;
       }
+      })();
+      if (input.sessionId) creatingSessions.set(input.sessionId, creation);
+      try {
+        return await creation;
+      } finally {
+        if (input.sessionId) creatingSessions.delete(input.sessionId);
+      }
     },
     async sendMessage(request: ProviderMessageRequest) {
+      const creating = creatingSessions.get(request.sessionId);
+      if (creating) await creating;
       let session = sessions.get(request.sessionId);
       if (!session || session.closed) {
         await adapter.createSession({
@@ -588,6 +611,15 @@ export function createAcpAdapter({
       }
     },
     async listMessages(input: { sessionId: string; directory?: string }) {
+      const creating = creatingSessions.get(input.sessionId);
+      if (creating) {
+        await creating;
+        const session = getSession(sessions, input.sessionId);
+        return {
+          messages: session.messageState.messages,
+          historyUnavailable: session.historyUnavailable,
+        };
+      }
       let session = sessions.get(input.sessionId);
       if (!session || session.closed) {
         if (!input.directory)
@@ -607,7 +639,6 @@ export function createAcpAdapter({
           await loadMessages(session);
         } catch {
           session.historyUnavailable = true;
-          session.messageState = createAcpMessageState(session.id);
         }
       }
       return {
