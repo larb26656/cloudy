@@ -81,7 +81,14 @@ export function ModelSelector({
   const effectiveModel =
     valueProp === undefined ? chat?.effectiveModel : valueProp;
   const setModel = onChange ?? chat?.setModel;
-  const { data: providers = [], isLoading, error } = useModels(providerId);
+  const {
+    data: providers = [],
+    isLoading,
+    error,
+    refreshModels,
+    isRefreshingModels,
+    refreshError,
+  } = useModels(providerId);
   const favorites = useFavoriteModelsStore((state) => state.favorites);
   const toggleFavorite = useFavoriteModelsStore(
     (state) => state.toggleFavorite,
@@ -137,6 +144,9 @@ export function ModelSelector({
       isMobile={isMobile}
       isLoading={isLoading}
       error={error instanceof Error ? error.message : null}
+      onRefresh={refreshModels}
+      isRefreshing={isRefreshingModels}
+      refreshError={refreshError instanceof Error ? refreshError.message : null}
       onChange={(model) => setModel?.(model ? fromSelectorModel(model) : null)}
       onToggleFavorite={(model) => toggleFavorite(fromSelectorModel(model))}
       triggerClassName={triggerClassName}

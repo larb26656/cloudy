@@ -27,6 +27,13 @@ CLOUDY_OPENCODE_API_BASE=http://localhost:4096
 
 Keep API keys and other secrets in `.env`, and do not commit that file.
 
+## Refreshing agent models
+
+The model selector discovers ACP models before starting a conversation. After
+changing an agent's configuration, open the selector and choose **Refresh
+models**. If refresh fails, the last successfully discovered models remain
+available and the selector warns that they may be out of date.
+
 ## Browser Extension Development
 
 The browser extension lives in `apps/browser-extension` and is built with WXT.

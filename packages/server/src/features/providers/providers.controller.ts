@@ -26,6 +26,15 @@ export function createAgentProvidersController(
       }),
       async (c) => c.json(await registry.catalog()),
     )
+    .post(
+      "/:providerId/models/refresh",
+      zValidator("param", providerParamSchema),
+      async (c) => {
+        return c.json(
+          await registry.refreshModels(c.req.valid("param").providerId),
+        );
+      },
+    )
     .get(
       "/events",
       describeRoute({

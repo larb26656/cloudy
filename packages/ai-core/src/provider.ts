@@ -98,7 +98,7 @@ export interface ProviderMessagePage {
 export interface AgentProviderAdapter {
   readonly id: string;
   readonly capabilities: ProviderCapabilities;
-  getInfo(): Promise<AgentProviderInfo>;
+  getInfo(input?: { refreshModels?: boolean }): Promise<AgentProviderInfo>;
   listSessions?(input: {
     directory?: string;
     limit?: number;
