@@ -13,6 +13,7 @@ import { ChatInput } from "./ChatInput";
 import { MessageScrollerProvider } from "@repo/ui/components/message-scroller";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
+import { jsonResponse } from "@/lib/api-response";
 
 const mocks = vi.hoisted(() => ({
   sendMessage: vi.fn(),
@@ -236,8 +237,9 @@ describe("ChatInput — abort/send button behavior", () => {
     });
 
     test("keeps the draft and reports a failed send to the existing session", async () => {
-      mocks.sendMessage.mockRejectedValueOnce(
-        new Error("The message could not be sent to the original session"),
+      const message = "Sending to the original session failed. Your draft was kept; delivery may be uncertain.";
+      mocks.sendMessage.mockImplementationOnce(() =>
+        jsonResponse(new Response(JSON.stringify({ error: message }), { status: 409 })),
       );
       renderInput();
       typeText("keep this draft");
@@ -245,7 +247,7 @@ describe("ChatInput — abort/send button behavior", () => {
         screen.getByRole("button", { name: "Send message" }).click();
       });
       expect(screen.getByLabelText("chat-editor")).toHaveValue("keep this draft");
-      expect(mocks.toastError).toHaveBeenCalled();
+      expect(mocks.toastError).toHaveBeenCalledWith(message);
       expect(mocks.createSession).not.toHaveBeenCalled();
       expect(mocks.sendMessage).toHaveBeenCalledWith(
         expect.objectContaining({ sessionId: SESSION_ID }),
