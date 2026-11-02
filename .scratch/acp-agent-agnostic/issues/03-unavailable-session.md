@@ -4,9 +4,9 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] เก็บ session binding เดิมและแสดง chat ว่างพร้อม indicator เมื่อโหลด history ไม่ได้ โดยไม่ลบ session อัตโนมัติ
-- [ ] แยกความสามารถในการโหลด history และส่งต่อ session เดิมตามผล capability และการทำงานจริง ไม่สมมติว่าการมีอย่างหนึ่งรับประกันอีกอย่าง
-- [ ] input ยังคงเปิดให้พิมพ์; หากส่งเข้า session เดิมไม่ได้ แสดง error และเก็บ draft โดยไม่สร้าง session ใหม่เงียบ ๆ
-- [ ] ตรวจสถานะและการส่งผ่านเส้นทาง session/chat พร้อมตรวจ UI จริงด้วย agent ที่ไม่รองรับ restoration
+- [x] เก็บ session binding เดิมและแสดง chat ว่างพร้อม indicator เมื่อโหลด history ไม่ได้ โดยไม่ลบ session อัตโนมัติ
+- [x] แยกความสามารถในการโหลด history และส่งต่อ session เดิมตามผล capability และการทำงานจริง ไม่สมมติว่าการมีอย่างหนึ่งรับประกันอีกอย่าง
+- [x] input ยังคงเปิดให้พิมพ์; หากส่งเข้า session เดิมไม่ได้ แสดง error และเก็บ draft โดยไม่สร้าง session ใหม่เงียบ ๆ
+- [x] ตรวจสถานะและการส่งผ่านเส้นทาง session/chat พร้อมตรวจ UI จริงด้วย agent ที่ไม่รองรับ restoration

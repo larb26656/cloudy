@@ -4,9 +4,9 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] map ข้อมูลที่มีความหมายร่วมลง Cloudy type ตามความเหมาะสม และแสดง activity ที่ map ไม่ได้เป็น generic card ใน chat
-- [ ] เก็บ raw payload เท่าที่จำเป็นต่อการแสดงผลใน transient state; ไม่เพิ่ม ACP transcript ถาวรหรือ provider-specific feature interface
-- [ ] แสดง raw ที่ provider ส่งจริงแบบขยายดูได้และปิดไว้เป็นค่าเริ่มต้น; ไม่สร้าง input/output ปลอมเมื่อไม่มีข้อมูลดังกล่าว
-- [ ] ตรวจเส้นทางจาก fake ACP agent ถึง UI จริง รวม payload ที่ไม่มี input/output แยก
+- [x] map ข้อมูลที่มีความหมายร่วมลง Cloudy type ตามความเหมาะสม และแสดง activity ที่ map ไม่ได้เป็น generic card ใน chat
+- [x] เก็บ raw payload เท่าที่จำเป็นต่อการแสดงผลใน transient state; ไม่เพิ่ม ACP transcript ถาวรหรือ provider-specific feature interface
+- [x] แสดง raw ที่ provider ส่งจริงแบบขยายดูได้และปิดไว้เป็นค่าเริ่มต้น; ไม่สร้าง input/output ปลอมเมื่อไม่มีข้อมูลดังกล่าว
+- [x] ตรวจเส้นทางจาก fake ACP agent ถึง UI จริง รวม payload ที่ไม่มี input/output แยก

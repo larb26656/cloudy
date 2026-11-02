@@ -1,6 +1,6 @@
 # Agent-agnostic ACP adapter
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem Statement
 
