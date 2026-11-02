@@ -14,7 +14,7 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.initialize, () => ({
     protocolVersion: acp.PROTOCOL_VERSION,
     agentInfo: { name: profile, version: "1.0.0" },
-    agentCapabilities: { loadSession: profile === "replay", sessionCapabilities: { close: true, delete: true } },
+    agentCapabilities: { loadSession: ["replay", "replay-conversation", "no-user"].includes(profile), sessionCapabilities: { close: true, delete: true } },
   }))
   .onRequest(acp.methods.agent.session.new, ({ params }) => {
     if (!params.cwd.startsWith("/")) throw new Error("cwd must be absolute");
@@ -34,8 +34,33 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.session.delete, () => ({}))
   .onRequest(acp.methods.agent.session.close, () => ({}))
   .onRequest(acp.methods.agent.session.load, async ({ params, client }) => {
-    if (profile !== "replay") throw new Error("load not supported");
     const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+    if (profile === "no-user") {
+      await emit({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "Only answer" } });
+      return {};
+    }
+    if (profile === "replay-conversation") {
+      const generation = ++loadCount;
+      const user = (text, turn) => emit({ sessionUpdate: "user_message_chunk", messageId: "user-" + generation + "-" + turn, content: { type: "text", text } });
+      const text = (text, turn) => emit({ sessionUpdate: "agent_message_chunk", messageId: "answer-" + generation + "-" + turn, content: { type: "text", text } });
+      const a = "a-" + generation;
+      const b = "b-" + generation;
+      await user("fir", 1);
+      await user("st", 1);
+      await text("Hello", 1);
+      await emit({ sessionUpdate: "tool_call_update", toolCallId: a, rawOutput: { progress: 1 } });
+      await emit({ sessionUpdate: "tool_call", toolCallId: b, name: "write", title: "Write", status: "pending" });
+      await emit({ sessionUpdate: "tool_call_update", toolCallId: a, status: "in_progress" });
+      await emit({ sessionUpdate: "tool_call_update", toolCallId: b, status: "completed", rawOutput: { done: "b" } });
+      await emit({ sessionUpdate: "tool_call", toolCallId: a, name: "read", title: "Read", status: "completed", rawOutput: { done: "a" } });
+      await text(" world", 1);
+      await user("second", 2);
+      await text("Next", 2);
+      await emit({ sessionUpdate: "tool_call_update", toolCallId: a, rawOutput: { delayed: true } });
+      await text(" turn", 2);
+      return {};
+    }
+    if (profile !== "replay") throw new Error("load not supported");
     await emit({ sessionUpdate: "user_message_chunk", messageId: "user-1", content: { type: "text", text: "hello" } });
     await emit({ sessionUpdate: "agent_thought_chunk", messageId: "assistant-1", content: { type: "text", text: "thinking" } });
     await emit({ sessionUpdate: "tool_call", toolCallId: "tool-1", name: "read", title: "Read file", kind: "read", status: "completed" });
@@ -43,7 +68,7 @@ const agent = acp.agent({ name: "fake-agent" })
     return {};
   })
   .onRequest(acp.methods.agent.session.prompt, async ({ params, client }) => {
-    if (profile === "conversation") {
+    if (profile === "conversation" || profile === "replay-conversation") {
       const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
       const text = (text) => emit({ sessionUpdate: "agent_message_chunk", content: { type: "text", text } });
       if (params.prompt[0].text === "first") {
@@ -213,6 +238,71 @@ describe("createAcpAdapter", () => {
     await events.return?.();
   });
 
+  it("merges live and reloaded turns despite changed wire IDs and chunk boundaries", async () => {
+    const adapter = createAdapter("replay-conversation");
+    const directory = process.cwd();
+    const sessionId = "replay-conversation-session";
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    await adapter.createSession({ directory });
+    let stream = { messages: new Map(), pendingDeltas: new Map() };
+    for (const content of ["first", "second"]) {
+      await adapter.sendMessage({ sessionId, directory, content });
+      while (true) {
+        const next = await events.next();
+        if (next.done) break;
+        stream = applyChatEvent(stream, next.value, sessionId);
+        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+      }
+    }
+    const live = [...stream.messages.values()];
+    const history = await adapter.listMessages?.({ sessionId });
+    expect(history?.messages).toMatchObject([
+      { role: "user", parts: [{ type: "text", text: "first" }] },
+      { role: "assistant", parts: [
+        { type: "text", text: "Hello" },
+        { type: "tool", output: { delayed: true } },
+        { type: "tool", output: { done: "b" } },
+        { type: "text", text: " world" },
+      ] },
+      { role: "user", parts: [{ type: "text", text: "second" }] },
+      { role: "assistant", parts: [
+        { type: "text", text: "Next" },
+        { type: "text", text: " turn" },
+      ] },
+    ]);
+    for (const message of history?.messages ?? []) {
+      const streamed = live.find((item) => item.id === message.id);
+      expect(streamed).toBeDefined();
+      expect(message.parts.map(({ id, type }) => ({ id, type }))).toEqual(
+        streamed?.parts.filter((part) => part.type !== "step-finish").map(({ id, type }) => ({ id, type })),
+      );
+    }
+    const refreshed = await adapter.listMessages?.({ sessionId });
+    await adapter.abortSession({ sessionId });
+    const reopened = await adapter.listMessages?.({ sessionId, directory });
+    for (const page of [refreshed, reopened])
+      expect(page?.messages.map((message) => ({
+        id: message.id,
+        parts: message.parts.map(({ id, type }) => ({ id, type })),
+      }))).toEqual(history?.messages.map((message) => ({
+        id: message.id,
+        parts: message.parts.map(({ id, type }) => ({ id, type })),
+      })));
+    await adapter.deleteSession({ sessionId });
+    await events.return?.();
+  });
+
+  it("does not invent a user message when replay contains only an answer", async () => {
+    const adapter = createAdapter("no-user");
+    const directory = process.cwd();
+    await adapter.createSession({ directory });
+    const history = await adapter.listMessages?.({ sessionId: "no-user-session" });
+    expect(history?.messages).toMatchObject([
+      { role: "assistant", parts: [{ type: "text", text: "Only answer" }] },
+    ]);
+    await adapter.deleteSession({ sessionId: "no-user-session" });
+  });
+
   it("loads the full message history from ACP and can reopen a session after the process exits", async () => {
     const adapter = createAdapter("replay");
     const directory = process.cwd();
@@ -311,7 +401,7 @@ describe("createAcpAdapter", () => {
     const assistants =
       page?.messages.filter((message) => message.role === "assistant") ?? [];
     expect(assistants).toHaveLength(1);
-    expect(assistants[0]?.id).toBe("acp:events-session:turn-1");
+    expect(assistants[0]?.id).toBe("acp:events-session:0");
     expect(assistants[0]?.parts.map((part) => part.type)).toEqual([
       "reasoning",
       "tool",
@@ -405,7 +495,7 @@ describe("createAcpAdapter", () => {
       nextPage?.messages.filter((message) => message.role === "assistant") ??
       [];
     expect(nextAssistants).toHaveLength(2);
-    expect(nextAssistants[1]?.id).toBe("acp:events-session:turn-2");
+    expect(nextAssistants[1]?.id).toBe("acp:events-session:1");
     expect(nextAssistants[1]?.parts).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ type: "reasoning", text: "considering" }),

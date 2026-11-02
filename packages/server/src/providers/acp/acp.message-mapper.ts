@@ -5,7 +5,7 @@ export interface AcpMessageState {
   sessionId: string;
   messages: ChatMessage[];
   currentMessageId?: string;
-  messageIds: Map<string, string>;
+  turn: number;
   toolParts: Map<string, { messageId: string; partId: string }>;
   currentTextPartId?: string;
 }
@@ -18,7 +18,7 @@ export function createAcpMessageState(sessionId: string): AcpMessageState {
   return {
     sessionId,
     messages: [],
-    messageIds: new Map(),
+    turn: -1,
     toolParts: new Map(),
   };
 }
@@ -26,12 +26,11 @@ export function createAcpMessageState(sessionId: string): AcpMessageState {
 export function startPrompt(
   state: AcpMessageState,
   content: string,
-  turnId: string,
 ): MessageChange[] {
   const now = new Date().toISOString();
-  state.messageIds.clear();
-  const userId = `acp:${state.sessionId}:${turnId}:user`;
-  const assistantId = `acp:${state.sessionId}:${turnId}`;
+  state.turn++;
+  const userId = `acp:${state.sessionId}:${state.turn}:user`;
+  const assistantId = `acp:${state.sessionId}:${state.turn}`;
   const user = state.messages.find((message) => message.id === userId) ?? {
     id: userId,
     sessionId: state.sessionId,
@@ -40,7 +39,7 @@ export function startPrompt(
     createdAt: now,
   };
   const userPart: MessagePart = {
-    id: `${userId}:text`,
+    id: `${userId}:part:0`,
     type: "text",
     text: content,
   };
@@ -86,28 +85,18 @@ export function mapSessionUpdate(
     else message.parts[index] = part;
     changes.push({ type: "part", messageId: message.id, part });
   };
-  const messageForChunk = (role: "user" | "assistant", wireId?: string) => {
-    if (source === "live" && role === "assistant") {
-      const current = currentMessage(state);
-      if (current?.role === "assistant") return current;
-    }
-    const key = wireId && `${role}:${wireId}`;
-    const existingId = key && state.messageIds.get(key);
-    if (existingId)
-      return state.messages.find((message) => message.id === existingId)!;
+  const messageForChunk = (role: "user" | "assistant") => {
     const current = currentMessage(state);
-    if (current?.role === role && (!wireId || !state.messageIds.size)) {
-      if (key) state.messageIds.set(key, current.id);
-      return current;
-    }
+    if (current?.role === role) return current;
+    if (role === "user" || state.turn < 0) state.turn++;
     const message = addMessage({
-      id: source === "load" && wireId ? wireId : crypto.randomUUID(),
+      id: `acp:${state.sessionId}:${state.turn}${role === "user" ? ":user" : ""}`,
       sessionId: state.sessionId,
       role,
       parts: [],
       createdAt: new Date().toISOString(),
     });
-    if (key) state.messageIds.set(key, message.id);
+    state.currentTextPartId = undefined;
     return message;
   };
 
@@ -119,7 +108,7 @@ export function mapSessionUpdate(
         break;
       const role =
         update.sessionUpdate === "user_message_chunk" ? "user" : "assistant";
-      const message = messageForChunk(role, update.messageId ?? undefined);
+      const message = messageForChunk(role);
       const type =
         update.sessionUpdate === "agent_thought_chunk" ? "reasoning" : "text";
       if (update.content.type !== "text") {

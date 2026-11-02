@@ -60,7 +60,6 @@ interface AcpSession {
   connection: acp.ClientConnection;
   capabilities: acp.AgentCapabilities | undefined;
   modelId?: string;
-  // TODO: Move message persistence to the database layer.
   messageState: AcpMessageState;
   replaying: boolean;
   loadingMessages?: Promise<void>;
@@ -492,11 +491,7 @@ export function createAcpAdapter({
       session.prompting = true;
       publishChanges(
         session,
-        startPrompt(
-          session.messageState,
-          request.content,
-          request.turnId ?? crypto.randomUUID(),
-        ),
+        startPrompt(session.messageState, request.content),
       );
       publish({
         type: "session.status",
