@@ -234,6 +234,23 @@ describe("ChatInput — abort/send button behavior", () => {
       });
       expect(mocks.sendMessage).toHaveBeenCalledOnce();
     });
+
+    test("keeps the draft and reports a failed send to the existing session", async () => {
+      mocks.sendMessage.mockRejectedValueOnce(
+        new Error("The message could not be sent to the original session"),
+      );
+      renderInput();
+      typeText("keep this draft");
+      await act(async () => {
+        screen.getByRole("button", { name: "Send message" }).click();
+      });
+      expect(screen.getByLabelText("chat-editor")).toHaveValue("keep this draft");
+      expect(mocks.toastError).toHaveBeenCalled();
+      expect(mocks.createSession).not.toHaveBeenCalled();
+      expect(mocks.sendMessage).toHaveBeenCalledWith(
+        expect.objectContaining({ sessionId: SESSION_ID }),
+      );
+    });
   });
 
   describe("streaming session (busy)", () => {

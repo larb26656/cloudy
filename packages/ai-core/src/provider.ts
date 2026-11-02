@@ -89,6 +89,7 @@ export interface ProviderMessagesInput {
 export interface ProviderMessagePage {
   messages: ChatMessage[];
   nextCursor?: string;
+  historyUnavailable?: boolean;
 }
 
 /**
