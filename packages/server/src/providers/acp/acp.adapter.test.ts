@@ -704,7 +704,8 @@ describe("createAcpAdapter", () => {
         directory: process.cwd(),
         content: "again",
       }),
-    ).rejects.toThrow("ACP session not found");
+    ).resolves.toMatchObject({ interactionId: "permission-session" });
+    await adapter.deleteSession({ sessionId: "permission-session" });
     await events.return?.();
   });
 

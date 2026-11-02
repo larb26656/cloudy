@@ -6,6 +6,9 @@ ACP conversation history belongs to the agent. If an agent cannot reload a
 saved session, Cloudy keeps the session and indicates that its history is
 unavailable. You can still compose a message; if the original session rejects
 it, the draft remains in the input and no replacement session is created.
+When an agent replays incomplete or reordered history, structural matching
+cannot always identify the original messages: duplicates or incorrect merges
+may result.
 
 ## Prerequisites
 
