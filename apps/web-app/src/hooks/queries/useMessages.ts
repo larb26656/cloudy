@@ -11,7 +11,7 @@ import type { Message, SessionRunStatus } from "@/types";
 
 const MESSAGES_LIMIT = 50;
 
-type MessagePage = { messages: Message[]; nextCursor?: string };
+type MessagePage = { messages: Message[]; nextCursor?: string; historyUnavailable?: boolean };
 
 export function getNextMessageCursor(page: MessagePage): string | undefined {
   return page.nextCursor;
@@ -29,13 +29,14 @@ export function useMessages({
       const result = await jsonResponse<{
         messages: ChatMessage[];
         nextCursor?: string;
+        historyUnavailable?: boolean;
       }>(
         await cloudyClient.api.sessions[":sessionId"].messages.$get({
           param: { sessionId },
           query: { limit: String(MESSAGES_LIMIT), before: pageParam },
         }),
       );
-      return { messages: result.messages, nextCursor: result.nextCursor };
+      return { messages: result.messages, nextCursor: result.nextCursor, historyUnavailable: result.historyUnavailable };
     },
     initialPageParam: undefined as string | undefined,
     getPreviousPageParam: undefined,

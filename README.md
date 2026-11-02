@@ -2,6 +2,11 @@
 
 AI agent sidekick — chat, ideas, memories, and artifacts. Monorepo with a bundled CLI server and a React frontend.
 
+ACP conversation history belongs to the agent. If an agent cannot reload a
+saved session, Cloudy keeps the session and indicates that its history is
+unavailable. You can still compose a message; if the original session rejects
+it, the draft remains in the input and no replacement session is created.
+
 ## Prerequisites
 
 - **Node.js** >= 20

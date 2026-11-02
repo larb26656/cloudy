@@ -32,6 +32,7 @@ export const MessageList = memo(function MessageList({
     displayItems,
     streamingIds,
     isLoading,
+    historyUnavailable,
     error,
     refetch,
     hasNextPage,
@@ -72,7 +73,11 @@ export const MessageList = memo(function MessageList({
         error={error}
         onRetry={handleRetry}
         emptyState={
-          isShowEmptyState ? (
+          historyUnavailable ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              Conversation history is unavailable for this session.
+            </p>
+          ) : isShowEmptyState ? (
             <EmptyChatState onSnippetSelect={onSnippetSelect} />
           ) : undefined
         }
