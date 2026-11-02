@@ -356,7 +356,11 @@ describe("createAcpAdapter", () => {
         expect.objectContaining({
           type: "unknown",
           providerType: "image",
-          data: { type: "image", data: "aGVsbG8=", mimeType: "image/png" },
+          data: {
+            sessionUpdate: "agent_message_chunk",
+            messageId: "answer-2",
+            content: { type: "image", data: "aGVsbG8=", mimeType: "image/png" },
+          },
         }),
         expect.objectContaining({
           type: "step-finish",

@@ -271,6 +271,64 @@ export function createAcpAdapter({
         Writable.toWeb(child.stdin),
         Readable.toWeb(child.stdout) as ReadableStream<Uint8Array>,
       );
+      type WireMessage =
+        acp.Stream["readable"] extends ReadableStream<infer T> ? T : never;
+      stream.readable = stream.readable.pipeThrough(
+        new TransformStream<WireMessage, WireMessage>({
+          transform(message, controller) {
+            if (
+              !("method" in message) ||
+              message.method !== acp.methods.client.session.update ||
+              "id" in message
+            ) {
+              controller.enqueue(message);
+              return;
+            }
+            const params = message.params;
+            if (
+              typeof params !== "object" ||
+              params === null ||
+              !("sessionId" in params) ||
+              typeof params.sessionId !== "string" ||
+              !("update" in params) ||
+              typeof params.update !== "object" ||
+              params.update === null ||
+              !("sessionUpdate" in params.update) ||
+              typeof params.update.sessionUpdate !== "string"
+            ) {
+              throw new Error("Invalid ACP session update");
+            }
+            const session = sessions.get(params.sessionId);
+            if (!session) return;
+            const update = params.update as acp.SessionUpdate;
+            if (update.sessionUpdate === "config_option_update") {
+              const model = update.configOptions.find(
+                (option) => option.id === "model" && option.type === "select",
+              );
+              if (model?.type === "select")
+                session.modelId = model.currentValue;
+            }
+            if (
+              update.sessionUpdate === "session_info_update" &&
+              update.title != null &&
+              !session.replaying
+            )
+              publish({
+                type: "session.title.updated",
+                providerId: id,
+                directory: session.directory,
+                sessionId: session.id,
+                title: update.title,
+              });
+            const changes = mapSessionUpdate(
+              session.messageState,
+              update,
+              session.replaying ? "load" : "live",
+            );
+            if (!session.replaying) publishChanges(session, changes);
+          },
+        }),
+      );
       const client = acp
         .client({ name: "cloudy" })
         .onRequest(
@@ -298,36 +356,7 @@ export function createAcpAdapter({
               pendingPermissions.set(interactionId, resolve);
             });
           },
-        )
-        .onNotification(acp.methods.client.session.update, ({ params }) => {
-          const session = sessions.get(params.sessionId);
-          if (!session) return;
-          const update = params.update;
-          if (update.sessionUpdate === "config_option_update") {
-            const model = update.configOptions.find(
-              (option) => option.id === "model" && option.type === "select",
-            );
-            if (model?.type === "select") session.modelId = model.currentValue;
-          }
-          if (
-            update.sessionUpdate === "session_info_update" &&
-            update.title != null &&
-            !session.replaying
-          )
-            publish({
-              type: "session.title.updated",
-              providerId: id,
-              directory: session.directory,
-              sessionId: session.id,
-              title: update.title,
-            });
-          const changes = mapSessionUpdate(
-            session.messageState,
-            update,
-            session.replaying ? "load" : "live",
-          );
-          if (!session.replaying) publishChanges(session, changes);
-        });
+        );
       const connection = client.connect(stream);
       const session: AcpSession = {
         id: sessionId,

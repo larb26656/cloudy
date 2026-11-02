@@ -125,10 +125,10 @@ export function mapSessionUpdate(
       if (update.content.type !== "text") {
         state.currentTextPartId = undefined;
         addPart(message, {
-          id: `${message.id}:unknown:${update.messageId ?? update.content.type}`,
+          id: `${message.id}:unknown:${message.parts.length}`,
           type: "unknown",
           providerType: update.content.type,
-          data: update.content,
+          data: update,
         });
         break;
       }
@@ -210,6 +210,20 @@ export function mapSessionUpdate(
         metadata: { acp: update },
       });
       break;
+    }
+    case "session_info_update":
+    case "config_option_update":
+      break;
+    default: {
+      const current = currentMessage(state);
+      const message =
+        current?.role === "assistant" ? current : messageForChunk("assistant");
+      addPart(message, {
+        id: `${message.id}:unknown:${message.parts.length}`,
+        type: "unknown",
+        providerType: update.sessionUpdate,
+        data: update,
+      });
     }
   }
   return changes;
