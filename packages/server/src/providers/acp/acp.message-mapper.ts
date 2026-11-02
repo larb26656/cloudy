@@ -6,20 +6,20 @@ export interface AcpMessageState {
   messages: ChatMessage[];
   currentMessageId?: string;
   messageIds: Map<string, string>;
-  toolMessageIds: Map<string, string>;
+  toolParts: Map<string, { messageId: string; partId: string }>;
+  currentTextPartId?: string;
 }
 
 export type MessageChange =
   | { type: "message"; message: ChatMessage }
-  | { type: "part"; messageId: string; part: MessagePart }
-  | { type: "delta"; messageId: string; partId: string; delta: string };
+  | { type: "part"; messageId: string; part: MessagePart };
 
 export function createAcpMessageState(sessionId: string): AcpMessageState {
   return {
     sessionId,
     messages: [],
     messageIds: new Map(),
-    toolMessageIds: new Map(),
+    toolParts: new Map(),
   };
 }
 
@@ -30,7 +30,6 @@ export function startPrompt(
 ): MessageChange[] {
   const now = new Date().toISOString();
   state.messageIds.clear();
-  state.toolMessageIds.clear();
   const userId = `acp:${state.sessionId}:${turnId}:user`;
   const assistantId = `acp:${state.sessionId}:${turnId}`;
   const user = state.messages.find((message) => message.id === userId) ?? {
@@ -60,6 +59,7 @@ export function startPrompt(
   if (!state.messages.includes(user)) state.messages.push(user);
   if (!state.messages.includes(assistant)) state.messages.push(assistant);
   state.currentMessageId = assistant.id;
+  state.currentTextPartId = undefined;
   return [
     { type: "message", message: user },
     { type: "message", message: assistant },
@@ -123,6 +123,7 @@ export function mapSessionUpdate(
       const type =
         update.sessionUpdate === "agent_thought_chunk" ? "reasoning" : "text";
       if (update.content.type !== "text") {
+        state.currentTextPartId = undefined;
         addPart(message, {
           id: `${message.id}:unknown:${message.parts.length}`,
           type: "unknown",
@@ -131,44 +132,43 @@ export function mapSessionUpdate(
         });
         break;
       }
-      const partId = `${message.id}:${type}`;
-      const prior = message.parts.find((part) => part.id === partId);
+      const prior = message.parts.find(
+        (part) => part.id === state.currentTextPartId && part.type === type,
+      );
+      const partId = prior?.id ?? `${message.id}:part:${message.parts.length}`;
+      state.currentTextPartId = partId;
       addPart(message, {
         id: partId,
         type,
         text: (prior?.type === type ? prior.text : "") + update.content.text,
       });
-      if (type === "text")
-        changes.push({
-          type: "delta",
-          messageId: message.id,
-          partId,
-          delta: update.content.text,
-        });
       break;
     }
     case "tool_call":
     case "tool_call_update": {
-      const messageId =
-        state.toolMessageIds.get(update.toolCallId) ?? state.currentMessageId;
-      const current = state.messages.find((item) => item.id === messageId);
+      state.currentTextPartId = undefined;
+      const owner = state.toolParts.get(update.toolCallId);
+      const current = state.messages.find(
+        (item) => item.id === (owner?.messageId ?? state.currentMessageId),
+      );
       const message =
         current?.role === "assistant" ? current : messageForChunk("assistant");
-      state.toolMessageIds.set(update.toolCallId, message.id);
-      const partId = `${message.id}:tool:${update.toolCallId}`;
+      const partId =
+        owner?.partId ?? `${message.id}:part:${message.parts.length}`;
+      state.toolParts.set(update.toolCallId, { messageId: message.id, partId });
       const previous = message.parts.find((part) => part.id === partId);
       const tool = previous?.type === "tool" ? previous : undefined;
       const status =
         update.status === "in_progress"
           ? "running"
-          : (update.status ?? tool?.status ?? "pending");
+          : (update.status ?? tool?.status);
       addPart(message, {
         id: partId,
         type: "tool",
         toolName:
           update.sessionUpdate === "tool_call"
-            ? (update.name ?? "unknown")
-            : (tool?.toolName ?? "unknown"),
+            ? (update.name ?? tool?.toolName ?? undefined)
+            : tool?.toolName,
         callId: update.toolCallId,
         status,
         input: update.rawInput ?? tool?.input,
@@ -194,6 +194,7 @@ export function mapSessionUpdate(
       break;
     }
     case "plan": {
+      state.currentTextPartId = undefined;
       const current = currentMessage(state);
       const message =
         current?.role === "assistant" ? current : messageForChunk("assistant");

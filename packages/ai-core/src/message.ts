@@ -38,9 +38,9 @@ export interface ToolMessagePartState {
 
 export interface ToolMessagePart extends MessagePartBase {
   type: "tool";
-  toolName: string;
+  toolName?: string;
   callId?: string;
-  status: "pending" | "running" | "completed" | "failed";
+  status?: "pending" | "running" | "completed" | "failed";
   input?: unknown;
   output?: unknown;
   error?: string;

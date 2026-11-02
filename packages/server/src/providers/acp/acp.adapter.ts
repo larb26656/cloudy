@@ -128,15 +128,6 @@ export function createAcpAdapter({
             part: change.part,
           });
           break;
-        case "delta":
-          publish({
-            type: "message.delta",
-            ...context,
-            messageId: change.messageId,
-            partId: change.partId,
-            delta: change.delta,
-          });
-          break;
       }
     }
   };
