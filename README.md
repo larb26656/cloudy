@@ -32,6 +32,13 @@ activity card. Its raw provider payload is collapsed by default and can be
 expanded for inspection; it may contain sensitive information. Raw activity is
 kept only in temporary presentation state, not in a Cloudy-owned transcript.
 
+## Refreshing agent models
+
+The model selector discovers ACP models before starting a conversation. After
+changing an agent's configuration, open the selector and choose **Refresh
+models**. If refresh fails, the last successfully discovered models remain
+available and the selector warns that they may be out of date.
+
 ## Browser Extension Development
 
 The browser extension lives in `apps/browser-extension` and is built with WXT.

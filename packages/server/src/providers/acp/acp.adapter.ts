@@ -194,8 +194,10 @@ export function createAcpAdapter({
       reasoning: true,
       models: false,
     },
-    async getInfo(): Promise<AgentProviderInfo> {
-      if (catalogDirectory && !catalogProbed) {
+    async getInfo(input?: {
+      refreshModels?: boolean;
+    }): Promise<AgentProviderInfo> {
+      if (catalogDirectory && (!catalogProbed || input?.refreshModels)) {
         catalogProbe ??= (async () => {
           let sessionId: string | undefined;
           const probeAdapter = createAcpAdapter({
@@ -211,13 +213,10 @@ export function createAcpAdapter({
             });
             sessionId = session.id;
             const probeInfo = await probeAdapter.getInfo();
+            models.clear();
             for (const model of probeInfo.models ?? [])
               models.set(model.modelId, model);
-          } catch (error) {
-            console.warn("[ACP] Catalog discovery session failed", {
-              providerId: id,
-              error: error instanceof Error ? error.message : String(error),
-            });
+            catalogProbed = true;
           } finally {
             if (sessionId) {
               try {
@@ -230,10 +229,13 @@ export function createAcpAdapter({
                 });
               }
             }
-            catalogProbed = true;
           }
         })();
-        await catalogProbe;
+        try {
+          await catalogProbe;
+        } finally {
+          catalogProbe = undefined;
+        }
       }
       console.info("[ACP] Building provider catalog", {
         providerId: id,
@@ -450,7 +452,9 @@ export function createAcpAdapter({
                 : undefined,
           })),
         });
-        for (const option of created.configOptions ?? []) {
+        for (const option of catalogDirectory
+          ? []
+          : (created.configOptions ?? [])) {
           if (option.category !== "model" || option.type !== "select") continue;
           for (const item of option.options) {
             const values = "options" in item ? item.options : [item];

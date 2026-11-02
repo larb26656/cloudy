@@ -95,6 +95,15 @@ export function createAgentProviderRegistry({
       if (!providerMap.delete(providerId)) return;
       listeners.forEach((listener) => listener());
     },
+    async refreshModels(
+      providerId: string,
+    ): Promise<ResolvedAgentProviderInfo> {
+      const info = await get(providerId).getInfo({ refreshModels: true });
+      return {
+        ...info,
+        capabilities: { ...defaultCapabilities, ...info.capabilities },
+      };
+    },
     async catalog(): Promise<{
       providers: ResolvedAgentProviderInfo[];
       errors: { providerId: string; message: string }[];

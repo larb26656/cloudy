@@ -1,6 +1,7 @@
-import { Bot, ChevronDown, Search, Star } from "lucide-react";
+import { Bot, ChevronDown, RefreshCw, Search, Star } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@repo/ui/components/input";
+import { Button } from "@repo/ui/components/button";
 import { Badge } from "@repo/ui/components/badge";
 import {
   DropdownMenu,
@@ -55,6 +56,9 @@ interface ModelSelectorProps<T extends ModelSelectorModel> {
   isMobile?: boolean;
   isLoading?: boolean;
   error?: string | null;
+  refreshError?: string | null;
+  isRefreshing?: boolean;
+  onRefresh?: () => void;
   onChange: (model: T | null) => void;
   onToggleFavorite: (model: T) => void;
   triggerVariant?: string;
@@ -73,6 +77,9 @@ export function ModelSelector<T extends ModelSelectorModel>({
   isMobile = false,
   isLoading = false,
   error = null,
+  refreshError = null,
+  isRefreshing = false,
+  onRefresh,
   onChange,
   onToggleFavorite,
   triggerVariant,
@@ -169,6 +176,25 @@ export function ModelSelector<T extends ModelSelectorModel>({
       </div>
     </div>
   );
+
+  const refreshControl = onRefresh ? (
+    <div className="px-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={onRefresh}
+        disabled={isRefreshing}
+      >
+        <RefreshCw data-icon="inline-start" />
+        {isRefreshing ? "Refreshing models…" : "Refresh models"}
+      </Button>
+      {refreshError && (
+        <p role="alert" className="px-2 text-sm text-destructive">
+          {refreshError}. The model list may be out of date.
+        </p>
+      )}
+    </div>
+  ) : null;
 
   const options = (
     <>
@@ -272,6 +298,7 @@ export function ModelSelector<T extends ModelSelectorModel>({
               <SheetTitle>Select model</SheetTitle>
             </SheetHeader>
             {searchInput}
+            {refreshControl}
             {variantOptions}
             <div className="min-h-0 flex-1 overflow-y-auto border-y py-1">
               {options}
@@ -305,6 +332,7 @@ export function ModelSelector<T extends ModelSelectorModel>({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         {searchInput}
+        {refreshControl}
         {variantOptions}
         <DropdownMenuSeparator />
         <div className="max-h-80 overflow-y-auto">{options}</div>

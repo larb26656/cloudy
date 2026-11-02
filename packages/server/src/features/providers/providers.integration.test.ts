@@ -76,6 +76,22 @@ describe("providers integration", () => {
     });
   });
 
+  it("refreshes a provider's model catalog", async () => {
+    const response = await app.request(
+      "/api/agent-providers/opencode/models/refresh",
+      {
+        method: "POST",
+      },
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      id: "opencode",
+      models: [{ modelId: "model-1" }],
+      capabilities: { models: true, questions: false },
+    });
+  });
+
   it("streams normalized events from the Cloudy-wide endpoint", async () => {
     const response = await app.request("/api/agent-providers/events");
 
