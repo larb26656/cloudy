@@ -17,3 +17,9 @@ _Avoid_: Question
 
 **Command Catalog**:
 The commands advertised by a provider for a working directory. A Command Catalog does not guarantee that every conversation in that directory offers the same commands.
+
+**Native Tool Activity**:
+An agent's tool action presented in Cloudy's shared tool vocabulary, with the available action details and execution status, regardless of provider.
+
+**Generic Tool Activity**:
+A tool action whose specific category is unknown or unsupported. It retains the available action details and execution status without claiming a more specific category.

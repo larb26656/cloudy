@@ -17,6 +17,15 @@ describe("ProviderIcon", () => {
     expect(screen.getByRole("img", { name: "OpenCode" })).toBeInTheDocument();
   });
 
+  it("renders the OMP mark for its ACP provider", () => {
+    vi.mocked(useModels).mockReturnValue({
+      data: [{ id: "omp", providerType: "acp" }],
+    } as ReturnType<typeof useModels>);
+    render(<ProviderIcon providerId="omp" />);
+
+    expect(screen.getByRole("img", { name: "OMP" })).toBeInTheDocument();
+  });
+
   it("renders the pixel cloud for Cloudy", () => {
     vi.mocked(useModels).mockReturnValue({
       data: [],
