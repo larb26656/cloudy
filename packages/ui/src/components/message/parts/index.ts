@@ -9,3 +9,4 @@ export { PatchPart } from "./PatchPart";
 export { AgentPart } from "./AgentPart";
 export { RetryPart } from "./RetryPart";
 export { CompactionPart } from "./CompactionPart";
+export { UnknownPart } from "./UnknownPart";

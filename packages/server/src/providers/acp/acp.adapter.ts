@@ -79,6 +79,8 @@ interface PendingQuestion {
 
 interface AcpSession {
   id: string;
+  title?: string;
+  createdAt: string;
   directory: string;
   process: ChildProcess;
   connection: acp.ClientConnection;
@@ -506,6 +508,25 @@ export function createAcpAdapter({
         model: input.model,
       });
     },
+    async getSession(input: {
+      sessionId: string;
+      directory?: string;
+    }): Promise<ChatSession> {
+      const creating = creatingSessions.get(input.sessionId);
+      if (creating) await creating;
+      const session = sessions.get(input.sessionId);
+      const now = new Date().toISOString();
+      return {
+        id: input.sessionId,
+        title: session?.title,
+        status: session?.runStatus === "running" ? "active" : "idle",
+        runStatus: session?.runStatus ?? "unknown",
+        providerId: id,
+        createdAt: session?.createdAt ?? now,
+        updatedAt: session?.createdAt ?? now,
+        directory: session?.directory ?? input.directory,
+      };
+    },
     async getSessionStatuses(input: {
       directory?: string;
       sessionId?: string;
@@ -606,7 +627,8 @@ export function createAcpAdapter({
                 update.sessionUpdate === "session_info_update" &&
                 update.title != null &&
                 !session.replaying
-              )
+              ) {
+                session.title = update.title;
                 publish({
                   type: "session.title.updated",
                   providerId: id,
@@ -614,6 +636,7 @@ export function createAcpAdapter({
                   sessionId: session.id,
                   title: update.title,
                 });
+              }
               const changes = mapSessionUpdate(
                 session.messageState,
                 update,
@@ -738,6 +761,8 @@ export function createAcpAdapter({
         const connection = client.connect(stream);
         const session: AcpSession = {
           id: sessionId,
+          title: input.title,
+          createdAt: new Date().toISOString(),
           directory: input.directory,
           process: child,
           connection,
@@ -882,7 +907,7 @@ export function createAcpAdapter({
             updateModel(session, created.configOptions);
           if (discovery) discovery.created = true;
           else sessions.set(session.id, session);
-          const now = new Date().toISOString();
+          const now = session.createdAt;
           return {
             id: session.id,
             title: input.title,

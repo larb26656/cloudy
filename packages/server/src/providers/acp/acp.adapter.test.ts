@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import { describe, expect, it, vi } from "vitest";
 import type { ToolMessagePart } from "@repo/ai-core";
 import { createAcpAdapter } from "./acp.adapter";
+import { createAgentProviderRegistry } from "../provider.registry";
 import { applyChatEvent } from "../../../../../apps/web-app/src/lib/streaming/message-stream";
 import type { MessageStreamState } from "../../../../../apps/web-app/src/lib/streaming/message-stream";
 
@@ -301,13 +302,66 @@ function createAdapter(profile: string) {
 }
 
 describe("createAcpAdapter", () => {
+  it("retrieves live and previously persisted sessions through the provider registry", async () => {
+    const adapter = createAdapter("models");
+    const registry = createAgentProviderRegistry({ providers: [adapter] });
+    const directory = process.cwd();
+    const created = await adapter.createSession({
+      directory,
+      title: "My chat",
+    });
+    try {
+      expect(
+        await registry.getSession(adapter.id, {
+          sessionId: created.id,
+          directory,
+        }),
+      ).toMatchObject({
+        id: created.id,
+        title: "My chat",
+        status: "idle",
+        runStatus: "idle",
+        directory,
+        createdAt: created.createdAt,
+      });
+      await adapter.sendMessage({
+        sessionId: created.id,
+        content: "hello",
+        model: selectedModel,
+      });
+      expect(
+        await registry.getSession(adapter.id, {
+          sessionId: created.id,
+          directory,
+        }),
+      ).toMatchObject({
+        runStatus: "completed",
+      });
+    } finally {
+      await adapter.deleteSession({ sessionId: created.id });
+    }
+    expect(
+      await registry.getSession(adapter.id, {
+        sessionId: created.id,
+        directory,
+      }),
+    ).toMatchObject({
+      id: created.id,
+      directory,
+      runStatus: "unknown",
+    });
+  });
+
   it("uses the selected session model on each turn and records confirmed model metadata", async () => {
     const adapter = createAdapter("models");
     const directory = process.cwd();
     const sessionId = "models-session";
     await adapter.createSession({ directory });
     try {
-      for (const [content, modelId] of [["first", "model-2"], ["second", "model-1"]]) {
+      for (const [content, modelId] of [
+        ["first", "model-2"],
+        ["second", "model-1"],
+      ]) {
         await adapter.sendMessage({
           sessionId,
           directory,
@@ -318,9 +372,27 @@ describe("createAcpAdapter", () => {
       const history = await adapter.listMessages!({ sessionId });
       expect(history.messages).toMatchObject([
         { role: "user", parts: [{ text: "first" }] },
-        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:first" }), expect.objectContaining({ type: "step-finish", modelID: "model-2" })]) },
+        {
+          role: "assistant",
+          parts: expect.arrayContaining([
+            expect.objectContaining({ text: "model-2:first" }),
+            expect.objectContaining({
+              type: "step-finish",
+              modelID: "model-2",
+            }),
+          ]),
+        },
         { role: "user", parts: [{ text: "second" }] },
-        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:second" }), expect.objectContaining({ type: "step-finish", modelID: "model-1" })]) },
+        {
+          role: "assistant",
+          parts: expect.arrayContaining([
+            expect.objectContaining({ text: "model-1:second" }),
+            expect.objectContaining({
+              type: "step-finish",
+              modelID: "model-1",
+            }),
+          ]),
+        },
       ]);
     } finally {
       await adapter.deleteSession({ sessionId });
@@ -334,10 +406,21 @@ describe("createAcpAdapter", () => {
       const sessionId = `${profile}-session`;
       await adapter.createSession({ directory: process.cwd() });
       try {
-        await adapter.sendMessage({ sessionId, content: "hello", model: selectedModel });
-        expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
+        await adapter.sendMessage({
+          sessionId,
+          content: "hello",
+          model: selectedModel,
+        });
+        expect(
+          (await adapter.listMessages!({ sessionId })).messages,
+        ).toMatchObject([
           { role: "user" },
-          { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:hello" })]) },
+          {
+            role: "assistant",
+            parts: expect.arrayContaining([
+              expect.objectContaining({ text: "model-1:hello" }),
+            ]),
+          },
         ]);
       } finally {
         await adapter.deleteSession({ sessionId });
@@ -348,38 +431,66 @@ describe("createAcpAdapter", () => {
   it.each([
     { profile: "models", modelId: undefined, message: "Select a model" },
     { profile: "models", modelId: "missing", message: "not available" },
-    { profile: "models-reject", modelId: "model-2", message: "could not activate" },
-    { profile: "models-unsupported", modelId: "model-2", message: "could not activate" },
-    { profile: "models-unconfirmed", modelId: "model-2", message: "did not confirm" },
-  ])("does not deliver a prompt when model selection fails: $message", async ({ profile, modelId, message }) => {
-    const adapter = createAdapter(profile);
-    const sessionId = `${profile}-session`;
-    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
-    await adapter.createSession({ directory: process.cwd() });
-    try {
-      await expect(adapter.sendMessage({
-        sessionId,
-        content: "must not be delivered",
-        model: modelId ? { providerId: "fake", modelId } : undefined,
-      })).rejects.toThrow(message);
-      if (profile === "models-unconfirmed") {
+    {
+      profile: "models-reject",
+      modelId: "model-2",
+      message: "could not activate",
+    },
+    {
+      profile: "models-unsupported",
+      modelId: "model-2",
+      message: "could not activate",
+    },
+    {
+      profile: "models-unconfirmed",
+      modelId: "model-2",
+      message: "did not confirm",
+    },
+  ])(
+    "does not deliver a prompt when model selection fails: $message",
+    async ({ profile, modelId, message }) => {
+      const adapter = createAdapter(profile);
+      const sessionId = `${profile}-session`;
+      const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+      await adapter.createSession({ directory: process.cwd() });
+      try {
+        await expect(
+          adapter.sendMessage({
+            sessionId,
+            content: "must not be delivered",
+            model: modelId ? { providerId: "fake", modelId } : undefined,
+          }),
+        ).rejects.toThrow(message);
+        if (profile === "models-unconfirmed") {
+          await adapter.deleteSession({ sessionId });
+          await adapter.createSession({ directory: process.cwd() });
+        }
+        await adapter.sendMessage({
+          sessionId,
+          content: "retry",
+          model: selectedModel,
+        });
+        expect((await events.next()).value).toMatchObject({
+          type: "message.updated",
+          message: { role: "user", parts: [{ text: "retry" }] },
+        });
+        expect(
+          (await adapter.listMessages!({ sessionId })).messages,
+        ).toMatchObject([
+          { role: "user", parts: [{ text: "retry" }] },
+          {
+            role: "assistant",
+            parts: expect.arrayContaining([
+              expect.objectContaining({ text: "model-1:retry" }),
+            ]),
+          },
+        ]);
+      } finally {
         await adapter.deleteSession({ sessionId });
-        await adapter.createSession({ directory: process.cwd() });
+        await events.return?.();
       }
-      await adapter.sendMessage({ sessionId, content: "retry", model: selectedModel });
-      expect((await events.next()).value).toMatchObject({
-        type: "message.updated",
-        message: { role: "user", parts: [{ text: "retry" }] },
-      });
-      expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
-        { role: "user", parts: [{ text: "retry" }] },
-        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:retry" })]) },
-      ]);
-    } finally {
-      await adapter.deleteSession({ sessionId });
-      await events.return?.();
-    }
-  });
+    },
+  );
 
   it.each(["models-reject", "models-unsupported"])(
     "preserves a live non-resumable session after %s rejects a model change",
@@ -388,18 +499,50 @@ describe("createAcpAdapter", () => {
       const sessionId = `${profile}-session`;
       await adapter.createSession({ directory: process.cwd() });
       try {
-        await adapter.sendMessage({ sessionId, content: "before", model: selectedModel });
-        await expect(adapter.sendMessage({
+        await adapter.sendMessage({
           sessionId,
-          content: "not delivered",
-          model: { providerId: "fake", modelId: "model-2" },
-        })).rejects.toThrow("could not activate");
-        await adapter.sendMessage({ sessionId, content: "retry", model: selectedModel });
-        expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
-          { role: "user", parts: expect.arrayContaining([expect.objectContaining({ text: "before" })]) },
-          { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:before" })]) },
-          { role: "user", parts: expect.arrayContaining([expect.objectContaining({ text: "retry" })]) },
-          { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:retry" })]) },
+          content: "before",
+          model: selectedModel,
+        });
+        await expect(
+          adapter.sendMessage({
+            sessionId,
+            content: "not delivered",
+            model: { providerId: "fake", modelId: "model-2" },
+          }),
+        ).rejects.toThrow("could not activate");
+        await adapter.sendMessage({
+          sessionId,
+          content: "retry",
+          model: selectedModel,
+        });
+        expect(
+          (await adapter.listMessages!({ sessionId })).messages,
+        ).toMatchObject([
+          {
+            role: "user",
+            parts: expect.arrayContaining([
+              expect.objectContaining({ text: "before" }),
+            ]),
+          },
+          {
+            role: "assistant",
+            parts: expect.arrayContaining([
+              expect.objectContaining({ text: "model-1:before" }),
+            ]),
+          },
+          {
+            role: "user",
+            parts: expect.arrayContaining([
+              expect.objectContaining({ text: "retry" }),
+            ]),
+          },
+          {
+            role: "assistant",
+            parts: expect.arrayContaining([
+              expect.objectContaining({ text: "model-1:retry" }),
+            ]),
+          },
         ]);
       } finally {
         await adapter.deleteSession({ sessionId });
@@ -416,14 +559,27 @@ describe("createAcpAdapter", () => {
       const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
       await adapter.createSession({ sessionId, directory });
       try {
-        await adapter.sendMessage({ sessionId, directory, content: "restored", model: { providerId: "fake", modelId: "model-2" } });
+        await adapter.sendMessage({
+          sessionId,
+          directory,
+          content: "restored",
+          model: { providerId: "fake", modelId: "model-2" },
+        });
         let answer;
         while (true) {
           const event = await events.next();
-          if (event.done) throw new Error("Event stream closed before response");
-          if (event.value.type === "message.part.updated" && event.value.part.type === "text")
+          if (event.done)
+            throw new Error("Event stream closed before response");
+          if (
+            event.value.type === "message.part.updated" &&
+            event.value.part.type === "text"
+          )
             answer = event.value.part.text;
-          if (event.value.type === "session.status" && event.value.runStatus === "completed") break;
+          if (
+            event.value.type === "session.status" &&
+            event.value.runStatus === "completed"
+          )
+            break;
         }
         expect(answer).toBe("model-2:restored");
       } finally {
@@ -438,13 +594,35 @@ describe("createAcpAdapter", () => {
     const sessionId = "models-update-session";
     await adapter.createSession({ directory: process.cwd() });
     try {
-      await adapter.sendMessage({ sessionId, content: "update", model: selectedModel });
-      await adapter.sendMessage({ sessionId, content: "after", model: { providerId: "fake", modelId: "model-2" } });
-      expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
+      await adapter.sendMessage({
+        sessionId,
+        content: "update",
+        model: selectedModel,
+      });
+      await adapter.sendMessage({
+        sessionId,
+        content: "after",
+        model: { providerId: "fake", modelId: "model-2" },
+      });
+      expect(
+        (await adapter.listMessages!({ sessionId })).messages,
+      ).toMatchObject([
         { role: "user" },
-        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:update" }), expect.objectContaining({ modelID: "model-1" })]) },
+        {
+          role: "assistant",
+          parts: expect.arrayContaining([
+            expect.objectContaining({ text: "model-1:update" }),
+            expect.objectContaining({ modelID: "model-1" }),
+          ]),
+        },
         { role: "user" },
-        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:after" }), expect.objectContaining({ modelID: "model-2" })]) },
+        {
+          role: "assistant",
+          parts: expect.arrayContaining([
+            expect.objectContaining({ text: "model-2:after" }),
+            expect.objectContaining({ modelID: "model-2" }),
+          ]),
+        },
       ]);
     } finally {
       await adapter.deleteSession({ sessionId });
@@ -457,20 +635,45 @@ describe("createAcpAdapter", () => {
     const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
     await adapter.createSession({ directory: process.cwd() });
     try {
-      const first = adapter.sendMessage({ sessionId, content: "permission", model: selectedModel });
+      const first = adapter.sendMessage({
+        sessionId,
+        content: "permission",
+        model: selectedModel,
+      });
       while (true) {
         const event = await events.next();
         if (event.done) throw new Error("Event stream closed before approval");
         if (event.value.type === "approval.requested") break;
       }
-      const second = adapter.sendMessage({ sessionId, content: "second", model: { providerId: "fake", modelId: "model-2" } });
-      await adapter.respondToInteraction({ kind: "permission", sessionId, interactionId: `${sessionId}:model-wait`, value: { optionId: "allow" } });
+      const second = adapter.sendMessage({
+        sessionId,
+        content: "second",
+        model: { providerId: "fake", modelId: "model-2" },
+      });
+      await adapter.respondToInteraction({
+        kind: "permission",
+        sessionId,
+        interactionId: `${sessionId}:model-wait`,
+        value: { optionId: "allow" },
+      });
       await Promise.all([first, second]);
-      expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
+      expect(
+        (await adapter.listMessages!({ sessionId })).messages,
+      ).toMatchObject([
         { role: "user" },
-        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:permission" })]) },
+        {
+          role: "assistant",
+          parts: expect.arrayContaining([
+            expect.objectContaining({ text: "model-1:permission" }),
+          ]),
+        },
         { role: "user" },
-        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:second" })]) },
+        {
+          role: "assistant",
+          parts: expect.arrayContaining([
+            expect.objectContaining({ text: "model-2:second" }),
+          ]),
+        },
       ]);
     } finally {
       await adapter.deleteSession({ sessionId });
@@ -485,14 +688,38 @@ describe("createAcpAdapter", () => {
     await adapter.createSession({ sessionId: "two", directory });
     try {
       await Promise.all([
-        adapter.sendMessage({ sessionId: "one", content: "one", model: selectedModel }),
-        adapter.sendMessage({ sessionId: "two", content: "two", model: { providerId: "fake", modelId: "model-2" } }),
+        adapter.sendMessage({
+          sessionId: "one",
+          content: "one",
+          model: selectedModel,
+        }),
+        adapter.sendMessage({
+          sessionId: "two",
+          content: "two",
+          model: { providerId: "fake", modelId: "model-2" },
+        }),
       ]);
-      expect((await adapter.listMessages!({ sessionId: "one" })).messages).toMatchObject([
-        { role: "user" }, { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:one" })]) },
+      expect(
+        (await adapter.listMessages!({ sessionId: "one" })).messages,
+      ).toMatchObject([
+        { role: "user" },
+        {
+          role: "assistant",
+          parts: expect.arrayContaining([
+            expect.objectContaining({ text: "model-1:one" }),
+          ]),
+        },
       ]);
-      expect((await adapter.listMessages!({ sessionId: "two" })).messages).toMatchObject([
-        { role: "user" }, { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:two" })]) },
+      expect(
+        (await adapter.listMessages!({ sessionId: "two" })).messages,
+      ).toMatchObject([
+        { role: "user" },
+        {
+          role: "assistant",
+          parts: expect.arrayContaining([
+            expect.objectContaining({ text: "model-2:two" }),
+          ]),
+        },
       ]);
     } finally {
       await adapter.deleteSession({ sessionId: "one" });
@@ -625,7 +852,12 @@ describe("createAcpAdapter", () => {
     const directory = process.cwd();
     const sessionId = "reload-failure-session";
     await adapter.createSession({ directory });
-    await adapter.sendMessage({ sessionId, directory, content: "hello", model: selectedModel });
+    await adapter.sendMessage({
+      sessionId,
+      directory,
+      content: "hello",
+      model: selectedModel,
+    });
     const history = await adapter.listMessages!({ sessionId });
     expect(history).toMatchObject({
       historyUnavailable: true,
@@ -649,47 +881,115 @@ describe("createAcpAdapter", () => {
     const sessionId = "other-tools-session";
     await adapter.createSession({ directory: process.cwd() });
     try {
-      await adapter.sendMessage({ sessionId, content: "go", model: selectedModel });
+      await adapter.sendMessage({
+        sessionId,
+        content: "go",
+        model: selectedModel,
+      });
       const parts: ToolMessagePart[] = [];
       while (true) {
         const next = await events.next();
         if (next.done) break;
-        if (next.value.type === "message.part.updated" && next.value.part.type === "tool")
+        if (
+          next.value.type === "message.part.updated" &&
+          next.value.part.type === "tool"
+        )
           parts.push(next.value.part);
-        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+        if (
+          next.value.type === "session.status" &&
+          next.value.runStatus === "completed"
+        )
+          break;
       }
       const inputs = [
         ["read", { filePath: "src/a.ts", offset: 5, limit: 9 }],
         ["grep", { pattern: "needle", path: "src", include: "*.ts" }],
         ["glob", { pattern: "**/*.ts", path: "src" }],
-        ["webfetch", { url: "https://example.org", format: "markdown", timeout: 30 }],
+        [
+          "webfetch",
+          { url: "https://example.org", format: "markdown", timeout: 30 },
+        ],
         ["websearch", { query: "cloudy", numResults: 3 }],
-        ["task", { agent: "reviewer", description: "Review code", prompt: "Find defects", sessionId: "child-1" }],
-        ["question", { questions: [{ question: "Choose?", header: "Choice", options: [{ label: "A", description: "First" }] }] }],
-        ["todowrite", { todos: [{ content: "Start", status: "in_progress" }, { content: "Later", status: "pending" }] }],
+        [
+          "task",
+          {
+            agent: "reviewer",
+            description: "Review code",
+            prompt: "Find defects",
+            sessionId: "child-1",
+          },
+        ],
+        [
+          "question",
+          {
+            questions: [
+              {
+                question: "Choose?",
+                header: "Choice",
+                options: [{ label: "A", description: "First" }],
+              },
+            ],
+          },
+        ],
+        [
+          "todowrite",
+          {
+            todos: [
+              { content: "Start", status: "in_progress" },
+              { content: "Later", status: "pending" },
+            ],
+          },
+        ],
       ] as const;
       for (const [index, [name, input]] of inputs.entries()) {
-        expect(parts[index * 3]).toMatchObject({ callId: name, status: "pending" });
+        expect(parts[index * 3]).toMatchObject({
+          callId: name,
+          status: "pending",
+        });
         expect(parts[index * 3]?.toolName).toBeUndefined();
         expect(parts[index * 3 + 1]).toMatchObject({
-          callId: name, toolName: name, status: "running", input,
+          callId: name,
+          toolName: name,
+          status: "running",
+          input,
           metadata: { acp: { name, rawInput: input } },
         });
         expect(parts[index * 3 + 2]).toMatchObject({
-          callId: name, toolName: name, status: "completed", input, output: { result: name },
+          callId: name,
+          toolName: name,
+          status: "completed",
+          input,
+          output: { result: name },
         });
       }
-      expect(parts[24]).toMatchObject({ callId: "partial", input: { offset: 2 }, metadata: { acp: { name: "read" } } });
+      expect(parts[24]).toMatchObject({
+        callId: "partial",
+        input: { offset: 2 },
+        metadata: { acp: { name: "read" } },
+      });
       expect(parts[24]?.toolName).toBeUndefined();
-      expect(parts[25]).toMatchObject({ callId: "ambiguous", input: { query: "cloudy" }, status: "failed" });
+      expect(parts[25]).toMatchObject({
+        callId: "ambiguous",
+        input: { query: "cloudy" },
+        status: "failed",
+      });
       expect(parts[25]?.toolName).toBeUndefined();
       expect(parts[26]).toMatchObject({
-        callId: "partial", toolName: "read", input: { filePath: "late.txt" },
-        status: "failed", output: "not found",
+        callId: "partial",
+        toolName: "read",
+        input: { filePath: "late.txt" },
+        status: "failed",
+        output: "not found",
       });
       const history = await adapter.listMessages!({ sessionId });
-      const tools = history.messages.flatMap((message) => message.parts.filter((part) => part.type === "tool"));
-      expect(tools).toEqual([...inputs.map((_, index) => parts[index * 3 + 2]), parts[26], parts[25]]);
+      const tools = history.messages.flatMap((message) =>
+        message.parts.filter((part) => part.type === "tool"),
+      );
+      expect(tools).toEqual([
+        ...inputs.map((_, index) => parts[index * 3 + 2]),
+        parts[26],
+        parts[25],
+      ]);
     } finally {
       await adapter.deleteSession({ sessionId });
       await events.return?.();
@@ -702,64 +1002,104 @@ describe("createAcpAdapter", () => {
     const sessionId = "file-changes-session";
     await adapter.createSession({ directory: process.cwd() });
     try {
-      await adapter.sendMessage({ sessionId, content: "go", model: selectedModel });
+      await adapter.sendMessage({
+        sessionId,
+        content: "go",
+        model: selectedModel,
+      });
       const parts = [];
       while (true) {
         const next = await events.next();
         if (next.done) break;
-        if (next.value.type === "message.part.updated" && next.value.part.type === "tool")
+        if (
+          next.value.type === "message.part.updated" &&
+          next.value.part.type === "tool"
+        )
           parts.push(next.value.part);
-        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+        if (
+          next.value.type === "session.status" &&
+          next.value.runStatus === "completed"
+        )
+          break;
       }
       const edit = parts.filter((part) => part.callId === "edit");
-      expect(edit[0]).toMatchObject({ changes: [
-        { path: "a.ts", before: "", after: "one" },
-        { path: "a.ts", before: "one", after: "two" },
-        { path: "b.ts", before: "old", after: "" },
-      ] });
+      expect(edit[0]).toMatchObject({
+        changes: [
+          { path: "a.ts", before: "", after: "one" },
+          { path: "a.ts", before: "one", after: "two" },
+          { path: "b.ts", before: "old", after: "" },
+        ],
+      });
       expect(edit[1]).toMatchObject({
-        toolName: "edit", status: "running", input: { filePath: "a.ts" },
-        metadata: { acp: { name: "edit", rawInput: { oldString: "", newString: "one" } } },
+        toolName: "edit",
+        status: "running",
+        input: { filePath: "a.ts" },
+        metadata: {
+          acp: { name: "edit", rawInput: { oldString: "", newString: "one" } },
+        },
       });
       expect(edit[2]).toMatchObject({
         changes: [{ path: "b.ts", before: "", after: "fixed" }],
-        displayContent: ["corrected"], output: { progress: 2 },
+        displayContent: ["corrected"],
+        output: { progress: 2 },
       });
       expect(edit[3]).toMatchObject({
-        status: "failed", error: "cannot save", output: { error: "cannot save" },
+        status: "failed",
+        error: "cannot save",
+        output: { error: "cannot save" },
         changes: [{ path: "b.ts", before: "", after: "fixed" }],
         displayContent: ["corrected"],
       });
-      expect(edit[4]).toMatchObject({ changes: [], input: { filePath: "a.ts", oldString: "", newString: "one" } });
-      expect(parts.find((part) => part.callId === "write")).toMatchObject({
-        toolName: "write", input: { filePath: "empty.ts", content: "" },
+      expect(edit[4]).toMatchObject({
+        changes: [],
+        input: { filePath: "a.ts", oldString: "", newString: "one" },
       });
-      expect(parts.filter((part) => part.callId === "write").at(-1)).toMatchObject({ output: "saved", displayContent: ["saved"] });
+      expect(parts.find((part) => part.callId === "write")).toMatchObject({
+        toolName: "write",
+        input: { filePath: "empty.ts", content: "" },
+      });
+      expect(
+        parts.filter((part) => part.callId === "write").at(-1),
+      ).toMatchObject({ output: "saved", displayContent: ["saved"] });
       expect(parts.find((part) => part.callId === "patch")).toMatchObject({
-        toolName: "apply_patch", input: { patchText: "*** Begin Patch\n*** Add File: c.ts\n+x\n*** End Patch" },
+        toolName: "apply_patch",
+        input: {
+          patchText: "*** Begin Patch\n*** Add File: c.ts\n+x\n*** End Patch",
+        },
         changes: [{ path: "c.ts", before: "", after: "x" }],
       });
       expect(parts.find((part) => part.callId === "single")).toMatchObject({
-        toolName: "edit", input: { filePath: "single.ts", oldString: "old", newString: "" },
+        toolName: "edit",
+        input: { filePath: "single.ts", oldString: "old", newString: "" },
       });
       const unknown = parts.filter((part) => part.callId === "unknown").at(-1);
       expect(unknown?.toolName).toBeUndefined();
       expect(unknown).toMatchObject({
-        kind: "edit", locations: [{ path: "unknown.ts" }],
+        kind: "edit",
+        locations: [{ path: "unknown.ts" }],
         changes: [{ path: "unknown.ts", before: "a", after: "b" }],
       });
       const history = await adapter.listMessages!({ sessionId });
-      const replayed = history.messages.flatMap((message) => message.parts.filter((part) => part.type === "tool"));
+      const replayed = history.messages.flatMap((message) =>
+        message.parts.filter((part) => part.type === "tool"),
+      );
       for (const callId of ["edit", "write", "patch", "single", "unknown"]) {
         const live = parts.filter((part) => part.callId === callId).at(-1);
         const matches = replayed.filter((part) => part.callId === callId);
         expect(matches).toHaveLength(1);
         expect(matches[0]).toMatchObject({
-          toolName: live?.toolName, input: live?.input, changes: live?.changes,
-          status: live?.status, output: live?.output,
+          toolName: live?.toolName,
+          input: live?.input,
+          changes: live?.changes,
+          status: live?.status,
+          output: live?.output,
         });
       }
-      expect(history.messages.flatMap((message) => message.parts).filter((part) => part.type === "diff")).toEqual([]);
+      expect(
+        history.messages
+          .flatMap((message) => message.parts)
+          .filter((part) => part.type === "diff"),
+      ).toEqual([]);
     } finally {
       await adapter.deleteSession({ sessionId });
       await events.return?.();
@@ -772,45 +1112,78 @@ describe("createAcpAdapter", () => {
     const sessionId = "generic-session";
     await adapter.createSession({ directory: process.cwd() });
     try {
-      await adapter.sendMessage({ sessionId, content: "go", model: selectedModel });
+      await adapter.sendMessage({
+        sessionId,
+        content: "go",
+        model: selectedModel,
+      });
       const parts = [];
       while (true) {
         const next = await events.next();
         if (next.done) break;
-        if (next.value.type === "message.part.updated" && next.value.part.type === "tool")
+        if (
+          next.value.type === "message.part.updated" &&
+          next.value.part.type === "tool"
+        )
           parts.push(next.value.part);
-        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+        if (
+          next.value.type === "session.status" &&
+          next.value.runStatus === "completed"
+        )
+          break;
       }
       expect(parts[0]).toMatchObject({ callId: "a", output: { progress: 1 } });
       expect(parts[0]?.status).toBeUndefined();
       expect(parts[0]?.toolName).toBeUndefined();
       expect(parts[1]).toMatchObject({
-        callId: "b", title: "Write report", kind: "edit", status: "pending",
+        callId: "b",
+        title: "Write report",
+        kind: "edit",
+        status: "pending",
         locations: [{ path: "report.txt", line: 4 }],
       });
       expect(parts[1]?.toolName).toBeUndefined();
       expect(parts[2]).toMatchObject({
-        callId: "a", toolName: "provider.custom", input: { query: "x" },
-        status: "pending", output: { progress: 1 },
+        callId: "a",
+        toolName: "provider.custom",
+        input: { query: "x" },
+        status: "pending",
+        output: { progress: 1 },
       });
       expect(parts[3]).toMatchObject({
-        callId: "a", status: "running", output: { count: 2 }, displayContent: ["working"],
+        callId: "a",
+        status: "running",
+        output: { count: 2 },
+        displayContent: ["working"],
       });
       expect(parts[4]).toMatchObject({
-        callId: "b", status: "failed", output: "permission denied",
+        callId: "b",
+        status: "failed",
+        output: "permission denied",
         displayContent: ["permission denied"],
       });
       expect(parts[5]).toMatchObject({
-        callId: "a", status: "completed", output: { count: 3 },
-        displayContent: ["done"], terminalIds: ["term-1"],
+        callId: "a",
+        status: "completed",
+        output: { count: 3 },
+        displayContent: ["done"],
+        terminalIds: ["term-1"],
       });
       expect(parts[6]).toMatchObject({
-        callId: "a", status: "completed", displayContent: [], terminalIds: [], locations: [],
-        metadata: { acp: { name: "provider.custom", rawOutput: null, content: [] } },
+        callId: "a",
+        status: "completed",
+        displayContent: [],
+        terminalIds: [],
+        locations: [],
+        metadata: {
+          acp: { name: "provider.custom", rawOutput: null, content: [] },
+        },
       });
       expect(parts[6]?.output).toBeUndefined();
       const history = await adapter.listMessages!({ sessionId });
-      const tools = history.messages.flatMap((message) => message.parts.filter((part) => part.type === "tool"));
+      const tools = history.messages.flatMap((message) =>
+        message.parts.filter((part) => part.type === "tool"),
+      );
       expect(tools).toEqual([parts[6], parts[4]]);
     } finally {
       await adapter.deleteSession({ sessionId });
@@ -823,52 +1196,149 @@ describe("createAcpAdapter", () => {
     const sessionId = "native-session";
     await adapter.createSession({ directory: process.cwd() });
     try {
-      await adapter.sendMessage({ sessionId, content: "go", model: selectedModel });
+      await adapter.sendMessage({
+        sessionId,
+        content: "go",
+        model: selectedModel,
+      });
       const parts = [];
       while (true) {
         const next = await events.next();
         if (next.done) break;
-        if (next.value.type === "message.part.updated" && next.value.part.type === "tool")
+        if (
+          next.value.type === "message.part.updated" &&
+          next.value.part.type === "tool"
+        )
           parts.push(next.value.part);
-        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+        if (
+          next.value.type === "session.status" &&
+          next.value.runStatus === "completed"
+        )
+          break;
       }
-      expect(parts[0]).toMatchObject({ callId: "skill", input: { name: "frontend-design", unrelated: "raw" } });
+      expect(parts[0]).toMatchObject({
+        callId: "skill",
+        input: { name: "frontend-design", unrelated: "raw" },
+      });
       expect(parts[0]?.toolName).toBeUndefined();
-      expect(parts[1]).toMatchObject({ callId: "command", toolName: "bash", status: "pending", input: { command: "printf hello", description: "Print greeting", workdir: "/tmp", timeout: 5000 } });
-      expect(parts[1]?.input).toEqual({ command: "printf hello", description: "Print greeting", workdir: "/tmp", timeout: 5000 });
-      expect(parts[2]).toMatchObject({ callId: "skill", toolName: "skill", status: "running", input: { name: "frontend-design" }, metadata: { acp: { name: "skill", rawInput: { name: "frontend-design", unrelated: "raw" } } } });
+      expect(parts[1]).toMatchObject({
+        callId: "command",
+        toolName: "bash",
+        status: "pending",
+        input: {
+          command: "printf hello",
+          description: "Print greeting",
+          workdir: "/tmp",
+          timeout: 5000,
+        },
+      });
+      expect(parts[1]?.input).toEqual({
+        command: "printf hello",
+        description: "Print greeting",
+        workdir: "/tmp",
+        timeout: 5000,
+      });
+      expect(parts[2]).toMatchObject({
+        callId: "skill",
+        toolName: "skill",
+        status: "running",
+        input: { name: "frontend-design" },
+        metadata: {
+          acp: {
+            name: "skill",
+            rawInput: { name: "frontend-design", unrelated: "raw" },
+          },
+        },
+      });
       expect(parts[2]?.input).toEqual({ name: "frontend-design" });
-      expect(parts[3]).toMatchObject({ callId: "ambiguous", kind: "execute", input: { command: "not established" } });
+      expect(parts[3]).toMatchObject({
+        callId: "ambiguous",
+        kind: "execute",
+        input: { command: "not established" },
+      });
       expect(parts[3]?.toolName).toBeUndefined();
       expect(parts[4]).toMatchObject({ callId: "missing", input: {} });
       expect(parts[4]?.toolName).toBeUndefined();
-      expect(parts[5]).toMatchObject({ callId: "terminal", terminalIds: ["term-9"] });
+      expect(parts[5]).toMatchObject({
+        callId: "terminal",
+        terminalIds: ["term-9"],
+      });
       expect(parts[5]?.toolName).toBeUndefined();
       expect(parts[5]?.input).toBeUndefined();
       expect(parts[5]?.output).toBeUndefined();
-      expect(parts[6]).toMatchObject({ callId: "command", status: "running", output: { progress: 1 }, displayContent: ["working"] });
-      expect(parts[7]).toMatchObject({ callId: "skill", status: "completed", output: "Skill loaded" });
-      expect(parts[8]).toMatchObject({ callId: "terminal", status: "completed", terminalIds: ["term-9"] });
+      expect(parts[6]).toMatchObject({
+        callId: "command",
+        status: "running",
+        output: { progress: 1 },
+        displayContent: ["working"],
+      });
+      expect(parts[7]).toMatchObject({
+        callId: "skill",
+        status: "completed",
+        output: "Skill loaded",
+      });
+      expect(parts[8]).toMatchObject({
+        callId: "terminal",
+        status: "completed",
+        terminalIds: ["term-9"],
+      });
       expect(parts[8]?.output).toBeUndefined();
-      expect(parts[9]).toMatchObject({ callId: "command", status: "failed", output: { error: "exit 7", exitCode: 7 }, error: "exit 7", displayContent: ["command failed"] });
-      expect(parts[10]).toMatchObject({ callId: "late-command", status: "pending" });
+      expect(parts[9]).toMatchObject({
+        callId: "command",
+        status: "failed",
+        output: { error: "exit 7", exitCode: 7 },
+        error: "exit 7",
+        displayContent: ["command failed"],
+      });
+      expect(parts[10]).toMatchObject({
+        callId: "late-command",
+        status: "pending",
+      });
       expect(parts[10]?.toolName).toBeUndefined();
       expect(parts[10]?.input).toBeUndefined();
-      expect(parts[11]).toMatchObject({ callId: "late-command", toolName: "bash", status: "completed", input: { command: "pwd" } });
-      expect(parts[12]).toMatchObject({ callId: "alias", toolName: "execute", kind: "execute", input: { command: "opaque" } });
-      expect(parts[13]).toMatchObject({ callId: "invalid", input: { name: 42 }, metadata: { acp: { rawInput: { name: 42 } } } });
+      expect(parts[11]).toMatchObject({
+        callId: "late-command",
+        toolName: "bash",
+        status: "completed",
+        input: { command: "pwd" },
+      });
+      expect(parts[12]).toMatchObject({
+        callId: "alias",
+        toolName: "execute",
+        kind: "execute",
+        input: { command: "opaque" },
+      });
+      expect(parts[13]).toMatchObject({
+        callId: "invalid",
+        input: { name: 42 },
+        metadata: { acp: { rawInput: { name: 42 } } },
+      });
       expect(parts[13]?.toolName).toBeUndefined();
-      expect(parts[14]).toMatchObject({ callId: "unsupported-command", input: { script: "echo hi", extra: 7 } });
+      expect(parts[14]).toMatchObject({
+        callId: "unsupported-command",
+        input: { script: "echo hi", extra: 7 },
+      });
       expect(parts[14]?.toolName).toBeUndefined();
       const history = await adapter.listMessages!({ sessionId });
-      const tools = history.messages.flatMap((message) => message.parts.filter((part) => part.type === "tool"));
-      expect(tools).toEqual([parts[7], parts[9], parts[3], parts[4], parts[8], parts[11], parts[12], parts[13], parts[14]]);
+      const tools = history.messages.flatMap((message) =>
+        message.parts.filter((part) => part.type === "tool"),
+      );
+      expect(tools).toEqual([
+        parts[7],
+        parts[9],
+        parts[3],
+        parts[4],
+        parts[8],
+        parts[11],
+        parts[12],
+        parts[13],
+        parts[14],
+      ]);
     } finally {
       await adapter.deleteSession({ sessionId });
       await events.return?.();
     }
   });
-
 
   it("keeps streamed chunks and interleaved tool updates in their owning turns", async () => {
     const adapter = createAdapter("conversation");
@@ -982,7 +1452,12 @@ describe("createAcpAdapter", () => {
       pendingDeltas: new Map(),
     };
     for (const content of ["first", "second"]) {
-      await adapter.sendMessage({ sessionId, directory, content, model: selectedModel });
+      await adapter.sendMessage({
+        sessionId,
+        directory,
+        content,
+        model: selectedModel,
+      });
       while (true) {
         const next = await events.next();
         if (next.done) break;

@@ -2,10 +2,20 @@ import type * as acp from "@agentclientprotocol/sdk";
 import type { ChatMessage, MessagePart } from "@repo/ai-core";
 import { normalizeOtherTool } from "./acp.native-other-tools";
 
-function fileInput(name: string | undefined, value: unknown, hasChanges: boolean): unknown {
-  if (!name || !["write", "edit", "apply_patch"].includes(name) ||
-      typeof value !== "object" || value === null || Array.isArray(value)) return value;
-  const input = { ...value as Record<string, unknown> };
+function fileInput(
+  name: string | undefined,
+  value: unknown,
+  hasChanges: boolean,
+): unknown {
+  if (
+    !name ||
+    !["write", "edit", "apply_patch"].includes(name) ||
+    typeof value !== "object" ||
+    value === null ||
+    Array.isArray(value)
+  )
+    return value;
+  const input = { ...(value as Record<string, unknown>) };
   if (typeof input.path === "string" && input.filePath === undefined) {
     input.filePath = input.path;
     delete input.path;
@@ -163,7 +173,9 @@ export function mapSessionUpdate(
       state.toolParts.set(update.toolCallId, { messageId: message.id, partId });
       const previous = message.parts.find((part) => part.id === partId);
       const tool = previous?.type === "tool" ? previous : undefined;
-      const raw = { ...(tool?.metadata?.acp as Record<string, unknown> | undefined) };
+      const raw = {
+        ...(tool?.metadata?.acp as Record<string, unknown> | undefined),
+      };
       for (const [key, value] of Object.entries(update)) {
         if (value !== undefined && !(key === "name" && value === null))
           raw[key] = value;
@@ -172,55 +184,107 @@ export function mapSessionUpdate(
         update.status === "in_progress"
           ? "running"
           : (update.status ?? tool?.status);
-      const content = update.content === undefined ? undefined : update.content ?? [];
-      const displayContent = content?.flatMap<unknown>((item) =>
-        item.type === "content"
-          ? [item.content.type === "text" ? item.content.text : item.content]
-          : [],
-      ) ?? tool?.displayContent;
-      const terminalIds = content?.flatMap((item) =>
-        item.type === "terminal" ? [item.terminalId] : [],
-      ) ?? tool?.terminalIds;
-      const changes = content?.flatMap((item) =>
-        item.type === "diff"
-          ? [{ path: item.path, before: item.oldText ?? undefined, after: item.newText }]
-          : [],
-      ) ?? tool?.changes;
+      const content =
+        update.content === undefined ? undefined : (update.content ?? []);
+      const displayContent =
+        content?.flatMap<unknown>((item) =>
+          item.type === "content"
+            ? [item.content.type === "text" ? item.content.text : item.content]
+            : [],
+        ) ?? tool?.displayContent;
+      const terminalIds =
+        content?.flatMap((item) =>
+          item.type === "terminal" ? [item.terminalId] : [],
+        ) ?? tool?.terminalIds;
+      const changes =
+        content?.flatMap((item) =>
+          item.type === "diff"
+            ? [
+                {
+                  path: item.path,
+                  before: item.oldText ?? undefined,
+                  after: item.newText,
+                },
+              ]
+            : [],
+        ) ?? tool?.changes;
       const rawOutput = raw.rawOutput;
-      const output = rawOutput != null
-        ? rawOutput
-        : displayContent?.length === 1
-          ? displayContent[0]
-          : displayContent?.length ? displayContent : undefined;
+      const output =
+        rawOutput != null &&
+        !(
+          typeof rawOutput === "object" &&
+          !Array.isArray(rawOutput) &&
+          Array.isArray((rawOutput as Record<string, unknown>).content) &&
+          displayContent?.length === 1
+        )
+          ? rawOutput
+          : displayContent?.length === 1
+            ? displayContent[0]
+            : displayContent?.length
+              ? displayContent
+              : undefined;
       const native = normalizeOtherTool(raw.name, raw.rawInput);
       const rawInput = raw.rawInput;
-      let toolName = native ? native.name : update.name ?? tool?.toolName;
+      let toolName = native ? native.name : (update.name ?? tool?.toolName);
       let input = native ? native.input : rawInput;
+      if (
+        raw.name === "read" &&
+        typeof rawInput === "object" &&
+        rawInput !== null &&
+        !Array.isArray(rawInput)
+      ) {
+        const readInput = rawInput as Record<string, unknown>;
+        const path = readInput.filePath ?? readInput.path;
+        if (
+          typeof path === "string" &&
+          path.startsWith("skill://") &&
+          path.length > "skill://".length
+        ) {
+          toolName = "skill";
+          input = { name: path.slice("skill://".length) };
+        }
+      }
       if (raw.name === "skill" || raw.name === "bash") {
-        const source = typeof rawInput === "object" && rawInput !== null && !Array.isArray(rawInput)
-          ? rawInput as Record<string, unknown>
-          : undefined;
+        const source =
+          typeof rawInput === "object" &&
+          rawInput !== null &&
+          !Array.isArray(rawInput)
+            ? (rawInput as Record<string, unknown>)
+            : undefined;
         const required = raw.name === "skill" ? source?.name : source?.command;
-        const validOptions = raw.name !== "bash" || !source ||
-          (["description", "workdir"].every((key) => source[key] === undefined || typeof source[key] === "string") &&
-            (source.timeout === undefined || typeof source.timeout === "number"));
+        const validOptions =
+          raw.name !== "bash" ||
+          !source ||
+          (["description", "workdir"].every(
+            (key) =>
+              source[key] === undefined || typeof source[key] === "string",
+          ) &&
+            (source.timeout === undefined ||
+              typeof source.timeout === "number"));
         if (typeof required !== "string" || !required || !validOptions) {
           toolName = undefined;
           input = rawInput;
         } else {
           toolName = raw.name;
           const normalized: Record<string, unknown> = {};
-          const keys = raw.name === "skill" ? ["name"] : ["command", "description", "workdir"];
+          const keys =
+            raw.name === "skill"
+              ? ["name"]
+              : ["command", "description", "workdir"];
           for (const key of keys) {
-            if (typeof source?.[key] === "string") normalized[key] = source[key];
+            if (typeof source?.[key] === "string")
+              normalized[key] = source[key];
           }
           if (raw.name === "bash" && typeof source?.timeout === "number")
             normalized.timeout = source.timeout;
           input = normalized;
         }
       }
-      const error = status === "failed" && rawOutput != null &&
-        typeof rawOutput === "object" && !Array.isArray(rawOutput) &&
+      const error =
+        status === "failed" &&
+        rawOutput != null &&
+        typeof rawOutput === "object" &&
+        !Array.isArray(rawOutput) &&
         typeof (rawOutput as Record<string, unknown>).error === "string"
           ? (rawOutput as Record<string, string>).error
           : undefined;
@@ -231,14 +295,19 @@ export function mapSessionUpdate(
         toolName,
         callId: update.toolCallId,
         status,
-        title: update.title === undefined ? tool?.title : update.title ?? undefined,
-        kind: update.kind === undefined ? tool?.kind : update.kind ?? undefined,
-        locations: update.locations === undefined
-          ? tool?.locations
-          : (update.locations ?? []).map((location) => ({
-              path: location.path,
-              line: location.line ?? undefined,
-            })),
+        title:
+          update.title === undefined
+            ? tool?.title
+            : (update.title ?? undefined),
+        kind:
+          update.kind === undefined ? tool?.kind : (update.kind ?? undefined),
+        locations:
+          update.locations === undefined
+            ? tool?.locations
+            : (update.locations ?? []).map((location) => ({
+                path: location.path,
+                line: location.line ?? undefined,
+              })),
         input,
         output,
         error,

@@ -17,6 +17,9 @@ retain their timeouts. Use Stop to cancel a running prompt.
 ACP run status is tracked by Cloudy's current server process. The session
 status API returns `unknown` when that process has no reliable status, including
 after a restart or when resuming a session; it does not infer that work is idle.
+Reading an ACP session does not start or resume its agent. Without a live
+session, provider status is `unknown`; Cloudy's saved session metadata remains
+available, while message retrieval handles history restoration separately.
 
 Pending ACP permissions are listed by working directory, so returning to an
 open conversation still shows its approval requests.
