@@ -72,7 +72,7 @@ const altModel: ModelInfo = {
 };
 
 function ChatSelection() {
-  const { effectiveAgent, effectiveModel, setAgent, setModel } = useChat();
+  const { effectiveAgent, effectiveModel, setAgent, setModel, sendMessage } = useChat();
 
   return (
     <>
@@ -82,6 +82,17 @@ function ChatSelection() {
       <button onClick={() => setModel(model)}>Select model</button>
       <button onClick={() => setAgent(null)}>Use default agent</button>
       <button onClick={() => setModel(null)}>Use default model</button>
+      <button
+        onClick={() =>
+          void sendMessage(
+            { text: "hello", mentions: [], attachments: [] },
+            effectiveModel,
+            effectiveAgent,
+          )
+        }
+      >
+        Send selected model
+      </button>
     </>
   );
 }
@@ -331,6 +342,42 @@ describe("ChatProvider", () => {
     expect(screen.getByTestId("model")).toHaveTextContent("GPT-5");
     expect(onModelChange).toHaveBeenCalledWith(null);
     rerender(<></>);
+  });
+
+  test("sends the session model, then the default after removing the override", async () => {
+    useDefaultModelStore.setState({ defaultModels: { opencode: model } });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <ControlledWrapper
+          initialAgent={null}
+          initialModel={altModel}
+          onAgentChange={vi.fn()}
+          onModelChange={vi.fn()}
+        />
+      </QueryClientProvider>,
+    );
+    await act(async () => {
+      screen.getByRole("button", { name: "Send selected model" }).click();
+    });
+    expect(mocks.sendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({ model: altModel }),
+    );
+    await act(async () => {
+      screen.getByRole("button", { name: "Use default model" }).click();
+    });
+    await act(async () => {
+      screen.getByRole("button", { name: "Send selected model" }).click();
+    });
+    expect(mocks.sendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({ model }),
+    );
+    act(() => useDefaultModelStore.setState({ defaultModels: {} }));
+    await act(async () => {
+      screen.getByRole("button", { name: "Send selected model" }).click();
+    });
+    expect(mocks.sendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({ model: null }),
+    );
   });
 
   test("does not apply one session's selection to another session", async () => {

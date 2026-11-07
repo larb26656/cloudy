@@ -18,20 +18,25 @@ import { Readable, Writable } from "node:stream";
 import * as acp from "@agentclientprotocol/sdk";
 const profile = process.argv.at(-1);
 let opened = false;
+const configOptions = [{ id: "model", name: "Model", category: "model", type: "select", currentValue: "model-1", options: [{ value: "model-1", name: "Model One" }, { value: "model-2", name: "Model Two" }] }];
 const server = acp.agent({ name: "unavailable" })
   .onRequest(acp.methods.agent.initialize, () => ({
     protocolVersion: acp.PROTOCOL_VERSION,
     agentCapabilities: {
       loadSession: profile === "failed-load",
-      sessionCapabilities: profile === "resume" ? { resume: {} } : {},
+      sessionCapabilities: profile === "resume" || profile.startsWith("permissions") ? { resume: {} } : {},
     },
   }))
   .onRequest(acp.methods.agent.session.new, ({ params }) => {
     opened = true;
-    return { sessionId: profile.startsWith("permissions") ? "permission:" + params.cwd : "original" };
+    return { sessionId: profile.startsWith("permissions") ? "permission:" + params.cwd : "original", configOptions };
   })
   .onRequest(acp.methods.agent.session.load, () => { throw new Error("load failed"); })
-  .onRequest(acp.methods.agent.session.resume, () => { opened = true; return {}; })
+  .onRequest(acp.methods.agent.session.resume, () => { opened = true; return { configOptions }; })
+  .onRequest(acp.methods.agent.session.setConfigOption, ({ params }) => {
+    configOptions[0].currentValue = params.value;
+    return { configOptions };
+  })
   .onRequest(acp.methods.agent.session.prompt, async ({ params, client }) => {
     if (profile.startsWith("permissions")) {
       const options = [
@@ -47,6 +52,11 @@ const server = acp.agent({ name: "unavailable" })
       });
       return { stopReason: "end_turn", _meta: { permissionOutcome: response.outcome } };
     }
+    if (profile === "model-smoke")
+      await client.notify(acp.methods.client.session.update, {
+        sessionId: params.sessionId,
+        update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: configOptions[0].currentValue + ":" + params.prompt[0].text } },
+      });
     if (!opened && profile !== "direct") throw new Error("session not found");
     return { stopReason: "end_turn" };
   });
@@ -66,6 +76,50 @@ function adapter(profile: string) {
 }
 
 describe("unavailable ACP sessions", () => {
+  it("sends through the session API only after the selected model is active", async () => {
+    const env = createTestApp();
+    const provider = adapter("model-smoke");
+    const registry = createAgentProviderRegistry({ providers: [provider] });
+    env.container.agentProviderRegistry = registry;
+    env.container.sessionsService = createSessionsService(
+      createSessionsRepository(env.db.db),
+      registry,
+    );
+    const app = createApp({ container: env.container });
+    try {
+      const created = await app.request("/api/sessions", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ providerId: provider.id, directory: process.cwd() }),
+      });
+      expect(created.status).toBe(201);
+      const { id } = await created.json();
+      const missing = await app.request(`/api/sessions/${id}/messages`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ content: "unsent" }),
+      });
+      expect(missing.status).toBe(400);
+      expect(await missing.json()).toMatchObject({ error: expect.stringContaining("Select a model") });
+      const sent = await app.request(`/api/sessions/${id}/messages`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ content: "hello", model: { providerId: provider.id, modelId: "model-2" } }),
+      });
+      expect(sent.status).toBe(200);
+      const history = await app.request(`/api/sessions/${id}/messages`);
+      expect(await history.json()).toMatchObject({
+        messages: [
+          { role: "user", parts: [{ text: "hello" }] },
+          { role: "assistant", parts: [{ text: "model-2:hello" }, { type: "step-finish", modelID: "model-2" }] },
+        ],
+      });
+    } finally {
+      await provider.deleteSession({ sessionId: "original" }).catch(() => {});
+      env.close();
+    }
+  });
+
   it("retains the binding and exposes an empty unavailable history and send error through the session API", async () => {
     const env = createTestApp();
     const provider = adapter("unavailable");
@@ -96,11 +150,11 @@ describe("unavailable ACP sessions", () => {
       const sent = await app.request(`/api/sessions/${id}/messages`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ content: "unsent draft" }),
+        body: JSON.stringify({ content: "unsent draft", model: { providerId: "acp-test", modelId: "model-1" } }),
       });
-      expect(sent.status).toBe(409);
+      expect(sent.status).toBe(400);
       expect(await sent.json()).toMatchObject({
-        error: expect.stringContaining("original session"),
+        error: expect.stringContaining("not available"),
       });
       const listed = await app.request("/api/sessions");
       expect(await listed.json()).toEqual(
@@ -111,7 +165,7 @@ describe("unavailable ACP sessions", () => {
     }
   });
 
-  it.each(["resume", "direct"])(
+  it.each(["resume"])(
     "can continue with %s even without history",
     async (profile) => {
       const provider = adapter(profile);
@@ -127,7 +181,7 @@ describe("unavailable ACP sessions", () => {
         historyUnavailable: true,
       });
       await expect(
-        provider.sendMessage({ sessionId: "original", content: "hello" }),
+        provider.sendMessage({ sessionId: "original", content: "hello", model: { providerId: "acp-test", modelId: "model-1" } }),
       ).resolves.toBeDefined();
       await provider.abortSession({ sessionId: "original" });
     },
@@ -209,7 +263,7 @@ describe("ACP permissions through the sessions API", () => {
           app.request(`/api/sessions/${id}/messages`, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ content: "run command" }),
+            body: JSON.stringify({ content: "run command", model: { providerId: "acp-test", modelId: "model-1" } }),
           }),
         );
         const approval = await nextApproval(events);
@@ -284,7 +338,7 @@ describe("ACP permissions through the sessions API", () => {
         providerId: provider.id,
         directory,
       });
-      sending = service.sendMessage(session.id, { content: "run command" });
+      sending = service.sendMessage(session.id, { content: "run command", model: { providerId: "acp-test", modelId: "model-1" } });
       const approval = await nextApproval(events);
       const pending = await service.permissions(session.id);
       const answered = await app.request(
@@ -357,7 +411,7 @@ describe("ACP permissions through the sessions API", () => {
         sessions.push(session);
         sending.push(
           service
-            .sendMessage(session.id, { content: "run command" })
+            .sendMessage(session.id, { content: "run command", model: { providerId: "acp-test", modelId: "model-1" } })
             .catch((error: unknown) => error),
         );
         await nextApproval(events);
