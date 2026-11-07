@@ -220,7 +220,7 @@ export function createAcpAdapter({
       throw new ValidationError(
         `Model "${modelId}" is not available in this ACP session. Choose an available model.`,
       );
-    if (model.currentValue === modelId) return;
+    if (model.currentValue === modelId) return model.currentValue;
     try {
       const result = await withTimeout(
         session.connection.agent.request(acp.methods.agent.session.setConfigOption, {
@@ -230,10 +230,10 @@ export function createAcpAdapter({
         }),
         timeoutMs,
         "ACP model selection timed out",
+        () => closeSession(session),
       );
       updateModel(session, result.configOptions);
-    } catch (error) {
-      closeSession(session, error);
+    } catch {
       throw new ConflictError(
         `The ACP agent could not activate model "${modelId}". Choose another model or check the agent configuration.`,
       );
@@ -242,6 +242,7 @@ export function createAcpAdapter({
       throw new ConflictError(
         `The ACP agent did not confirm model "${modelId}". Choose another model or check the agent configuration.`,
       );
+    return session.model.currentValue;
   };
 
   const adapter = {
@@ -633,7 +634,7 @@ export function createAcpAdapter({
         if (session.loadingMessages) await session.loadingMessages;
         if (request.attachments?.length)
           throw new Error("ACP attachments are not supported");
-        await applyModel(session, request.model?.modelId);
+        const turnModel = await applyModel(session, request.model?.modelId);
         if (session.historyUnavailable) session.pendingChanges = [];
         const initialChanges = startPrompt(session.messageState, request.content);
         if (session.pendingChanges)
@@ -658,7 +659,7 @@ export function createAcpAdapter({
           const finalChanges = finishPrompt(
             session.messageState,
             response,
-            session.model?.currentValue,
+            turnModel,
           );
           if (session.pendingChanges) {
             session.pendingChanges.push(...finalChanges);
@@ -907,10 +908,14 @@ function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
   message: string,
+  onTimeout?: () => void,
 ) {
   let timeout: ReturnType<typeof setTimeout> | undefined;
   const timed = new Promise<T>((_, reject) => {
-    timeout = setTimeout(() => reject(new Error(message)), timeoutMs);
+    timeout = setTimeout(() => {
+      onTimeout?.();
+      reject(new Error(message));
+    }, timeoutMs);
   });
   return Promise.race([promise, timed]).finally(() => {
     if (timeout) clearTimeout(timeout);
