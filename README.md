@@ -69,6 +69,10 @@ CLOUDY_OPENCODE_API_BASE=http://localhost:4096
 
 Keep API keys and other secrets in `.env`, and do not commit that file.
 
+ACP tool calls use Cloudy's shared tool activity when the agent supplies a
+recognized tool identity and supported details. Other calls remain generic;
+available status, results, and file changes stay attached to the original call.
+
 ACP activity that does not fit the shared chat model appears as a generic
 activity card. Its raw provider payload is collapsed by default and can be
 expanded for inspection; it may contain sensitive information. Raw activity is
