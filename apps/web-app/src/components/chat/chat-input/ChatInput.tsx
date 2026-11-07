@@ -227,15 +227,11 @@ export const ChatInput = memo(function ChatInput({
       return;
     }
 
-    if (e.key === "Tab") {
+    if (e.key === "Tab" && !e.shiftKey) {
       const names = agents?.map((a) => a.name) ?? [];
       if (names.length > 0) {
         e.preventDefault();
-        const next = getNextName(
-          names,
-          effectiveAgent,
-          e.shiftKey ? "prev" : "next",
-        );
+        const next = getNextName(names, effectiveAgent, "next");
         if (next) setAgent(next);
       }
       return;
@@ -366,7 +362,8 @@ export const ChatInput = memo(function ChatInput({
                   onListeningChange={setIsListening}
                 />
 
-                {isListening ? null : isStreaming && (isSending || !displayText.trim()) ? (
+                {isListening ? null : isStreaming &&
+                  (isSending || !displayText.trim()) ? (
                   <Button
                     size="icon"
                     className="rounded-full p-4"

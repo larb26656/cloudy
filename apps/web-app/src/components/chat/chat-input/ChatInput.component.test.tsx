@@ -237,16 +237,21 @@ describe("ChatInput — abort/send button behavior", () => {
     });
 
     test("keeps the draft and reports a failed send to the existing session", async () => {
-      const message = "Sending to the original session failed. Your draft was kept; delivery may be uncertain.";
+      const message =
+        "Sending to the original session failed. Your draft was kept; delivery may be uncertain.";
       mocks.sendMessage.mockImplementationOnce(() =>
-        jsonResponse(new Response(JSON.stringify({ error: message }), { status: 409 })),
+        jsonResponse(
+          new Response(JSON.stringify({ error: message }), { status: 409 }),
+        ),
       );
       renderInput();
       typeText("keep this draft");
       await act(async () => {
         screen.getByRole("button", { name: "Send message" }).click();
       });
-      expect(screen.getByLabelText("chat-editor")).toHaveValue("keep this draft");
+      expect(screen.getByLabelText("chat-editor")).toHaveValue(
+        "keep this draft",
+      );
       expect(mocks.toastError).toHaveBeenCalledWith(message);
       expect(mocks.createSession).not.toHaveBeenCalled();
       expect(mocks.sendMessage).toHaveBeenCalledWith(
@@ -278,7 +283,9 @@ describe("ChatInput — abort/send button behavior", () => {
       typeText("submitted draft");
       fireEvent.click(screen.getByRole("button", { name: "Stop generating" }));
       expect(mocks.abort).toHaveBeenCalledOnce();
-      expect(screen.getByLabelText("chat-editor")).toHaveValue("submitted draft");
+      expect(screen.getByLabelText("chat-editor")).toHaveValue(
+        "submitted draft",
+      );
     });
 
     test("swaps to Send button once text is entered (queue path)", () => {
@@ -438,24 +445,11 @@ describe("ChatInput — Tab cycles agents", () => {
     expect(onAgentChange).toHaveBeenCalledWith("build");
   });
 
-  test("Shift+Tab goes backward", () => {
+  test("Shift+Tab leaves agent selection unchanged", () => {
     const onAgentChange = vi.fn();
-    renderInput({
-      initialAgent: "plan",
-      onAgentChange,
-    });
+    renderInput({ initialAgent: "plan", onAgentChange });
     pressKey("Tab", { shiftKey: true });
-    expect(onAgentChange).toHaveBeenCalledWith("build");
-  });
-
-  test("Shift+Tab wraps from first to last", () => {
-    const onAgentChange = vi.fn();
-    renderInput({
-      initialAgent: "build",
-      onAgentChange,
-    });
-    pressKey("Tab", { shiftKey: true });
-    expect(onAgentChange).toHaveBeenCalledWith("explore");
+    expect(onAgentChange).not.toHaveBeenCalled();
   });
 
   test("Tab is a no-op when agent list is empty (no setAgent call)", () => {
