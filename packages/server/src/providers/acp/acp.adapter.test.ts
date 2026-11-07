@@ -44,12 +44,12 @@ const fileTrace = async (emit) => {
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "edit", content: [{ type: "diff", path: "a.ts", oldText: "", newText: "one" }, { type: "diff", path: "a.ts", oldText: "one", newText: "two" }, { type: "diff", path: "b.ts", oldText: "old", newText: "" }] });
   await emit({ sessionUpdate: "tool_call", toolCallId: "write", name: "write", title: "Write", status: "pending", rawInput: { filePath: "empty.ts", content: "" } });
   await emit({ sessionUpdate: "tool_call", toolCallId: "edit", name: "edit", title: "Edit", status: "in_progress", rawInput: { filePath: "a.ts", oldString: "", newString: "one" } });
-  await emit({ sessionUpdate: "tool_call", toolCallId: "patch", name: "apply_patch", title: "Patch", status: "pending", rawInput: { patchText: "*** Begin Patch\\n*** Add File: c.ts\\n+x\\n*** End Patch" } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "patch", name: "apply_patch", title: "Patch", status: "pending", rawInput: { patchText: "*** Begin Patch\\n*** Add File: c.ts\\n+x\\n*** End Patch" }, content: [{ type: "diff", path: "c.ts", oldText: "", newText: "x" }] });
   await emit({ sessionUpdate: "tool_call", toolCallId: "single", name: "edit", title: "Edit one", status: "completed", rawInput: { filePath: "single.ts", oldString: "old", newString: "" } });
   await emit({ sessionUpdate: "tool_call", toolCallId: "unknown", title: "Edit file", kind: "edit", locations: [{ path: "unknown.ts" }], status: "pending" });
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "edit", content: [{ type: "content", content: { type: "text", text: "corrected" } }, { type: "diff", path: "b.ts", oldText: "", newText: "fixed" }], rawOutput: { progress: 2 } });
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "edit", status: "failed", rawOutput: { error: "cannot save" } });
-  await emit({ sessionUpdate: "tool_call_update", toolCallId: "write", status: "completed" });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "write", status: "completed", content: [{ type: "content", content: { type: "text", text: "saved" } }] });
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "patch", status: "completed" });
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "unknown", content: [{ type: "diff", path: "unknown.ts", oldText: "a", newText: "b" }] });
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "edit", content: [] });
@@ -69,6 +69,7 @@ const nativeTrace = async (emit) => {
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "late-command", rawInput: { command: "pwd" }, status: "completed" });
   await emit({ sessionUpdate: "tool_call", toolCallId: "alias", name: "execute", title: "bash", kind: "execute", rawInput: { command: "opaque" } });
   await emit({ sessionUpdate: "tool_call", toolCallId: "invalid", name: "skill", title: "Skill", rawInput: { name: 42 } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "unsupported-command", name: "bash", title: "Command", status: "in_progress", rawInput: { script: "echo hi", extra: 7 } });
 };
 const otherToolsTrace = async (emit) => {
   const calls = [
@@ -728,12 +729,14 @@ describe("createAcpAdapter", () => {
         changes: [{ path: "b.ts", before: "", after: "fixed" }],
         displayContent: ["corrected"],
       });
-      expect(edit[4]).toMatchObject({ changes: [], input: { filePath: "a.ts" } });
+      expect(edit[4]).toMatchObject({ changes: [], input: { filePath: "a.ts", oldString: "", newString: "one" } });
       expect(parts.find((part) => part.callId === "write")).toMatchObject({
         toolName: "write", input: { filePath: "empty.ts", content: "" },
       });
+      expect(parts.filter((part) => part.callId === "write").at(-1)).toMatchObject({ output: "saved", displayContent: ["saved"] });
       expect(parts.find((part) => part.callId === "patch")).toMatchObject({
         toolName: "apply_patch", input: { patchText: "*** Begin Patch\n*** Add File: c.ts\n+x\n*** End Patch" },
+        changes: [{ path: "c.ts", before: "", after: "x" }],
       });
       expect(parts.find((part) => part.callId === "single")).toMatchObject({
         toolName: "edit", input: { filePath: "single.ts", oldString: "old", newString: "" },
@@ -836,8 +839,10 @@ describe("createAcpAdapter", () => {
       expect(parts[2]?.input).toEqual({ name: "frontend-design" });
       expect(parts[3]).toMatchObject({ callId: "ambiguous", kind: "execute", input: { command: "not established" } });
       expect(parts[3]?.toolName).toBeUndefined();
-      expect(parts[4]).toMatchObject({ callId: "missing", toolName: "skill", input: {} });
-      expect(parts[5]).toMatchObject({ callId: "terminal", toolName: "bash", terminalIds: ["term-9"] });
+      expect(parts[4]).toMatchObject({ callId: "missing", input: {} });
+      expect(parts[4]?.toolName).toBeUndefined();
+      expect(parts[5]).toMatchObject({ callId: "terminal", terminalIds: ["term-9"] });
+      expect(parts[5]?.toolName).toBeUndefined();
       expect(parts[5]?.input).toBeUndefined();
       expect(parts[5]?.output).toBeUndefined();
       expect(parts[6]).toMatchObject({ callId: "command", status: "running", output: { progress: 1 }, displayContent: ["working"] });
@@ -845,14 +850,18 @@ describe("createAcpAdapter", () => {
       expect(parts[8]).toMatchObject({ callId: "terminal", status: "completed", terminalIds: ["term-9"] });
       expect(parts[8]?.output).toBeUndefined();
       expect(parts[9]).toMatchObject({ callId: "command", status: "failed", output: { error: "exit 7", exitCode: 7 }, error: "exit 7", displayContent: ["command failed"] });
-      expect(parts[10]).toMatchObject({ callId: "late-command", toolName: "bash", status: "pending" });
+      expect(parts[10]).toMatchObject({ callId: "late-command", status: "pending" });
+      expect(parts[10]?.toolName).toBeUndefined();
       expect(parts[10]?.input).toBeUndefined();
       expect(parts[11]).toMatchObject({ callId: "late-command", toolName: "bash", status: "completed", input: { command: "pwd" } });
       expect(parts[12]).toMatchObject({ callId: "alias", toolName: "execute", kind: "execute", input: { command: "opaque" } });
-      expect(parts[13]).toMatchObject({ callId: "invalid", toolName: "skill", input: {}, metadata: { acp: { rawInput: { name: 42 } } } });
+      expect(parts[13]).toMatchObject({ callId: "invalid", input: { name: 42 }, metadata: { acp: { rawInput: { name: 42 } } } });
+      expect(parts[13]?.toolName).toBeUndefined();
+      expect(parts[14]).toMatchObject({ callId: "unsupported-command", input: { script: "echo hi", extra: 7 } });
+      expect(parts[14]?.toolName).toBeUndefined();
       const history = await adapter.listMessages!({ sessionId });
       const tools = history.messages.flatMap((message) => message.parts.filter((part) => part.type === "tool"));
-      expect(tools).toEqual([parts[7], parts[9], parts[3], parts[4], parts[8], parts[11], parts[12], parts[13]]);
+      expect(tools).toEqual([parts[7], parts[9], parts[3], parts[4], parts[8], parts[11], parts[12], parts[13], parts[14]]);
     } finally {
       await adapter.deleteSession({ sessionId });
       await events.return?.();

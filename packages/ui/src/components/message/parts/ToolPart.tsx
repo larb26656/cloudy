@@ -11,6 +11,14 @@ interface ToolPartProps {
 export function ToolPart({ part }: ToolPartProps) {
   const rawMetadata = part.metadata?.acp;
   const partial = !part.toolName || !part.status;
+  const patchText = part.toolName === "apply_patch" && typeof part.input === "object" && part.input !== null
+    ? (part.input as Record<string, unknown>).patchText
+    : undefined;
+  const patchPaths = typeof patchText === "string"
+    ? new Set([...patchText.matchAll(/^\*\*\* (?:Update|Add) File: (.+)$/gm)].map((match) => match[1]))
+    : new Set<string>();
+  const showOutput = part.toolName === "write" || part.toolName === "edit" ||
+    (part.toolName === "bash" && (part.status === "pending" || part.status === "running"));
   const rawDetails = rawMetadata === undefined && (!partial || (part.input === undefined && part.output === undefined)) ? null : (
     <details className="mt-1 text-xs text-muted-foreground">
       <summary className="cursor-pointer">Raw tool details</summary>
@@ -34,7 +42,7 @@ export function ToolPart({ part }: ToolPartProps) {
         <div key={index}>{location.path}{location.line != null ? `:${location.line}` : ""}</div>
       ))}
       {part.terminalIds?.map((id) => <div key={id}>Terminal: {id}</div>)}
-      {part.changes?.map((change, index) =>
+      {part.changes?.filter((change) => !patchPaths.has(change.path)).map((change, index) =>
         change.before === undefined ? (
           <ToolValueRenderer key={index} value={change} keyName="change" />
         ) : (
@@ -79,6 +87,9 @@ export function ToolPart({ part }: ToolPartProps) {
   return (
     <div>
       <ToolComponent tool={part.toolName} state={state} />
+      {showOutput && part.output !== undefined && (
+        <ToolValueRenderer value={part.output} keyName="output" />
+      )}
       {details}
       {rawDetails}
     </div>

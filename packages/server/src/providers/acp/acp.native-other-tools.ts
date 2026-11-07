@@ -45,7 +45,7 @@ export function normalizeOtherTool(name: unknown, input: unknown): {
       valid = Array.isArray(input.questions) && input.questions.length > 0 && input.questions.every((q: unknown) =>
         record(q) && text(q.question) && optional(q.header, "string") &&
         (q.options === undefined || (Array.isArray(q.options) && q.options.every((option: unknown) =>
-          record(option) && text(option.label) && optional(option.description, "string"))));
+          record(option) && text(option.label) && optional(option.description, "string")))));
       break;
     case "todowrite":
       valid = Array.isArray(input.todos) && input.todos.every((todo: unknown) =>

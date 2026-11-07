@@ -193,24 +193,30 @@ export function mapSessionUpdate(
           ? displayContent[0]
           : displayContent?.length ? displayContent : undefined;
       const native = normalizeOtherTool(raw.name, raw.rawInput);
-      const toolName = native ? native.name : update.name ?? tool?.toolName;
       const rawInput = raw.rawInput;
+      let toolName = native ? native.name : update.name ?? tool?.toolName;
       let input = native ? native.input : rawInput;
-      if ((toolName === "skill" || toolName === "bash") && rawInput != null) {
-        if (typeof rawInput === "object" && !Array.isArray(rawInput)) {
-          const source = rawInput as Record<string, unknown>;
+      if (raw.name === "skill" || raw.name === "bash") {
+        const source = typeof rawInput === "object" && rawInput !== null && !Array.isArray(rawInput)
+          ? rawInput as Record<string, unknown>
+          : undefined;
+        const required = raw.name === "skill" ? source?.name : source?.command;
+        const validOptions = raw.name !== "bash" || !source ||
+          (["description", "workdir"].every((key) => source[key] === undefined || typeof source[key] === "string") &&
+            (source.timeout === undefined || typeof source.timeout === "number"));
+        if (typeof required !== "string" || !required || !validOptions) {
+          toolName = undefined;
+          input = rawInput;
+        } else {
+          toolName = raw.name;
           const normalized: Record<string, unknown> = {};
-          const keys = toolName === "skill"
-            ? ["name"]
-            : ["command", "description", "workdir"];
+          const keys = raw.name === "skill" ? ["name"] : ["command", "description", "workdir"];
           for (const key of keys) {
-            if (typeof source[key] === "string") normalized[key] = source[key];
+            if (typeof source?.[key] === "string") normalized[key] = source[key];
           }
-          if (toolName === "bash" && typeof source.timeout === "number")
+          if (raw.name === "bash" && typeof source?.timeout === "number")
             normalized.timeout = source.timeout;
           input = normalized;
-        } else {
-          input = undefined;
         }
       }
       const error = status === "failed" && rawOutput != null &&
@@ -218,8 +224,7 @@ export function mapSessionUpdate(
         typeof (rawOutput as Record<string, unknown>).error === "string"
           ? (rawOutput as Record<string, string>).error
           : undefined;
-      const hadFileChanges = !!changes?.length || tool?.metadata?.hadFileChanges === true;
-      input = fileInput(toolName, input, hadFileChanges);
+      input = fileInput(toolName, input, !!changes?.length);
       addPart(message, {
         id: partId,
         type: "tool",
@@ -240,7 +245,7 @@ export function mapSessionUpdate(
         displayContent,
         terminalIds,
         changes,
-        metadata: { ...(tool?.metadata ?? {}), ...(hadFileChanges ? { hadFileChanges: true } : {}), acp: raw },
+        metadata: { ...(tool?.metadata ?? {}), acp: raw },
       });
       break;
     }
