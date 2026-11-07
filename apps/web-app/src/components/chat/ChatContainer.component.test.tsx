@@ -1,5 +1,5 @@
 import { describe, test, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server } from "@/test/server";
@@ -134,16 +134,33 @@ vi.mock("@/components/session/SessionPickerDialog", () => ({
 }));
 
 vi.mock("@/components/question/QuestionBanner", () => ({
-  QuestionBanner: ({ count }: { count: number }) => (
-    <div
+  QuestionBanner: ({
+    count,
+    onOpenDialog,
+  }: {
+    count: number;
+    onOpenDialog: () => void;
+  }) => (
+    <button
       data-testid="question-banner"
       data-count={count}
-    >{`${count} question${count > 1 ? "s" : ""} pending`}</div>
+      onClick={onOpenDialog}
+    >{`${count} question${count > 1 ? "s" : ""} pending`}</button>
   ),
 }));
 
 vi.mock("@/components/question/QuestionSheet", () => ({
-  QuestionSheet: () => <div data-testid="question-sheet" />,
+  QuestionSheet: ({
+    question,
+    onOpenChange,
+  }: {
+    question: QuestionRequest;
+    onOpenChange: (open: boolean) => void;
+  }) => (
+    <div data-testid="question-sheet" data-question-id={question.id}>
+      <button onClick={() => onOpenChange(false)}>Close question</button>
+    </div>
+  ),
 }));
 
 const DIRECTORY = "/demo/project";
@@ -239,17 +256,23 @@ function renderChat(
       mutations: { retry: false },
     },
   });
-  return render(
+  const renderContainer = (activeSessionId: string | null) => (
     <QueryClientProvider client={queryClient}>
       <ChatContainer
         directory={DIRECTORY}
         providerId="opencode"
-        sessionId={sessionId}
+        sessionId={activeSessionId}
         onSessionChange={vi.fn()}
         readOnly={readOnly}
       />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
+  const result = render(renderContainer(sessionId));
+  return {
+    ...result,
+    changeSession: (activeSessionId: string | null) =>
+      result.rerender(renderContainer(activeSessionId)),
+  };
 }
 
 describe("ChatCoatainer", () => {
@@ -366,14 +389,69 @@ describe("ChatCoatainer", () => {
       );
     });
 
-    test("mounts QuestionSheet when a matching question exists", async () => {
+    test("opens the only pending question from the banner", async () => {
       questionsData = [makeQuestion("ses_active", 1)];
 
       renderChat("ses_active");
 
-      await waitFor(() =>
-        expect(screen.getByTestId("question-sheet")).toBeInTheDocument(),
+      fireEvent.click(await screen.findByTestId("question-banner"));
+      expect(screen.getByTestId("question-sheet")).toHaveAttribute(
+        "data-question-id",
+        "que_ses_active",
       );
+    });
+
+    test("selects and inspects any pending request", async () => {
+      const first = makeQuestion("ses_active", 1);
+      const second = makeQuestion("ses_active", 1);
+      second.id = "que_second";
+      second.questions[0].question = "Second request";
+      questionsData = [first, second];
+
+      renderChat("ses_active");
+
+      fireEvent.click(await screen.findByTestId("question-banner"));
+      fireEvent.click(screen.getByRole("button", { name: "Second request" }));
+      expect(screen.getByTestId("question-sheet")).toHaveAttribute(
+        "data-question-id",
+        "que_second",
+      );
+      fireEvent.click(screen.getByRole("button", { name: "Close question" }));
+      fireEvent.click(screen.getByTestId("question-banner"));
+      fireEvent.click(screen.getByRole("button", { name: "Q1" }));
+      expect(screen.getByTestId("question-sheet")).toHaveAttribute(
+        "data-question-id",
+        first.id,
+      );
+    });
+
+    test("does not carry an open selection between sessions", async () => {
+      questionsData = [makeQuestion("ses_a", 1), makeQuestion("ses_b", 1)];
+      const { changeSession } = renderChat("ses_a");
+      fireEvent.click(await screen.findByTestId("question-banner"));
+      expect(screen.getByTestId("question-sheet")).toHaveAttribute(
+        "data-question-id",
+        "que_ses_a",
+      );
+
+      changeSession("ses_b");
+      expect(screen.queryByTestId("question-sheet")).not.toBeInTheDocument();
+      fireEvent.click(await screen.findByTestId("question-banner"));
+      expect(screen.getByTestId("question-sheet")).toHaveAttribute(
+        "data-question-id",
+        "que_ses_b",
+      );
+
+      changeSession("ses_a");
+      expect(screen.queryByTestId("question-sheet")).not.toBeInTheDocument();
+    });
+
+    test("hides pending question controls in read-only mode", async () => {
+      questionsData = [makeQuestion("ses_active", 1)];
+      renderChat("ses_active", undefined, true);
+      await screen.findByTestId("message-list");
+      expect(screen.queryByTestId("question-banner")).not.toBeInTheDocument();
+      expect(screen.queryByTestId("question-sheet")).not.toBeInTheDocument();
     });
 
     test("does not mount QuestionSheet when no matching question exists", async () => {

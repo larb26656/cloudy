@@ -28,9 +28,10 @@ elicitation and forms outside a session are not supported.
 
 Multiple pending Questions remain available independently in their own
 conversation, even when they come from the same tool call. Answering one does
-not answer another Question or Permission; the remaining requests can be
-reopened from the chat banner. Automation continues to wait for human input
-rather than answering these Questions.
+not answer another Question or Permission; choose a request from the chat
+banner to inspect or answer it. Multi-select fields can be explicitly answered
+with no selections; optional fields may also be left unanswered. Automation
+continues to wait for human input rather than answering these Questions.
 
 Pending Questions are retired when their prompt ends, the agent withdraws the
 request, the session is stopped or closed, or the connection ends. Refreshing

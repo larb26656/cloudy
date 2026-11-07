@@ -5,7 +5,7 @@ import { ChatInput } from "./chat-input";
 import { SessionStatusBar } from "./SessionStatusBar";
 import { PermissionBanner } from "@/components/permission/PermissionBanner";
 import { PermissionDialog } from "@/components/permission/PermissionDialog";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { cn } from "@repo/ui/lib/utils";
 import { generatePlaceholder } from "@/lib/greeting-generator";
@@ -21,6 +21,14 @@ import { AgentSelector } from "./AgentSelector";
 import { useCapacity } from "@/hooks/queries/useModels";
 import { LoadingState } from "@repo/ui/components/loading-state";
 import { ErrorState } from "@repo/ui/components/error-state";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@repo/ui/components/dialog";
+import { Button } from "@repo/ui/components/button";
 
 interface ChatContainerProps {
   workspace?: Workspace | null;
@@ -92,7 +100,13 @@ export function ChatSurface({
   className,
   readOnly = false,
 }: ChatSurfaceProps) {
-  const [questionOpen, setQuestionOpen] = useState(false);
+  const [questionListSession, setQuestionListSession] = useState<string | null>(
+    null,
+  );
+  const [selectedQuestion, setSelectedQuestion] = useState<{
+    sessionId: string;
+    id: string;
+  } | null>(null);
   const [permissionOpen, setPermissionOpen] = useState(false);
   const [minimapOpen, setMinimapOpen] = useState(false);
   const [sessionView, setSessionView] = useState<{
@@ -118,7 +132,7 @@ export function ChatSurface({
   } = useChat();
   const {
     sessionQuestions,
-    currentQuestion,
+    currentQuestion: firstQuestion,
     sessionPermissions,
     currentPermission,
   } = useSessionData({
@@ -128,10 +142,29 @@ export function ChatSurface({
       questions: capacity.questions,
     },
   });
+  useEffect(() => {
+    setQuestionListSession(null);
+    setSelectedQuestion(null);
+  }, [sessionId]);
+
+  const questionListOpen =
+    sessionId !== null && questionListSession === sessionId;
+  const currentQuestion =
+    selectedQuestion?.sessionId === sessionId
+      ? sessionQuestions.find((question) => question.id === selectedQuestion.id)
+      : undefined;
+  const questionOpen = !!currentQuestion;
 
   const handleContainerKeyDown = (e: React.KeyboardEvent) => {
     if (e.key !== "Escape") return;
-    if (readOnly || questionOpen || permissionOpen || !isGenerating) return;
+    if (
+      readOnly ||
+      questionOpen ||
+      questionListOpen ||
+      permissionOpen ||
+      !isGenerating
+    )
+      return;
 
     e.preventDefault();
     abortGeneration();
@@ -149,15 +182,25 @@ export function ChatSurface({
       >
         {topContent}
         <div className="absolute z-50 top-0 left-0 right-0 flex justify-end gap-2 p-2">
-          {!readOnly && !!sessionQuestions.length && !questionOpen && (
-            <QuestionBanner
-              onOpenDialog={() => setQuestionOpen(true)}
-              count={sessionQuestions.reduce(
-                (sum, q) => sum + (q.form ? 1 : q.questions.length),
-                0,
-              )}
-            />
-          )}
+          {!readOnly &&
+            !!sessionQuestions.length &&
+            !questionOpen &&
+            !questionListOpen && (
+              <QuestionBanner
+                onOpenDialog={() => {
+                  if (!sessionId || !firstQuestion) return;
+                  if (sessionQuestions.length === 1) {
+                    setSelectedQuestion({ sessionId, id: firstQuestion.id });
+                  } else {
+                    setQuestionListSession(sessionId);
+                  }
+                }}
+                count={sessionQuestions.reduce(
+                  (sum, q) => sum + (q.form ? 1 : q.questions.length),
+                  0,
+                )}
+              />
+            )}
 
           {!readOnly && !!sessionPermissions.length && !permissionOpen && (
             <PermissionBanner
@@ -194,10 +237,48 @@ export function ChatSurface({
           />
         )}
 
+        {!readOnly && (
+          <Dialog
+            open={questionListOpen}
+            onOpenChange={(open) => {
+              if (!open) setQuestionListSession(null);
+            }}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Pending questions</DialogTitle>
+                <DialogDescription>
+                  Choose a question to inspect and answer.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex max-h-96 flex-col gap-2 overflow-y-auto">
+                {sessionQuestions.map((question) => (
+                  <Button
+                    key={question.id}
+                    variant="outline"
+                    className="h-auto justify-start whitespace-normal text-left"
+                    onClick={() => {
+                      if (!sessionId) return;
+                      setQuestionListSession(null);
+                      setSelectedQuestion({ sessionId, id: question.id });
+                    }}
+                  >
+                    {question.form?.message ||
+                      question.questions[0]?.question ||
+                      question.id}
+                  </Button>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
         {!readOnly && currentQuestion && (
           <QuestionSheet
             open={questionOpen}
-            onOpenChange={setQuestionOpen}
+            onOpenChange={(open) => {
+              if (!open) setSelectedQuestion(null);
+            }}
             question={currentQuestion}
           />
         )}

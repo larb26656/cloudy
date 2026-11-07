@@ -16,14 +16,15 @@ const schema = {
   type: "object",
   properties: {
     destination: { type: "string", title: "Destination", minLength: 2, maxLength: 8, pattern: "^[a-z]+$" },
-    vehicle: { type: "string", oneOf: [{ const: "rail", title: "Train" }, { const: "road", title: "Car" }], default: "road" },
+    vehicle: { type: "string", enum: ["rail", "air"], oneOf: [{ const: "rail", title: "Train" }, { const: "road", title: "Car" }], default: "rail" },
     supplies: { type: "array", items: { type: "string", enum: ["map", "water", "food"] }, minItems: 1, maxItems: 2 },
+    extras: { type: "array", items: { type: "string", enum: [] } },
     passengers: { type: "integer", minimum: 0, maximum: 4 },
     ratio: { type: "number", minimum: 0, maximum: 1 },
     insured: { type: "boolean", default: true },
     note: { type: "string" },
   },
-  required: ["destination", "vehicle", "supplies", "passengers", "ratio", "insured"],
+  required: ["destination", "vehicle", "supplies", "extras", "passengers", "ratio", "insured"],
 };
 const ompSchema = { type: "object", properties: {
   choice: { type: "string", enum: ["one", "other"] },
@@ -105,7 +106,7 @@ const server = acp.agent({ name: "form-fixture" })
     if (response.action === "accept") {
       const c = response.content || {};
       if (command === "omp") result = c.choice === "other" && c.custom === "custom answer" ? "custom-selected" : "wrong-answer";
-      else result = c.destination === "oslo" && c.vehicle === "rail" && Array.isArray(c.supplies) && c.supplies.join(",") === "map,water" && c.passengers === 0 && c.ratio === 0.5 && c.insured === false && !("note" in c) ? "trip-booked" : "wrong-answer";
+      else result = c.destination === "oslo" && c.vehicle === "rail" && Array.isArray(c.supplies) && c.supplies.join(",") === "map,water" && Array.isArray(c.extras) && c.extras.length === 0 && c.passengers === 0 && c.ratio === 0.5 && c.insured === false && !("note" in c) ? "trip-booked" : "wrong-answer";
     }
     return { stopReason: "end_turn", _meta: { result } };
   });
@@ -154,6 +155,7 @@ const answer = {
   destination: "oslo",
   vehicle: "rail",
   supplies: ["map", "water"],
+  extras: [],
   passengers: 0,
   ratio: 0.5,
   insured: false,
@@ -285,7 +287,21 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
         sessionId: session.id,
         request: {
           sessionId: session.id,
-          form: { message: "Plan the trip", agent: expect.any(String) },
+          form: {
+            message: "Plan the trip",
+            agent: expect.any(String),
+            schema: {
+              properties: {
+                vehicle: {
+                  enum: ["rail", "air"],
+                  oneOf: [
+                    { const: "rail", title: "Train" },
+                    { const: "road", title: "Car" },
+                  ],
+                },
+              },
+            },
+          },
         },
       });
       const [question] = await questions(env, session.id);
@@ -298,12 +314,14 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
           schema: {
             properties: {
               vehicle: {
-                default: "road",
+                default: "rail",
+                enum: ["rail", "air"],
                 oneOf: [
                   { const: "rail", title: "Train" },
                   { const: "road", title: "Car" },
                 ],
               },
+              extras: { type: "array", items: { type: "string", enum: [] } },
               insured: { default: true },
             },
           },
@@ -314,7 +332,11 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
         { ...answer, destination: "x" },
         { ...answer, destination: "OSLO" },
         { ...answer, vehicle: "Train" },
+        { ...answer, vehicle: "road" },
+        { ...answer, vehicle: "air" },
         { ...answer, supplies: [] },
+        { ...answer, extras: ["unavailable"] },
+        { ...answer, extras: undefined },
         { ...answer, passengers: 0.5 },
         { ...answer, ratio: 2 },
         { ...answer, insured: "false" },
@@ -573,9 +595,8 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
       ).json();
       expect(permissions).toHaveLength(1);
       expect(
-        (
-          await reply(env, first.id, permissions[0].id, { action: "cancel" })
-        ).status,
+        (await reply(env, first.id, permissions[0].id, { action: "cancel" }))
+          .status,
       ).toBe(404);
       expect(
         await (

@@ -58,9 +58,12 @@ function optionsFor(property: Property): Option[] | undefined {
       : "oneOf" in source
         ? source.oneOf
         : undefined;
-  return (
-    titled ?? source.enum?.map((value) => ({ const: value, title: value }))
-  );
+  if (titled != null) {
+    return source.enum == null
+      ? titled
+      : titled.filter((option) => source.enum?.includes(option.const));
+  }
+  return source.enum?.map((value) => ({ const: value, title: value }));
 }
 
 function validate(
@@ -335,6 +338,24 @@ export function FormQuestionSheet({
                         })}
                       </RadioGroup>
                     )}
+                    {property.type === "array" && value === undefined && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => change(key, [])}
+                        disabled={reply.isPending}
+                      >
+                        Select none
+                      </Button>
+                    )}
+                    {property.type === "array" &&
+                      Array.isArray(value) &&
+                      value.length === 0 && (
+                        <FieldDescription>
+                          No options selected.
+                        </FieldDescription>
+                      )}
                     {!required && value !== undefined && (
                       <Button
                         type="button"
