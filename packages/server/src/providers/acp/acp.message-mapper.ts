@@ -176,10 +176,35 @@ export function mapSessionUpdate(
         : displayContent?.length === 1
           ? displayContent[0]
           : displayContent?.length ? displayContent : undefined;
+      const toolName = update.name ?? tool?.toolName;
+      const rawInput = raw.rawInput;
+      let input = rawInput;
+      if ((toolName === "skill" || toolName === "bash") && rawInput != null) {
+        if (typeof rawInput === "object" && !Array.isArray(rawInput)) {
+          const source = rawInput as Record<string, unknown>;
+          const normalized: Record<string, unknown> = {};
+          const keys = toolName === "skill"
+            ? ["name"]
+            : ["command", "description", "workdir"];
+          for (const key of keys) {
+            if (typeof source[key] === "string") normalized[key] = source[key];
+          }
+          if (toolName === "bash" && typeof source.timeout === "number")
+            normalized.timeout = source.timeout;
+          input = normalized;
+        } else {
+          input = undefined;
+        }
+      }
+      const error = status === "failed" && rawOutput != null &&
+        typeof rawOutput === "object" && !Array.isArray(rawOutput) &&
+        typeof (rawOutput as Record<string, unknown>).error === "string"
+          ? (rawOutput as Record<string, string>).error
+          : undefined;
       addPart(message, {
         id: partId,
         type: "tool",
-        toolName: update.name ?? tool?.toolName,
+        toolName,
         callId: update.toolCallId,
         status,
         title: update.title === undefined ? tool?.title : update.title ?? undefined,
@@ -190,8 +215,9 @@ export function mapSessionUpdate(
               path: location.path,
               line: location.line ?? undefined,
             })),
-        input: update.rawInput === undefined ? tool?.input : update.rawInput,
+        input,
         output,
+        error,
         displayContent,
         terminalIds,
         changes,

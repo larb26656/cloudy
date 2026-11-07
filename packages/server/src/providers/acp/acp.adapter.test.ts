@@ -40,11 +40,27 @@ const genericTrace = async (emit) => {
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", status: "completed", content: [{ type: "terminal", terminalId: "term-1" }, { type: "content", content: { type: "text", text: "done" } }], rawOutput: { count: 3 } });
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", content: [], locations: [], rawOutput: null });
 };
+const nativeTrace = async (emit) => {
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "skill", rawInput: { name: "frontend-design", unrelated: "raw" } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "command", name: "bash", title: "Run", kind: "execute", status: "pending", rawInput: { command: "printf hello", description: "Print greeting", workdir: "/tmp", timeout: 5000, extra: true } });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "skill", name: "skill", status: "in_progress" });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "ambiguous", title: "Run command", kind: "execute", status: "pending", rawInput: { command: "not established" } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "missing", name: "skill", title: "Skill", status: "pending", rawInput: {} });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "terminal", name: "bash", title: "Terminal", kind: "execute", status: "in_progress", content: [{ type: "terminal", terminalId: "term-9" }] });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "command", status: "in_progress", rawOutput: { progress: 1 }, content: [{ type: "content", content: { type: "text", text: "working" } }] });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "skill", status: "completed", content: [{ type: "content", content: { type: "text", text: "Skill loaded" } }] });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "terminal", status: "completed", content: [{ type: "terminal", terminalId: "term-9" }] });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "command", status: "failed", rawOutput: { error: "exit 7", exitCode: 7 }, content: [{ type: "content", content: { type: "text", text: "command failed" } }] });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "late-command", name: "bash", title: "Command", status: "pending" });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "late-command", rawInput: { command: "pwd" }, status: "completed" });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "alias", name: "execute", title: "bash", kind: "execute", rawInput: { command: "opaque" } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "invalid", name: "skill", title: "Skill", rawInput: { name: 42 } });
+};
 const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.initialize, () => ({
     protocolVersion: acp.PROTOCOL_VERSION,
     agentInfo: { name: profile, version: "1.0.0" },
-    agentCapabilities: { loadSession: ["generic", "replay", "replay-conversation", "no-user", "delayed-load", "reload-failure", "models-load"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume", "models-resume", "permission"].includes(profile) ? { resume: {} } : {}) } },
+    agentCapabilities: { loadSession: ["generic", "native", "replay", "replay-conversation", "no-user", "delayed-load", "reload-failure", "models-load"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume", "models-resume", "permission"].includes(profile) ? { resume: {} } : {}) } },
   }))
   .onRequest(acp.methods.agent.session.new, ({ params }) => {
     if (!params.cwd.startsWith("/")) throw new Error("cwd must be absolute");
@@ -58,6 +74,11 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.session.close, () => ({}))
   .onRequest(acp.methods.agent.session.load, async ({ params, client }) => {
     const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+    if (profile === "native") {
+      await emit({ sessionUpdate: "user_message_chunk", content: { type: "text", text: "go" } });
+      await nativeTrace(emit);
+      return {};
+    }
     if (profile === "generic") {
       await emit({ sessionUpdate: "user_message_chunk", content: { type: "text", text: "go" } });
       await genericTrace(emit);
@@ -131,6 +152,11 @@ const agent = acp.agent({ name: "fake-agent" })
           update: { sessionUpdate: "config_option_update", configOptions: [modelOption()] },
         });
       }
+      return { stopReason: "end_turn" };
+    }
+    if (profile === "native") {
+      const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+      await nativeTrace(emit);
       return { stopReason: "end_turn" };
     }
     if (profile === "generic") {
@@ -612,6 +638,52 @@ describe("createAcpAdapter", () => {
       await events.return?.();
     }
   });
+  it("normalizes established skill and command activity consistently in live events and replay", async () => {
+    const adapter = createAdapter("native");
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    const sessionId = "native-session";
+    await adapter.createSession({ directory: process.cwd() });
+    try {
+      await adapter.sendMessage({ sessionId, content: "go", model: selectedModel });
+      const parts = [];
+      while (true) {
+        const next = await events.next();
+        if (next.done) break;
+        if (next.value.type === "message.part.updated" && next.value.part.type === "tool")
+          parts.push(next.value.part);
+        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+      }
+      expect(parts[0]).toMatchObject({ callId: "skill", input: { name: "frontend-design", unrelated: "raw" } });
+      expect(parts[0]?.toolName).toBeUndefined();
+      expect(parts[1]).toMatchObject({ callId: "command", toolName: "bash", status: "pending", input: { command: "printf hello", description: "Print greeting", workdir: "/tmp", timeout: 5000 } });
+      expect(parts[1]?.input).toEqual({ command: "printf hello", description: "Print greeting", workdir: "/tmp", timeout: 5000 });
+      expect(parts[2]).toMatchObject({ callId: "skill", toolName: "skill", status: "running", input: { name: "frontend-design" }, metadata: { acp: { name: "skill", rawInput: { name: "frontend-design", unrelated: "raw" } } } });
+      expect(parts[2]?.input).toEqual({ name: "frontend-design" });
+      expect(parts[3]).toMatchObject({ callId: "ambiguous", kind: "execute", input: { command: "not established" } });
+      expect(parts[3]?.toolName).toBeUndefined();
+      expect(parts[4]).toMatchObject({ callId: "missing", toolName: "skill", input: {} });
+      expect(parts[5]).toMatchObject({ callId: "terminal", toolName: "bash", terminalIds: ["term-9"] });
+      expect(parts[5]?.input).toBeUndefined();
+      expect(parts[5]?.output).toBeUndefined();
+      expect(parts[6]).toMatchObject({ callId: "command", status: "running", output: { progress: 1 }, displayContent: ["working"] });
+      expect(parts[7]).toMatchObject({ callId: "skill", status: "completed", output: "Skill loaded" });
+      expect(parts[8]).toMatchObject({ callId: "terminal", status: "completed", terminalIds: ["term-9"] });
+      expect(parts[8]?.output).toBeUndefined();
+      expect(parts[9]).toMatchObject({ callId: "command", status: "failed", output: { error: "exit 7", exitCode: 7 }, error: "exit 7", displayContent: ["command failed"] });
+      expect(parts[10]).toMatchObject({ callId: "late-command", toolName: "bash", status: "pending" });
+      expect(parts[10]?.input).toBeUndefined();
+      expect(parts[11]).toMatchObject({ callId: "late-command", toolName: "bash", status: "completed", input: { command: "pwd" } });
+      expect(parts[12]).toMatchObject({ callId: "alias", toolName: "execute", kind: "execute", input: { command: "opaque" } });
+      expect(parts[13]).toMatchObject({ callId: "invalid", toolName: "skill", input: {}, metadata: { acp: { rawInput: { name: 42 } } } });
+      const history = await adapter.listMessages!({ sessionId });
+      const tools = history.messages.flatMap((message) => message.parts.filter((part) => part.type === "tool"));
+      expect(tools).toEqual([parts[7], parts[9], parts[3], parts[4], parts[8], parts[11], parts[12], parts[13]]);
+    } finally {
+      await adapter.deleteSession({ sessionId });
+      await events.return?.();
+    }
+  });
+
 
   it("keeps streamed chunks and interleaved tool updates in their owning turns", async () => {
     const adapter = createAdapter("conversation");
