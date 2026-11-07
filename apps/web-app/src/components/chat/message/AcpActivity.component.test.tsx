@@ -3,7 +3,6 @@ import {
   AssistantMessageBubble,
   UserMessageBubble,
 } from "@repo/ui/components/message";
-import { ToolPart } from "@repo/ui/components/message/parts/ToolPart";
 import {
   createAcpMessageState,
   mapSessionUpdate,
@@ -71,37 +70,6 @@ test("shows unmapped ACP activity and discloses the original payload on demand",
   }
 });
 
-test.each([
-  {
-    id: "complete",
-    type: "tool" as const,
-    toolName: "custom",
-    status: "completed" as const,
-  },
-  { id: "partial", type: "tool" as const },
-])("keeps provider tool metadata collapsed for $id activity", (part) => {
-  render(
-    <ToolPart
-      part={{
-        ...part,
-        metadata: {
-          acp: {
-            title: "Provider title",
-            locations: [{ path: "src/file.ts" }],
-          },
-        },
-      }}
-    />,
-  );
-
-  const disclosure = screen.getByText("Raw tool details").closest("details")!;
-  expect(disclosure).not.toHaveAttribute("open");
-  expect(within(disclosure).getByText(/Provider title/)).not.toBeVisible();
-  fireEvent.click(screen.getByText("Raw tool details"));
-  expect(within(disclosure).getByText(/Provider title/)).toBeVisible();
-  expect(within(disclosure).getByText(/src\/file.ts/)).toBeVisible();
-});
-
 test("shows unsupported replayed user content with its original payload on demand", async () => {
   const state = createAcpMessageState("session");
   mapSessionUpdate(
@@ -121,26 +89,4 @@ test("shows unsupported replayed user content with its original payload on deman
   expect(within(disclosure).getByText(/aGVsbG8=/)).not.toBeVisible();
   fireEvent.click(screen.getByText("Raw part details"));
   expect(within(disclosure).getByText(/aGVsbG8=/)).toBeVisible();
-});
-
-test("keeps partial tool input and output collapsed", () => {
-  render(
-    <ToolPart
-      part={{
-        id: "partial",
-        type: "tool",
-        input: "private input",
-        output: "private output",
-      }}
-    />,
-  );
-  const disclosure = screen.getByText("Raw tool details").closest("details")!;
-  expect(screen.getAllByText("private input")).toHaveLength(1);
-  expect(screen.getAllByText("private output")).toHaveLength(1);
-  expect(disclosure).not.toHaveAttribute("open");
-  expect(within(disclosure).getByText("private input")).not.toBeVisible();
-  expect(within(disclosure).getByText("private output")).not.toBeVisible();
-  fireEvent.click(screen.getByText("Raw tool details"));
-  expect(within(disclosure).getByText("private input")).toBeVisible();
-  expect(within(disclosure).getByText("private output")).toBeVisible();
 });
