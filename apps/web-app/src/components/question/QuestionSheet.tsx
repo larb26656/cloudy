@@ -100,6 +100,7 @@ export function QuestionSheet({
   }
   return (
     <ChoiceQuestionSheet
+      key={question.id}
       open={open}
       onOpenChange={onOpenChange}
       question={question}

@@ -457,14 +457,16 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
         env,
         fileURLToPath(new URL("../../", import.meta.url)),
       );
-      ids.push(first.id, second.id);
+      const sameDirectory = await createSession(env);
+      ids.push(first.id, second.id, sameDirectory.id);
       const firstSend = send(env, first.id, "multiple");
       const secondSend = send(env, second.id, "trip");
-      pending.push(firstSend, secondSend);
+      const sameDirectorySend = send(env, sameDirectory.id, "trip");
+      pending.push(firstSend, secondSend, sameDirectorySend);
       const seen: StreamEvent[] = [];
       while (
         seen.filter((event) => event.type === "question.requested").length <
-          3 ||
+          4 ||
         !seen.some((event) => event.type === "approval.requested")
       )
         seen.push(
@@ -472,8 +474,10 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
         );
       const firstQuestions = await questions(env, first.id);
       const secondQuestions = await questions(env, second.id);
+      const sameDirectoryQuestions = await questions(env, sameDirectory.id);
       expect(firstQuestions).toHaveLength(2);
       expect(secondQuestions).toHaveLength(1);
+      expect(sameDirectoryQuestions).toHaveLength(1);
       expect(new Set(firstQuestions.map((question) => question.id)).size).toBe(
         2,
       );
@@ -482,7 +486,17 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
           `/api/agent-providers/acp-test/questions?directory=${encodeURIComponent(process.cwd())}`,
         )
       ).json()) as Question[];
-      expect(providerQuestions).toHaveLength(2);
+      expect(providerQuestions).toHaveLength(3);
+      expect(new Set(providerQuestions.map((question) => question.id))).toEqual(
+        new Set(
+          [...firstQuestions, ...sameDirectoryQuestions].map(
+            (question) => question.id,
+          ),
+        ),
+      );
+      expect(await env.service.hasPendingInteractions(sameDirectory.id)).toBe(
+        true,
+      );
       expect(providerQuestions[0]!.sessionId).not.toBe(first.id);
       expect(
         (
@@ -512,8 +526,22 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
         ),
       ).toHaveLength(1);
       expect(
+        seen.filter(
+          (event) =>
+            event.type === "question.requested" &&
+            event.sessionId === sameDirectory.id,
+        ),
+      ).toHaveLength(1);
+      expect(
         (
           await reply(env, second.id, firstQuestions[0]!.id, {
+            action: "decline",
+          })
+        ).status,
+      ).toBe(404);
+      expect(
+        (
+          await reply(env, sameDirectory.id, firstQuestions[0]!.id, {
             action: "decline",
           })
         ).status,
@@ -529,6 +557,10 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
         (await reply(env, first.id, firstByMessage.id, { action: "decline" }))
           .status,
       ).toBe(200);
+      expect(await events.next("question.resolved")).toMatchObject({
+        sessionId: first.id,
+        interactionId: firstByMessage.id,
+      });
       expect(await questions(env, first.id)).toEqual([secondByMessage]);
       expect(await env.service.hasPendingInteractions(first.id)).toBe(true);
       expect(
@@ -540,6 +572,16 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
         await env.app.request(`/api/sessions/${first.id}/permissions`)
       ).json();
       expect(permissions).toHaveLength(1);
+      expect(
+        (
+          await reply(env, first.id, permissions[0].id, { action: "cancel" })
+        ).status,
+      ).toBe(404);
+      expect(
+        await (
+          await env.app.request(`/api/sessions/${first.id}/permissions`)
+        ).json(),
+      ).toEqual(permissions);
       expect(
         (
           await env.app.request(
@@ -563,6 +605,17 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
       ).toBe(200);
       expect(await (await secondSend).json()).toMatchObject({
         value: { _meta: { result: "trip-booked" } },
+      });
+      expect(await questions(env, sameDirectory.id)).toHaveLength(1);
+      expect(
+        (
+          await reply(env, sameDirectory.id, sameDirectoryQuestions[0]!.id, {
+            action: "decline",
+          })
+        ).status,
+      ).toBe(200);
+      expect(await (await sameDirectorySend).json()).toMatchObject({
+        value: { _meta: { result: "decline" } },
       });
     } finally {
       await cleanup(env, ids, pending, events);
