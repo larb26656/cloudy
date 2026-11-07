@@ -251,7 +251,15 @@ export function ChatProvider({
             sessionId: commandSessionId,
             command: parsed.command,
             args: parsed.arguments,
+            model: model
+              ? {
+                  providerId: model.providerId,
+                  modelId: model.modelId,
+                  variantId: model.variantId,
+                }
+              : undefined,
           });
+          useChatInputHistoryStore.getState().addEntry(commandSessionId, text);
           return true;
         }
 

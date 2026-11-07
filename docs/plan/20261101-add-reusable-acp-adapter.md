@@ -52,3 +52,14 @@ Cloudy currently connects to OpenCode through an HTTP SDK, while OMP and other a
 - Keep credentials owned by each ACP agent's own environment; do not require OMP-specific auth in the generic adapter.
 - Client-side filesystem, terminal, MCP, and approval capabilities are separate integration work; advertise only client capabilities that Cloudy actually implements. In the initial integration, rely on OMP's documented local fallbacks where available and keep permissions fail-closed.
 - Follow-up plans should separately cover: durable message/session history and fuller ACP-to-`@repo/ai-core` mapping; an OMP launch profile (`omp acp`); provider configuration/registration; then provider settings UI and end-to-end checks. Session/list/load/resume/close and model/mode controls should be negotiated from each agent's actual ACP capabilities rather than assumed from OMP.
+
+## Command catalog
+
+- ACP command discovery uses the existing `GET /api/agent-providers/:providerId/commands` endpoint and returns the full cached catalog. The frontend filters command names and debounces requests.
+- Each ACP adapter keeps an in-memory catalog per absolute directory. Concurrent cold requests share one probe using the provider's catalog launch profile and the requested directory.
+- Discovery waits for session creation and the first `available_commands_update` within the configured timeout. A missing event is a discovery error; an event containing `[]` is a successful empty catalog.
+- Notifications from probes and conversation sessions replace the complete catalog, including empty lists. Arrival order wins even when an older probe finishes later. This is a best-effort directory catalog, not a guarantee that every session advertises the same commands.
+- Probe processes are closed after discovery with bounded cleanup. Cache lifetime ends with the adapter process or replacement by another notification.
+- Command metadata stays out of conversation messages. ACP command execution uses the existing session command endpoint and sends `/name arguments` through the normal prompt path with the selected model.
+- Frontend autocomplete requests the active provider rather than hardcoding OpenCode. Local Cloudy commands retain precedence and remain available if remote discovery fails.
+- Regression coverage lives in `packages/server/src/providers/acp/acp.commands.test.ts`. A real OMP 18.18.0 smoke run negotiated ACP v1 and verified single-flight discovery, cached API filtering, and command selection in the browser editor.

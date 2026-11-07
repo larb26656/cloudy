@@ -309,6 +309,7 @@ export const ChatInput = memo(function ChatInput({
                 placeholder={placeholder}
                 disabled={isSending && !allowTypingWhileSending}
                 directory={directory}
+                providerId={providerId}
                 supportsFileMentions={
                   supportsFileMentions ?? capabilities.fileMentions
                 }

@@ -309,6 +309,7 @@ export function createSessionsService(
       command: input.command,
       arguments: input.arguments,
       directory: record.directory ?? "",
+      ...(input.model ? { model: input.model } : {}),
     });
   };
 

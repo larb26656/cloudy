@@ -202,6 +202,7 @@ export function mapSessionUpdate(
     }
     case "session_info_update":
     case "config_option_update":
+    case "available_commands_update":
       break;
     default: {
       state.currentTextPartId = undefined;

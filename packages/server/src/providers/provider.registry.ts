@@ -275,6 +275,7 @@ export function createAgentProviderRegistry({
         command: string;
         arguments?: string;
         directory: string;
+        model?: ProviderMessageRequest["model"];
       },
     ): Promise<unknown> {
       const operation = requireOperation(providerId, "executeCommand");

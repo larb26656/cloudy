@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ChatProvider, useChat } from "./ChatProvider";
 import { useDefaultAgentStore } from "@/stores/defaultAgentStore";
 import { useDefaultModelStore } from "@/stores/defaultModelStore";
+import { useChatInputHistoryStore } from "@/stores/chatInputHistoryStore";
 import type { ModelInfo } from "@repo/contracts";
 
 const capacity = {
@@ -72,7 +73,8 @@ const altModel: ModelInfo = {
 };
 
 function ChatSelection() {
-  const { effectiveAgent, effectiveModel, setAgent, setModel, sendMessage } = useChat();
+  const { effectiveAgent, effectiveModel, setAgent, setModel, sendMessage } =
+    useChat();
 
   return (
     <>
@@ -100,6 +102,7 @@ function ChatSelection() {
 function ChatActions() {
   const {
     changeSession,
+    effectiveModel,
     executeImmediateCommand,
     openSessionPicker,
     sendMessage,
@@ -126,6 +129,16 @@ function ChatActions() {
         }
       >
         Send slash command
+      </button>
+      <button
+        onClick={() =>
+          void sendMessage(
+            { text: "/review changes", mentions: [], attachments: [] },
+            effectiveModel,
+          )
+        }
+      >
+        Send provider command
       </button>
       <button
         onClick={() =>
@@ -463,6 +476,29 @@ describe("ChatProvider", () => {
       }),
     );
   });
+
+  test.each([true, false])(
+    "records provider command history only after successful submission: %s",
+    async (succeeds) => {
+      useChatInputHistoryStore.setState({ sessions: {} });
+      if (!succeeds)
+        mocks.executeCommand.mockRejectedValueOnce(new Error("Command failed"));
+      renderChat(
+        { providerId: "copilot", sessionId: "ses_command", model },
+        <ChatActions />,
+      );
+
+      await act(async () => {
+        screen.getByRole("button", { name: "Send provider command" }).click();
+      });
+
+      expect(
+        useChatInputHistoryStore
+          .getState()
+          .sessions.ses_command?.includes("/review changes") ?? false,
+      ).toBe(succeeds);
+    },
+  );
 
   test("executes internal commands when remote commands are unsupported", async () => {
     renderChat(

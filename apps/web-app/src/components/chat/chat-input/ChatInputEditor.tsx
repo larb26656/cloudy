@@ -22,6 +22,7 @@ interface ChatInputEditorProps {
   placeholder?: string;
   disabled?: boolean;
   directory: string;
+  providerId: string;
   supportsFileMentions?: boolean;
   supportsCommands?: boolean;
 }
@@ -41,7 +42,7 @@ function getMentions(editor: Editor) {
 export function ChatInputEditor(props: ChatInputEditorProps) {
   const supportsFileMentions = props.supportsFileMentions ?? true;
   const supportsCommands = props.supportsCommands ?? true;
-  const editorKey = `${props.directory}:${supportsFileMentions}:${supportsCommands}`;
+  const editorKey = `${props.providerId}:${props.directory}:${supportsFileMentions}:${supportsCommands}`;
 
   return <ChatInputEditorInstance key={editorKey} {...props} />;
 }
@@ -55,6 +56,7 @@ function ChatInputEditorInstance({
   placeholder,
   disabled,
   directory,
+  providerId,
   supportsFileMentions = true,
   supportsCommands = true,
 }: ChatInputEditorProps) {
@@ -95,6 +97,7 @@ function ChatInputEditorInstance({
             char: "/",
             allow: shouldShowSlashCommand,
             ...createCommandSuggestion(directory, {
+              providerId,
               supportsRemoteCommands: supportsCommands,
               onImmediateExecute: (cmd) => {
                 onImmediateExecuteRef.current?.(cmd.name);
@@ -105,7 +108,13 @@ function ChatInputEditorInstance({
       }),
       Placeholder.configure({ placeholder: placeholder }),
     ];
-  }, [directory, placeholder, supportsCommands, supportsFileMentions]);
+  }, [
+    directory,
+    providerId,
+    placeholder,
+    supportsCommands,
+    supportsFileMentions,
+  ]);
 
   const editor = useEditor({
     extensions,

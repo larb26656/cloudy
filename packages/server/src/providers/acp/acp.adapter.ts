@@ -20,6 +20,7 @@ import type {
   AgentProviderInfo,
   ChatEvent,
   ChatSession,
+  CommandInfo,
   InteractionResponse,
   InteractionResponseInput,
   ModelInfo,
@@ -55,6 +56,7 @@ export interface AcpAdapterOptions {
 export interface AcpAdapter extends AgentProviderAdapter {
   createSession(input: ProviderSessionInput): Promise<ChatSession>;
   sendMessage(request: ProviderMessageRequest): Promise<InteractionResponse>;
+  listCommands(input: { directory: string }): Promise<CommandInfo[]>;
   abortSession(input: { sessionId: string }): Promise<void>;
   deleteSession(input: { sessionId: string }): Promise<void>;
   respondToInteraction(
@@ -95,6 +97,7 @@ interface AcpSession {
   pendingPermissions: Map<string, PendingPermission>;
   stopping: boolean;
   closed: boolean;
+  commandDiscovery?: CommandDiscovery;
 }
 
 interface Subscriber {
@@ -102,6 +105,18 @@ interface Subscriber {
   values: ChatEvent[];
   pending: Array<(result: IteratorResult<ChatEvent>) => void>;
   closed: boolean;
+}
+
+interface CommandCatalog {
+  commands: CommandInfo[];
+  revision: number;
+}
+
+interface CommandDiscovery {
+  session?: AcpSession;
+  created?: boolean;
+  receive: (commands: acp.AvailableCommand[]) => void;
+  reject: (error: unknown) => void;
 }
 
 const DEFAULT_TIMEOUT_MS = 30_000;
@@ -121,6 +136,26 @@ export function createAcpAdapter({
   const models = new Map<string, ModelInfo>();
   let catalogProbe: Promise<void> | undefined;
   let catalogProbed = false;
+  const commandCatalogs = new Map<string, CommandCatalog>();
+  const commandProbes = new Map<string, Promise<CommandInfo[]>>();
+  let commandRevision = 0;
+
+  const receiveCommands = (
+    commands: acp.AvailableCommand[],
+  ): CommandCatalog => ({
+    revision: ++commandRevision,
+    commands: commands.map((command) => ({
+      name: command.name,
+      description: command.description,
+      ...(command.input ? { hints: [command.input.hint] } : {}),
+    })),
+  });
+
+  const storeCommands = (directory: string, catalog: CommandCatalog) => {
+    const previous = commandCatalogs.get(directory);
+    if (!previous || previous.revision < catalog.revision)
+      commandCatalogs.set(directory, catalog);
+  };
 
   const publish = (event: ChatEvent) => {
     for (const subscriber of subscribers) {
@@ -212,7 +247,10 @@ export function createAcpAdapter({
   const closeSession = (session: AcpSession, error?: unknown) => {
     if (session.closed) return;
     session.closed = true;
-    sessions.delete(session.id);
+    if (sessions.get(session.id) === session) sessions.delete(session.id);
+    session.commandDiscovery?.reject(
+      error ?? new Error("ACP agent closed before command discovery completed"),
+    );
     for (const pending of session.pendingPermissions.values())
       pending.resolve({ outcome: { outcome: "cancelled" } });
     clearQuestions(session);
@@ -289,6 +327,31 @@ export function createAcpAdapter({
     return session.model.currentValue;
   };
 
+  const disposeSession = async (session: AcpSession) => {
+    session.stopping = true;
+    clearQuestions(session);
+    try {
+      if (session.capabilities?.sessionCapabilities?.delete)
+        await withTimeout(
+          session.connection.agent.request(acp.methods.agent.session.delete, {
+            sessionId: session.id,
+          }),
+          timeoutMs,
+          "ACP session deletion timed out",
+        );
+      else if (session.capabilities?.sessionCapabilities?.close)
+        await withTimeout(
+          session.connection.agent.request(acp.methods.agent.session.close, {
+            sessionId: session.id,
+          }),
+          timeoutMs,
+          "ACP session close timed out",
+        );
+    } finally {
+      closeSession(session);
+    }
+  };
+
   const adapter = {
     id,
     capabilities: {
@@ -297,6 +360,7 @@ export function createAcpAdapter({
       approvals: true,
       questions: true,
       agents: true,
+      commands: true,
       tools: true,
       reasoning: true,
       models: false,
@@ -366,6 +430,82 @@ export function createAcpAdapter({
         metadata: { command: launch.command, args: launch.args },
       };
     },
+    async listCommands(input: { directory: string }): Promise<CommandInfo[]> {
+      if (!isAbsolute(input.directory))
+        throw new ValidationError("ACP commands require an absolute directory");
+      const cached = commandCatalogs.get(input.directory);
+      if (cached) return cached.commands;
+      const pending = commandProbes.get(input.directory);
+      if (pending) return pending;
+      const probe = (async () => {
+        let resolveCommands!: () => void;
+        let rejectCommands!: (error: unknown) => void;
+        const firstCommands = new Promise<void>((resolve, reject) => {
+          resolveCommands = resolve;
+          rejectCommands = reject;
+        });
+        let received: CommandCatalog | undefined;
+        let ready = false;
+        const discovery: CommandDiscovery = {
+          receive(commands) {
+            received = receiveCommands(commands);
+            if (ready) storeCommands(input.directory, received);
+            resolveCommands();
+          },
+          reject: rejectCommands,
+        };
+        try {
+          await withTimeout(
+            Promise.all([
+              adapter.createSession({ directory: input.directory }, discovery),
+              firstCommands,
+            ]),
+            timeoutMs,
+            "ACP command discovery timed out",
+            () => {
+              const session = discovery.session;
+              if (session && !discovery.created) closeSession(session);
+            },
+          );
+          ready = true;
+          if (received) storeCommands(input.directory, received);
+        } finally {
+          const session = discovery.session;
+          if (session && !session.closed) {
+            try {
+              await disposeSession(session);
+            } catch (error) {
+              console.warn("[ACP] Command discovery session cleanup failed", {
+                providerId: id,
+                sessionId: session.id,
+                error: error instanceof Error ? error.message : String(error),
+              });
+            }
+          }
+        }
+        return commandCatalogs.get(input.directory)!.commands;
+      })();
+      commandProbes.set(input.directory, probe);
+      try {
+        return await probe;
+      } finally {
+        commandProbes.delete(input.directory);
+      }
+    },
+    async executeCommand(input: {
+      sessionId: string;
+      directory: string;
+      command: string;
+      arguments?: string;
+      model?: ProviderMessageRequest["model"];
+    }): Promise<InteractionResponse> {
+      return adapter.sendMessage({
+        sessionId: input.sessionId,
+        directory: input.directory,
+        content: `/${input.command}${input.arguments ? ` ${input.arguments}` : ""}`,
+        model: input.model,
+      });
+    },
     async getSessionStatuses(input: {
       directory?: string;
       sessionId?: string;
@@ -384,16 +524,22 @@ export function createAcpAdapter({
       // TODO: Implement ACP session children when supported.
       return [];
     },
-    async createSession(input: ProviderSessionInput): Promise<ChatSession> {
+    async createSession(
+      input: ProviderSessionInput,
+      discovery?: CommandDiscovery,
+    ): Promise<ChatSession> {
       const existing = input.sessionId && creatingSessions.get(input.sessionId);
       if (existing) return existing;
       const creation = (async (): Promise<ChatSession> => {
         if (!input.directory || !isAbsolute(input.directory))
           throw new Error("ACP sessions require an absolute directory");
 
-        const child = spawnProcess(launch.command, launch.args, {
+        const sessionLaunch = discovery ? catalogLaunch : launch;
+        const child = spawnProcess(sessionLaunch.command, sessionLaunch.args, {
           cwd: input.directory,
-          env: launch.env ? { ...process.env, ...launch.env } : process.env,
+          env: sessionLaunch.env
+            ? { ...process.env, ...sessionLaunch.env }
+            : process.env,
           stdio: ["pipe", "pipe", "pipe"],
         });
         if (!child.stdin || !child.stdout) {
@@ -441,9 +587,19 @@ export function createAcpAdapter({
               ) {
                 throw new Error("Invalid ACP session update");
               }
+              const update = params.update as acp.SessionUpdate;
+              if (update.sessionUpdate === "available_commands_update") {
+                if (discovery) discovery.receive(update.availableCommands);
+                else
+                  storeCommands(
+                    input.directory!,
+                    receiveCommands(update.availableCommands),
+                  );
+                return;
+              }
+              if (discovery) return;
               const session = sessions.get(params.sessionId);
               if (!session) return;
-              const update = params.update as acp.SessionUpdate;
               if (update.sessionUpdate === "config_option_update")
                 updateModel(session, update.configOptions);
               if (
@@ -596,7 +752,9 @@ export function createAcpAdapter({
           pendingPermissions,
           stopping: false,
           closed: false,
+          commandDiscovery: discovery,
         };
+        if (discovery) discovery.session = session;
 
         const fail = (error: unknown) => closeSession(session, error);
         child.once("error", fail);
@@ -700,7 +858,7 @@ export function createAcpAdapter({
                   : undefined,
             })),
           });
-          for (const option of catalogDirectory
+          for (const option of catalogDirectory || discovery
             ? []
             : (created.configOptions ?? [])) {
             if (option.category !== "model" || option.type !== "select")
@@ -722,7 +880,8 @@ export function createAcpAdapter({
           session.messageState.sessionId = session.id;
           if (created.configOptions)
             updateModel(session, created.configOptions);
-          sessions.set(session.id, session);
+          if (discovery) discovery.created = true;
+          else sessions.set(session.id, session);
           const now = new Date().toISOString();
           return {
             id: session.id,
@@ -901,23 +1060,7 @@ export function createAcpAdapter({
       }
     },
     async deleteSession(input: { sessionId: string }): Promise<void> {
-      const session = getSession(sessions, input.sessionId);
-      session.stopping = true;
-      clearQuestions(session);
-      try {
-        if (session.capabilities?.sessionCapabilities?.delete)
-          await session.connection.agent.request(
-            acp.methods.agent.session.delete,
-            { sessionId: session.id },
-          );
-        else if (session.capabilities?.sessionCapabilities?.close)
-          await session.connection.agent.request(
-            acp.methods.agent.session.close,
-            { sessionId: session.id },
-          );
-      } finally {
-        closeSession(session);
-      }
+      await disposeSession(getSession(sessions, input.sessionId));
     },
     async listPermissions(input: {
       directory?: string;

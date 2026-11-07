@@ -14,3 +14,6 @@ _Avoid_: Permission, approval
 **Permission**:
 An Interaction asking the user to authorize an action by an agent.
 _Avoid_: Question
+
+**Command Catalog**:
+The commands advertised by a provider for a working directory. A Command Catalog does not guarantee that every conversation in that directory offers the same commands.

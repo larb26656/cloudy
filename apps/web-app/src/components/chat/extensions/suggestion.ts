@@ -12,6 +12,7 @@ import type { MentionNodeAttrs } from "@tiptap/extension-mention";
 import { systemCommands } from "@/lib/commands";
 import { type Command, type CommandSource } from "@/lib/command";
 import { cloudyClient } from "@/lib/api";
+import { toast } from "@repo/ui/components/sonner";
 
 type MentionItem = string;
 
@@ -93,6 +94,7 @@ export function createMentionSuggestion(directory: string) {
 }
 
 type CommandSuggestionOptions = {
+  providerId: string;
   supportsRemoteCommands?: boolean;
   onImmediateExecute?: (item: CommandItem) => void;
 };
@@ -102,17 +104,35 @@ export function createCommandSuggestion(
   options?: CommandSuggestionOptions,
 ) {
   return {
+    debounce: 200,
     items: async ({ query }: { query: string }): Promise<CommandItem[]> => {
-      const response = options?.supportsRemoteCommands
-        ? await cloudyClient.api["agent-providers"][
+      let providerCommands: Command[] = [];
+      if (options?.supportsRemoteCommands) {
+        try {
+          const response = await cloudyClient.api["agent-providers"][
             ":providerId"
           ].commands.$get({
-            param: { providerId: "opencode" },
+            param: { providerId: options.providerId },
             query: { directory },
-          })
-        : null;
-      if (response && !response.ok) throw new Error(await response.text());
-      const openCodeCommands = response ? await response.json() : [];
+          });
+          if (!response.ok) throw new Error(await response.text());
+          providerCommands = (await response.json()).map((cmd) => ({
+            name: cmd.name,
+            description: cmd.description,
+            source: (cmd.source ?? "command") as CommandSource,
+            template: cmd.template ?? "",
+            hints: cmd.hints ?? [],
+            immediate: cmd.immediate,
+          }));
+        } catch (error) {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to discover commands",
+            { id: "command-discovery-error" },
+          );
+        }
+      }
 
       const systemCommandItems: Command[] = systemCommands.map((cmd) => ({
         name: cmd.name,
@@ -126,16 +146,7 @@ export function createCommandSuggestion(
       const internalNames = new Set(systemCommandItems.map((cmd) => cmd.name));
       const commands: Command[] = [
         ...systemCommandItems,
-        ...openCodeCommands
-          .filter((cmd) => !internalNames.has(cmd.name))
-          .map((cmd) => ({
-            name: cmd.name,
-            description: cmd.description,
-            source: (cmd.source ?? "command") as CommandSource,
-            template: cmd.template ?? "",
-            hints: cmd.hints ?? [],
-            immediate: cmd.immediate,
-          })),
+        ...providerCommands.filter((cmd) => !internalNames.has(cmd.name)),
       ];
 
       return commands

@@ -152,6 +152,7 @@ export interface AgentProviderAdapter {
     command: string;
     arguments?: string;
     directory: string;
+    model?: ProviderMessageRequest["model"];
   }): Promise<unknown>;
   subscribeEvents(input?: ProviderEventsInput): AsyncIterable<ChatEvent>;
 }

@@ -60,6 +60,7 @@ export const messageInputSchema = z.object({
 export const commandInputSchema = z.object({
   command: z.string().min(1),
   arguments: z.string().optional(),
+  model: messageInputSchema.shape.model,
 });
 
 export const forkSessionSchema = z.object({ messageId: z.string().optional() });
