@@ -14,6 +14,10 @@ ACP prompts have no fixed deadline: long-running work and permission waits
 can continue beyond 30 seconds. Initialization and session creation/loading
 retain their timeouts. Use Stop to cancel a running prompt.
 
+ACP run status is tracked by Cloudy's current server process. The session
+status API returns `unknown` when that process has no reliable status, including
+after a restart or when resuming a session; it does not infer that work is idle.
+
 Pending ACP permissions are listed by working directory, so returning to an
 open conversation still shows its approval requests.
 Cloudy's **Once**, **Always**, and **Reject** replies select the agent's offered

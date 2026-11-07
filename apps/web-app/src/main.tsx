@@ -25,20 +25,18 @@ localStorage.removeItem("workspaces");
 const liveTabIds = new Set(useTabStore.getState().tabs.map((t) => t.id));
 useChatPanelStore.getState().pruneExcept(liveTabIds);
 
-async function renderApp(): Promise<void> {
-  try {
-    const response = await fetch(new URL("/api/health", env.getApiUrl()), {
-      headers: env.getAuthHeaders(),
-    });
-    if (response.status === 401 && window.location.pathname !== "/pair") {
-      window.location.replace("/pair");
-      return;
-    }
-  } catch {
-    return renderWithoutApi();
-  }
-
+function renderApp(): void {
   renderWithoutApi();
+
+  void fetch(new URL("/api/health", env.getApiUrl()), {
+    headers: env.getAuthHeaders(),
+  })
+    .then((response) => {
+      if (response.status === 401 && window.location.pathname !== "/pair") {
+        window.location.replace("/pair");
+      }
+    })
+    .catch(() => {});
 }
 
 function renderWithoutApi(): void {
@@ -60,4 +58,4 @@ function renderWithoutApi(): void {
   );
 }
 
-void renderApp();
+renderApp();

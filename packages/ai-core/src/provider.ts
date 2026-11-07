@@ -115,6 +115,7 @@ export interface AgentProviderAdapter {
   }): Promise<ChatSession[]>;
   getSessionStatuses?(input: {
     directory?: string;
+    sessionId?: CanonicalSessionId;
   }): Promise<Record<string, RunStatus>>;
   listMessages?(input: ProviderMessagesInput): Promise<ProviderMessagePage>;
   createSession?(input: ProviderSessionInput): Promise<ChatSession>;

@@ -7,6 +7,7 @@ export type SessionStatusValue =
 
 export type SessionRunStatusValue =
   | "idle"
+  | "unknown"
   | "queued"
   | "running"
   | "completed"
@@ -39,6 +40,7 @@ export interface RecentChatSession extends ChatSession {
 
 export type SessionRunStatus =
   | { type: "idle" }
+  | { type: "unknown" }
   | { type: "busy" }
   | { type: "retry"; attempt: number; message: string; next: number };
 

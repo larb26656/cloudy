@@ -7,7 +7,12 @@ import { cloudyClient } from "@/lib/api";
 import { emptyResponse, jsonResponse } from "@/lib/api-response";
 import { CHAT_POLL_INTERVAL, messageKeys, sessionKeys } from "@/lib/opencode";
 import { useStreamingMessagesStore } from "@/stores/streamingMessagesStore";
-import type { ChatSession, RecentChatSession, SessionRunStatus } from "@/types";
+import type {
+  ChatSession,
+  RecentChatSession,
+  SessionRunStatus,
+  SessionRunStatusValue,
+} from "@/types";
 
 function toChatSession(session: CoreChatSession): ChatSession {
   return {
@@ -118,11 +123,12 @@ export function useSessionStatus({
     queryKey: sessionKeys.status(sessionId ?? ""),
     queryFn: async () => {
       if (!sessionId) return undefined;
-      const status = await jsonResponse<"running" | "queued" | "idle">(
+      const status = await jsonResponse<SessionRunStatusValue>(
         await cloudyClient.api.sessions[":sessionId"].status.$get({
           param: { sessionId },
         }),
       );
+      if (status === "unknown") return { type: "unknown" };
       if (status === "running") return { type: "busy" };
       if (status === "queued")
         return { type: "retry", attempt: 0, message: "", next: 0 };

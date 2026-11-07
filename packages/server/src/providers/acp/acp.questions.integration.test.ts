@@ -274,6 +274,21 @@ async function cleanup(
 }
 
 describe("ACP forms through the HTTP and SSE interfaces", () => {
+  it("returns an empty children list for an ACP session", async () => {
+    const env = setup();
+    let id: string | undefined;
+    try {
+      ({ id } = await createSession(env));
+      const response = await env.app.request(`/api/sessions/${id}/children`);
+      expect(response.status).toBe(200);
+      expect(await response.json()).toEqual([]);
+    } finally {
+      if (id) await env.service.delete(id);
+      await env.hub.stop();
+      env.close();
+    }
+  });
+
   it("negotiates forms, publishes a mapped question, rejects invalid content and continues with typed values", async () => {
     const env = setup();
     const events = await stream(env);

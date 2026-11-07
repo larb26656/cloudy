@@ -41,6 +41,7 @@ function postNotification(
 function statusFor(
   event: Extract<ChatEvent, { type: "session.status" }>,
 ): SessionRunStatus {
+  if (event.runStatus === "unknown") return { type: "unknown" };
   if (event.runStatus === "running") return { type: "busy" };
   if (event.runStatus === "queued")
     return { type: "retry", attempt: 0, message: "", next: 0 };

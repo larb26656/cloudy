@@ -168,7 +168,10 @@ export function createAgentProviderRegistry({
       const operation = requireOperation(providerId, "getSessionChildren");
       return operation.call(get(providerId), input);
     },
-    getSessionStatuses(providerId: string, input: { directory?: string }) {
+    getSessionStatuses(
+      providerId: string,
+      input: { directory?: string; sessionId?: string },
+    ) {
       const operation = requireOperation(providerId, "getSessionStatuses");
       return operation.call(get(providerId), input);
     },

@@ -169,6 +169,7 @@ export function createSessionsService(
     const record = getRecord(id);
     const statuses = await registry.getSessionStatuses(record.providerId, {
       directory: record.directory ?? undefined,
+      sessionId: record.providerSessionId,
     });
     return statuses[record.providerSessionId] ?? "idle";
   };

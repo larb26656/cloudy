@@ -90,7 +90,10 @@ describe("unavailable ACP sessions", () => {
       const created = await app.request("/api/sessions", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ providerId: provider.id, directory: process.cwd() }),
+        body: JSON.stringify({
+          providerId: provider.id,
+          directory: process.cwd(),
+        }),
       });
       expect(created.status).toBe(201);
       const { id } = await created.json();
@@ -100,18 +103,29 @@ describe("unavailable ACP sessions", () => {
         body: JSON.stringify({ content: "unsent" }),
       });
       expect(missing.status).toBe(400);
-      expect(await missing.json()).toMatchObject({ error: expect.stringContaining("Select a model") });
+      expect(await missing.json()).toMatchObject({
+        error: expect.stringContaining("Select a model"),
+      });
       const sent = await app.request(`/api/sessions/${id}/messages`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ content: "hello", model: { providerId: provider.id, modelId: "model-2" } }),
+        body: JSON.stringify({
+          content: "hello",
+          model: { providerId: provider.id, modelId: "model-2" },
+        }),
       });
       expect(sent.status).toBe(200);
       const history = await app.request(`/api/sessions/${id}/messages`);
       expect(await history.json()).toMatchObject({
         messages: [
           { role: "user", parts: [{ text: "hello" }] },
-          { role: "assistant", parts: [{ text: "model-2:hello" }, { type: "step-finish", modelID: "model-2" }] },
+          {
+            role: "assistant",
+            parts: [
+              { text: "model-2:hello" },
+              { type: "step-finish", modelID: "model-2" },
+            ],
+          },
         ],
       });
     } finally {
@@ -150,7 +164,10 @@ describe("unavailable ACP sessions", () => {
       const sent = await app.request(`/api/sessions/${id}/messages`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ content: "unsent draft", model: { providerId: "acp-test", modelId: "model-1" } }),
+        body: JSON.stringify({
+          content: "unsent draft",
+          model: { providerId: "acp-test", modelId: "model-1" },
+        }),
       });
       expect(sent.status).toBe(400);
       expect(await sent.json()).toMatchObject({
@@ -181,7 +198,11 @@ describe("unavailable ACP sessions", () => {
         historyUnavailable: true,
       });
       await expect(
-        provider.sendMessage({ sessionId: "original", content: "hello", model: { providerId: "acp-test", modelId: "model-1" } }),
+        provider.sendMessage({
+          sessionId: "original",
+          content: "hello",
+          model: { providerId: "acp-test", modelId: "model-1" },
+        }),
       ).resolves.toBeDefined();
       await provider.abortSession({ sessionId: "original" });
     },
@@ -255,18 +276,30 @@ describe("ACP permissions through the sessions API", () => {
         const { id } = await created.json();
         expect(id).not.toBe(nativeId);
         expect(
+          await (await app.request(`/api/sessions/${id}/status`)).json(),
+        ).toBe("idle");
+        expect(
           await (await app.request(`/api/sessions/${id}/permissions`)).json(),
         ).toEqual([]);
         await provider.abortSession({ sessionId: nativeId });
+        expect(
+          await (await app.request(`/api/sessions/${id}/status`)).json(),
+        ).toBe("unknown");
 
         sending = Promise.resolve(
           app.request(`/api/sessions/${id}/messages`, {
             method: "POST",
             headers: { "content-type": "application/json" },
-            body: JSON.stringify({ content: "run command", model: { providerId: "acp-test", modelId: "model-1" } }),
+            body: JSON.stringify({
+              content: "run command",
+              model: { providerId: "acp-test", modelId: "model-1" },
+            }),
           }),
         );
         const approval = await nextApproval(events);
+        expect(
+          await (await app.request(`/api/sessions/${id}/status`)).json(),
+        ).toBe("running");
         expect(approval).toMatchObject({
           sessionId: nativeId,
           directory,
@@ -305,6 +338,9 @@ describe("ACP permissions through the sessions API", () => {
         expect(await service.hasPendingInteractions(id)).toBe(false);
         const sent = await sending;
         expect(sent.status).toBe(200);
+        expect(
+          await (await app.request(`/api/sessions/${id}/status`)).json(),
+        ).toBe("completed");
         expect(await sent.json()).toMatchObject({
           interactionId: id,
           value: {
@@ -338,7 +374,10 @@ describe("ACP permissions through the sessions API", () => {
         providerId: provider.id,
         directory,
       });
-      sending = service.sendMessage(session.id, { content: "run command", model: { providerId: "acp-test", modelId: "model-1" } });
+      sending = service.sendMessage(session.id, {
+        content: "run command",
+        model: { providerId: "acp-test", modelId: "model-1" },
+      });
       const approval = await nextApproval(events);
       const pending = await service.permissions(session.id);
       const answered = await app.request(
@@ -411,7 +450,10 @@ describe("ACP permissions through the sessions API", () => {
         sessions.push(session);
         sending.push(
           service
-            .sendMessage(session.id, { content: "run command", model: { providerId: "acp-test", modelId: "model-1" } })
+            .sendMessage(session.id, {
+              content: "run command",
+              model: { providerId: "acp-test", modelId: "model-1" },
+            })
             .catch((error: unknown) => error),
         );
         await nextApproval(events);

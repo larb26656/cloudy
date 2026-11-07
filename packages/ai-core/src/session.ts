@@ -3,6 +3,7 @@ import type { ModelReference } from "./model";
 
 export type RunStatus =
   | "idle"
+  | "unknown"
   | "queued"
   | "running"
   | "completed"

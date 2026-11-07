@@ -28,6 +28,7 @@ import type {
   ProviderEventsInput,
   ProviderMessageRequest,
   ProviderSessionInput,
+  RunStatus,
 } from "@repo/ai-core";
 import type { AcpMessageState, MessageChange } from "./acp.message-mapper";
 
@@ -87,6 +88,7 @@ interface AcpSession {
   loadingMessages?: Promise<void>;
   historyUnavailable: boolean;
   pendingChanges?: MessageChange[];
+  runStatus: RunStatus;
   prompting: boolean;
   agentName: string;
   pendingQuestions: Map<string, PendingQuestion>;
@@ -364,6 +366,24 @@ export function createAcpAdapter({
         metadata: { command: launch.command, args: launch.args },
       };
     },
+    async getSessionStatuses(input: {
+      directory?: string;
+      sessionId?: string;
+    }) {
+      const statuses: Record<string, RunStatus> = {};
+      for (const session of sessions.values()) {
+        if (input.directory && session.directory !== input.directory) continue;
+        if (input.sessionId && session.id !== input.sessionId) continue;
+        statuses[session.id] = session.runStatus;
+      }
+      if (input.sessionId && !(input.sessionId in statuses))
+        statuses[input.sessionId] = "unknown";
+      return statuses;
+    },
+    async getSessionChildren(): Promise<ChatSession[]> {
+      // TODO: Implement ACP session children when supported.
+      return [];
+    },
     async createSession(input: ProviderSessionInput): Promise<ChatSession> {
       const existing = input.sessionId && creatingSessions.get(input.sessionId);
       if (existing) return existing;
@@ -569,6 +589,7 @@ export function createAcpAdapter({
           messageState: createAcpMessageState(input.sessionId ?? sessionId),
           replaying: false,
           historyUnavailable: false,
+          runStatus: input.sessionId ? "unknown" : "idle",
           prompting: false,
           agentName: name,
           pendingQuestions,
@@ -707,7 +728,7 @@ export function createAcpAdapter({
             id: session.id,
             title: input.title,
             status: "idle",
-            runStatus: "idle",
+            runStatus: session.runStatus,
             providerId: id,
             createdAt: now,
             updatedAt: now,
@@ -761,6 +782,7 @@ export function createAcpAdapter({
         if (session.pendingChanges)
           session.pendingChanges.push(...initialChanges);
         else publishChanges(session, initialChanges);
+        session.runStatus = "running";
         publish({
           type: "session.status",
           providerId: id,
@@ -790,14 +812,15 @@ export function createAcpAdapter({
           } else {
             publishChanges(session, finalChanges);
           }
+          session.runStatus =
+            response.stopReason === "cancelled" ? "cancelled" : "completed";
           publish({
             type: "session.status",
             providerId: id,
             directory: session.directory,
             sessionId: session.id,
             status: "idle",
-            runStatus:
-              response.stopReason === "cancelled" ? "cancelled" : "completed",
+            runStatus: session.runStatus,
           });
           return { interactionId: session.id, value: response };
         } catch (error) {
