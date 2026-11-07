@@ -192,8 +192,32 @@ export function mapSessionUpdate(
           ? displayContent[0]
           : displayContent?.length ? displayContent : undefined;
       const toolName = update.name ?? tool?.toolName;
+      const rawInput = raw.rawInput;
+      let input = rawInput;
+      if ((toolName === "skill" || toolName === "bash") && rawInput != null) {
+        if (typeof rawInput === "object" && !Array.isArray(rawInput)) {
+          const source = rawInput as Record<string, unknown>;
+          const normalized: Record<string, unknown> = {};
+          const keys = toolName === "skill"
+            ? ["name"]
+            : ["command", "description", "workdir"];
+          for (const key of keys) {
+            if (typeof source[key] === "string") normalized[key] = source[key];
+          }
+          if (toolName === "bash" && typeof source.timeout === "number")
+            normalized.timeout = source.timeout;
+          input = normalized;
+        } else {
+          input = undefined;
+        }
+      }
+      const error = status === "failed" && rawOutput != null &&
+        typeof rawOutput === "object" && !Array.isArray(rawOutput) &&
+        typeof (rawOutput as Record<string, unknown>).error === "string"
+          ? (rawOutput as Record<string, string>).error
+          : undefined;
       const hadFileChanges = !!changes?.length || tool?.metadata?.hadFileChanges === true;
-      const input = fileInput(toolName, raw.rawInput, hadFileChanges);
+      input = fileInput(toolName, input, hadFileChanges);
       addPart(message, {
         id: partId,
         type: "tool",
@@ -210,15 +234,10 @@ export function mapSessionUpdate(
             })),
         input,
         output,
+        error,
         displayContent,
         terminalIds,
         changes,
-        error: status === "failed"
-          ? typeof rawOutput === "object" && rawOutput !== null &&
-              "error" in rawOutput && typeof rawOutput.error === "string"
-            ? rawOutput.error
-            : displayContent?.find((item): item is string => typeof item === "string")
-          : undefined,
         metadata: { ...(tool?.metadata ?? {}), ...(hadFileChanges ? { hadFileChanges: true } : {}), acp: raw },
       });
       break;
