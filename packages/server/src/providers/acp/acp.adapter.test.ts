@@ -31,11 +31,20 @@ const waitForRestore = async (params, client) => {
   });
   restored = true;
 };
+const genericTrace = async (emit) => {
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", rawOutput: { progress: 1 } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "b", title: "Write report", kind: "edit", status: "pending", locations: [{ path: "report.txt", line: 4 }] });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", name: "provider.custom", title: "Working", kind: "other", status: "pending", rawInput: { query: "x" } });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", status: "in_progress", content: [{ type: "content", content: { type: "text", text: "working" } }], rawOutput: { count: 2 } });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "b", status: "failed", content: [{ type: "content", content: { type: "text", text: "permission denied" } }] });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", status: "completed", content: [{ type: "terminal", terminalId: "term-1" }, { type: "content", content: { type: "text", text: "done" } }], rawOutput: { count: 3 } });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", content: [], locations: [], rawOutput: null });
+};
 const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.initialize, () => ({
     protocolVersion: acp.PROTOCOL_VERSION,
     agentInfo: { name: profile, version: "1.0.0" },
-    agentCapabilities: { loadSession: ["replay", "replay-conversation", "no-user", "delayed-load", "reload-failure", "models-load"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume", "models-resume", "permission"].includes(profile) ? { resume: {} } : {}) } },
+    agentCapabilities: { loadSession: ["generic", "replay", "replay-conversation", "no-user", "delayed-load", "reload-failure", "models-load"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume", "models-resume", "permission"].includes(profile) ? { resume: {} } : {}) } },
   }))
   .onRequest(acp.methods.agent.session.new, ({ params }) => {
     if (!params.cwd.startsWith("/")) throw new Error("cwd must be absolute");
@@ -49,6 +58,11 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.session.close, () => ({}))
   .onRequest(acp.methods.agent.session.load, async ({ params, client }) => {
     const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+    if (profile === "generic") {
+      await emit({ sessionUpdate: "user_message_chunk", content: { type: "text", text: "go" } });
+      await genericTrace(emit);
+      return {};
+    }
     if (profile === "models-load") return { configOptions: [modelOption()] };
     if (profile === "delayed-load") {
       await waitForRestore(params, client);
@@ -117,6 +131,11 @@ const agent = acp.agent({ name: "fake-agent" })
           update: { sessionUpdate: "config_option_update", configOptions: [modelOption()] },
         });
       }
+      return { stopReason: "end_turn" };
+    }
+    if (profile === "generic") {
+      const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+      await genericTrace(emit);
       return { stopReason: "end_turn" };
     }
     if (profile === "conversation" || profile === "replay-conversation") {
@@ -542,6 +561,58 @@ describe("createAcpAdapter", () => {
     await adapter.deleteSession({ sessionId });
   });
 
+  it("preserves generic activity across updates and replay", async () => {
+    const adapter = createAdapter("generic");
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    const sessionId = "generic-session";
+    await adapter.createSession({ directory: process.cwd() });
+    try {
+      await adapter.sendMessage({ sessionId, content: "go", model: selectedModel });
+      const parts = [];
+      while (true) {
+        const next = await events.next();
+        if (next.done) break;
+        if (next.value.type === "message.part.updated" && next.value.part.type === "tool")
+          parts.push(next.value.part);
+        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+      }
+      expect(parts[0]).toMatchObject({ callId: "a", output: { progress: 1 } });
+      expect(parts[0]?.status).toBeUndefined();
+      expect(parts[0]?.toolName).toBeUndefined();
+      expect(parts[1]).toMatchObject({
+        callId: "b", title: "Write report", kind: "edit", status: "pending",
+        locations: [{ path: "report.txt", line: 4 }],
+      });
+      expect(parts[1]?.toolName).toBeUndefined();
+      expect(parts[2]).toMatchObject({
+        callId: "a", toolName: "provider.custom", input: { query: "x" },
+        status: "pending", output: { progress: 1 },
+      });
+      expect(parts[3]).toMatchObject({
+        callId: "a", status: "running", output: { count: 2 }, displayContent: ["working"],
+      });
+      expect(parts[4]).toMatchObject({
+        callId: "b", status: "failed", output: "permission denied",
+        displayContent: ["permission denied"],
+      });
+      expect(parts[5]).toMatchObject({
+        callId: "a", status: "completed", output: { count: 3 },
+        displayContent: ["done"], terminalIds: ["term-1"],
+      });
+      expect(parts[6]).toMatchObject({
+        callId: "a", status: "completed", displayContent: [], terminalIds: [], locations: [],
+        metadata: { acp: { name: "provider.custom", rawOutput: null, content: [] } },
+      });
+      expect(parts[6]?.output).toBeUndefined();
+      const history = await adapter.listMessages!({ sessionId });
+      const tools = history.messages.flatMap((message) => message.parts.filter((part) => part.type === "tool"));
+      expect(tools).toEqual([parts[6], parts[4]]);
+    } finally {
+      await adapter.deleteSession({ sessionId });
+      await events.return?.();
+    }
+  });
+
   it("keeps streamed chunks and interleaved tool updates in their owning turns", async () => {
     const adapter = createAdapter("conversation");
     const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
@@ -818,9 +889,8 @@ describe("createAcpAdapter", () => {
           type: "tool",
           toolName: "edit",
           status: "running",
-          output: [
-            { type: "content", content: { type: "text", text: "editing" } },
-          ],
+          output: "editing",
+          displayContent: ["editing"],
         }),
       }),
     );
@@ -832,7 +902,6 @@ describe("createAcpAdapter", () => {
     expect(assistants[0]?.parts.map((part) => part.type)).toEqual([
       "reasoning",
       "tool",
-      "diff",
       "tool",
       "text",
       "unknown",
@@ -849,12 +918,7 @@ describe("createAcpAdapter", () => {
           status: "completed",
           input: { path: "app.ts" },
           output: { done: true },
-        }),
-        expect.objectContaining({
-          type: "diff",
-          path: "app.ts",
-          before: "old",
-          after: "new",
+          changes: [{ path: "app.ts", before: "old", after: "new" }],
         }),
         expect.objectContaining({
           type: "tool",

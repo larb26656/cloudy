@@ -147,38 +147,55 @@ export function mapSessionUpdate(
       state.toolParts.set(update.toolCallId, { messageId: message.id, partId });
       const previous = message.parts.find((part) => part.id === partId);
       const tool = previous?.type === "tool" ? previous : undefined;
+      const raw = { ...(tool?.metadata?.acp as Record<string, unknown> | undefined) };
+      for (const [key, value] of Object.entries(update)) {
+        if (value !== undefined && !(key === "name" && value === null))
+          raw[key] = value;
+      }
       const status =
         update.status === "in_progress"
           ? "running"
           : (update.status ?? tool?.status);
+      const content = update.content === undefined ? undefined : update.content ?? [];
+      const displayContent = content?.flatMap<unknown>((item) =>
+        item.type === "content"
+          ? [item.content.type === "text" ? item.content.text : item.content]
+          : [],
+      ) ?? tool?.displayContent;
+      const terminalIds = content?.flatMap((item) =>
+        item.type === "terminal" ? [item.terminalId] : [],
+      ) ?? tool?.terminalIds;
+      const changes = content?.flatMap((item) =>
+        item.type === "diff"
+          ? [{ path: item.path, before: item.oldText ?? undefined, after: item.newText }]
+          : [],
+      ) ?? tool?.changes;
+      const rawOutput = raw.rawOutput;
+      const output = rawOutput != null
+        ? rawOutput
+        : displayContent?.length === 1
+          ? displayContent[0]
+          : displayContent?.length ? displayContent : undefined;
       addPart(message, {
         id: partId,
         type: "tool",
-        toolName:
-          update.sessionUpdate === "tool_call"
-            ? (update.name ?? tool?.toolName ?? undefined)
-            : tool?.toolName,
+        toolName: update.name ?? tool?.toolName,
         callId: update.toolCallId,
         status,
-        input: update.rawInput ?? tool?.input,
-        output:
-          update.rawOutput ??
-          (update.content?.length ? update.content : tool?.output),
-        metadata: {
-          ...(tool?.metadata ?? {}),
-          acp: { ...(tool?.metadata?.acp as object | undefined), ...update },
-        },
-      });
-      update.content?.forEach((content, index) => {
-        if (content.type !== "diff") return;
-        addPart(message, {
-          id: `${partId}:diff:${index}`,
-          type: "diff",
-          path: content.path,
-          patch: "",
-          before: content.oldText ?? undefined,
-          after: content.newText,
-        });
+        title: update.title === undefined ? tool?.title : update.title ?? undefined,
+        kind: update.kind === undefined ? tool?.kind : update.kind ?? undefined,
+        locations: update.locations === undefined
+          ? tool?.locations
+          : (update.locations ?? []).map((location) => ({
+              path: location.path,
+              line: location.line ?? undefined,
+            })),
+        input: update.rawInput === undefined ? tool?.input : update.rawInput,
+        output,
+        displayContent,
+        terminalIds,
+        changes,
+        metadata: { ...(tool?.metadata ?? {}), acp: raw },
       });
       break;
     }

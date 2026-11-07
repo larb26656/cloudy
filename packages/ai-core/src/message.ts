@@ -43,6 +43,12 @@ export interface ToolMessagePart extends MessagePartBase {
   status?: "pending" | "running" | "completed" | "failed";
   input?: unknown;
   output?: unknown;
+  title?: string;
+  kind?: string;
+  locations?: { path: string; line?: number }[];
+  displayContent?: unknown[];
+  terminalIds?: string[];
+  changes?: { path: string; before?: string; after: string }[];
   error?: string;
   state?: ToolMessagePartState;
 }

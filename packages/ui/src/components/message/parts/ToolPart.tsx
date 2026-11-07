@@ -23,13 +23,30 @@ export function ToolPart({ part }: ToolPartProps) {
       </pre>}
     </details>
   );
+  const details = (
+    <div>
+      {part.displayContent && part.output !== part.displayContent && part.output !== part.displayContent[0] && part.displayContent.map((value, index) => (
+        <ToolValueRenderer key={index} value={value} keyName="content" />
+      ))}
+      {part.locations?.map((location, index) => (
+        <div key={index}>{location.path}{location.line != null ? `:${location.line}` : ""}</div>
+      ))}
+      {part.terminalIds?.map((id) => <div key={id}>Terminal: {id}</div>)}
+      {part.changes?.map((change, index) => (
+        <ToolValueRenderer key={index} value={change} keyName="change" />
+      ))}
+    </div>
+  );
   if (!part.toolName || !part.status) {
     return (
       <div>
         <div>
-          Tool activity{part.toolName ? `: ${part.toolName}` : ""}
+          {part.title ?? (part.toolName ? `Tool activity: ${part.toolName}` : "Tool activity")}
           {part.status ? ` (${part.status})` : ""}
         </div>
+        {part.input !== undefined && <ToolValueRenderer value={part.input} keyName="input" />}
+        {part.output !== undefined && <ToolValueRenderer value={part.output} keyName="output" />}
+        {details}
         {rawDetails}
       </div>
     );
@@ -37,6 +54,7 @@ export function ToolPart({ part }: ToolPartProps) {
   const ToolComponent = getToolComponent(part.toolName);
   const state = part.state ?? {
     status: part.status === "failed" ? "error" : part.status,
+    title: part.title,
     input:
       typeof part.input === "object" && part.input !== null
         ? (part.input as Record<string, unknown>)
@@ -49,6 +67,7 @@ export function ToolPart({ part }: ToolPartProps) {
   return (
     <div>
       <ToolComponent tool={part.toolName} state={state} />
+      {details}
       {rawDetails}
     </div>
   );
