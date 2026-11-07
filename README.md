@@ -2,6 +2,25 @@
 
 AI agent sidekick — chat, ideas, memories, and artifacts. Monorepo with a bundled CLI server and a React frontend.
 
+ACP conversation history belongs to the agent. If an agent cannot reload a
+saved session, Cloudy keeps the session and indicates that its history is
+unavailable. You can still compose a message; if the original session rejects
+it, the draft remains in the input and no replacement session is created.
+When an agent replays incomplete or reordered history, structural matching
+cannot always identify the original messages: duplicates or incorrect merges
+may result.
+
+ACP prompts have no fixed deadline: long-running work and permission waits
+can continue beyond 30 seconds. Initialization and session creation/loading
+retain their timeouts. Use Stop to cancel a running prompt.
+
+Pending ACP permissions are listed by working directory, so returning to an
+open conversation still shows its approval requests.
+Cloudy's **Once**, **Always**, and **Reject** replies select the agent's offered
+`allow_once`, `allow_always`, and `reject_once` options, respectively. If the
+agent does not offer the requested kind, Cloudy reports it as unsupported and
+keeps the request pending. Stopping or closing the session clears its requests.
+
 ## Prerequisites
 
 - **Node.js** >= 20
@@ -26,6 +45,18 @@ CLOUDY_OPENCODE_API_BASE=http://localhost:4096
 ```
 
 Keep API keys and other secrets in `.env`, and do not commit that file.
+
+ACP activity that does not fit the shared chat model appears as a generic
+activity card. Its raw provider payload is collapsed by default and can be
+expanded for inspection; it may contain sensitive information. Raw activity is
+kept only in temporary presentation state, not in a Cloudy-owned transcript.
+
+## Refreshing agent models
+
+The model selector discovers ACP models before starting a conversation. After
+changing an agent's configuration, open the selector and choose **Refresh
+models**. If refresh fails, the last successfully discovered models remain
+available and the selector warns that they may be out of date.
 
 ## Browser Extension Development
 

@@ -14,6 +14,7 @@ import { Route as QuickRouteImport } from './routes/quick'
 import { Route as PetRouteImport } from './routes/pet'
 import { Route as PairRouteImport } from './routes/pair'
 import { Route as DiffDebugRouteImport } from './routes/diff-debug'
+import { Route as AgentPlaygroundRouteImport } from './routes/agent-playground'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as SettingsIndexRouteImport } from './routes/settings/index'
 import { Route as WorkspaceWorkspaceIdRouteImport } from './routes/workspace/$workspaceId'
@@ -49,6 +50,11 @@ const PairRoute = PairRouteImport.update({
 const DiffDebugRoute = DiffDebugRouteImport.update({
   id: '/diff-debug',
   path: '/diff-debug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AgentPlaygroundRoute = AgentPlaygroundRouteImport.update({
+  id: '/agent-playground',
+  path: '/agent-playground',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -109,6 +115,7 @@ const SettingsAgentModelRoute = SettingsAgentModelRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/agent-playground': typeof AgentPlaygroundRoute
   '/diff-debug': typeof DiffDebugRoute
   '/pair': typeof PairRoute
   '/pet': typeof PetRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/agent-playground': typeof AgentPlaygroundRoute
   '/diff-debug': typeof DiffDebugRoute
   '/pair': typeof PairRoute
   '/pet': typeof PetRoute
@@ -145,6 +153,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/agent-playground': typeof AgentPlaygroundRoute
   '/diff-debug': typeof DiffDebugRoute
   '/pair': typeof PairRoute
   '/pet': typeof PetRoute
@@ -165,6 +174,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/agent-playground'
     | '/diff-debug'
     | '/pair'
     | '/pet'
@@ -183,6 +193,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/agent-playground'
     | '/diff-debug'
     | '/pair'
     | '/pet'
@@ -200,6 +211,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/agent-playground'
     | '/diff-debug'
     | '/pair'
     | '/pet'
@@ -219,6 +231,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AgentPlaygroundRoute: typeof AgentPlaygroundRoute
   DiffDebugRoute: typeof DiffDebugRoute
   PairRoute: typeof PairRoute
   PetRoute: typeof PetRoute
@@ -262,6 +275,13 @@ declare module '@tanstack/react-router' {
       path: '/diff-debug'
       fullPath: '/diff-debug'
       preLoaderRoute: typeof DiffDebugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/agent-playground': {
+      id: '/agent-playground'
+      path: '/agent-playground'
+      fullPath: '/agent-playground'
+      preLoaderRoute: typeof AgentPlaygroundRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -374,6 +394,7 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AgentPlaygroundRoute: AgentPlaygroundRoute,
   DiffDebugRoute: DiffDebugRoute,
   PairRoute: PairRoute,
   PetRoute: PetRoute,

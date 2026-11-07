@@ -279,6 +279,7 @@ export function createSessionsService(
     const request: ProviderMessageRequest = {
       ...input,
       sessionId: record.providerSessionId,
+      turnId: input.turnId ?? crypto.randomUUID(),
       directory: record.directory ?? undefined,
     };
     const response = await registry.sendMessage(record.providerId, request);
@@ -293,6 +294,7 @@ export function createSessionsService(
     const response = await registry.sendMessage(record.providerId, {
       ...input,
       sessionId: record.providerSessionId,
+      turnId: input.turnId ?? crypto.randomUUID(),
       directory: record.directory ?? undefined,
     });
     return { ...response, interactionId: id };

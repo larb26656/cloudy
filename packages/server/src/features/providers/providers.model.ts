@@ -92,6 +92,7 @@ export const ProvidersModel = {
   }),
   messageInputSchema: z.object({
     sessionId: z.string().min(1),
+    turnId: z.string().min(1).optional(),
     directory: z.string().optional(),
     content: z.string(),
     attachments: z

@@ -95,6 +95,15 @@ export function createAgentProviderRegistry({
       if (!providerMap.delete(providerId)) return;
       listeners.forEach((listener) => listener());
     },
+    async refreshModels(
+      providerId: string,
+    ): Promise<ResolvedAgentProviderInfo> {
+      const info = await get(providerId).getInfo({ refreshModels: true });
+      return {
+        ...info,
+        capabilities: { ...defaultCapabilities, ...info.capabilities },
+      };
+    },
     async catalog(): Promise<{
       providers: ResolvedAgentProviderInfo[];
       errors: { providerId: string; message: string }[];
@@ -119,6 +128,12 @@ export function createAgentProviderRegistry({
               ...result.value.info.capabilities,
             },
           });
+          if (result.value.info.modelDiscoveryError) {
+            errors.push({
+              providerId: result.value.providerId,
+              message: result.value.info.modelDiscoveryError,
+            });
+          }
         } else if (provider) {
           errors.push({
             providerId: provider.id,

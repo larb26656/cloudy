@@ -33,6 +33,7 @@ export const messagesQuerySchema = z.object({
 
 export const messageInputSchema = z.object({
   content: z.string(),
+  turnId: z.string().min(1).optional(),
   attachments: z
     .array(
       z.object({

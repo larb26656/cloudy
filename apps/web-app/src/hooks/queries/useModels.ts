@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   ResolvedAgentProviderInfo,
   ResolvedProviderCapabilities,
@@ -18,7 +18,30 @@ export async function fetchAgentProviderCatalog(): Promise<
 }
 
 export function useModels(providerId?: string) {
-  return useQuery({
+  const queryClient = useQueryClient();
+  const refresh = useMutation({
+    mutationFn: async () => {
+      if (!providerId) throw new Error("No provider selected");
+      const response = await cloudyClient.api["agent-providers"][
+        ":providerId"
+      ].models.refresh.$post({ param: { providerId } });
+      if (!response.ok)
+        throw new Error(`Model refresh failed (${response.status})`);
+      return response.json();
+    },
+    onSuccess: (provider) => {
+      queryClient.setQueryData<ResolvedAgentProviderInfo[]>(
+        agentProviderKeys.catalog(),
+        (previous = []) =>
+          previous.some((item) => item.id === provider.id)
+            ? previous.map((item) =>
+                item.id === provider.id ? provider : item,
+              )
+            : [...previous, provider],
+      );
+    },
+  });
+  const query = useQuery({
     queryKey: agentProviderKeys.catalog(),
     queryFn: fetchAgentProviderCatalog,
     select: (providers) =>
@@ -26,6 +49,12 @@ export function useModels(providerId?: string) {
         ? providers.filter((provider) => provider.id === providerId)
         : providers,
   });
+  return {
+    ...query,
+    refreshModels: refresh.mutate,
+    isRefreshingModels: refresh.isPending,
+    refreshError: refresh.error,
+  };
 }
 
 export function useCapacity(providerId: string) {

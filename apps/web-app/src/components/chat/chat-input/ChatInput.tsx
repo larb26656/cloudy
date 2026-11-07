@@ -175,14 +175,24 @@ export const ChatInput = memo(function ChatInput({
     const hasAttachments = chatInputContent.attachments.length > 0;
     if ((finalText || hasAttachments) && !isSending) {
       scrollToEnd();
-      void sendMessage(
-        { ...chatInputContent, text: finalText },
-        effectiveModel,
-        effectiveAgent,
-      );
+      const submittedContent = chatInputContent;
       setChatInputContent(EMPTY_CONTENT);
       setSpeechDraft("");
       setHistoryIndex(-1);
+      void sendMessage(
+        { ...submittedContent, text: finalText },
+        effectiveModel,
+        effectiveAgent,
+      ).then((sent) => {
+        if (sent) return;
+        setChatInputContent((current) =>
+          !current.text &&
+          !current.mentions.length &&
+          !current.attachments.length
+            ? { ...submittedContent, text: finalText }
+            : current,
+        );
+      });
     }
   };
 
@@ -215,7 +225,7 @@ export const ChatInput = memo(function ChatInput({
     }
 
     if (e.key === "Escape") {
-      if (isStreaming && !displayText.trim()) {
+      if (isStreaming && (isSending || !displayText.trim())) {
         e.preventDefault();
         abortGeneration();
       }
@@ -361,7 +371,8 @@ export const ChatInput = memo(function ChatInput({
                   onListeningChange={setIsListening}
                 />
 
-                {isListening ? null : isStreaming && !displayText.trim() ? (
+                {isListening ? null : isStreaming &&
+                  (isSending || !displayText.trim()) ? (
                   <Button
                     size="icon"
                     className="rounded-full p-4"

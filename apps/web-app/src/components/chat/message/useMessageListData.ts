@@ -19,6 +19,7 @@ export interface MessageListData {
   displayItems: MessageDisplayItem[];
   streamingIds: string[];
   isLoading: boolean;
+  historyUnavailable: boolean;
   error: Error | null;
   refetch: () => void;
   hasNextPage: boolean;
@@ -120,6 +121,7 @@ export function useMessageListData({
     displayItems,
     streamingIds,
     isLoading,
+    historyUnavailable: data?.pages.some((page) => page.historyUnavailable) ?? false,
     error,
     refetch,
     hasNextPage,

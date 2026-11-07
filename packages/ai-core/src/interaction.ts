@@ -9,6 +9,7 @@ export interface MessageAttachment {
 
 export interface SendMessageInput {
   sessionId: string;
+  turnId?: string;
   directory?: string;
   content: string;
   attachments?: MessageAttachment[];

@@ -47,6 +47,7 @@ export interface AgentProviderInfo {
   name: string;
   capabilities: ProviderCapabilities;
   models?: ModelInfo[];
+  modelDiscoveryError?: string;
   agents?: AgentInfo[];
   metadata?: Record<string, unknown>;
 }
@@ -89,6 +90,7 @@ export interface ProviderMessagesInput {
 export interface ProviderMessagePage {
   messages: ChatMessage[];
   nextCursor?: string;
+  historyUnavailable?: boolean;
 }
 
 /**
@@ -98,7 +100,7 @@ export interface ProviderMessagePage {
 export interface AgentProviderAdapter {
   readonly id: string;
   readonly capabilities: ProviderCapabilities;
-  getInfo(): Promise<AgentProviderInfo>;
+  getInfo(input?: { refreshModels?: boolean }): Promise<AgentProviderInfo>;
   listSessions?(input: {
     directory?: string;
     limit?: number;
