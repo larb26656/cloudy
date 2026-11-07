@@ -11,6 +11,7 @@ const agent = `
 import { Readable, Writable } from "node:stream";
 import * as acp from "@agentclientprotocol/sdk";
 let forms = false;
+let lastQuestion;
 const schema = {
   type: "object",
   properties: {
@@ -31,18 +32,42 @@ const ompSchema = { type: "object", properties: {
 const server = acp.agent({ name: "form-fixture" })
   .onRequest(acp.methods.agent.initialize, ({ params }) => {
     forms = !!params.clientCapabilities?.elicitation?.form && !params.clientCapabilities?.elicitation?.url;
-    return { protocolVersion: acp.PROTOCOL_VERSION, agentCapabilities: {} };
+    return { protocolVersion: acp.PROTOCOL_VERSION, agentCapabilities: {
+      sessionCapabilities: process.env.CLOUDY_TEST_CLOSE_ONLY ? { close: true } : { delete: true },
+    } };
   })
   .onRequest(acp.methods.agent.session.new, ({ params }) => ({ sessionId: "native:" + process.pid + ":" + params.cwd }))
+  .onRequest(acp.methods.agent.session.delete, async () => {
+    if (lastQuestion && (await lastQuestion).action !== "cancel") throw new Error("Question was not cancelled");
+    return {};
+  })
+  .onRequest(acp.methods.agent.session.close, async () => {
+    if (lastQuestion && (await lastQuestion).action !== "cancel") throw new Error("Question was not cancelled");
+    return {};
+  })
   .onRequest(acp.methods.agent.session.prompt, async ({ params, client }) => {
     const command = params.prompt[0].text;
     if (!forms) return { stopReason: "end_turn", _meta: { result: "form-not-negotiated" } };
-    const ask = (message, requestedSchema = schema) => client.request(acp.methods.client.elicitation.create, {
+    const ask = (message, requestedSchema = schema, options) => client.request(acp.methods.client.elicitation.create, {
       mode: "form", sessionId: params.sessionId, toolCallId: "shared-tool", message, requestedSchema,
-    });
+    }, options);
+    if (command === "withdraw") {
+      const controller = new AbortController();
+      const question = ask("Withdrawn", schema, { cancellationSignal: controller.signal });
+      const permission = await client.request(acp.methods.client.session.requestPermission, {
+        sessionId: params.sessionId, toolCall: { toolCallId: "withdraw", title: "Continue" },
+        options: [{ optionId: "allow", name: "Allow", kind: "allow_once" }],
+      });
+      controller.abort();
+      const response = await question;
+      return { stopReason: "end_turn", _meta: { result: response.action + ":" + permission.outcome.outcome } };
+    }
     if (command === "finish-with-pending") {
-      void ask("Unfinished").catch(() => {});
+      lastQuestion = ask("Unfinished");
       return { stopReason: "end_turn", _meta: { result: "finished" } };
+    }
+    if (command === "pending-result") {
+      return { stopReason: "end_turn", _meta: { result: (await lastQuestion).action } };
     }
     if (command === "disconnect") {
       void ask("Disconnecting").catch(() => {});
@@ -73,7 +98,9 @@ const server = acp.agent({ name: "form-fixture" })
       ]);
       return { stopReason: "end_turn", _meta: { result: first.action + ":" + second.action + ":" + permission.outcome.outcome } };
     }
-    const response = await ask(command === "omp" ? "Choose an answer" : "Plan the trip", command === "omp" ? ompSchema : schema);
+    lastQuestion = ask(command === "omp" ? "Choose an answer" : "Plan the trip", command === "omp" ? ompSchema : schema);
+    const response = await lastQuestion;
+    lastQuestion = undefined;
     let result = response.action;
     if (response.action === "accept") {
       const c = response.content || {};
@@ -85,7 +112,7 @@ const server = acp.agent({ name: "form-fixture" })
 server.connect(acp.ndJsonStream(Writable.toWeb(process.stdout), Readable.toWeb(process.stdin)));
 `;
 
-function setup() {
+function setup(closeOnly = false) {
   const env = createTestApp();
   const provider = createAcpAdapter({
     id: "acp-test",
@@ -93,6 +120,7 @@ function setup() {
     launch: {
       command: process.execPath,
       args: ["--input-type=module", "--eval", agent],
+      ...(closeOnly ? { env: { CLOUDY_TEST_CLOSE_ONLY: "1" } } : {}),
     },
     timeoutMs: 2000,
   });
@@ -570,6 +598,89 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
     }
   });
 
+  it("retires a withdrawn request without consuming a permission", async () => {
+    const env = setup();
+    const events = await stream(env);
+    const ids: string[] = [];
+    const pending: Promise<unknown>[] = [];
+    try {
+      await events.next("connected");
+      const session = await createSession(env);
+      ids.push(session.id);
+      const sending = send(env, session.id, "withdraw");
+      pending.push(sending);
+      const seen: StreamEvent[] = [];
+      while (seen.length < 2)
+        seen.push(
+          await events.next(["question.requested", "approval.requested"]),
+        );
+      const question = (await questions(env, session.id))[0]!;
+      const permissions = await (
+        await env.app.request(`/api/sessions/${session.id}/permissions`)
+      ).json();
+      expect(permissions).toHaveLength(1);
+      expect(
+        (
+          await env.app.request(
+            `/api/sessions/${session.id}/permissions/${encodeURIComponent(permissions[0].id)}`,
+            json({ reply: "once" }),
+          )
+        ).status,
+      ).toBe(200);
+      expect(await events.next("question.resolved")).toMatchObject({
+        sessionId: session.id,
+        interactionId: question.id,
+      });
+      expect(await (await sending).json()).toMatchObject({
+        value: { _meta: { result: "cancel:selected" } },
+      });
+      expect(await questions(env, session.id)).toEqual([]);
+      expect(await env.service.hasPendingInteractions(session.id)).toBe(false);
+      expect(
+        (await reply(env, session.id, question.id, { action: "decline" }))
+          .status,
+      ).toBe(404);
+    } finally {
+      await cleanup(env, ids, pending, events);
+    }
+  });
+
+  it.each([false, true])(
+    "sends cancellation before deleting a session (close-only: %s)",
+    async (closeOnly) => {
+      const env = setup(closeOnly);
+      const events = await stream(env);
+      const ids: string[] = [];
+      const pending: Promise<unknown>[] = [];
+      try {
+        await events.next("connected");
+        const session = await createSession(env);
+        ids.push(session.id);
+        const sending = send(env, session.id, "trip");
+        pending.push(sending);
+        const event = await events.next("question.requested");
+        const deleted = await env.app.request(`/api/sessions/${session.id}`, {
+          method: "DELETE",
+        });
+        expect(deleted.status).toBe(204);
+        expect(await events.next("question.resolved")).toMatchObject({
+          sessionId: session.id,
+          interactionId: event.request.id,
+        });
+        expect(
+          (
+            await reply(env, session.id, event.request.id, {
+              action: "decline",
+            })
+          ).status,
+        ).toBe(404);
+        await sending;
+      } finally {
+        await cleanup(env, ids, pending, events);
+      }
+    },
+  );
+
   it.each(["abort", "delete"])(
     "retires pending questions on session %s",
     async (action) => {
@@ -628,6 +739,49 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
       }
     },
   );
+  it("rejects a reply racing stop without disturbing another session", async () => {
+    const env = setup();
+    const events = await stream(env);
+    const ids: string[] = [];
+    const pending: Promise<unknown>[] = [];
+    try {
+      await events.next("connected");
+      const first = await createSession(env);
+      const second = await createSession(env);
+      ids.push(first.id, second.id);
+      const firstSend = send(env, first.id, "trip");
+      const secondSend = send(env, second.id, "trip");
+      pending.push(firstSend, secondSend);
+      await events.next("question.requested");
+      await events.next("question.requested");
+      const [firstQuestion] = await questions(env, first.id);
+      const [secondQuestion] = await questions(env, second.id);
+      const [response, stopped] = await Promise.all([
+        reply(env, first.id, firstQuestion!.id, { action: "decline" }),
+        env.app.request(`/api/sessions/${first.id}/abort`, { method: "POST" }),
+      ]);
+      expect([200, 404]).toContain(response.status);
+      expect(stopped.status).toBe(204);
+      expect(await questions(env, first.id)).toEqual([]);
+      expect(
+        (await reply(env, first.id, firstQuestion!.id, { action: "cancel" }))
+          .status,
+      ).toBe(404);
+      expect(await questions(env, second.id)).toEqual([secondQuestion]);
+      expect(await env.service.hasPendingInteractions(second.id)).toBe(true);
+      expect(
+        (await reply(env, second.id, secondQuestion!.id, { action: "decline" }))
+          .status,
+      ).toBe(200);
+      expect(await (await secondSend).json()).toMatchObject({
+        value: { _meta: { result: "decline" } },
+      });
+      await firstSend;
+    } finally {
+      await cleanup(env, ids, pending, events);
+    }
+  });
+
   it("retires a question when its owning prompt completes without awaiting it", async () => {
     const env = setup();
     const events = await stream(env);
@@ -653,6 +807,11 @@ describe("ACP forms through the HTTP and SSE interfaces", () => {
       expect(await events.next("question.resolved")).toMatchObject({
         sessionId: session.id,
         interactionId: event.request.id,
+      });
+      expect(
+        await (await send(env, session.id, "pending-result")).json(),
+      ).toMatchObject({
+        value: { _meta: { result: "cancel" } },
       });
     } finally {
       await cleanup(env, ids, pending, events);

@@ -26,10 +26,12 @@ submit an answer, decline, or cancel the Question; closing the sheet only hides
 it. Forms are for ordinary non-sensitive information, not credentials. URL
 elicitation and forms outside a session are not supported.
 
-Pending Questions live only while their agent connection is active. Refreshing
-the browser can rediscover them, but restarting the server cannot restore their
-response channels. An agent may silently stop waiting; delivering a late answer
-does not guarantee that the agent used it.
+Pending Questions are retired when their prompt ends, the agent withdraws the
+request, the session is stopped or closed, or the connection ends. Refreshing
+the browser can rediscover a live Question, but restarting the server cannot
+restore its response channel. Cloudy does not guess an expiry time: an agent may
+silently stop waiting, and delivering a late answer does not guarantee that the
+agent used it.
 
 ## Prerequisites
 

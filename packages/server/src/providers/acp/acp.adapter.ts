@@ -70,6 +70,7 @@ interface PendingPermission {
 interface PendingQuestion {
   request: ProviderQuestionRequest;
   schema: acp.ElicitationSchema;
+  dispose: () => void;
   resolve: (response: acp.CreateElicitationResponse) => void;
 }
 
@@ -198,6 +199,7 @@ export function createAcpAdapter({
   const clearQuestions = (session: AcpSession) => {
     for (const [interactionId, pending] of session.pendingQuestions) {
       session.pendingQuestions.delete(interactionId);
+      pending.dispose();
       pending.resolve({ action: "cancel" });
       publishQuestionResolved(session, interactionId);
     }
@@ -427,58 +429,73 @@ export function createAcpAdapter({
               });
             },
           )
-          .onRequest(acp.methods.client.elicitation.create, ({ params }) => {
-            if (
-              params.mode !== "form" ||
-              !acp.CreateElicitationRequest.isForm(params)
-            )
-              throw acp.RequestError.invalidParams(
-                undefined,
-                "Unsupported elicitation mode",
-              );
-            if (!("sessionId" in params))
-              throw acp.RequestError.invalidParams(
-                undefined,
-                "Request-scoped elicitation is not supported",
-              );
-            if (
-              session.closed ||
-              session.stopping ||
-              params.sessionId !== session.id
-            )
-              throw acp.RequestError.invalidParams(
-                undefined,
-                "Unknown elicitation session",
-              );
-            const interactionId = crypto.randomUUID();
-            const request: ProviderQuestionRequest = {
-              id: interactionId,
-              sessionId: params.sessionId,
-              questions: [],
-              form: {
-                message: params.message,
-                schema: { ...params.requestedSchema },
-                agent: session.agentName,
-              },
-              ...(params.toolCallId
-                ? { metadata: { toolCallId: params.toolCallId } }
-                : {}),
-            };
-            return new Promise<acp.CreateElicitationResponse>((resolve) => {
-              pendingQuestions.set(interactionId, {
-                request,
-                schema: params.requestedSchema,
-                resolve,
+          .onRequest(
+            acp.methods.client.elicitation.create,
+            ({ params, signal }) => {
+              if (
+                params.mode !== "form" ||
+                !acp.CreateElicitationRequest.isForm(params)
+              )
+                throw acp.RequestError.invalidParams(
+                  undefined,
+                  "Unsupported elicitation mode",
+                );
+              if (!("sessionId" in params))
+                throw acp.RequestError.invalidParams(
+                  undefined,
+                  "Request-scoped elicitation is not supported",
+                );
+              if (
+                session.closed ||
+                session.stopping ||
+                params.sessionId !== session.id
+              )
+                throw acp.RequestError.invalidParams(
+                  undefined,
+                  "Unknown elicitation session",
+                );
+              const interactionId = crypto.randomUUID();
+              const request: ProviderQuestionRequest = {
+                id: interactionId,
+                sessionId: params.sessionId,
+                questions: [],
+                form: {
+                  message: params.message,
+                  schema: { ...params.requestedSchema },
+                  agent: session.agentName,
+                },
+                ...(params.toolCallId
+                  ? { metadata: { toolCallId: params.toolCallId } }
+                  : {}),
+              };
+              return new Promise<acp.CreateElicitationResponse>((resolve) => {
+                const retire = () => {
+                  if (!pendingQuestions.delete(interactionId)) return;
+                  signal.removeEventListener("abort", retire);
+                  resolve({ action: "cancel" });
+                  publishQuestionResolved(session, interactionId);
+                };
+                pendingQuestions.set(interactionId, {
+                  request,
+                  schema: params.requestedSchema,
+                  resolve,
+                  dispose: () => signal.removeEventListener("abort", retire),
+                });
+                signal.addEventListener("abort", retire, { once: true });
+                if (signal.aborted) {
+                  retire();
+                  return;
+                }
+                publish({
+                  type: "question.requested",
+                  providerId: id,
+                  directory: session.directory,
+                  sessionId: session.id,
+                  request,
+                });
               });
-              publish({
-                type: "question.requested",
-                providerId: id,
-                directory: session.directory,
-                sessionId: session.id,
-                request,
-              });
-            });
-          });
+            },
+          );
         const connection = client.connect(stream);
         const session: AcpSession = {
           id: sessionId,
@@ -846,6 +863,7 @@ export function createAcpAdapter({
           throw new NotFoundError("ACP question request not found");
         const result = validateFormResponse(pending.schema, response.value);
         session.pendingQuestions.delete(response.interactionId);
+        pending.dispose();
         publishQuestionResolved(session, response.interactionId);
         pending.resolve(result);
         return { interactionId: response.interactionId, value: null };
