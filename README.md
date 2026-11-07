@@ -26,6 +26,12 @@ submit an answer, decline, or cancel the Question; closing the sheet only hides
 it. Forms are for ordinary non-sensitive information, not credentials. URL
 elicitation and forms outside a session are not supported.
 
+Multiple pending Questions remain available independently in their own
+conversation, even when they come from the same tool call. Answering one does
+not answer another Question or Permission; the remaining requests can be
+reopened from the chat banner. Automation continues to wait for human input
+rather than answering these Questions.
+
 Pending Questions live only while their agent connection is active. Refreshing
 the browser can rediscover them, but restarting the server cannot restore their
 response channels. An agent may silently stop waiting; delivering a late answer
