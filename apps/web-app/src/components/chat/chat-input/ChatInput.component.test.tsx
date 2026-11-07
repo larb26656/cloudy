@@ -236,17 +236,36 @@ describe("ChatInput — abort/send button behavior", () => {
       expect(mocks.sendMessage).toHaveBeenCalledOnce();
     });
 
+    test("clears immediately and preserves a new draft if sending fails", async () => {
+      const { promise, reject } = Promise.withResolvers<void>();
+      mocks.sendMessage.mockReturnValueOnce(promise);
+      renderInput({ allowTypingWhileSending: true });
+      typeText("first message");
+      fireEvent.click(screen.getByRole("button", { name: "Send message" }));
+      expect(screen.getByLabelText("chat-editor")).toHaveValue("");
+      typeText("next draft");
+      await act(async () => {
+        reject(new Error("send failed"));
+      });
+      expect(screen.getByLabelText("chat-editor")).toHaveValue("next draft");
+    });
+
     test("keeps the draft and reports a failed send to the existing session", async () => {
-      const message = "Sending to the original session failed. Your draft was kept; delivery may be uncertain.";
+      const message =
+        "Sending to the original session failed. Your draft was kept; delivery may be uncertain.";
       mocks.sendMessage.mockImplementationOnce(() =>
-        jsonResponse(new Response(JSON.stringify({ error: message }), { status: 409 })),
+        jsonResponse(
+          new Response(JSON.stringify({ error: message }), { status: 409 }),
+        ),
       );
       renderInput();
       typeText("keep this draft");
       await act(async () => {
         screen.getByRole("button", { name: "Send message" }).click();
       });
-      expect(screen.getByLabelText("chat-editor")).toHaveValue("keep this draft");
+      expect(screen.getByLabelText("chat-editor")).toHaveValue(
+        "keep this draft",
+      );
       expect(mocks.toastError).toHaveBeenCalledWith(message);
       expect(mocks.createSession).not.toHaveBeenCalled();
       expect(mocks.sendMessage).toHaveBeenCalledWith(
@@ -278,7 +297,9 @@ describe("ChatInput — abort/send button behavior", () => {
       typeText("submitted draft");
       fireEvent.click(screen.getByRole("button", { name: "Stop generating" }));
       expect(mocks.abort).toHaveBeenCalledOnce();
-      expect(screen.getByLabelText("chat-editor")).toHaveValue("submitted draft");
+      expect(screen.getByLabelText("chat-editor")).toHaveValue(
+        "submitted draft",
+      );
     });
 
     test("swaps to Send button once text is entered (queue path)", () => {

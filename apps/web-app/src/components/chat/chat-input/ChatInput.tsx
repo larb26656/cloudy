@@ -176,17 +176,22 @@ export const ChatInput = memo(function ChatInput({
     if ((finalText || hasAttachments) && !isSending) {
       scrollToEnd();
       const submittedContent = chatInputContent;
+      setChatInputContent(EMPTY_CONTENT);
+      setSpeechDraft("");
+      setHistoryIndex(-1);
       void sendMessage(
         { ...submittedContent, text: finalText },
         effectiveModel,
         effectiveAgent,
       ).then((sent) => {
-        if (!sent) return;
+        if (sent) return;
         setChatInputContent((current) =>
-          current === submittedContent ? EMPTY_CONTENT : current,
+          !current.text &&
+          !current.mentions.length &&
+          !current.attachments.length
+            ? { ...submittedContent, text: finalText }
+            : current,
         );
-        setSpeechDraft("");
-        setHistoryIndex(-1);
       });
     }
   };
@@ -366,7 +371,8 @@ export const ChatInput = memo(function ChatInput({
                   onListeningChange={setIsListening}
                 />
 
-                {isListening ? null : isStreaming && (isSending || !displayText.trim()) ? (
+                {isListening ? null : isStreaming &&
+                  (isSending || !displayText.trim()) ? (
                   <Button
                     size="icon"
                     className="rounded-full p-4"
