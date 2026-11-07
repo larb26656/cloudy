@@ -40,11 +40,31 @@ const genericTrace = async (emit) => {
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", status: "completed", content: [{ type: "terminal", terminalId: "term-1" }, { type: "content", content: { type: "text", text: "done" } }], rawOutput: { count: 3 } });
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", content: [], locations: [], rawOutput: null });
 };
+const otherToolsTrace = async (emit) => {
+  const calls = [
+    ["read", { filePath: "src/a.ts", offset: 5, limit: 9 }],
+    ["grep", { pattern: "needle", path: "src", include: "*.ts" }],
+    ["glob", { pattern: "**/*.ts", path: "src" }],
+    ["webfetch", { url: "https://example.org", format: "markdown", timeout: 30 }],
+    ["websearch", { query: "cloudy", numResults: 3 }],
+    ["task", { agent: "reviewer", description: "Review code", prompt: "Find defects", sessionId: "child-1" }],
+    ["question", { questions: [{ question: "Choose?", header: "Choice", options: [{ label: "A", description: "First" }] }] }],
+    ["todowrite", { todos: [{ content: "Start", status: "in_progress" }, { content: "Later", status: "pending" }] }],
+  ];
+  for (const [name, input] of calls) {
+    await emit({ sessionUpdate: "tool_call", toolCallId: name, title: name, status: "pending" });
+    await emit({ sessionUpdate: "tool_call_update", toolCallId: name, name, rawInput: input, status: "in_progress" });
+    await emit({ sessionUpdate: "tool_call_update", toolCallId: name, status: "completed", rawOutput: { result: name } });
+  }
+  await emit({ sessionUpdate: "tool_call", toolCallId: "partial", name: "read", title: "Read", rawInput: { offset: 2 }, status: "pending" });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "ambiguous", title: "websearch", kind: "search", rawInput: { query: "cloudy" }, status: "failed" });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "partial", rawInput: { filePath: "late.txt" }, status: "failed", content: [{ type: "content", content: { type: "text", text: "not found" } }] });
+};
 const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.initialize, () => ({
     protocolVersion: acp.PROTOCOL_VERSION,
     agentInfo: { name: profile, version: "1.0.0" },
-    agentCapabilities: { loadSession: ["generic", "replay", "replay-conversation", "no-user", "delayed-load", "reload-failure", "models-load"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume", "models-resume", "permission"].includes(profile) ? { resume: {} } : {}) } },
+    agentCapabilities: { loadSession: ["other-tools", "generic", "replay", "replay-conversation", "no-user", "delayed-load", "reload-failure", "models-load"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume", "models-resume", "permission"].includes(profile) ? { resume: {} } : {}) } },
   }))
   .onRequest(acp.methods.agent.session.new, ({ params }) => {
     if (!params.cwd.startsWith("/")) throw new Error("cwd must be absolute");
@@ -58,6 +78,11 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.session.close, () => ({}))
   .onRequest(acp.methods.agent.session.load, async ({ params, client }) => {
     const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+    if (profile === "other-tools") {
+      await emit({ sessionUpdate: "user_message_chunk", content: { type: "text", text: "go" } });
+      await otherToolsTrace(emit);
+      return {};
+    }
     if (profile === "generic") {
       await emit({ sessionUpdate: "user_message_chunk", content: { type: "text", text: "go" } });
       await genericTrace(emit);
@@ -89,7 +114,7 @@ const agent = acp.agent({ name: "fake-agent" })
       await emit({ sessionUpdate: "tool_call", toolCallId: b, name: "write", title: "Write", status: "pending" });
       await emit({ sessionUpdate: "tool_call_update", toolCallId: a, status: "in_progress" });
       await emit({ sessionUpdate: "tool_call_update", toolCallId: b, status: "completed", rawOutput: { done: "b" } });
-      await emit({ sessionUpdate: "tool_call", toolCallId: a, name: "read", title: "Read", status: "completed", rawOutput: { done: "a" } });
+      await emit({ sessionUpdate: "tool_call", toolCallId: a, name: "read", title: "Read", status: "completed", rawInput: { filePath: "a.txt" }, rawOutput: { done: "a" } });
       await text(" world", 1);
       await user("second", 2);
       await text("Next", 2);
@@ -100,7 +125,7 @@ const agent = acp.agent({ name: "fake-agent" })
     if (profile !== "replay") throw new Error("load not supported");
     await emit({ sessionUpdate: "user_message_chunk", messageId: "user-1", content: { type: "text", text: "hello" } });
     await emit({ sessionUpdate: "agent_thought_chunk", messageId: "assistant-1", content: { type: "text", text: "thinking" } });
-    await emit({ sessionUpdate: "tool_call", toolCallId: "tool-1", name: "read", title: "Read file", kind: "read", status: "completed" });
+    await emit({ sessionUpdate: "tool_call", toolCallId: "tool-1", name: "read", title: "Read file", kind: "read", status: "completed", rawInput: { filePath: "a.txt" } });
     await emit({ sessionUpdate: "agent_message_chunk", messageId: "assistant-1", content: { type: "text", text: "from agent " + ++loadCount } });
     return {};
   })
@@ -133,6 +158,11 @@ const agent = acp.agent({ name: "fake-agent" })
       }
       return { stopReason: "end_turn" };
     }
+    if (profile === "other-tools") {
+      const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+      await otherToolsTrace(emit);
+      return { stopReason: "end_turn" };
+    }
     if (profile === "generic") {
       const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
       await genericTrace(emit);
@@ -148,7 +178,7 @@ const agent = acp.agent({ name: "fake-agent" })
         await emit({ sessionUpdate: "tool_call", toolCallId: "b", name: "write", title: "Write", status: "pending" });
         await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", status: "in_progress" });
         await emit({ sessionUpdate: "tool_call_update", toolCallId: "b", status: "completed", rawOutput: { done: "b" } });
-        await emit({ sessionUpdate: "tool_call", toolCallId: "a", name: "read", title: "Read", status: "completed", rawOutput: { done: "a" } });
+        await emit({ sessionUpdate: "tool_call", toolCallId: "a", name: "read", title: "Read", status: "completed", rawInput: { filePath: "a.txt" }, rawOutput: { done: "a" } });
         await text(" wor");
         await text("ld");
       } else {
@@ -559,6 +589,59 @@ describe("createAcpAdapter", () => {
       ],
     });
     await adapter.deleteSession({ sessionId });
+  });
+
+  it("normalizes established tool inputs consistently in live events and history", async () => {
+    const adapter = createAdapter("other-tools");
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    const sessionId = "other-tools-session";
+    await adapter.createSession({ directory: process.cwd() });
+    try {
+      await adapter.sendMessage({ sessionId, content: "go", model: selectedModel });
+      const parts = [];
+      while (true) {
+        const next = await events.next();
+        if (next.done) break;
+        if (next.value.type === "message.part.updated" && next.value.part.type === "tool")
+          parts.push(next.value.part);
+        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+      }
+      const inputs = [
+        ["read", { filePath: "src/a.ts", offset: 5, limit: 9 }],
+        ["grep", { pattern: "needle", path: "src", include: "*.ts" }],
+        ["glob", { pattern: "**/*.ts", path: "src" }],
+        ["webfetch", { url: "https://example.org", format: "markdown", timeout: 30 }],
+        ["websearch", { query: "cloudy", numResults: 3 }],
+        ["task", { agent: "reviewer", description: "Review code", prompt: "Find defects", sessionId: "child-1" }],
+        ["question", { questions: [{ question: "Choose?", header: "Choice", options: [{ label: "A", description: "First" }] }] }],
+        ["todowrite", { todos: [{ content: "Start", status: "in_progress" }, { content: "Later", status: "pending" }] }],
+      ] as const;
+      for (const [index, [name, input]] of inputs.entries()) {
+        expect(parts[index * 3]).toMatchObject({ callId: name, status: "pending" });
+        expect(parts[index * 3]?.toolName).toBeUndefined();
+        expect(parts[index * 3 + 1]).toMatchObject({
+          callId: name, toolName: name, status: "running", input,
+          metadata: { acp: { name, rawInput: input } },
+        });
+        expect(parts[index * 3 + 2]).toMatchObject({
+          callId: name, toolName: name, status: "completed", input, output: { result: name },
+        });
+      }
+      expect(parts[24]).toMatchObject({ callId: "partial", input: { offset: 2 }, metadata: { acp: { name: "read" } } });
+      expect(parts[24]?.toolName).toBeUndefined();
+      expect(parts[25]).toMatchObject({ callId: "ambiguous", input: { query: "cloudy" }, status: "failed" });
+      expect(parts[25]?.toolName).toBeUndefined();
+      expect(parts[26]).toMatchObject({
+        callId: "partial", toolName: "read", input: { filePath: "late.txt" },
+        status: "failed", output: "not found",
+      });
+      const history = await adapter.listMessages!({ sessionId });
+      const tools = history.messages.flatMap((message) => message.parts.filter((part) => part.type === "tool"));
+      expect(tools).toEqual([...inputs.map((_, index) => parts[index * 3 + 2]), parts[26], parts[25]]);
+    } finally {
+      await adapter.deleteSession({ sessionId });
+      await events.return?.();
+    }
   });
 
   it("preserves generic activity across updates and replay", async () => {

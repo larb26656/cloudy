@@ -1,5 +1,6 @@
 import type * as acp from "@agentclientprotocol/sdk";
 import type { ChatMessage, MessagePart } from "@repo/ai-core";
+import { normalizeOtherTool } from "./acp.native-other-tools";
 
 export interface AcpMessageState {
   sessionId: string;
@@ -176,10 +177,11 @@ export function mapSessionUpdate(
         : displayContent?.length === 1
           ? displayContent[0]
           : displayContent?.length ? displayContent : undefined;
+      const native = normalizeOtherTool(raw.name, raw.rawInput);
       addPart(message, {
         id: partId,
         type: "tool",
-        toolName: update.name ?? tool?.toolName,
+        toolName: native ? native.name : update.name ?? tool?.toolName,
         callId: update.toolCallId,
         status,
         title: update.title === undefined ? tool?.title : update.title ?? undefined,
@@ -190,7 +192,7 @@ export function mapSessionUpdate(
               path: location.path,
               line: location.line ?? undefined,
             })),
-        input: update.rawInput === undefined ? tool?.input : update.rawInput,
+        input: native ? native.input : update.rawInput === undefined ? tool?.input : update.rawInput,
         output,
         displayContent,
         terminalIds,
