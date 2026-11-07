@@ -175,15 +175,27 @@ describe("createAcpAdapter", () => {
         type: "approval.requested",
         request: { id: `${sessionId}:restore` },
       });
-      const sending = adapter.sendMessage({ sessionId, directory, content: "hello" });
+      await expect(adapter.listPermissions!({ directory })).resolves.toEqual([
+        expect.objectContaining({ id: `${sessionId}:restore`, sessionId }),
+      ]);
+      const sending = adapter.sendMessage({
+        sessionId,
+        directory,
+        content: "hello",
+      });
       await adapter.respondToInteraction({
         kind: "permission",
         sessionId,
         interactionId: `${sessionId}:restore`,
-        value: { optionId: "allow" },
+        value: { reply: "once", directory },
       });
+      await expect(adapter.listPermissions!({ directory })).resolves.toEqual(
+        [],
+      );
       await restoring;
-      await expect(sending).resolves.toMatchObject({ interactionId: sessionId });
+      await expect(sending).resolves.toMatchObject({
+        interactionId: sessionId,
+      });
       await adapter.deleteSession({ sessionId });
       await events.return?.();
     },
@@ -204,9 +216,15 @@ describe("createAcpAdapter", () => {
     const directory = process.cwd();
     const sessionId = "delayed-resume-session";
     const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
-    const sending = adapter.sendMessage({ sessionId, directory, content: "hello" });
+    const sending = adapter.sendMessage({
+      sessionId,
+      directory,
+      content: "hello",
+    });
     const listing = adapter.listMessages!({ sessionId, directory });
-    expect((await events.next()).value).toMatchObject({ type: "approval.requested" });
+    expect((await events.next()).value).toMatchObject({
+      type: "approval.requested",
+    });
     await adapter.respondToInteraction({
       kind: "permission",
       sessionId,
@@ -226,20 +244,30 @@ describe("createAcpAdapter", () => {
     const sessionId = "resume-session";
     const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
     await adapter.createSession({ sessionId, directory });
-    const sending = adapter.sendMessage({ sessionId, directory, content: "permission" });
+    const sending = adapter.sendMessage({
+      sessionId,
+      directory,
+      content: "permission",
+    });
     const received = [];
     while (true) {
       const event = await events.next();
-      if (event.done) throw new Error("Event stream closed before permission request");
+      if (event.done)
+        throw new Error("Event stream closed before permission request");
       received.push(event.value);
       if (event.value.type === "approval.requested") break;
     }
-    expect(received).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        type: "message.part.updated",
-        part: expect.objectContaining({ type: "text", text: "resume:permission" }),
-      }),
-    ]));
+    expect(received).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          type: "message.part.updated",
+          part: expect.objectContaining({
+            type: "text",
+            text: "resume:permission",
+          }),
+        }),
+      ]),
+    );
     await adapter.respondToInteraction({
       kind: "permission",
       sessionId,
@@ -262,10 +290,13 @@ describe("createAcpAdapter", () => {
       historyUnavailable: true,
       messages: [
         { role: "user", parts: [{ type: "text", text: "hello" }] },
-        { role: "assistant", parts: [
-          { type: "text", text: "reload-failure:hello" },
-          { type: "step-finish" },
-        ] },
+        {
+          role: "assistant",
+          parts: [
+            { type: "text", text: "reload-failure:hello" },
+            { type: "step-finish" },
+          ],
+        },
       ],
     });
     await adapter.deleteSession({ sessionId });
@@ -377,50 +408,69 @@ describe("createAcpAdapter", () => {
     const sessionId = "replay-conversation-session";
     const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
     await adapter.createSession({ directory });
-    let stream: MessageStreamState = { messages: new Map(), pendingDeltas: new Map() };
+    let stream: MessageStreamState = {
+      messages: new Map(),
+      pendingDeltas: new Map(),
+    };
     for (const content of ["first", "second"]) {
       await adapter.sendMessage({ sessionId, directory, content });
       while (true) {
         const next = await events.next();
         if (next.done) break;
         stream = applyChatEvent(stream, next.value, sessionId);
-        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+        if (
+          next.value.type === "session.status" &&
+          next.value.runStatus === "completed"
+        )
+          break;
       }
     }
     const live = [...stream.messages.values()];
     const history = await adapter.listMessages?.({ sessionId });
     expect(history?.messages).toMatchObject([
       { role: "user", parts: [{ type: "text", text: "first" }] },
-      { role: "assistant", parts: [
-        { type: "text", text: "Hello" },
-        { type: "tool", output: { delayed: true } },
-        { type: "tool", output: { done: "b" } },
-        { type: "text", text: " world" },
-      ] },
+      {
+        role: "assistant",
+        parts: [
+          { type: "text", text: "Hello" },
+          { type: "tool", output: { delayed: true } },
+          { type: "tool", output: { done: "b" } },
+          { type: "text", text: " world" },
+        ],
+      },
       { role: "user", parts: [{ type: "text", text: "second" }] },
-      { role: "assistant", parts: [
-        { type: "text", text: "Next" },
-        { type: "text", text: " turn" },
-      ] },
+      {
+        role: "assistant",
+        parts: [
+          { type: "text", text: "Next" },
+          { type: "text", text: " turn" },
+        ],
+      },
     ]);
     for (const message of history?.messages ?? []) {
       const streamed = live.find((item) => item.id === message.id);
       expect(streamed).toBeDefined();
       expect(message.parts.map(({ id, type }) => ({ id, type }))).toEqual(
-        streamed?.parts.filter((part) => part.type !== "step-finish").map(({ id, type }) => ({ id, type })),
+        streamed?.parts
+          .filter((part) => part.type !== "step-finish")
+          .map(({ id, type }) => ({ id, type })),
       );
     }
     const refreshed = await adapter.listMessages?.({ sessionId });
     await adapter.abortSession({ sessionId });
     const reopened = await adapter.listMessages?.({ sessionId, directory });
     for (const page of [refreshed, reopened])
-      expect(page?.messages.map((message) => ({
-        id: message.id,
-        parts: message.parts.map(({ id, type }) => ({ id, type })),
-      }))).toEqual(history?.messages.map((message) => ({
-        id: message.id,
-        parts: message.parts.map(({ id, type }) => ({ id, type })),
-      })));
+      expect(
+        page?.messages.map((message) => ({
+          id: message.id,
+          parts: message.parts.map(({ id, type }) => ({ id, type })),
+        })),
+      ).toEqual(
+        history?.messages.map((message) => ({
+          id: message.id,
+          parts: message.parts.map(({ id, type }) => ({ id, type })),
+        })),
+      );
     await adapter.deleteSession({ sessionId });
     await events.return?.();
   });
@@ -429,7 +479,9 @@ describe("createAcpAdapter", () => {
     const adapter = createAdapter("no-user");
     const directory = process.cwd();
     await adapter.createSession({ directory });
-    const history = await adapter.listMessages?.({ sessionId: "no-user-session" });
+    const history = await adapter.listMessages?.({
+      sessionId: "no-user-session",
+    });
     expect(history?.messages).toMatchObject([
       { role: "assistant", parts: [{ type: "text", text: "Only answer" }] },
     ]);
@@ -793,6 +845,43 @@ describe("createAcpAdapter", () => {
     });
   });
 
+  it("completes a prompt after permission waits beyond the lifecycle timeout", async () => {
+    const adapter = createAdapter("permission");
+    const sessionId = "permission-session";
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    await adapter.createSession({ directory: process.cwd() });
+
+    try {
+      vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+      const prompt = adapter
+        .sendMessage({
+          sessionId,
+          directory: process.cwd(),
+          content: "permission",
+        })
+        .catch((error: unknown) => error);
+      let event = await events.next();
+      while (event.value?.type !== "approval.requested")
+        event = await events.next();
+
+      await vi.advanceTimersByTimeAsync(30_001);
+      await adapter.respondToInteraction({
+        kind: "permission",
+        sessionId,
+        interactionId: "permission-session:tool-1",
+        value: { optionId: "allow" },
+      });
+      await expect(prompt).resolves.toMatchObject({
+        interactionId: sessionId,
+        value: { stopReason: "end_turn" },
+      });
+    } finally {
+      vi.useRealTimers();
+      await events.return?.();
+      await adapter.deleteSession({ sessionId });
+    }
+  });
+
   it("replies to pending permissions, cancels sessions, and releases the child process", async () => {
     const adapter = createAdapter("permission");
     const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
@@ -840,6 +929,58 @@ describe("createAcpAdapter", () => {
     ).resolves.toMatchObject({ interactionId: "permission-session" });
     await adapter.deleteSession({ sessionId: "permission-session" });
     await events.return?.();
+  });
+
+  it("clears pending permissions when the child process exits", async () => {
+    const spy = vi.fn(spawn);
+    const adapter = createAcpAdapter({
+      id: "exiting-permission",
+      name: "Exiting permission",
+      launch: {
+        command: process.execPath,
+        args: ["--input-type=module", "--eval", fakeAgent, "permission"],
+      },
+      spawn: spy,
+      timeoutMs: 2000,
+    });
+    const directory = process.cwd();
+    const sessionId = "permission-session";
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    await adapter.createSession({ directory });
+    const prompt = adapter
+      .sendMessage({
+        sessionId,
+        directory,
+        content: "permission",
+      })
+      .catch((error: unknown) => error);
+    try {
+      let event = await events.next();
+      while (event.value?.type !== "approval.requested")
+        event = await events.next();
+      await expect(
+        adapter.listPermissions!({ directory }),
+      ).resolves.toHaveLength(1);
+      const child = spy.mock.results[0]?.value;
+      if (!child) throw new Error("Missing ACP child process");
+      child.kill();
+      await expect(prompt).resolves.toMatchObject({ status: 409 });
+      await expect(adapter.listPermissions!({ directory })).resolves.toEqual(
+        [],
+      );
+      await expect(
+        adapter.respondToInteraction({
+          kind: "permission",
+          sessionId,
+          interactionId: `${sessionId}:tool-1`,
+          value: { reply: "once" },
+        }),
+      ).rejects.toMatchObject({ status: 404 });
+    } finally {
+      await adapter.abortSession({ sessionId }).catch(() => {});
+      await prompt;
+      await events.return?.();
+    }
   });
 
   it("rejects initialization when the agent process dies", async () => {

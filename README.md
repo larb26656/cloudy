@@ -10,6 +10,17 @@ When an agent replays incomplete or reordered history, structural matching
 cannot always identify the original messages: duplicates or incorrect merges
 may result.
 
+ACP prompts have no fixed deadline: long-running work and permission waits
+can continue beyond 30 seconds. Initialization and session creation/loading
+retain their timeouts. Use Stop to cancel a running prompt.
+
+Pending ACP permissions are listed by working directory, so returning to an
+open conversation still shows its approval requests.
+Cloudy's **Once**, **Always**, and **Reject** replies select the agent's offered
+`allow_once`, `allow_always`, and `reject_once` options, respectively. If the
+agent does not offer the requested kind, Cloudy reports it as unsupported and
+keeps the request pending. Stopping or closing the session clears its requests.
+
 ## Prerequisites
 
 - **Node.js** >= 20
