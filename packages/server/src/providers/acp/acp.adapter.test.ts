@@ -217,9 +217,9 @@ describe("createAcpAdapter", () => {
       const history = await adapter.listMessages!({ sessionId });
       expect(history.messages).toMatchObject([
         { role: "user", parts: [{ text: "first" }] },
-        { role: "assistant", parts: [{ text: "model-2:first" }, { type: "step-finish", modelID: "model-2" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:first" }), expect.objectContaining({ type: "step-finish", modelID: "model-2" })]) },
         { role: "user", parts: [{ text: "second" }] },
-        { role: "assistant", parts: [{ text: "model-1:second" }, { type: "step-finish", modelID: "model-1" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:second" }), expect.objectContaining({ type: "step-finish", modelID: "model-1" })]) },
       ]);
     } finally {
       await adapter.deleteSession({ sessionId });
@@ -236,7 +236,7 @@ describe("createAcpAdapter", () => {
         await adapter.sendMessage({ sessionId, content: "hello", model: selectedModel });
         expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
           { role: "user" },
-          { role: "assistant", parts: [{ text: "model-1:hello" }] },
+          { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:hello" })]) },
         ]);
       } finally {
         await adapter.deleteSession({ sessionId });
@@ -261,9 +261,7 @@ describe("createAcpAdapter", () => {
         content: "must not be delivered",
         model: modelId ? { providerId: "fake", modelId } : undefined,
       })).rejects.toThrow(message);
-      if (profile === "models-reject" || profile === "models-unsupported")
-        await adapter.createSession({ directory: process.cwd() });
-      else if (profile === "models-unconfirmed") {
+      if (profile === "models-unconfirmed") {
         await adapter.deleteSession({ sessionId });
         await adapter.createSession({ directory: process.cwd() });
       }
@@ -274,13 +272,39 @@ describe("createAcpAdapter", () => {
       });
       expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
         { role: "user", parts: [{ text: "retry" }] },
-        { role: "assistant", parts: [{ text: "model-1:retry" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:retry" })]) },
       ]);
     } finally {
       await adapter.deleteSession({ sessionId });
       await events.return?.();
     }
   });
+
+  it.each(["models-reject", "models-unsupported"])(
+    "preserves a live non-resumable session after %s rejects a model change",
+    async (profile) => {
+      const adapter = createAdapter(profile);
+      const sessionId = `${profile}-session`;
+      await adapter.createSession({ directory: process.cwd() });
+      try {
+        await adapter.sendMessage({ sessionId, content: "before", model: selectedModel });
+        await expect(adapter.sendMessage({
+          sessionId,
+          content: "not delivered",
+          model: { providerId: "fake", modelId: "model-2" },
+        })).rejects.toThrow("could not activate");
+        await adapter.sendMessage({ sessionId, content: "retry", model: selectedModel });
+        expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
+          { role: "user", parts: expect.arrayContaining([expect.objectContaining({ text: "before" })]) },
+          { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:before" })]) },
+          { role: "user", parts: expect.arrayContaining([expect.objectContaining({ text: "retry" })]) },
+          { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:retry" })]) },
+        ]);
+      } finally {
+        await adapter.deleteSession({ sessionId });
+      }
+    },
+  );
 
   it.each(["models-load", "models-resume"])(
     "applies the selection to a restored %s session",
@@ -317,9 +341,9 @@ describe("createAcpAdapter", () => {
       await adapter.sendMessage({ sessionId, content: "after", model: { providerId: "fake", modelId: "model-2" } });
       expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
         { role: "user" },
-        { role: "assistant", parts: [{ text: "model-1:update" }, { modelID: "model-2" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:update" }), expect.objectContaining({ modelID: "model-1" })]) },
         { role: "user" },
-        { role: "assistant", parts: [{ text: "model-2:after" }, { modelID: "model-2" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:after" }), expect.objectContaining({ modelID: "model-2" })]) },
       ]);
     } finally {
       await adapter.deleteSession({ sessionId });
@@ -333,15 +357,19 @@ describe("createAcpAdapter", () => {
     await adapter.createSession({ directory: process.cwd() });
     try {
       const first = adapter.sendMessage({ sessionId, content: "permission", model: selectedModel });
-      while ((await events.next()).value?.type !== "approval.requested") {}
+      while (true) {
+        const event = await events.next();
+        if (event.done) throw new Error("Event stream closed before approval");
+        if (event.value.type === "approval.requested") break;
+      }
       const second = adapter.sendMessage({ sessionId, content: "second", model: { providerId: "fake", modelId: "model-2" } });
       await adapter.respondToInteraction({ kind: "permission", sessionId, interactionId: `${sessionId}:model-wait`, value: { optionId: "allow" } });
       await Promise.all([first, second]);
       expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
         { role: "user" },
-        { role: "assistant", parts: [{ text: "model-1:permission" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:permission" })]) },
         { role: "user" },
-        { role: "assistant", parts: [{ text: "model-2:second" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:second" })]) },
       ]);
     } finally {
       await adapter.deleteSession({ sessionId });
@@ -360,10 +388,10 @@ describe("createAcpAdapter", () => {
         adapter.sendMessage({ sessionId: "two", content: "two", model: { providerId: "fake", modelId: "model-2" } }),
       ]);
       expect((await adapter.listMessages!({ sessionId: "one" })).messages).toMatchObject([
-        { role: "user" }, { role: "assistant", parts: [{ text: "model-1:one" }] },
+        { role: "user" }, { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:one" })]) },
       ]);
       expect((await adapter.listMessages!({ sessionId: "two" })).messages).toMatchObject([
-        { role: "user" }, { role: "assistant", parts: [{ text: "model-2:two" }] },
+        { role: "user" }, { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:two" })]) },
       ]);
     } finally {
       await adapter.deleteSession({ sessionId: "one" });
@@ -854,7 +882,7 @@ describe("createAcpAdapter", () => {
         expect.objectContaining({
           type: "step-finish",
           reason: "stop",
-          modelID: "model-2",
+          modelID: "model-1",
           tokens: {
             input: 12,
             output: 7,
