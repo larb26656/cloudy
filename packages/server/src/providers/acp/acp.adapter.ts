@@ -8,6 +8,7 @@ import {
   mapSessionUpdate,
   startPrompt,
 } from "./acp.message-mapper";
+import { validateFormResponse } from "./acp.form-validation";
 import {
   ConflictError,
   NotFoundError,
@@ -23,6 +24,7 @@ import type {
   InteractionResponseInput,
   ModelInfo,
   PermissionRequest,
+  ProviderQuestionRequest,
   ProviderEventsInput,
   ProviderMessageRequest,
   ProviderSessionInput,
@@ -65,6 +67,12 @@ interface PendingPermission {
   resolve: (response: acp.RequestPermissionResponse) => void;
 }
 
+interface PendingQuestion {
+  request: ProviderQuestionRequest;
+  schema: acp.ElicitationSchema;
+  resolve: (response: acp.CreateElicitationResponse) => void;
+}
+
 interface AcpSession {
   id: string;
   directory: string;
@@ -78,7 +86,10 @@ interface AcpSession {
   historyUnavailable: boolean;
   pendingChanges?: MessageChange[];
   prompting: boolean;
+  agentName: string;
+  pendingQuestions: Map<string, PendingQuestion>;
   pendingPermissions: Map<string, PendingPermission>;
+  stopping: boolean;
   closed: boolean;
 }
 
@@ -172,12 +183,33 @@ export function createAcpAdapter({
     return session.loadingMessages;
   };
 
+  const publishQuestionResolved = (
+    session: AcpSession,
+    interactionId: string,
+  ) =>
+    publish({
+      type: "question.resolved",
+      providerId: id,
+      directory: session.directory,
+      sessionId: session.id,
+      interactionId,
+    });
+
+  const clearQuestions = (session: AcpSession) => {
+    for (const [interactionId, pending] of session.pendingQuestions) {
+      session.pendingQuestions.delete(interactionId);
+      pending.resolve({ action: "cancel" });
+      publishQuestionResolved(session, interactionId);
+    }
+  };
+
   const closeSession = (session: AcpSession, error?: unknown) => {
     if (session.closed) return;
     session.closed = true;
     sessions.delete(session.id);
     for (const pending of session.pendingPermissions.values())
       pending.resolve({ outcome: { outcome: "cancelled" } });
+    clearQuestions(session);
     session.pendingPermissions.clear();
     session.connection.close(error);
     session.process.stdin?.destroy();
@@ -191,6 +223,7 @@ export function createAcpAdapter({
       streaming: true,
       requiresDirectory: true,
       approvals: true,
+      questions: true,
       agents: true,
       tools: true,
       reasoning: true,
@@ -286,6 +319,7 @@ export function createAcpAdapter({
 
         const sessionId = crypto.randomUUID();
         const pendingPermissions = new Map<string, PendingPermission>();
+        const pendingQuestions = new Map<string, PendingQuestion>();
         const stream = acp.ndJsonStream(
           Writable.toWeb(child.stdin),
           Readable.toWeb(child.stdout) as ReadableStream<Uint8Array>,
@@ -392,7 +426,59 @@ export function createAcpAdapter({
                 });
               });
             },
-          );
+          )
+          .onRequest(acp.methods.client.elicitation.create, ({ params }) => {
+            if (
+              params.mode !== "form" ||
+              !acp.CreateElicitationRequest.isForm(params)
+            )
+              throw acp.RequestError.invalidParams(
+                undefined,
+                "Unsupported elicitation mode",
+              );
+            if (!("sessionId" in params))
+              throw acp.RequestError.invalidParams(
+                undefined,
+                "Request-scoped elicitation is not supported",
+              );
+            if (
+              session.closed ||
+              session.stopping ||
+              params.sessionId !== session.id
+            )
+              throw acp.RequestError.invalidParams(
+                undefined,
+                "Unknown elicitation session",
+              );
+            const interactionId = crypto.randomUUID();
+            const request: ProviderQuestionRequest = {
+              id: interactionId,
+              sessionId: params.sessionId,
+              questions: [],
+              form: {
+                message: params.message,
+                schema: { ...params.requestedSchema },
+                agent: session.agentName,
+              },
+              ...(params.toolCallId
+                ? { metadata: { toolCallId: params.toolCallId } }
+                : {}),
+            };
+            return new Promise<acp.CreateElicitationResponse>((resolve) => {
+              pendingQuestions.set(interactionId, {
+                request,
+                schema: params.requestedSchema,
+                resolve,
+              });
+              publish({
+                type: "question.requested",
+                providerId: id,
+                directory: session.directory,
+                sessionId: session.id,
+                request,
+              });
+            });
+          });
         const connection = client.connect(stream);
         const session: AcpSession = {
           id: sessionId,
@@ -404,7 +490,10 @@ export function createAcpAdapter({
           replaying: false,
           historyUnavailable: false,
           prompting: false,
+          agentName: name,
+          pendingQuestions,
           pendingPermissions,
+          stopping: false,
           closed: false,
         };
 
@@ -423,13 +512,14 @@ export function createAcpAdapter({
           const initialized = await withTimeout(
             connection.agent.request(acp.methods.agent.initialize, {
               protocolVersion: acp.PROTOCOL_VERSION,
-              clientCapabilities: {},
+              clientCapabilities: { elicitation: { form: {} } },
               clientInfo: { name: "cloudy", version: "0.1.0" },
             }),
             timeoutMs,
             "ACP initialization timed out",
           );
           session.capabilities = initialized.agentCapabilities;
+          session.agentName = initialized.agentInfo?.name ?? name;
           console.info("[ACP] Agent initialized", {
             providerId: id,
             protocolVersion: initialized.protocolVersion,
@@ -594,6 +684,7 @@ export function createAcpAdapter({
             prompt: [{ type: "text", text: request.content }],
           },
         );
+        clearQuestions(session);
         const finalChanges = finishPrompt(
           session.messageState,
           response,
@@ -631,6 +722,7 @@ export function createAcpAdapter({
           "Sending to the original session failed. Your draft was kept; delivery may be uncertain.",
         );
       } finally {
+        clearQuestions(session);
         session.prompting = false;
       }
     },
@@ -676,6 +768,8 @@ export function createAcpAdapter({
     },
     async abortSession(input: { sessionId: string }): Promise<void> {
       const session = getSession(sessions, input.sessionId);
+      session.stopping = true;
+      clearQuestions(session);
       try {
         await session.connection.agent.notify(
           acp.methods.agent.session.cancel,
@@ -689,6 +783,8 @@ export function createAcpAdapter({
     },
     async deleteSession(input: { sessionId: string }): Promise<void> {
       const session = getSession(sessions, input.sessionId);
+      session.stopping = true;
+      clearQuestions(session);
       try {
         if (session.capabilities?.sessionCapabilities?.delete)
           await session.connection.agent.request(
@@ -719,6 +815,23 @@ export function createAcpAdapter({
       }
       return requests;
     },
+    async listQuestions(input: {
+      directory?: string;
+      sessionId?: string;
+    }): Promise<ProviderQuestionRequest[]> {
+      const requests: ProviderQuestionRequest[] = [];
+      for (const session of sessions.values()) {
+        if (
+          session.closed ||
+          (input.directory && input.directory !== session.directory) ||
+          (input.sessionId && input.sessionId !== session.id)
+        )
+          continue;
+        for (const pending of session.pendingQuestions.values())
+          requests.push(pending.request);
+      }
+      return requests;
+    },
     async respondToInteraction(response: InteractionResponseInput) {
       const session = sessions.get(response.sessionId);
       if (
@@ -726,12 +839,20 @@ export function createAcpAdapter({
         session.closed ||
         (response.directory && response.directory !== session.directory)
       )
-        throw new NotFoundError("ACP permission request not found");
+        throw new NotFoundError("ACP interaction request not found");
+      if (response.kind === "question") {
+        const pending = session.pendingQuestions.get(response.interactionId);
+        if (!pending || pending.request.sessionId !== response.sessionId)
+          throw new NotFoundError("ACP question request not found");
+        const result = validateFormResponse(pending.schema, response.value);
+        session.pendingQuestions.delete(response.interactionId);
+        publishQuestionResolved(session, response.interactionId);
+        pending.resolve(result);
+        return { interactionId: response.interactionId, value: null };
+      }
       const pending = session.pendingPermissions.get(response.interactionId);
       if (!pending || pending.request.sessionId !== response.sessionId)
         throw new NotFoundError("ACP permission request not found");
-      if (response.kind === "question")
-        throw new ValidationError("ACP question responses are not supported");
       const optionId = permissionOptionId(
         response.value,
         pending.params.options,

@@ -90,6 +90,7 @@ export interface QuestionRequest {
   id: string;
   sessionID: string;
   questions: QuestionItem[];
+  form?: { message: string; schema: Record<string, unknown>; agent: string };
 }
 
 export type QuestionAnswer = string[];

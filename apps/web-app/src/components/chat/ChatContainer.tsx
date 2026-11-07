@@ -153,7 +153,7 @@ export function ChatSurface({
             <QuestionBanner
               onOpenDialog={() => setQuestionOpen(true)}
               count={sessionQuestions.reduce(
-                (sum, q) => sum + q.questions.length,
+                (sum, q) => sum + (q.form ? 1 : q.questions.length),
                 0,
               )}
             />

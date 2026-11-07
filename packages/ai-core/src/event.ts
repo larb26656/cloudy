@@ -66,6 +66,12 @@ export interface QuestionRequestedEvent extends ChatEventContext {
   request: ProviderQuestionRequest;
 }
 
+export interface QuestionResolvedEvent extends ChatEventContext {
+  type: "question.resolved";
+  sessionId: CanonicalSessionId;
+  interactionId: string;
+}
+
 export interface RunFailedEvent extends ChatEventContext {
   type: "run.failed";
   sessionId: CanonicalSessionId;
@@ -82,4 +88,5 @@ export type ChatEvent =
   | MessageDeltaEvent
   | ApprovalRequestedEvent
   | QuestionRequestedEvent
+  | QuestionResolvedEvent
   | RunFailedEvent;

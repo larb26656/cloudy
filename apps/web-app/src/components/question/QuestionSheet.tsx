@@ -22,6 +22,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Field } from "@repo/ui/components/field";
 import { toast } from "@repo/ui/components/sonner";
+import { FormQuestionSheet } from "./FormQuestionSheet";
 
 const OTHER_VALUE = "other";
 
@@ -86,6 +87,31 @@ export function QuestionSheet({
   onOpenChange,
   question,
 }: QuestionSheetProps) {
+  if (question.form) {
+    return (
+      <FormQuestionSheet
+        key={question.id}
+        open={open}
+        onOpenChange={onOpenChange}
+        question={question}
+        form={question.form}
+      />
+    );
+  }
+  return (
+    <ChoiceQuestionSheet
+      open={open}
+      onOpenChange={onOpenChange}
+      question={question}
+    />
+  );
+}
+
+function ChoiceQuestionSheet({
+  open,
+  onOpenChange,
+  question,
+}: QuestionSheetProps) {
   const form = useForm<QuestionFormValues>({
     resolver: zodResolver(questionFormSchema),
     defaultValues: {
@@ -145,7 +171,7 @@ export function QuestionSheet({
       await replyQuestion.mutateAsync({
         requestID: question.id,
         sessionId: question.sessionID,
-        answers: answerList,
+        value: answerList,
       });
       onOpenChange(false);
     } catch (err) {

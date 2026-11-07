@@ -120,6 +120,11 @@ export function handleEvent(
         eventDirectory,
       );
       break;
+    case "question.resolved":
+      void queryClient.invalidateQueries({
+        queryKey: questionKeys.list(event.sessionId),
+      });
+      break;
     case "run.failed":
       {
         const error =
