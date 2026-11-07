@@ -1,6 +1,21 @@
 import type * as acp from "@agentclientprotocol/sdk";
 import type { ChatMessage, MessagePart } from "@repo/ai-core";
 
+function fileInput(name: string | undefined, value: unknown, hasChanges: boolean): unknown {
+  if (!name || !["write", "edit", "apply_patch"].includes(name) ||
+      typeof value !== "object" || value === null || Array.isArray(value)) return value;
+  const input = { ...value as Record<string, unknown> };
+  if (typeof input.path === "string" && input.filePath === undefined) {
+    input.filePath = input.path;
+    delete input.path;
+  }
+  if (name === "edit" && hasChanges) {
+    delete input.oldString;
+    delete input.newString;
+  }
+  return input;
+}
+
 export interface AcpMessageState {
   sessionId: string;
   messages: ChatMessage[];
@@ -176,10 +191,13 @@ export function mapSessionUpdate(
         : displayContent?.length === 1
           ? displayContent[0]
           : displayContent?.length ? displayContent : undefined;
+      const toolName = update.name ?? tool?.toolName;
+      const hadFileChanges = !!changes?.length || tool?.metadata?.hadFileChanges === true;
+      const input = fileInput(toolName, raw.rawInput, hadFileChanges);
       addPart(message, {
         id: partId,
         type: "tool",
-        toolName: update.name ?? tool?.toolName,
+        toolName,
         callId: update.toolCallId,
         status,
         title: update.title === undefined ? tool?.title : update.title ?? undefined,
@@ -190,12 +208,18 @@ export function mapSessionUpdate(
               path: location.path,
               line: location.line ?? undefined,
             })),
-        input: update.rawInput === undefined ? tool?.input : update.rawInput,
+        input,
         output,
         displayContent,
         terminalIds,
         changes,
-        metadata: { ...(tool?.metadata ?? {}), acp: raw },
+        error: status === "failed"
+          ? typeof rawOutput === "object" && rawOutput !== null &&
+              "error" in rawOutput && typeof rawOutput.error === "string"
+            ? rawOutput.error
+            : displayContent?.find((item): item is string => typeof item === "string")
+          : undefined,
+        metadata: { ...(tool?.metadata ?? {}), ...(hadFileChanges ? { hadFileChanges: true } : {}), acp: raw },
       });
       break;
     }

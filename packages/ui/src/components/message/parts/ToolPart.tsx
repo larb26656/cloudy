@@ -1,4 +1,6 @@
 import type { ToolMessagePart } from "@repo/ai-core";
+import { createTwoFilesPatch } from "diff";
+import { DiffViewer } from "@repo/ui/components/markdown";
 import { getToolComponent } from "./tool-components/registry";
 import { ToolValueRenderer } from "./tool-components/ToolValueRenderer";
 
@@ -32,9 +34,19 @@ export function ToolPart({ part }: ToolPartProps) {
         <div key={index}>{location.path}{location.line != null ? `:${location.line}` : ""}</div>
       ))}
       {part.terminalIds?.map((id) => <div key={id}>Terminal: {id}</div>)}
-      {part.changes?.map((change, index) => (
-        <ToolValueRenderer key={index} value={change} keyName="change" />
-      ))}
+      {part.changes?.map((change, index) =>
+        change.before === undefined ? (
+          <ToolValueRenderer key={index} value={change} keyName="change" />
+        ) : (
+          <DiffViewer
+            key={index}
+            diff={createTwoFilesPatch(change.path, change.path, change.before, change.after)}
+            filePath={change.path}
+            viewMode="line-by-line"
+            showLineNumbers={true}
+          />
+        ),
+      )}
     </div>
   );
   if (!part.toolName || !part.status) {
