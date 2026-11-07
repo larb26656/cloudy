@@ -1,5 +1,5 @@
 import { describe, expect, test } from "vitest";
-import { screen } from "@testing-library/react";
+import { fireEvent, screen, within } from "@testing-library/react";
 import { AssistantMessageBubble } from "@repo/ui/components/message";
 import type { ChatEvent } from "@repo/contracts";
 import { applyChatEvent } from "@/lib/streaming/message-stream";
@@ -61,8 +61,16 @@ describe("ACP conversation display", () => {
     expect(message).toBeDefined();
     renderWithProviders(<AssistantMessageBubble message={message!} />);
     expect(await screen.findAllByText("Hello")).toHaveLength(1);
-    expect(screen.getByText("first finished")).toBeInTheDocument();
-    expect(screen.getByText("second progress")).toBeInTheDocument();
+    const disclosures = screen.getAllByText("Raw tool details");
+    expect(disclosures).toHaveLength(2);
+    const first = disclosures[0]!.closest("details")!;
+    const second = disclosures[1]!.closest("details")!;
+    expect(within(first).getByText("first finished")).not.toBeVisible();
+    expect(within(second).getByText("second progress")).not.toBeVisible();
+    fireEvent.click(disclosures[0]!);
+    fireEvent.click(disclosures[1]!);
+    expect(within(first).getByText("first finished")).toBeVisible();
+    expect(within(second).getByText("second progress")).toBeVisible();
     expect(screen.queryByText("first progress")).not.toBeInTheDocument();
   });
 });
