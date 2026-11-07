@@ -12,6 +12,17 @@ const profile = process.argv.at(-1);
 let cancelled = () => {};
 let loadCount = 0;
 let restored = false;
+let activeModel = "model-1";
+const modelOption = () => ({
+  id: profile.startsWith("models") ? "engine" : "model",
+  name: "Model",
+  category: "model",
+  type: "select",
+  currentValue: activeModel,
+  options: profile.startsWith("models")
+    ? [{ name: "Available", group: "models", options: [{ value: "model-1", name: "Model One" }, { value: "model-2", name: "Model Two" }] }]
+    : [{ value: "model-1", name: "Model One" }],
+});
 const waitForRestore = async (params, client) => {
   await client.request(acp.methods.client.session.requestPermission, {
     sessionId: params.sessionId,
@@ -24,30 +35,24 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.initialize, () => ({
     protocolVersion: acp.PROTOCOL_VERSION,
     agentInfo: { name: profile, version: "1.0.0" },
-    agentCapabilities: { loadSession: ["replay", "replay-conversation", "no-user", "delayed-load", "reload-failure"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume"].includes(profile) ? { resume: {} } : {}) } },
+    agentCapabilities: { loadSession: ["replay", "replay-conversation", "no-user", "delayed-load", "reload-failure", "models-load"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume", "models-resume", "permission"].includes(profile) ? { resume: {} } : {}) } },
   }))
   .onRequest(acp.methods.agent.session.new, ({ params }) => {
     if (!params.cwd.startsWith("/")) throw new Error("cwd must be absolute");
     if (profile === "dies") process.exit(1);
     return {
       sessionId: profile + "-session",
-      configOptions: [{
-        id: "model",
-        name: "Model",
-        category: "model",
-        type: "select",
-        currentValue: "model-1",
-        options: [{ value: "model-1", name: "Model One" }],
-      }],
+      configOptions: [modelOption()],
     };
   })
   .onRequest(acp.methods.agent.session.delete, () => ({}))
   .onRequest(acp.methods.agent.session.close, () => ({}))
   .onRequest(acp.methods.agent.session.load, async ({ params, client }) => {
     const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+    if (profile === "models-load") return { configOptions: [modelOption()] };
     if (profile === "delayed-load") {
       await waitForRestore(params, client);
-      return {};
+      return { configOptions: [modelOption()] };
     }
     if (profile === "reload-failure") {
       await emit({ sessionUpdate: "agent_message_chunk", content: { type: "text", text: "partial replay" } });
@@ -88,10 +93,32 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.session.resume, async ({ params, client }) => {
     if (profile === "delayed-resume") await waitForRestore(params, client);
     else restored = true;
-    return {};
+    return { configOptions: [modelOption()] };
   })
   .onRequest(acp.methods.agent.session.prompt, async ({ params, client }) => {
     if (["delayed-load", "delayed-resume"].includes(profile) && !restored) throw new Error("session not restored");
+    if (profile.startsWith("models")) {
+      const answerModel = activeModel;
+      if (params.prompt[0].text === "permission") {
+        await client.request(acp.methods.client.session.requestPermission, {
+          sessionId: params.sessionId,
+          toolCall: { toolCallId: "model-wait", title: "Continue" },
+          options: [{ optionId: "allow", name: "Allow", kind: "allow_once" }],
+        });
+      }
+      await client.notify(acp.methods.client.session.update, {
+        sessionId: params.sessionId,
+        update: { sessionUpdate: "agent_message_chunk", content: { type: "text", text: answerModel + ":" + params.prompt[0].text } },
+      });
+      if (profile === "models-update" && params.prompt[0].text === "update") {
+        activeModel = "model-2";
+        await client.notify(acp.methods.client.session.update, {
+          sessionId: params.sessionId,
+          update: { sessionUpdate: "config_option_update", configOptions: [modelOption()] },
+        });
+      }
+      return { stopReason: "end_turn" };
+    }
     if (profile === "conversation" || profile === "replay-conversation") {
       const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
       const text = (text) => emit({ sessionUpdate: "agent_message_chunk", content: { type: "text", text } });
@@ -143,11 +170,22 @@ const agent = acp.agent({ name: "fake-agent" })
   })
   .onNotification(acp.methods.agent.session.cancel, () => cancelled());
 
+if (profile !== "models-unsupported") {
+  agent.onRequest(acp.methods.agent.session.setConfigOption, ({ params }) => {
+    if (profile === "models-reject") throw new Error("model change rejected");
+    if (params.configId !== modelOption().id) throw new Error("wrong configuration option");
+    if (profile !== "models-unconfirmed") activeModel = params.value;
+    return { configOptions: profile === "models-unconfirmed" ? [] : [modelOption()] };
+  });
+}
+
 agent.connect(acp.ndJsonStream(
   Writable.toWeb(process.stdout),
   Readable.toWeb(process.stdin),
 ));
 `;
+
+const selectedModel = { providerId: "fake", modelId: "model-1" };
 
 function createAdapter(profile: string) {
   return createAcpAdapter({
@@ -162,6 +200,205 @@ function createAdapter(profile: string) {
 }
 
 describe("createAcpAdapter", () => {
+  it("uses the selected session model on each turn and records confirmed model metadata", async () => {
+    const adapter = createAdapter("models");
+    const directory = process.cwd();
+    const sessionId = "models-session";
+    await adapter.createSession({ directory });
+    try {
+      for (const [content, modelId] of [["first", "model-2"], ["second", "model-1"]]) {
+        await adapter.sendMessage({
+          sessionId,
+          directory,
+          content: content!,
+          model: { providerId: "fake-models", modelId: modelId! },
+        });
+      }
+      const history = await adapter.listMessages!({ sessionId });
+      expect(history.messages).toMatchObject([
+        { role: "user", parts: [{ text: "first" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:first" }), expect.objectContaining({ type: "step-finish", modelID: "model-2" })]) },
+        { role: "user", parts: [{ text: "second" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:second" }), expect.objectContaining({ type: "step-finish", modelID: "model-1" })]) },
+      ]);
+    } finally {
+      await adapter.deleteSession({ sessionId });
+    }
+  });
+
+  it.each(["models-reject", "models-unsupported"])(
+    "allows an already active model when %s cannot change it",
+    async (profile) => {
+      const adapter = createAdapter(profile);
+      const sessionId = `${profile}-session`;
+      await adapter.createSession({ directory: process.cwd() });
+      try {
+        await adapter.sendMessage({ sessionId, content: "hello", model: selectedModel });
+        expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
+          { role: "user" },
+          { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:hello" })]) },
+        ]);
+      } finally {
+        await adapter.deleteSession({ sessionId });
+      }
+    },
+  );
+
+  it.each([
+    { profile: "models", modelId: undefined, message: "Select a model" },
+    { profile: "models", modelId: "missing", message: "not available" },
+    { profile: "models-reject", modelId: "model-2", message: "could not activate" },
+    { profile: "models-unsupported", modelId: "model-2", message: "could not activate" },
+    { profile: "models-unconfirmed", modelId: "model-2", message: "did not confirm" },
+  ])("does not deliver a prompt when model selection fails: $message", async ({ profile, modelId, message }) => {
+    const adapter = createAdapter(profile);
+    const sessionId = `${profile}-session`;
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    await adapter.createSession({ directory: process.cwd() });
+    try {
+      await expect(adapter.sendMessage({
+        sessionId,
+        content: "must not be delivered",
+        model: modelId ? { providerId: "fake", modelId } : undefined,
+      })).rejects.toThrow(message);
+      if (profile === "models-unconfirmed") {
+        await adapter.deleteSession({ sessionId });
+        await adapter.createSession({ directory: process.cwd() });
+      }
+      await adapter.sendMessage({ sessionId, content: "retry", model: selectedModel });
+      expect((await events.next()).value).toMatchObject({
+        type: "message.updated",
+        message: { role: "user", parts: [{ text: "retry" }] },
+      });
+      expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
+        { role: "user", parts: [{ text: "retry" }] },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:retry" })]) },
+      ]);
+    } finally {
+      await adapter.deleteSession({ sessionId });
+      await events.return?.();
+    }
+  });
+
+  it.each(["models-reject", "models-unsupported"])(
+    "preserves a live non-resumable session after %s rejects a model change",
+    async (profile) => {
+      const adapter = createAdapter(profile);
+      const sessionId = `${profile}-session`;
+      await adapter.createSession({ directory: process.cwd() });
+      try {
+        await adapter.sendMessage({ sessionId, content: "before", model: selectedModel });
+        await expect(adapter.sendMessage({
+          sessionId,
+          content: "not delivered",
+          model: { providerId: "fake", modelId: "model-2" },
+        })).rejects.toThrow("could not activate");
+        await adapter.sendMessage({ sessionId, content: "retry", model: selectedModel });
+        expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
+          { role: "user", parts: expect.arrayContaining([expect.objectContaining({ text: "before" })]) },
+          { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:before" })]) },
+          { role: "user", parts: expect.arrayContaining([expect.objectContaining({ text: "retry" })]) },
+          { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:retry" })]) },
+        ]);
+      } finally {
+        await adapter.deleteSession({ sessionId });
+      }
+    },
+  );
+
+  it.each(["models-load", "models-resume"])(
+    "applies the selection to a restored %s session",
+    async (profile) => {
+      const adapter = createAdapter(profile);
+      const sessionId = `${profile}-session`;
+      const directory = process.cwd();
+      const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+      await adapter.createSession({ sessionId, directory });
+      try {
+        await adapter.sendMessage({ sessionId, directory, content: "restored", model: { providerId: "fake", modelId: "model-2" } });
+        let answer;
+        while (true) {
+          const event = await events.next();
+          if (event.done) throw new Error("Event stream closed before response");
+          if (event.value.type === "message.part.updated" && event.value.part.type === "text")
+            answer = event.value.part.text;
+          if (event.value.type === "session.status" && event.value.runStatus === "completed") break;
+        }
+        expect(answer).toBe("model-2:restored");
+      } finally {
+        await adapter.deleteSession({ sessionId });
+        await events.return?.();
+      }
+    },
+  );
+
+  it("tracks agent configuration updates for later sends and response metadata", async () => {
+    const adapter = createAdapter("models-update");
+    const sessionId = "models-update-session";
+    await adapter.createSession({ directory: process.cwd() });
+    try {
+      await adapter.sendMessage({ sessionId, content: "update", model: selectedModel });
+      await adapter.sendMessage({ sessionId, content: "after", model: { providerId: "fake", modelId: "model-2" } });
+      expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
+        { role: "user" },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:update" }), expect.objectContaining({ modelID: "model-1" })]) },
+        { role: "user" },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:after" }), expect.objectContaining({ modelID: "model-2" })]) },
+      ]);
+    } finally {
+      await adapter.deleteSession({ sessionId });
+    }
+  });
+
+  it("serializes competing sends without changing the model during a response", async () => {
+    const adapter = createAdapter("models");
+    const sessionId = "models-session";
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    await adapter.createSession({ directory: process.cwd() });
+    try {
+      const first = adapter.sendMessage({ sessionId, content: "permission", model: selectedModel });
+      while (true) {
+        const event = await events.next();
+        if (event.done) throw new Error("Event stream closed before approval");
+        if (event.value.type === "approval.requested") break;
+      }
+      const second = adapter.sendMessage({ sessionId, content: "second", model: { providerId: "fake", modelId: "model-2" } });
+      await adapter.respondToInteraction({ kind: "permission", sessionId, interactionId: `${sessionId}:model-wait`, value: { optionId: "allow" } });
+      await Promise.all([first, second]);
+      expect((await adapter.listMessages!({ sessionId })).messages).toMatchObject([
+        { role: "user" },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:permission" })]) },
+        { role: "user" },
+        { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:second" })]) },
+      ]);
+    } finally {
+      await adapter.deleteSession({ sessionId });
+      await events.return?.();
+    }
+  });
+
+  it("keeps model selections independent across sessions", async () => {
+    const adapter = createAdapter("models-resume");
+    const directory = process.cwd();
+    await adapter.createSession({ sessionId: "one", directory });
+    await adapter.createSession({ sessionId: "two", directory });
+    try {
+      await Promise.all([
+        adapter.sendMessage({ sessionId: "one", content: "one", model: selectedModel }),
+        adapter.sendMessage({ sessionId: "two", content: "two", model: { providerId: "fake", modelId: "model-2" } }),
+      ]);
+      expect((await adapter.listMessages!({ sessionId: "one" })).messages).toMatchObject([
+        { role: "user" }, { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-1:one" })]) },
+      ]);
+      expect((await adapter.listMessages!({ sessionId: "two" })).messages).toMatchObject([
+        { role: "user" }, { role: "assistant", parts: expect.arrayContaining([expect.objectContaining({ text: "model-2:two" })]) },
+      ]);
+    } finally {
+      await adapter.deleteSession({ sessionId: "one" });
+      await adapter.deleteSession({ sessionId: "two" });
+    }
+  });
+
   it.each(["delayed-load", "delayed-resume"])(
     "waits for initial %s restoration before sending to the bound session",
     async (profile) => {
@@ -182,6 +419,7 @@ describe("createAcpAdapter", () => {
         sessionId,
         directory,
         content: "hello",
+        model: selectedModel,
       });
       await adapter.respondToInteraction({
         kind: "permission",
@@ -220,6 +458,7 @@ describe("createAcpAdapter", () => {
       sessionId,
       directory,
       content: "hello",
+      model: selectedModel,
     });
     const listing = adapter.listMessages!({ sessionId, directory });
     expect((await events.next()).value).toMatchObject({
@@ -248,6 +487,7 @@ describe("createAcpAdapter", () => {
       sessionId,
       directory,
       content: "permission",
+      model: selectedModel,
     });
     const received = [];
     while (true) {
@@ -284,7 +524,7 @@ describe("createAcpAdapter", () => {
     const directory = process.cwd();
     const sessionId = "reload-failure-session";
     await adapter.createSession({ directory });
-    await adapter.sendMessage({ sessionId, directory, content: "hello" });
+    await adapter.sendMessage({ sessionId, directory, content: "hello", model: selectedModel });
     const history = await adapter.listMessages!({ sessionId });
     expect(history).toMatchObject({
       historyUnavailable: true,
@@ -316,6 +556,7 @@ describe("createAcpAdapter", () => {
         sessionId: "conversation-session",
         directory,
         content: content!,
+        model: selectedModel,
         turnId: turnId!,
       });
       while (true) {
@@ -413,7 +654,7 @@ describe("createAcpAdapter", () => {
       pendingDeltas: new Map(),
     };
     for (const content of ["first", "second"]) {
-      await adapter.sendMessage({ sessionId, directory, content });
+      await adapter.sendMessage({ sessionId, directory, content, model: selectedModel });
       while (true) {
         const next = await events.next();
         if (next.done) break;
@@ -546,6 +787,7 @@ describe("createAcpAdapter", () => {
       sessionId: "events-session",
       directory: process.cwd(),
       content: "go",
+      model: selectedModel,
       turnId: "turn-1",
     });
 
@@ -640,7 +882,7 @@ describe("createAcpAdapter", () => {
         expect.objectContaining({
           type: "step-finish",
           reason: "stop",
-          modelID: "model-2",
+          modelID: "model-1",
           tokens: {
             input: 12,
             output: 7,
@@ -671,6 +913,7 @@ describe("createAcpAdapter", () => {
       sessionId: "events-session",
       directory: process.cwd(),
       content: "again",
+      model: { providerId: "fake", modelId: "model-2" },
       turnId: "turn-2",
     });
     const nextPage = await adapter.listMessages?.({
@@ -734,6 +977,7 @@ describe("createAcpAdapter", () => {
       sessionId: "alpha-session",
       directory: process.cwd(),
       content: "hello",
+      model: selectedModel,
     });
     await expect(alphaEvents.next()).resolves.toMatchObject({
       value: { type: "message.updated", message: { role: "user" } },
@@ -799,6 +1043,7 @@ describe("createAcpAdapter", () => {
       sessionId: "cancelled-session",
       directory: process.cwd(),
       content: "stop",
+      model: selectedModel,
     });
     await expect(
       adapter.listMessages?.({ sessionId: "cancelled-session" }),
@@ -858,6 +1103,7 @@ describe("createAcpAdapter", () => {
           sessionId,
           directory: process.cwd(),
           content: "permission",
+          model: selectedModel,
         })
         .catch((error: unknown) => error);
       let event = await events.next();
@@ -891,6 +1137,7 @@ describe("createAcpAdapter", () => {
       sessionId: "permission-session",
       directory: process.cwd(),
       content: "permission",
+      model: selectedModel,
     });
     await events.next();
     await events.next();
@@ -915,6 +1162,7 @@ describe("createAcpAdapter", () => {
       sessionId: "permission-session",
       directory: process.cwd(),
       content: "wait",
+      model: selectedModel,
     });
     await events.next();
     await events.next();
@@ -925,6 +1173,7 @@ describe("createAcpAdapter", () => {
         sessionId: "permission-session",
         directory: process.cwd(),
         content: "again",
+        model: selectedModel,
       }),
     ).resolves.toMatchObject({ interactionId: "permission-session" });
     await adapter.deleteSession({ sessionId: "permission-session" });
@@ -952,6 +1201,7 @@ describe("createAcpAdapter", () => {
         sessionId,
         directory,
         content: "permission",
+        model: selectedModel,
       })
       .catch((error: unknown) => error);
     try {

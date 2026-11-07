@@ -13,7 +13,7 @@ input.on("line", (line) => {
   if (request.method === "initialize") {
     send({ jsonrpc: "2.0", id: request.id, result: { protocolVersion: 1, agentCapabilities: {}, agentInfo: { name: "fake", version: "1" } } });
   } else if (request.method === "session/new") {
-    send({ jsonrpc: "2.0", id: request.id, result: { sessionId: "activity-session" } });
+    send({ jsonrpc: "2.0", id: request.id, result: { sessionId: "activity-session", configOptions: [{ id: "model", name: "Model", category: "model", type: "select", currentValue: "model-1", options: [{ value: "model-1", name: "Model One" }] }] } });
   } else if (request.method === "session/prompt") {
     send({ jsonrpc: "2.0", method: "session/update", params: { sessionId: "activity-session", update: { sessionUpdate: "vendor_activity", phase: "review", vendorDetail: { note: "actual payload" } } } });
     send({ jsonrpc: "2.0", id: request.id, result: { stopReason: "end_turn" } });
@@ -37,6 +37,7 @@ test("shows unmapped ACP activity and discloses the original payload on demand",
       sessionId: "activity-session",
       directory: process.cwd(),
       content: "hello",
+      model: { providerId: "fake-activity", modelId: "model-1" },
       turnId: "turn-1",
     });
     const page = await adapter.listMessages?.({

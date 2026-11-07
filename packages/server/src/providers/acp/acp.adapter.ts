@@ -71,7 +71,8 @@ interface AcpSession {
   process: ChildProcess;
   connection: acp.ClientConnection;
   capabilities: acp.AgentCapabilities | undefined;
-  modelId?: string;
+  model?: Extract<acp.SessionConfigOption, { type: "select" }>;
+  turn?: Promise<void>;
   messageState: AcpMessageState;
   replaying: boolean;
   loadingMessages?: Promise<void>;
@@ -148,7 +149,7 @@ export function createAcpAdapter({
     session.messageState = createAcpMessageState(session.id);
     session.replaying = true;
     try {
-      await withTimeout(
+      const loaded = await withTimeout(
         session.connection.agent.request(acp.methods.agent.session.load, {
           sessionId: session.id,
           cwd: session.directory,
@@ -157,6 +158,7 @@ export function createAcpAdapter({
         timeoutMs,
         "ACP session load timed out",
       );
+      if (loaded.configOptions) updateModel(session, loaded.configOptions);
     } catch (error) {
       session.messageState = previous;
       throw error;
@@ -183,6 +185,64 @@ export function createAcpAdapter({
     session.process.stdin?.destroy();
     session.process.stdout?.destroy();
     if (!session.process.killed) session.process.kill();
+  };
+
+  const updateModel = (
+    session: AcpSession,
+    options: acp.SessionConfigOption[],
+  ) => {
+    const model = options.find(
+      (option) => option.type === "select" && option.category === "model",
+    ) ?? options.find(
+      (option) =>
+        option.type === "select" &&
+        option.id === (session.model?.id ?? "model"),
+    );
+    session.model = model?.type === "select" ? model : undefined;
+  };
+
+  const offersModel = (
+    model: AcpSession["model"],
+    modelId: string,
+  ): model is NonNullable<AcpSession["model"]> =>
+    model !== undefined &&
+    model.options.some((item) =>
+      "options" in item
+        ? item.options.some((option) => option.value === modelId)
+        : item.value === modelId,
+    );
+
+  const applyModel = async (session: AcpSession, modelId?: string) => {
+    if (!modelId)
+      throw new ValidationError("Select a model before sending your message.");
+    const model = session.model;
+    if (!offersModel(model, modelId))
+      throw new ValidationError(
+        `Model "${modelId}" is not available in this ACP session. Choose an available model.`,
+      );
+    if (model.currentValue === modelId) return model.currentValue;
+    try {
+      const result = await withTimeout(
+        session.connection.agent.request(acp.methods.agent.session.setConfigOption, {
+          sessionId: session.id,
+          configId: model.id,
+          value: modelId,
+        }),
+        timeoutMs,
+        "ACP model selection timed out",
+        () => closeSession(session),
+      );
+      updateModel(session, result.configOptions);
+    } catch {
+      throw new ConflictError(
+        `The ACP agent could not activate model "${modelId}". Choose another model or check the agent configuration.`,
+      );
+    }
+    if (session.model?.currentValue !== modelId || !offersModel(session.model, modelId))
+      throw new ConflictError(
+        `The ACP agent did not confirm model "${modelId}". Choose another model or check the agent configuration.`,
+      );
+    return session.model.currentValue;
   };
 
   const adapter = {
@@ -320,13 +380,8 @@ export function createAcpAdapter({
               const session = sessions.get(params.sessionId);
               if (!session) return;
               const update = params.update as acp.SessionUpdate;
-              if (update.sessionUpdate === "config_option_update") {
-                const model = update.configOptions.find(
-                  (option) => option.id === "model" && option.type === "select",
-                );
-                if (model?.type === "select")
-                  session.modelId = model.currentValue;
-              }
+              if (update.sessionUpdate === "config_option_update")
+                updateModel(session, update.configOptions);
               if (
                 update.sessionUpdate === "session_info_update" &&
                 update.title != null &&
@@ -529,11 +584,7 @@ export function createAcpAdapter({
             input.sessionId ??
             ("sessionId" in created ? created.sessionId : session.id);
           session.messageState.sessionId = session.id;
-          const selectedModel = created.configOptions?.find(
-            (option) => option.id === "model" && option.type === "select",
-          );
-          if (selectedModel?.type === "select")
-            session.modelId = selectedModel.currentValue;
+          if (created.configOptions) updateModel(session, created.configOptions);
           sessions.set(session.id, session);
           const now = new Date().toISOString();
           return {
@@ -569,69 +620,83 @@ export function createAcpAdapter({
         });
         session = getSession(sessions, request.sessionId);
       }
-      if (session.loadingMessages) await session.loadingMessages;
-      if (request.attachments?.length)
-        throw new Error("ACP attachments are not supported");
-      session.prompting = true;
-      if (session.historyUnavailable) session.pendingChanges = [];
-      const initialChanges = startPrompt(session.messageState, request.content);
-      if (session.pendingChanges)
-        session.pendingChanges.push(...initialChanges);
-      else publishChanges(session, initialChanges);
-      publish({
-        type: "session.status",
-        providerId: id,
-        directory: session.directory,
-        sessionId: session.id,
-        status: "active",
-        runStatus: "running",
+      const previousTurn = session.turn;
+      let releaseTurn!: () => void;
+      const turn = new Promise<void>((resolve) => {
+        releaseTurn = resolve;
       });
+      session.turn = turn;
+      if (previousTurn) await previousTurn;
       try {
-        const response = await session.connection.agent.request(
-          acp.methods.agent.session.prompt,
-          {
+        if (session.closed)
+          throw new ConflictError("The ACP session was closed. Retry your message.");
+        session.prompting = true;
+        if (session.loadingMessages) await session.loadingMessages;
+        if (request.attachments?.length)
+          throw new Error("ACP attachments are not supported");
+        const turnModel = await applyModel(session, request.model?.modelId);
+        if (session.historyUnavailable) session.pendingChanges = [];
+        const initialChanges = startPrompt(session.messageState, request.content);
+        if (session.pendingChanges)
+          session.pendingChanges.push(...initialChanges);
+        else publishChanges(session, initialChanges);
+        publish({
+          type: "session.status",
+          providerId: id,
+          directory: session.directory,
+          sessionId: session.id,
+          status: "active",
+          runStatus: "running",
+        });
+        try {
+          const response = await session.connection.agent.request(
+            acp.methods.agent.session.prompt,
+            {
+              sessionId: session.id,
+              prompt: [{ type: "text", text: request.content }],
+            },
+          );
+          const finalChanges = finishPrompt(
+            session.messageState,
+            response,
+            turnModel,
+          );
+          if (session.pendingChanges) {
+            session.pendingChanges.push(...finalChanges);
+            publishChanges(session, session.pendingChanges);
+            session.pendingChanges = undefined;
+          } else {
+            publishChanges(session, finalChanges);
+          }
+          publish({
+            type: "session.status",
+            providerId: id,
+            directory: session.directory,
             sessionId: session.id,
-            prompt: [{ type: "text", text: request.content }],
-          },
-        );
-        const finalChanges = finishPrompt(
-          session.messageState,
-          response,
-          session.modelId,
-        );
-        if (session.pendingChanges) {
-          session.pendingChanges.push(...finalChanges);
-          publishChanges(session, session.pendingChanges);
-          session.pendingChanges = undefined;
-        } else {
-          publishChanges(session, finalChanges);
+            status: "idle",
+            runStatus:
+              response.stopReason === "cancelled" ? "cancelled" : "completed",
+          });
+          return { interactionId: session.id, value: response };
+        } catch (error) {
+          console.log(error);
+          closeSession(session, error);
+          publish({
+            type: "session.status",
+            providerId: id,
+            directory: session.directory,
+            sessionId: session.id,
+            status: "idle",
+            runStatus: "idle",
+          });
+          throw new ConflictError(
+            "Sending to the original session failed. Your draft was kept; delivery may be uncertain.",
+          );
         }
-        publish({
-          type: "session.status",
-          providerId: id,
-          directory: session.directory,
-          sessionId: session.id,
-          status: "idle",
-          runStatus:
-            response.stopReason === "cancelled" ? "cancelled" : "completed",
-        });
-        return { interactionId: session.id, value: response };
-      } catch (error) {
-        console.log(error);
-        closeSession(session, error);
-        publish({
-          type: "session.status",
-          providerId: id,
-          directory: session.directory,
-          sessionId: session.id,
-          status: "idle",
-          runStatus: "idle",
-        });
-        throw new ConflictError(
-          "Sending to the original session failed. Your draft was kept; delivery may be uncertain.",
-        );
       } finally {
         session.prompting = false;
+        releaseTurn();
+        if (session.turn === turn) session.turn = undefined;
       }
     },
     async listMessages(input: { sessionId: string; directory?: string }) {
@@ -843,10 +908,14 @@ function withTimeout<T>(
   promise: Promise<T>,
   timeoutMs: number,
   message: string,
+  onTimeout?: () => void,
 ) {
   let timeout: ReturnType<typeof setTimeout> | undefined;
   const timed = new Promise<T>((_, reject) => {
-    timeout = setTimeout(() => reject(new Error(message)), timeoutMs);
+    timeout = setTimeout(() => {
+      onTimeout?.();
+      reject(new Error(message));
+    }, timeoutMs);
   });
   return Promise.race([promise, timed]).finally(() => {
     if (timeout) clearTimeout(timeout);

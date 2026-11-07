@@ -58,6 +58,13 @@ changing an agent's configuration, open the selector and choose **Refresh
 models**. If refresh fails, the last successfully discovered models remain
 available and the selector warns that they may be out of date.
 
+Before each ACP message, Cloudy uses the conversation's model selection, or
+the provider's global default when the conversation has no override. The agent
+must advertise that model for the session and confirm it is active. If no model
+is selected, the model is unavailable, or activation cannot be confirmed,
+Cloudy reports the problem without sending the prompt and keeps the draft.
+Changing a selection takes effect on the next turn, not during a response.
+
 ## Browser Extension Development
 
 The browser extension lives in `apps/browser-extension` and is built with WXT.
