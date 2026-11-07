@@ -2,6 +2,21 @@ import type * as acp from "@agentclientprotocol/sdk";
 import type { ChatMessage, MessagePart } from "@repo/ai-core";
 import { normalizeOtherTool } from "./acp.native-other-tools";
 
+function fileInput(name: string | undefined, value: unknown, hasChanges: boolean): unknown {
+  if (!name || !["write", "edit", "apply_patch"].includes(name) ||
+      typeof value !== "object" || value === null || Array.isArray(value)) return value;
+  const input = { ...value as Record<string, unknown> };
+  if (typeof input.path === "string" && input.filePath === undefined) {
+    input.filePath = input.path;
+    delete input.path;
+  }
+  if (name === "edit" && hasChanges) {
+    delete input.oldString;
+    delete input.newString;
+  }
+  return input;
+}
+
 export interface AcpMessageState {
   sessionId: string;
   messages: ChatMessage[];
@@ -203,6 +218,8 @@ export function mapSessionUpdate(
         typeof (rawOutput as Record<string, unknown>).error === "string"
           ? (rawOutput as Record<string, string>).error
           : undefined;
+      const hadFileChanges = !!changes?.length || tool?.metadata?.hadFileChanges === true;
+      input = fileInput(toolName, input, hadFileChanges);
       addPart(message, {
         id: partId,
         type: "tool",
@@ -223,7 +240,7 @@ export function mapSessionUpdate(
         displayContent,
         terminalIds,
         changes,
-        metadata: { ...(tool?.metadata ?? {}), acp: raw },
+        metadata: { ...(tool?.metadata ?? {}), ...(hadFileChanges ? { hadFileChanges: true } : {}), acp: raw },
       });
       break;
     }

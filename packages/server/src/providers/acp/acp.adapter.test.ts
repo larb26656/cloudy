@@ -40,6 +40,20 @@ const genericTrace = async (emit) => {
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", status: "completed", content: [{ type: "terminal", terminalId: "term-1" }, { type: "content", content: { type: "text", text: "done" } }], rawOutput: { count: 3 } });
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "a", content: [], locations: [], rawOutput: null });
 };
+const fileTrace = async (emit) => {
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "edit", content: [{ type: "diff", path: "a.ts", oldText: "", newText: "one" }, { type: "diff", path: "a.ts", oldText: "one", newText: "two" }, { type: "diff", path: "b.ts", oldText: "old", newText: "" }] });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "write", name: "write", title: "Write", status: "pending", rawInput: { filePath: "empty.ts", content: "" } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "edit", name: "edit", title: "Edit", status: "in_progress", rawInput: { filePath: "a.ts", oldString: "", newString: "one" } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "patch", name: "apply_patch", title: "Patch", status: "pending", rawInput: { patchText: "*** Begin Patch\\n*** Add File: c.ts\\n+x\\n*** End Patch" } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "single", name: "edit", title: "Edit one", status: "completed", rawInput: { filePath: "single.ts", oldString: "old", newString: "" } });
+  await emit({ sessionUpdate: "tool_call", toolCallId: "unknown", title: "Edit file", kind: "edit", locations: [{ path: "unknown.ts" }], status: "pending" });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "edit", content: [{ type: "content", content: { type: "text", text: "corrected" } }, { type: "diff", path: "b.ts", oldText: "", newText: "fixed" }], rawOutput: { progress: 2 } });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "edit", status: "failed", rawOutput: { error: "cannot save" } });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "write", status: "completed" });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "patch", status: "completed" });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "unknown", content: [{ type: "diff", path: "unknown.ts", oldText: "a", newText: "b" }] });
+  await emit({ sessionUpdate: "tool_call_update", toolCallId: "edit", content: [] });
+};
 const nativeTrace = async (emit) => {
   await emit({ sessionUpdate: "tool_call_update", toolCallId: "skill", rawInput: { name: "frontend-design", unrelated: "raw" } });
   await emit({ sessionUpdate: "tool_call", toolCallId: "command", name: "bash", title: "Run", kind: "execute", status: "pending", rawInput: { command: "printf hello", description: "Print greeting", workdir: "/tmp", timeout: 5000, extra: true } });
@@ -80,7 +94,7 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.initialize, () => ({
     protocolVersion: acp.PROTOCOL_VERSION,
     agentInfo: { name: profile, version: "1.0.0" },
-    agentCapabilities: { loadSession: ["other-tools", "generic", "native", "replay", "replay-conversation", "no-user", "delayed-load", "reload-failure", "models-load"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume", "models-resume", "permission"].includes(profile) ? { resume: {} } : {}) } },
+    agentCapabilities: { loadSession: ["file-changes", "other-tools", "generic", "native", "replay", "replay-conversation", "no-user", "delayed-load", "reload-failure", "models-load"].includes(profile), sessionCapabilities: { close: true, delete: true, ...(["resume", "delayed-resume", "models-resume", "permission"].includes(profile) ? { resume: {} } : {}) } },
   }))
   .onRequest(acp.methods.agent.session.new, ({ params }) => {
     if (!params.cwd.startsWith("/")) throw new Error("cwd must be absolute");
@@ -94,6 +108,11 @@ const agent = acp.agent({ name: "fake-agent" })
   .onRequest(acp.methods.agent.session.close, () => ({}))
   .onRequest(acp.methods.agent.session.load, async ({ params, client }) => {
     const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+    if (profile === "file-changes") {
+      await emit({ sessionUpdate: "user_message_chunk", content: { type: "text", text: "go" } });
+      await fileTrace(emit);
+      return {};
+    }
     if (profile === "native") {
       await emit({ sessionUpdate: "user_message_chunk", content: { type: "text", text: "go" } });
       await nativeTrace(emit);
@@ -177,6 +196,11 @@ const agent = acp.agent({ name: "fake-agent" })
           update: { sessionUpdate: "config_option_update", configOptions: [modelOption()] },
         });
       }
+      return { stopReason: "end_turn" };
+    }
+    if (profile === "file-changes") {
+      const emit = (update) => client.notify(acp.methods.client.session.update, { sessionId: params.sessionId, update });
+      await fileTrace(emit);
       return { stopReason: "end_turn" };
     }
     if (profile === "native") {
@@ -670,6 +694,74 @@ describe("createAcpAdapter", () => {
     }
   });
 
+  it("owns file changes through replacement, clearing, and replay", async () => {
+    const adapter = createAdapter("file-changes");
+    const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
+    const sessionId = "file-changes-session";
+    await adapter.createSession({ directory: process.cwd() });
+    try {
+      await adapter.sendMessage({ sessionId, content: "go", model: selectedModel });
+      const parts = [];
+      while (true) {
+        const next = await events.next();
+        if (next.done) break;
+        if (next.value.type === "message.part.updated" && next.value.part.type === "tool")
+          parts.push(next.value.part);
+        if (next.value.type === "session.status" && next.value.runStatus === "completed") break;
+      }
+      const edit = parts.filter((part) => part.callId === "edit");
+      expect(edit[0]).toMatchObject({ changes: [
+        { path: "a.ts", before: "", after: "one" },
+        { path: "a.ts", before: "one", after: "two" },
+        { path: "b.ts", before: "old", after: "" },
+      ] });
+      expect(edit[1]).toMatchObject({
+        toolName: "edit", status: "running", input: { filePath: "a.ts" },
+        metadata: { acp: { name: "edit", rawInput: { oldString: "", newString: "one" } } },
+      });
+      expect(edit[2]).toMatchObject({
+        changes: [{ path: "b.ts", before: "", after: "fixed" }],
+        displayContent: ["corrected"], output: { progress: 2 },
+      });
+      expect(edit[3]).toMatchObject({
+        status: "failed", error: "cannot save", output: { error: "cannot save" },
+        changes: [{ path: "b.ts", before: "", after: "fixed" }],
+        displayContent: ["corrected"],
+      });
+      expect(edit[4]).toMatchObject({ changes: [], input: { filePath: "a.ts" } });
+      expect(parts.find((part) => part.callId === "write")).toMatchObject({
+        toolName: "write", input: { filePath: "empty.ts", content: "" },
+      });
+      expect(parts.find((part) => part.callId === "patch")).toMatchObject({
+        toolName: "apply_patch", input: { patchText: "*** Begin Patch\n*** Add File: c.ts\n+x\n*** End Patch" },
+      });
+      expect(parts.find((part) => part.callId === "single")).toMatchObject({
+        toolName: "edit", input: { filePath: "single.ts", oldString: "old", newString: "" },
+      });
+      const unknown = parts.filter((part) => part.callId === "unknown").at(-1);
+      expect(unknown?.toolName).toBeUndefined();
+      expect(unknown).toMatchObject({
+        kind: "edit", locations: [{ path: "unknown.ts" }],
+        changes: [{ path: "unknown.ts", before: "a", after: "b" }],
+      });
+      const history = await adapter.listMessages!({ sessionId });
+      const replayed = history.messages.flatMap((message) => message.parts.filter((part) => part.type === "tool"));
+      for (const callId of ["edit", "write", "patch", "single", "unknown"]) {
+        const live = parts.filter((part) => part.callId === callId).at(-1);
+        const matches = replayed.filter((part) => part.callId === callId);
+        expect(matches).toHaveLength(1);
+        expect(matches[0]).toMatchObject({
+          toolName: live?.toolName, input: live?.input, changes: live?.changes,
+          status: live?.status, output: live?.output,
+        });
+      }
+      expect(history.messages.flatMap((message) => message.parts).filter((part) => part.type === "diff")).toEqual([]);
+    } finally {
+      await adapter.deleteSession({ sessionId });
+      await events.return?.();
+    }
+  });
+
   it("preserves generic activity across updates and replay", async () => {
     const adapter = createAdapter("generic");
     const events = adapter.subscribeEvents()[Symbol.asyncIterator]();
@@ -1071,7 +1163,7 @@ describe("createAcpAdapter", () => {
           callId: "tool-1",
           toolName: "edit",
           status: "completed",
-          input: { path: "app.ts" },
+          input: { filePath: "app.ts" },
           output: { done: true },
           changes: [{ path: "app.ts", before: "old", after: "new" }],
         }),
