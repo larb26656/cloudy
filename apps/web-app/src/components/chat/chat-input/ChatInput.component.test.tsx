@@ -459,24 +459,11 @@ describe("ChatInput — Tab cycles agents", () => {
     expect(onAgentChange).toHaveBeenCalledWith("build");
   });
 
-  test("Shift+Tab goes backward", () => {
+  test("Shift+Tab leaves agent selection unchanged", () => {
     const onAgentChange = vi.fn();
-    renderInput({
-      initialAgent: "plan",
-      onAgentChange,
-    });
+    renderInput({ initialAgent: "plan", onAgentChange });
     pressKey("Tab", { shiftKey: true });
-    expect(onAgentChange).toHaveBeenCalledWith("build");
-  });
-
-  test("Shift+Tab wraps from first to last", () => {
-    const onAgentChange = vi.fn();
-    renderInput({
-      initialAgent: "build",
-      onAgentChange,
-    });
-    pressKey("Tab", { shiftKey: true });
-    expect(onAgentChange).toHaveBeenCalledWith("explore");
+    expect(onAgentChange).not.toHaveBeenCalled();
   });
 
   test("Tab is a no-op when agent list is empty (no setAgent call)", () => {

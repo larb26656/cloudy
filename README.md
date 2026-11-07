@@ -21,6 +21,25 @@ Cloudy's **Once**, **Always**, and **Reject** replies select the agent's offered
 agent does not offer the requested kind, Cloudy reports it as unsupported and
 keeps the request pending. Stopping or closing the session clears its requests.
 
+ACP agents can ask session-scoped form Questions in chat. Review the fields and
+submit an answer, decline, or cancel the Question; closing the sheet only hides
+it. Forms are for ordinary non-sensitive information, not credentials. URL
+elicitation and forms outside a session are not supported.
+
+Multiple pending Questions remain available independently in their own
+conversation, even when they come from the same tool call. Answering one does
+not answer another Question or Permission; choose a request from the chat
+banner to inspect or answer it. Multi-select fields can be explicitly answered
+with no selections; optional fields may also be left unanswered. Automation
+continues to wait for human input rather than answering these Questions.
+
+Pending Questions are retired when their prompt ends, the agent withdraws the
+request, the session is stopped or closed, or the connection ends. Refreshing
+the browser can rediscover a live Question, but restarting the server cannot
+restore its response channel. Cloudy does not guess an expiry time: an agent may
+silently stop waiting, and delivering a late answer does not guarantee that the
+agent used it.
+
 ## Prerequisites
 
 - **Node.js** >= 20

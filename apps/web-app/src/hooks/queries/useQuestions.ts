@@ -14,6 +14,7 @@ function toQuestion(request: ProviderQuestionRequest): QuestionRequest {
   return {
     id: request.id,
     sessionID: request.sessionId,
+    form: request.form,
     questions: request.questions.map((question) => ({
       ...question,
       multiple: question.multiple ?? false,
@@ -57,18 +58,23 @@ export function useReplyQuestion() {
     mutationFn: async ({
       requestID,
       sessionId,
-      answers,
+      value,
     }: {
       requestID: string;
       sessionId: string;
-      answers: Array<QuestionAnswer>;
+      value:
+        | Array<QuestionAnswer>
+        | {
+            action: "accept" | "decline" | "cancel";
+            content?: Record<string, unknown>;
+          };
     }): Promise<void> => {
       await emptyResponse(
         await cloudyClient.api.sessions[":sessionId"].questions[
           ":questionId"
         ].$post({
           param: { sessionId, questionId: requestID },
-          json: { value: answers },
+          json: { value },
         }),
       );
     },

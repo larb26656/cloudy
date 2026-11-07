@@ -73,6 +73,11 @@ export interface ProviderQuestionRequest {
   id: string;
   sessionId: string;
   questions: QuestionItem[];
+  form?: {
+    message: string;
+    schema: Record<string, unknown>;
+    agent: string;
+  };
   expiresAt?: string;
   metadata?: Record<string, unknown>;
 }
